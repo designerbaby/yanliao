@@ -59,6 +59,19 @@
         <button class="logout-cancel-button logout-button" @click="logoutDialogShow = false">取消</button>
       </div>
     </el-dialog>
+    <el-dialog
+      :visible.sync="kugouBindShow"
+      width="400px"
+      custom-class="logout-dialog"
+      top="15%"
+    >
+      <div class=""></div>
+      <div class="logout-dialog-title">绑定成功</div>
+      <div class="login-tips">您已经绑定酷狗音乐账号</div>
+      <div class="">{{ nickName }}</div>
+      <div class="">绑定有效期为3个月, 超过有效期重新绑定</div>
+      <a href="/playIncentives" target="_blank" title="播放激励">播放激励</a>
+    </el-dialog>
   </div>
 </template>
 
@@ -94,6 +107,7 @@ export default {
         authCode: '',
       },
       showBind: 1,
+      kugouBindShow: false,
       code: getUrlParameters().code,  // 从酷狗登录回调之后拿到的code
       rules: {
         phone: [

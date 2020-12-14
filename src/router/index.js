@@ -91,7 +91,7 @@ const routes = [
     meta: {
       auth: 'noLogin',
     },
-    component: () => import('../views/privacyPolicy.vue')
+    component: () => import('../views/Policy/privacyPolicy.vue')
   },
   {
     path: '/userAgreement',
@@ -99,8 +99,16 @@ const routes = [
     meta: {
       auth: 'noLogin',
     },
-    component: () => import('../views/userAgreement.vue')
+    component: () => import('../views/Policy/userAgreement.vue')
   },
+  {
+    path: '/playIncentives',
+    name: 'PlayIncentives',
+    meta: {
+      auth: 'noLogin',
+    },
+    component: () => import('../views/Policy/playIncentives.vue')
+  }
 ]
 
 const router = new VueRouter({
