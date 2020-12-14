@@ -15,7 +15,7 @@ npm run serve
 npm run build
 ```
 
-### Customize configuration
+### 参考文档
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ### 需求文档：
@@ -33,5 +33,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
   - 草稿箱： http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_draft.md
   - 登录：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/auth.md
   - 主流程：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/kuwa.md
-  - 运营后台管理：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_manager_api.
+  - 运营后台管理：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_manager_api.md
+  - 绑定酷狗账号：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_yan/yan_kugou_bus/musicx_yan_kugou_bus.proto
 

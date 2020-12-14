@@ -14,7 +14,7 @@
     <div class="user-info" v-if="nickName !== ''">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
-      <!-- <button class="user-info-button">绑定酷狗账号</button> -->
+      <button class="user-info-button" @click="bindKugou" v-if="!showBind">绑定酷狗账号</button>
       <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
     </div>
 
@@ -63,20 +63,10 @@
 </template>
 
 <script>
-import { 
-  Input,
-  Dialog,
-  FormItem,
-  Form,
-  Message,
-} from 'element-ui'
-import { reportEvent } from '@/utils'
-import { 
-  fetchAuthCode, 
-  login,
-  logout,
-  userInfo,
-} from '@/api/login'
+import { Input, Dialog, FormItem, Form, Message } from 'element-ui'
+import { reportEvent, isTestEnv, getUrlParameters } from '@/common/utils'
+import { fetchAuthCode, login, logout, userInfo } from '@/api/login'
+import { bindKugou, showBindKuGou } from '@/api/bind' 
 
 export default {
   props: {
@@ -103,6 +93,8 @@ export default {
         phone: '',
         authCode: '',
       },
+      showBind: 1,
+      code: getUrlParameters().code,  // 从酷狗登录回调之后拿到的code
       rules: {
         phone: [
           {required: true, message: '请输入正确的手机号码', pattern: /^1[3-9]\d{9}$/, trigger: 'submit'}
@@ -132,18 +124,23 @@ export default {
     }
   },
   mounted() {
-    userInfo().then((response) => {
-      const { data, ret_code } = response.data
-      if (ret_code !== 100000) {
-        if (data !== null) {
-          sessionStorage.setItem('userInfo', JSON.stringify(data))
-          this.nickName = data.nick_name
-          this.userLogo = data.user_logo
-        }
-      }
-    })
+    this.toGetUserInfo()
+    this.toShowBindKugou()
+    this.toBindKugouAccrossCode()
   },
   methods: {
+    toGetUserInfo() {
+      userInfo().then((response) => {
+        const { data, ret_code } = response.data
+        if (ret_code !== 100000) {
+          if (data !== null) {
+            sessionStorage.setItem('userInfo', JSON.stringify(data))
+            this.nickName = data.nick_name
+            this.userLogo = data.user_logo
+          }
+        }
+      })
+    },
     openHomePage() {
       this.$router.push('/')
     },
@@ -219,7 +216,36 @@ export default {
         }
       })
     },
-  },
+    bindKugou() {
+      const fackbackUrl = isTestEnv ? 'https://test-yan.qq.com/index.html' : 'https://yan.qq.com/index.html'
+      const kugouYm = isTestEnv ? '//voo.kugou.com' : '//h5.kugou.com'
+      const openappid = isTestEnv ? 10073 : 10076
+      const jumpUrl = `https:${kugouYm}/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=${openappid}&url=${encodeURIComponent(fackbackUrl)}`
+      location.href = jumpUrl
+    },
+    toBindKugouAccrossCode() {
+      if (this.code) { // url带有code才发起请求
+        bindKugou(this.code).then(res => {
+          const { data, ret_code } = res.data
+          console.log('bindKugou:', res)
+          if (ret_code === 0) { // 和酷狗账号绑定成功
+            this.nickName = data.nickname
+            this.userLogo = data.profile_photo
+          }
+        })
+      }
+    },
+    toShowBindKugou() {
+      showBindKuGou().then((res) => {
+        const { data, ret_code } = res.data
+        if (ret_code === 0) {
+          if (data !== null) {
+            this.showBind = data.show_bind
+          } 
+        }
+      })
+    }
+  }
 }
 </script>
 

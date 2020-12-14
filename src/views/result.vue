@@ -20,10 +20,10 @@
 
 <script>
 // @ is an alias to /src
-import Header from '@/components/Header'
+import Header from '@/components/Header.vue'
 import Clipboard from 'clipboard'
 import { Message } from 'element-ui'
-import { reportEvent } from '@/utils'
+import { reportEvent } from '@/common/utils'
 
 export default {
   name: 'Home',

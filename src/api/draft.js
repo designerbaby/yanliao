@@ -1,3 +1,4 @@
+// 草稿功能相关api
 import service from './main'
 
 const axios = service

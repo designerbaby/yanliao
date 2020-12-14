@@ -63,8 +63,8 @@ import {
 import {
   search,
 } from "@/api"
-import Header from '@/components/Header'
-import { reportEvent } from '@/utils'
+import Header from '@/components/Header.vue'
+import { reportEvent } from '@/common/utils'
 
 export default {
   name: "Home",

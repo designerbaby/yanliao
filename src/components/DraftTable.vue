@@ -43,7 +43,7 @@
 
 <script>
 // @ is an alias to /src
-import { reportEvent } from '@/utils'
+import { reportEvent } from '@/common/utils'
 import CommonDialog from '@/components/CommonDialog'
 import { 
   Table,
