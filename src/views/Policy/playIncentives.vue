@@ -14,15 +14,13 @@
 
 <script>
 // @ is an alias to /src
-import { reportEvent } from "@/common/utils";
+import { reportEvent } from '@/common/utils/helper'
 
 export default {
-  name: "PlayIncentives",
-  components: {},
+  name: 'PlayIncentives',
   mounted() {
     document.title = "播放激励";
-  },
-  methods: {},
+  }
 };
 </script>
 

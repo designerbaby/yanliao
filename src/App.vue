@@ -8,8 +8,8 @@
 
 <script>
 // @ is an alias to /src
-import Header from '@/components/Header.vue'
-import Footer from '@/components/Footer'
+import Header from '@/common/components/Header.vue'
+import Footer from '@/common/components/Footer'
 import HomeBg from '@/assets/bg-home.png'
 import normalBg from '@/assets/bg.png'
 import activityBg from '@/assets/activity-bg.jpg'

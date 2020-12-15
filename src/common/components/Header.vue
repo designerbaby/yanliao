@@ -14,7 +14,7 @@
     <div class="user-info" v-if="nickName !== ''">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
-      <button class="user-info-button" @click="bindKugou" v-if="!showBind">绑定酷狗账号</button>
+      <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button>
       <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
     </div>
 
@@ -77,7 +77,7 @@
 
 <script>
 import { Input, Dialog, FormItem, Form, Message } from 'element-ui'
-import { reportEvent, isTestEnv, getUrlParameters } from '@/common/utils'
+import { reportEvent, isTestEnv, getUrlParameters } from '@/common/utils/helper'
 import { fetchAuthCode, login, logout, userInfo } from '@/api/login'
 import { bindKugou, showBindKuGou } from '@/api/bind' 
 
@@ -249,6 +249,8 @@ export default {
           if (ret_code === 0) { // 和酷狗账号绑定成功
             this.nickName = data.nickname
             this.userLogo = data.profile_photo
+          } else { // 绑定不成功的话，就再去请求下账号
+            this.toGetUserInfo()
           }
         })
       }

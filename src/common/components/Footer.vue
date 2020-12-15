@@ -2,11 +2,11 @@
   <div class="footer">
     <div class="footer-link">
       <a href="https://support.qq.com/products/294937" class="footer-link-box" title="用户反馈论坛" target="_blank">用户反馈论坛</a>
-      <a href="https://www.tencentmusic.com/zh-cn/contact.html" class="footer-link-box" title="联系我们">联系我们</a>
+      <a href="https://www.tencentmusic.com/zh-cn/contact.html" target="_blank" class="footer-link-box" title="联系我们">联系我们</a>
       <a href="/userAgreement" target="_blank" class="footer-link-box" title="服务协议">服务协议</a>
       <a href="/privacypolicy" target="_blank" class="footer-link-box" title="隐私政策">隐私政策</a>
-      <a href="https://www.tencentmusic.com/zh-cn/right.html" class="footer-link-box" title="权利声明">权利声明</a>
-      <a href="https://www.tencentmusic.com/zh-cn/whistleblower.html" class="footer-link-box" title="监督举报">监督举报</a>
+      <a href="https://www.tencentmusic.com/zh-cn/right.html" class="footer-link-box" title="权利声明" target="_blank">权利声明</a>
+      <a href="https://www.tencentmusic.com/zh-cn/whistleblower.html" class="footer-link-box" title="监督举报" target="_blank">监督举报</a>
       <a href="https://beian.miit.gov.cn" class="footer-link-box" target="_blank" rel="nofollow" title="粤ICP备17078037号">粤ICP备17078037号</a>
     </div>
     <div class="footer-copyright">© 2016 - 2020 腾讯音乐娱乐（深圳）有限公司 版权所有</div>

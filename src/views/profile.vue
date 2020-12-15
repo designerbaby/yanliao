@@ -78,7 +78,7 @@
 
 <script>
 // @ is an alias to /src
-import { reportEvent } from '@/common/utils'
+import { reportEvent } from '@/common/utils/helper'
 import { 
   Table,
   TableColumn,
@@ -87,9 +87,10 @@ import {
   Pagination,
   Message,
 } from 'element-ui'
-import Header from '@/components/Header.vue'
-import DraftTable from '@/components/DraftTable'
-import CommonDialog from '@/components/CommonDialog'
+import Header from '@/common/components/Header.vue'
+import DraftTable from '@/common/components/DraftTable'
+import CommonDialog from '@/common/components/CommonDialog'
+
 import {
   fetchArrangeList,
   deleteAudio,

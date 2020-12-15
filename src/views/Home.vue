@@ -27,8 +27,8 @@
 
 <script>
 // @ is an alias to /src
-import Header from '@/components/Header.vue'
-import { reportEvent } from '@/common/utils'
+import Header from '@/common/components/Header.vue'
+import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'Home',

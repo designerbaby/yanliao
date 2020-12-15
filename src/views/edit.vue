@@ -156,8 +156,8 @@ import {
   deleteDraft,
 } from '@/api/draft'
 
-import Header from '@/components/Header.vue'
-import { reportEvent } from '@/common/utils'
+import Header from '@/common/components/Header.vue'
+import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'Home',
@@ -496,7 +496,7 @@ export default {
     // 上一页按钮点击
     prevButtonClick() {
       // 编辑页-上一步按钮-点击
-      BeaconAction.onEvent("edit-page-prev-button", "edit-page-prev-button")
+      reportEvent('edit-page-prev-button')
       this.$router.push('/search')
     },
     deleteDraft() {
@@ -507,7 +507,7 @@ export default {
     // 确认按钮点击
     confirmButtonClick() {
       // 编辑页-确认按钮-点击
-      BeaconAction.onEvent("edit-page-confirm-button", "edit-page-confirm-button")
+      reportEvent('edit-page-confirm-button')
       const f = this.getFormData()
       const arrangeId = this.$route.params.arrangeId
       if (arrangeId) {
@@ -544,11 +544,11 @@ export default {
 
       if (this.defaultForm.bpm !== this.bpm) {
         // 编辑页-用户修改曲速
-        BeaconAction.onEvent("edit-page-update-bpm", "edit-page-update-bpm")
+        reportEvent('edit-page-update-bpm')
       }
       if (this.defaultForm.melody !== this.melody) {
         // 编辑页-用户修改曲调
-        BeaconAction.onEvent("edit-page-update-melody", "edit-page-update-melody")
+        reportEvent('edit-page-update-melody')
       }
     },
     /* 事件监听 end */

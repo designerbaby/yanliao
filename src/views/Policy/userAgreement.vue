@@ -826,7 +826,7 @@
 
 <script>
 // @ is an alias to /src
-import { reportEvent } from "@/common/utils";
+import { reportEvent } from "@/common/utils/helper";
 
 export default {
   name: "PrivacyPolicy",

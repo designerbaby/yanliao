@@ -83,7 +83,7 @@ const routes = [
     meta: {
       auth: 'noLogin',
     },
-    component: () => import('../views/activityPage.vue')
+    component: () => import('../views/Activity/activityPage.vue')
   },
   {
     path: '/privacyPolicy',

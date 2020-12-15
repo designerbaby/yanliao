@@ -530,15 +530,13 @@
 
 <script>
 // @ is an alias to /src
-import { reportEvent } from "@/common/utils";
+import { reportEvent } from '@/common/utils/helper';
 
 export default {
-  name: "PrivacyPolicy",
-  components: {},
+  name: 'PrivacyPolicy',
   mounted() {
     document.title = "盐料视频隐私政策";
-  },
-  methods: {},
+  }
 };
 </script>
 
