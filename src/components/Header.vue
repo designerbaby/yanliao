@@ -65,12 +65,12 @@
       custom-class="logout-dialog"
       top="15%"
     >
-      <div class=""></div>
-      <div class="logout-dialog-title">绑定成功</div>
-      <div class="login-tips">您已经绑定酷狗音乐账号</div>
-      <div class="">{{ nickName }}</div>
-      <div class="">绑定有效期为3个月, 超过有效期重新绑定</div>
-      <a href="/playIncentives" target="_blank" title="播放激励">播放激励</a>
+      <img src="@/assets/icon-complete.png" alt="success-icon" class="success-icon"/>
+      <div class="bind-success__title">绑定成功</div>
+      <div class="bind-success__kugou">您已经绑定酷狗音乐账号</div>
+      <div class="bind-success__nickname">{{ nickName }}</div>
+      <div>绑定有效期为3个月, 超过有效期重新绑定</div>
+      <div class="bind-success__validity">在个人主页发布视频同步到酷狗可获得<a href="/playIncentives" target="_blank" title="播放激励">播放激励</a></div>
     </el-dialog>
   </div>
 </template>
@@ -231,14 +231,18 @@ export default {
       })
     },
     bindKugou() {
-      const fackbackUrl = isTestEnv ? 'https://test-yan.qq.com/index.html' : 'https://yan.qq.com/index.html'
-      const kugouYm = isTestEnv ? '//voo.kugou.com' : '//h5.kugou.com'
-      const openappid = isTestEnv ? 10073 : 10076
-      const jumpUrl = `https:${kugouYm}/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=${openappid}&url=${encodeURIComponent(fackbackUrl)}`
-      location.href = jumpUrl
+      const testJumpUrl = `https://voo.kugou.com/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10073&url=${encodeURIComponent('https://test-yan.qq.com/index.html')}&scpoe=${encodeURIComponent('userinfo')}`
+      const jumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10076&url=${encodeURIComponent('https://yan.qq.com/index.html')}&scpoe=${encodeURIComponent('userinfo')}`
+      if (!isTestEnv) {
+        location.href = jumpUrl
+      } else {
+        location.href = testJumpUrl
+      }
+      console.log('location.href:', location.href)
     },
     toBindKugouAccrossCode() {
       if (this.code) { // url带有code才发起请求
+        this.kugouBindShow = true
         bindKugou(this.code).then(res => {
           const { data, ret_code } = res.data
           console.log('bindKugou:', res)
@@ -464,4 +468,34 @@ export default {
 	    border-radius: 31px;
     }
   }
+
+.success-icon {
+  width: 106px;
+  height: 106px;
+}
+.bind-success {
+  &__title {
+    font-size: 38px;
+    line-height: 40px;
+    margin: 30px auto;
+    color: #000;
+    font-weight: bold;
+  }
+  &__kugou {
+    color: #000;
+    font-size: 24px;
+  }
+  &__nickname {
+    color: #000;
+    font-size: 28px;
+    margin: 10px auto
+  }
+  &__validity {
+    margin: 80px auto 0 auto;
+    a {
+      color: #2cabff;
+      text-decoration: none;
+    }
+  }
+}
 </style>
