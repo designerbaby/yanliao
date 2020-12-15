@@ -182,9 +182,9 @@ export default {
     prevButtonClick() {
       // 多音字编辑页-上一步按钮-点击
       reportEvent("edit-page-2-prev-button")
-      const editPath = JSON.parse(sessionStorage.getItem('editPath'))
+      let editPath = sessionStorage.getItem('editPath')
       if (editPath) {
-        this.$router.push(editPath)
+        this.$router.push(JSON.parse(editPath))
       } else {
         this.$router.push('/edit/' + this.oldForm.music_id)
       }

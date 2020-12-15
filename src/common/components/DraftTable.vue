@@ -101,6 +101,8 @@ export default {
         return
       }
 
+      sessionStorage.setItem('editPath', '')
+      
       const step = row.step
       const musicId = row.music_id
       

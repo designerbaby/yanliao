@@ -78,6 +78,13 @@ const routes = [
     component: () => import('../views/audio.vue')
   },
   {
+    path: '/videoUpload',
+    name: 'VideoUpload',
+    meta: {
+    },
+    component: () => import('../views/videoUpload.vue')
+  },
+  {
     path: '/activityPage',
     name: 'ActivityPage',
     meta: {
