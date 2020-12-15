@@ -231,8 +231,8 @@ export default {
       })
     },
     bindKugou() {
-      const testJumpUrl = `https://voo.kugou.com/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10073&url=${encodeURIComponent('https://test-yan.qq.com/index.html')}&scpoe=${encodeURIComponent('userinfo')}`
-      const jumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10076&url=${encodeURIComponent('https://yan.qq.com/index.html')}&scpoe=${encodeURIComponent('userinfo')}`
+      const testJumpUrl = `https://voo.kugou.com/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10073&url=${encodeURIComponent('https://test-yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
+      const jumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10076&url=${encodeURIComponent('https://yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
       if (!isTestEnv) {
         location.href = jumpUrl
       } else {

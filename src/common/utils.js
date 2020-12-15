@@ -1,4 +1,5 @@
 export const reportEvent = (eventName, eventId, params='') => { // 数据上报事件
+  console.log('reportEvent:', eventName, eventId, params)
   BeaconAction.onEvent(eventId || eventName, eventName, params)
 }
 
