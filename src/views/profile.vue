@@ -209,7 +209,7 @@ export default {
         Message.error('音频合成中，暂不可编辑')
         return
       }
-      // sessionStorage.setItem('draftId', '')
+      sessionStorage.setItem('draftId', '')
       reportEvent('person-page-audioedit-button', 'person-page-audioedit-button', { arrangeId, })
       const editable = row.is_edit
       if (editable === 1) {

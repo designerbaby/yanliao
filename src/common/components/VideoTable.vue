@@ -9,7 +9,7 @@
     >
       <el-table-column>
         <template slot-scope="scope">
-          <img class="cover" :src="scope.row.cover_url" alt="" @click="coverClick(scope.row)">
+          <img class="cover" :src="scope.row.cover_url" alt="暂无封面" @click="coverClick(scope.row)">
           <div class="info">
             <div class="title">
               <!-- <span class="topic">#特朗普#</span> -->
@@ -53,11 +53,11 @@
     >
     </el-pagination>
     <CommonDialog :show="dialogShow" titleText="确定删除该视频吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
-    <el-dialog class="video-dialog" :visible.sync="videoDialogShow">
+    <el-dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
       <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
-      <video class="video" :src="currentVideoUrl" controls />
+      <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo"/>
     </el-dialog>
-    <div class="empty-box" v-if="this.list.length === 0">
+    <div class="empty-box" v-if="this.list.length === 0 && this.dataReady === true">
       <img class="empty-img" src="@/assets/empty.png" alt="" />
       <div class="empty-text">还没有上传视频哦~</div>
       <div class="empty-tips">点击页面右上角"发布视频"</div>
@@ -99,18 +99,27 @@ export default {
       total: 0,
       targetId: '',
       currentVideoUrl: '',
+      dataReady: false,
     }
   },
   mounted() {
     this.getList()
   },
   methods: {
+    videoDialogClose() {
+      const video = document.querySelector('.video')
+      video.pause()
+    },
     coverClick(row) {
       if (row.state === 2) {
         Message.error('视频已下线')
         return
       }
       this.videoDialogShow = true
+      this.$nextTick(() => {
+        console.log('this.$refs.dialogVideo:', this.$refs.dialogVideo)
+        this.$refs.dialogVideo.play()
+      })
       this.currentVideoUrl = row.play_url
     },
     getList() {
@@ -125,6 +134,7 @@ export default {
         const total = data.total
         this.list = list || []
         this.total = total || 0
+        this.dataReady = true
       })
     },
     jumpToEditPage(row, origin) {
@@ -167,6 +177,9 @@ export default {
     },
     closeButtonClick() {
       this.videoDialogShow = false
+      this.$nextTick(() => {
+        this.$refs.dialogVideo.pause()
+      })
     },
     currentPageChange() {
       this.getList()
@@ -224,15 +237,12 @@ export default {
       }
       .detail {
         margin-top: 12px;
+        color: #939393;
         span + span {
           margin-left: 18px;
         }
-        .music-info {
-          color: #939393;
-        }
         .video-state {
           font-weight: 500;
-          color: #939393;
         }
         .video-state-success {
           color: #85CE61;
