@@ -148,7 +148,7 @@ import {
   submit,
   editInfo,
   melodyConfig,
-} from '@/api'
+} from '@/api/api'
 
 import {
   addDraft,
@@ -527,7 +527,7 @@ export default {
             sessionStorage.setItem('polyphonicList', JSON.stringify(data.polyphonic_list))
             sessionStorage.setItem('editPath', JSON.stringify(this.$router.history.current.path))
             // this.submitDraft()
-            this.$router.push('/edit2')
+            this.$router.push('/rectify')
           }
         }).then((response) => {
           if (!response) {

@@ -33,7 +33,7 @@
 import {
   preSubmit,
   submit,
-} from '@/api'
+} from '@/api/api'
 
 import { 
   addDraft,

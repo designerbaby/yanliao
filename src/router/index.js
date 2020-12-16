@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
 
 Vue.use(VueRouter)
 
@@ -11,39 +10,31 @@ const routes = [
     meta: {
       auth: 'noLogin'
     },
-    component: Home
+    component: () => import('../views/Main/Home.vue')
   },
-  // {
-  //   path: '/about',
-  //   name: 'About',
-  //   // route level code-splitting
-  //   // this generates a separate chunk (about.[hash].js) for this route
-  //   // which is lazy-loaded when the route is visited.
-  //   component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  // },
   {
     path: '/search',
     name: 'Search',
     meta: {
       rank: 2,
     },
-    component: () => import('../views/search.vue')
+    component: () => import('../views/Main/search.vue')
   },
   {
-    path: '/edit/:musicId/:arrangeId?',
+    path: '/edit/:musicId/:arrangeId?', // 编辑歌曲页面
     name: 'Edit',
     meta: {
       rank: 3,
     },
-    component: () => import('../views/edit.vue')
+    component: () => import('../views/Main/edit.vue')
   },
   {
-    path: '/edit2',
-    name: 'Edit2',
+    path: '/rectify', // 矫正歌曲页面
+    name: 'Rectify',
     meta: {
       rank: 4,
     },
-    component: () => import('../views/edit2.vue')
+    component: () => import('../views/Main/rectify.vue')
   },
   // {
   //   path: '/result/:arrangeId',
@@ -59,7 +50,7 @@ const routes = [
     meta: {
       rank: 2,
     },
-    component: () => import('../views/exception.vue')
+    component: () => import('../views/Main/exception.vue')
   },
   {
     path: '/profile',
@@ -67,7 +58,7 @@ const routes = [
     meta: {
       rank: 1,
     },
-    component: () => import('../views/profile.vue')
+    component: () => import('../views/Main/profile.vue')
   },
   {
     path: '/audio/:arrangeId',
@@ -75,14 +66,14 @@ const routes = [
     meta: {
       rank: 2,
     },
-    component: () => import('../views/audio.vue')
+    component: () => import('../views/Main/audio.vue')
   },
   {
     path: '/videoUpload',
     name: 'VideoUpload',
     meta: {
     },
-    component: () => import('../views/videoUpload.vue')
+    component: () => import('../views/Main/videoUpload.vue')
   },
   {
     path: '/activityPage',

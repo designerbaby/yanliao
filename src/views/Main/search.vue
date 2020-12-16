@@ -62,7 +62,7 @@ import {
 } from "element-ui"
 import {
   search,
-} from "@/api"
+} from "@/api/api"
 import Header from '@/common/components/Header.vue'
 import { reportEvent } from '@/common/utils/helper'
 

@@ -150,7 +150,7 @@ export default {
       const musicId = row.music_id
       
       if (step === 2) {
-        this.$router.push(`/edit2`)
+        this.$router.push(`/rectify`)
       } else {
         this.$router.push(`/edit/${musicId}`)
       }
