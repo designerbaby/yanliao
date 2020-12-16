@@ -96,6 +96,7 @@ export default {
       }).then((response) => {
         const { data } = response.data
         this.polyphonicList = data.polyphonic_list
+        console.log('fetchDraftDetailById this.polyphonicList:', this.polyphonicList)
         this.initFormData()
       })
     },
@@ -106,7 +107,9 @@ export default {
     },
     // 初始化多音字表单对象
     initPolyphonicMap() {
+      console.log('this.polyphonicList:', this.polyphonicList)
       this.polyphonicList.forEach((item) => {
+        console.log('item:', item)
         const x = item.x
         const y = item.y
         const l = item.pinyin_list
@@ -118,7 +121,9 @@ export default {
           // model: l[0],
         }
         if (this.oldForm.fix_pinyin_list && this.oldForm.fix_pinyin_list.length !== 0) {
-          this.polyphonicMap[x][y].model = this.oldForm.fix_pinyin_list.filter((i) => i.x === x).find((i) => i.y === y).pinyin
+          console.log('x:', x)
+          console.log('this.oldForm.fix_pinyin_list.filter((i) => i.x === x):', this.oldForm.fix_pinyin_list.filter((i) => i.x === x))
+          this.polyphonicMap[x][y].model = this.oldForm.fix_pinyin_list.filter((i) => i.x === x).find((i) => i.y === y).pinyin || ''
         } else {
           this.polyphonicMap[x][y].model = l[0]
         }
@@ -136,7 +141,10 @@ export default {
         const x = item.x
         const y = item.y
         if (this.polyphonicMap[x][y]) {
-          const v = this.polyphonicMap[x][y].model
+          let v = ''
+          if (this.polyphonicMap[x][y].model) {
+            v = this.polyphonicMap[x][y].model
+          }
           const o = {
             x,
             y,
@@ -180,12 +188,14 @@ export default {
       this.$forceUpdate()
     },
     prevButtonClick() {
+     
       // 多音字编辑页-上一步按钮-点击
       reportEvent("edit-page-2-prev-button")
       let editPath = sessionStorage.getItem('editPath')
       if (editPath) {
         this.$router.push(JSON.parse(editPath))
       } else {
+        // debugger
         this.$router.push('/edit/' + this.oldForm.music_id)
       }
       // this.$router.go(-1)

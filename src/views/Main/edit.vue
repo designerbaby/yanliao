@@ -420,6 +420,18 @@ export default {
         }
         melodyOptions.push(o)
       }
+      if (max < 0) { // 最大的小于0，并且没有0
+        melodyOptions.push({
+          value: 0,
+          label: '曲调不变(默认)'
+        })
+      }
+      if (min > 0) {
+        melodyOptions.unshift({
+          value: 0,
+          label: '曲调不变(默认)'
+        })
+      }
       this.melodyOptions = melodyOptions
     },
     /* 数据初始化 end */
