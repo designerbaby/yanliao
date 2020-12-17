@@ -109,7 +109,6 @@ export default {
     initPolyphonicMap() {
       console.log('this.polyphonicList:', this.polyphonicList)
       this.polyphonicList.forEach((item) => {
-        console.log('item:', item)
         const x = item.x
         const y = item.y
         const l = item.pinyin_list

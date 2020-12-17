@@ -21,7 +21,7 @@ const routes = [
     component: () => import('../views/Main/search.vue')
   },
   {
-    path: '/edit/:musicId/:arrangeId?', // 编辑歌曲页面
+    path: '/edit/:musicId/:arrangeId?/:toneId?', // 编辑歌曲页面
     name: 'Edit',
     meta: {
       rank: 3,

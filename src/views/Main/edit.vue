@@ -201,6 +201,7 @@ export default {
       melodyOptions: [],
       oldLyricList: [],
       toneList: [],
+      toneId: 0
     }
   },
   watch:{
@@ -227,7 +228,9 @@ export default {
   created() {
     const musicId = parseInt(this.$route.params.musicId)
     const arrangeId = this.$route.params.arrangeId
+    const toneId = this.$route.params.toneId
     const draftId = sessionStorage.getItem('draftId')
+    this.toneId = toneId
     this.musicId = musicId
     this.arrangeId = arrangeId
     this.draftId = draftId
@@ -247,13 +250,8 @@ export default {
   },
   mounted() {
     reportEvent('edit-page-exposure')
-    window.onbeforeunload = (event) => {
-      const isModified = this.comparisonFormData()
-      if (isModified === true) {
-        this.submitDraft()
-        return '您可能有数据没有保存'
-      }
-    }
+    this.toOnBeforeUpload()
+    this.initEdit()
     // setInterval(() => {
     //   this.submitDraft()
     // }, 1000)
@@ -262,6 +260,20 @@ export default {
     window.onbeforeunload = null
   },
   methods: {
+    initEdit() {
+      console.log('initEdit')
+      this.getMelodyConfig(this.toneId) // 跳转到编辑页面去重新获取曲调
+    },
+    toOnBeforeUpload() {
+      // 在浏览器退出之前，判断是否有数据修改了没保存
+      window.onbeforeunload = (event) => {
+        const isModified = this.comparisonFormData()
+        if (isModified === true) {
+          this.submitDraft()
+          return '您可能有数据没有保存'
+        }
+      }
+    },
     comparisonFormData() {
       const defaultForm = this.defaultForm
       const currentForm = this.getFormData()
@@ -439,6 +451,7 @@ export default {
     // 获取 melody 配置
     getMelodyConfig(toneId) {
       const musicId = this.musicId
+      console.log(`getMelodyConfig: musicId:${musicId}, toneId:${toneId}`)
       melodyConfig(musicId, toneId).then((response) => {
         this.melodySelectorDisable = false
         const { data } = response.data

@@ -28,6 +28,8 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
   - 。。。等等
 
 ### 接口文档：
+  后台接口文档：
+  - 后台统一接口文档：http://git.tmeoa.com/simonygzhao/RESTfulAPI
 
   - 短视频接口文档：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/video.md
   - 草稿箱： http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_draft.md
@@ -55,3 +57,10 @@ chore: 构建过程或辅助工具的变动
 npm install -g commitizen
 ```
 
+### TODO 
+bug
+1、编辑作品，修改歌词后进入拼音校正，点击上一步刚刚保存的结果丢失P1
+2、编辑作品，在2的场景下，编辑后产生一个新的作品而不是覆盖原作品P1
+3、创作或者编辑没有第三步校正拼音的作品，点击“确定”后提示参数错误，但是音频的合成效果没有受到影响P0
+4、再次编辑作品没有请求曲调范围P0
+5、第三步校正拼音保存草稿，再次编辑草稿，无法返回上一步P0
