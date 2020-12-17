@@ -187,12 +187,13 @@ export default {
       this.$forceUpdate()
     },
     prevButtonClick() {
-     
       // 多音字编辑页-上一步按钮-点击
       reportEvent("edit-page-2-prev-button")
       let editPath = sessionStorage.getItem('editPath')
+      console.log('editPath:', editPath)
       if (editPath) {
         this.$router.push(JSON.parse(editPath))
+        sessionStorage.setItem('isRectify', 1)
       } else {
         // debugger
         this.$router.push('/edit/' + this.oldForm.music_id)

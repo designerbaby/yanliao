@@ -243,6 +243,8 @@ export default {
       this.getEditedInfo(arrangeId)
     } else if (draftId) {
       this.getDraftInfo(draftId)
+    } else if (toneId) {
+      this.getMelodyConfig(this.toneId)
     } else {
       // 获取歌曲基本信息
       this.getSongInfo()
@@ -251,7 +253,6 @@ export default {
   mounted() {
     reportEvent('edit-page-exposure')
     this.toOnBeforeUpload()
-    this.initEdit()
     // setInterval(() => {
     //   this.submitDraft()
     // }, 1000)
@@ -260,10 +261,6 @@ export default {
     window.onbeforeunload = null
   },
   methods: {
-    initEdit() {
-      console.log('initEdit')
-      this.getMelodyConfig(this.toneId) // 跳转到编辑页面去重新获取曲调
-    },
     toOnBeforeUpload() {
       // 在浏览器退出之前，判断是否有数据修改了没保存
       window.onbeforeunload = (event) => {
@@ -323,6 +320,7 @@ export default {
     },
     // 初始化表单数据
     initFormData(data) {
+      log('initFormData data:', data)
       let type = 'normal'
       if (this.arrangeId) {
         type = 'edit'
@@ -340,6 +338,7 @@ export default {
         },
         'edit': () => {
           const editInfo = data.edit_info
+          log('edit editInfo:', editInfo)
           this.maxTone = data.max_tone
           this.minTone = data.min_tone
           this.bpm = editInfo.bpm
@@ -348,6 +347,11 @@ export default {
           this.oldLyricList = data.lyric_list
           this.countAdjust = data.count_adjust || []
           this.initLyricData(editInfo)
+          // 这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西
+          if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
+            this.newLyricList = JSON.parse(sessionStorage.getItem('form')).new_lyric_list
+            sessionStorage.setItem('isRectify', 0)
+          } 
         },
         'draft': () => {
           const draftDetail = data.audio_draft_info.content
