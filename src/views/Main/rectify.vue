@@ -83,6 +83,7 @@ export default {
   },
   methods: {
     getDefaultInfo() {
+      console.log('this.oldForm:', this.oldForm)
       this.oldForm = JSON.parse(sessionStorage.getItem('form'))
       this.polyphonicList = JSON.parse(sessionStorage.getItem('polyphonicList'))
       this.initFormData()
@@ -107,7 +108,6 @@ export default {
     },
     // 初始化多音字表单对象
     initPolyphonicMap() {
-      console.log('this.polyphonicList:', this.polyphonicList)
       this.polyphonicList.forEach((item) => {
         const x = item.x
         const y = item.y
@@ -120,8 +120,6 @@ export default {
           // model: l[0],
         }
         if (this.oldForm.fix_pinyin_list && this.oldForm.fix_pinyin_list.length !== 0) {
-          console.log('x:', x)
-          console.log('this.oldForm.fix_pinyin_list.filter((i) => i.x === x):', this.oldForm.fix_pinyin_list.filter((i) => i.x === x))
           this.polyphonicMap[x][y].model = this.oldForm.fix_pinyin_list.filter((i) => i.x === x).find((i) => i.y === y).pinyin || ''
         } else {
           this.polyphonicMap[x][y].model = l[0]
@@ -171,6 +169,7 @@ export default {
         draft_id: draftId || '',
         fix_pinyin_list: JSON.parse(this.getFormData()),
       })
+      console.log('submitDraft f:', f)
       addDraft(f).then((response) => {
         const { data } = response.data
         const id = data.draft_id

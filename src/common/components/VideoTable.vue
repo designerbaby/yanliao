@@ -55,8 +55,10 @@
     </el-pagination>
     <CommonDialog :show="dialogShow" titleText="确定删除该视频吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
     <el-dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
-      <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
-      <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo"/>
+      <div class="video-container">
+        <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo"/>
+        <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
+      </div>
     </el-dialog>
     <div class="empty-box" v-if="this.list.length === 0 && this.dataReady === true">
       <img class="empty-img" src="@/assets/empty.png" alt="" />
@@ -310,14 +312,20 @@ export default {
 </style>
 
 <style lang="less">
-  .video-dialog {
+  .video-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
     .close-button {
       width: 20px;
+      height: 20px;
       cursor: pointer;
-      position: absolute;
-      top: 0px;
-      right: -40px;
+      // position: absolute;
+      // top: 0px;
+      // right: -10px;
     }
+  }
+  .video-dialog {
     .el-dialog {
       background: none;
       box-shadow: none;

@@ -349,7 +349,9 @@ export default {
           this.initLyricData(editInfo)
           // 这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西
           if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
-            this.newLyricList = JSON.parse(sessionStorage.getItem('form')).new_lyric_list
+            const oldForm = JSON.parse(sessionStorage.getItem('form'))
+            this.newLyricList = oldForm.new_lyric_list
+            this.toneType = oldForm.tone_type
             sessionStorage.setItem('isRectify', 0)
           } 
         },

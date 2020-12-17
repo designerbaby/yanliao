@@ -26,7 +26,7 @@ const routes = [
     meta: {
       rank: 3,
     },
-    component: () => import('../views/Main/edit.vue')
+    component: () => import('../views/Main/Edit/index.vue')
   },
   {
     path: '/rectify', // 矫正歌曲页面
