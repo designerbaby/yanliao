@@ -20,6 +20,7 @@
               <span class="upload-time">{{scope.row.publish_time}}</span>
               <span v-if="scope.row.state === 3" class="video-state">发布中</span>
               <span v-if="scope.row.state === 1 || scope.row.state === 0" class="video-state video-state-success">发布成功</span>
+              <span v-if="scope.row.state === 4" class="video-state">发布失败</span>
               <span v-if="scope.row.state === 2" class="video-state video-state-invalid">被下线</span>
             </div>
             <div class="data-column">
@@ -67,6 +68,7 @@
 
 <script>
 // @ is an alias to /src
+// 我的视频组件
 import { reportEvent } from '@/common/utils/helper'
 import CommonDialog from '@/common/components/CommonDialog'
 import { 
@@ -104,6 +106,7 @@ export default {
   },
   mounted() {
     this.getList()
+    reportEvent('person-page-myvideotab-exposure')
   },
   methods: {
     videoDialogClose() {
@@ -111,6 +114,7 @@ export default {
       video.pause()
     },
     coverClick(row) {
+      reportEvent('person-page-videocover-click')
       if (row.state === 2) {
         Message.error('视频已下线')
         return
@@ -157,6 +161,7 @@ export default {
       sessionStorage.setItem('draftId', draftId)
     },
     deleteButtonClick(row) {
+      reportEvent('person-page-videodelete-button')
       const targetId = row.file_id
       // reportEvent('person-page-drawedelete-button', 'person-page-drawedelete-button', { draftId, })
       this.dialogShow = true

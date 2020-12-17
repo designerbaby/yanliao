@@ -43,6 +43,7 @@
 
 <script>
 // @ is an alias to /src
+// 我的草稿组件
 import { reportEvent } from '@/common/utils/helper'
 import CommonDialog from '@/common/components/CommonDialog'
 
@@ -77,6 +78,7 @@ export default {
   },
   mounted() {
     this.getList()
+    reportEvent('person-page-mydrafttab-exposure')
   },
   methods: {
     getList() {

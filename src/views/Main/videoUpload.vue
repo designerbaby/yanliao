@@ -137,6 +137,7 @@ export default {
       Message.error('请勿重复上传')
     },
     uploadButtonClick() {
+      reportEvent('upvideo-page-up-button')
       this.$refs['videoForm'].validate((result) => {
         if (result === true) {
           const tcVod = new TcVod({

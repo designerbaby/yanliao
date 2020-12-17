@@ -61,6 +61,7 @@ export default {
       }
     },
     uploadVideoButtonClick() {
+      reportEvent('home-page-upvideo-button')
       const userInfo = sessionStorage.getItem('userInfo')
       if (userInfo) {
         this.$router.push('/videoUpload')

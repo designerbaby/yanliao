@@ -131,6 +131,7 @@ export default {
   },
   mounted() {
     reportEvent('person-page-exposure')
+    reportEvent('person-page-myworktab-exposure')
     const index = this.$router.history.current.query.index
     if (index) {
       this.activeIndex = index
@@ -186,6 +187,7 @@ export default {
       this.$router.push('/search')
     },
     uploadVideoButtonClick() {
+      reportEvent('person-page-uovideo-button')
       this.$router.push('/videoUpload')
     },
     downloadButtonClick(row) {
