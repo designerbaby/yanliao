@@ -192,7 +192,7 @@ export default {
       console.log('editPath:', editPath)
       if (editPath) {
         this.$router.push(JSON.parse(editPath))
-        sessionStorage.setItem('isRectify', 1)
+        // sessionStorage.setItem('isRectify', 1)
       } else {
         // debugger
         this.$router.push('/edit/' + this.oldForm.music_id)

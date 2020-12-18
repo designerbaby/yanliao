@@ -230,18 +230,18 @@ export default {
     const arrangeId = this.$route.params.arrangeId // 编辑id
     let toneId = this.$route.params.toneId // 音色id
     const draftId = sessionStorage.getItem('draftId') // 草稿箱id
-    if (sessionStorage.getItem('draftToneId')) { 
-      log('从我的草稿过来的')
-      // 这里做下兼容，如果是从我的草稿过来的(即有这个draftToneId),toneId就从session拿
-      toneId = sessionStorage.getItem('draftToneId')
-      sessionStorage.setItem('draftToneId', '')
-    }
-    if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
-      log('从rectify页面过来的')
-      // 这里兼容主要是从rectify页面来，然后拿到本地的tone_id。
-      toneId = (JSON.parse(sessionStorage.getItem('form')).new_lyric_list[0] || {}).tone_id
-      sessionStorage.setItem('isRectify', 0)
-    }
+    // if (sessionStorage.getItem('draftToneId')) { 
+    //   log('从我的草稿过来的')
+    //   // 这里做下兼容，如果是从我的草稿过来的(即有这个draftToneId),toneId就从session拿
+    //   toneId = sessionStorage.getItem('draftToneId')
+    //   sessionStorage.setItem('draftToneId', '')
+    // }
+    // if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
+    //   log('从rectify页面过来的')
+    //   // 这里兼容主要是从rectify页面来，然后拿到本地的tone_id。
+    //   toneId = (JSON.parse(sessionStorage.getItem('form')).new_lyric_list[0] || {}).tone_id
+    //   sessionStorage.setItem('isRectify', 0)
+    // }
 
     this.toneId = toneId
     this.musicId = musicId
@@ -264,7 +264,7 @@ export default {
   mounted() {
     reportEvent('edit-page-exposure')
     this.toOnBeforeUpload()
-    this.initEdit()
+    // this.initEdit()
     // setInterval(() => {
     //   this.submitDraft()
     // }, 1000)
@@ -273,9 +273,9 @@ export default {
     window.onbeforeunload = null
   },
   methods: {
-    initEdit() { // 初始来的时候查询曲调信息
-      this.getMelodyConfig(this.toneId)
-    },
+    // initEdit() { // 初始来的时候查询曲调信息
+    //   this.getMelodyConfig(this.toneId)
+    // },
     toOnBeforeUpload() {
       // 在浏览器退出之前，判断是否有数据修改了没保存
       window.onbeforeunload = (event) => {
@@ -365,17 +365,17 @@ export default {
           this.oldLyricList = data.lyric_list
           this.countAdjust = data.count_adjust || []
           this.initLyricData(editInfo)
-          // 这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西
-          if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
-            const oldForm = JSON.parse(sessionStorage.getItem('form'))
-            log('oldForm:', oldForm)
-            log('toneList:', this.toneList)
-            this.toneType = oldForm.tone_type
-            this.bpm = oldForm.bpm
-            this.melody = oldForm.up_down_tone
-            this.newLyricList = oldForm.new_lyric_list
-            sessionStorage.setItem('isRectify', 0)
-          } 
+          // // 这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西
+          // if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
+          //   const oldForm = JSON.parse(sessionStorage.getItem('form'))
+          //   log('oldForm:', oldForm)
+          //   log('toneList:', this.toneList)
+          //   this.toneType = oldForm.tone_type
+          //   this.bpm = oldForm.bpm
+          //   this.melody = oldForm.up_down_tone
+          //   this.newLyricList = oldForm.new_lyric_list
+          //   sessionStorage.setItem('isRectify', 0)
+          // } 
         },
         'draft': () => {
           const draftDetail = data.audio_draft_info.content
