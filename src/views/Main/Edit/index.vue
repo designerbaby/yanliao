@@ -366,16 +366,21 @@ export default {
           this.countAdjust = data.count_adjust || []
           this.initLyricData(editInfo)
           // // 这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西
-          // if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
-          //   const oldForm = JSON.parse(sessionStorage.getItem('form'))
-          //   log('oldForm:', oldForm)
-          //   log('toneList:', this.toneList)
-          //   this.toneType = oldForm.tone_type
-          //   this.bpm = oldForm.bpm
-          //   this.melody = oldForm.up_down_tone
-          //   this.newLyricList = oldForm.new_lyric_list
-          //   sessionStorage.setItem('isRectify', 0)
-          // } 
+          if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
+            const oldForm = JSON.parse(sessionStorage.getItem('form'))
+            log('oldForm:', oldForm)
+            log('toneList:', this.toneList)
+            this.toneType = oldForm.tone_type
+            this.bpm = oldForm.bpm
+            this.melody = oldForm.up_down_tone
+            // this.$nextTick(() => {
+            //   setTimeout(() => {
+            //     this.newLyricList = oldForm.new_lyric_list
+            //     this.firstSelectTone = true
+            //   }, 500)
+            // })
+            sessionStorage.setItem('isRectify', 0)
+          } 
         },
         'draft': () => {
           const draftDetail = data.audio_draft_info.content
