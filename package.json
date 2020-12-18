@@ -14,6 +14,7 @@
     "element-ui": "^2.13.2",
     "moment": "^2.29.1",
     "smoothscroll-polyfill": "^0.4.4",
+    "vod-js-sdk-v6": "^1.4.11",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0"
   },

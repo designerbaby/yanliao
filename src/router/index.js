@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
 
 Vue.use(VueRouter)
 
@@ -11,39 +10,31 @@ const routes = [
     meta: {
       auth: 'noLogin'
     },
-    component: Home
+    component: () => import('../views/Main/Home.vue')
   },
-  // {
-  //   path: '/about',
-  //   name: 'About',
-  //   // route level code-splitting
-  //   // this generates a separate chunk (about.[hash].js) for this route
-  //   // which is lazy-loaded when the route is visited.
-  //   component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  // },
   {
     path: '/search',
     name: 'Search',
     meta: {
       rank: 2,
     },
-    component: () => import('../views/search.vue')
+    component: () => import('../views/Main/search.vue')
   },
   {
-    path: '/edit/:musicId/:arrangeId?',
+    path: '/edit/:musicId/:arrangeId?/:toneId?', // 编辑歌曲页面
     name: 'Edit',
     meta: {
       rank: 3,
     },
-    component: () => import('../views/edit.vue')
+    component: () => import('../views/Main/Edit/index.vue')
   },
   {
-    path: '/edit2',
-    name: 'Edit2',
+    path: '/rectify', // 矫正歌曲页面
+    name: 'Rectify',
     meta: {
       rank: 4,
     },
-    component: () => import('../views/edit2.vue')
+    component: () => import('../views/Main/rectify.vue')
   },
   // {
   //   path: '/result/:arrangeId',
@@ -59,7 +50,7 @@ const routes = [
     meta: {
       rank: 2,
     },
-    component: () => import('../views/exception.vue')
+    component: () => import('../views/Main/exception.vue')
   },
   {
     path: '/profile',
@@ -67,7 +58,7 @@ const routes = [
     meta: {
       rank: 1,
     },
-    component: () => import('../views/profile.vue')
+    component: () => import('../views/Main/Profile/index.vue')
   },
   {
     path: '/audio/:arrangeId',
@@ -75,7 +66,14 @@ const routes = [
     meta: {
       rank: 2,
     },
-    component: () => import('../views/audio.vue')
+    component: () => import('../views/Main/audio.vue')
+  },
+  {
+    path: '/videoUpload',
+    name: 'VideoUpload',
+    meta: {
+    },
+    component: () => import('../views/Main/videoUpload.vue')
   },
   {
     path: '/activityPage',
@@ -83,7 +81,7 @@ const routes = [
     meta: {
       auth: 'noLogin',
     },
-    component: () => import('../views/activityPage.vue')
+    component: () => import('../views/Activity/activityPage.vue')
   },
   {
     path: '/privacyPolicy',
@@ -91,7 +89,7 @@ const routes = [
     meta: {
       auth: 'noLogin',
     },
-    component: () => import('../views/privacyPolicy.vue')
+    component: () => import('../views/Policy/privacyPolicy.vue')
   },
   {
     path: '/userAgreement',
@@ -99,8 +97,22 @@ const routes = [
     meta: {
       auth: 'noLogin',
     },
-    component: () => import('../views/userAgreement.vue')
+    component: () => import('../views/Policy/userAgreement.vue')
   },
+  {
+    path: '/playIncentives',
+    name: 'PlayIncentives',
+    meta: {
+      auth: 'noLogin',
+    },
+    component: () => import('../views/Policy/playIncentives.vue')
+  },
+  {
+    path: '/audioEditor',
+    name: 'AudioEditor',
+    meta: {},
+    component: () => import('../views/AudioEditor/index.vue')
+  }
 ]
 
 const router = new VueRouter({

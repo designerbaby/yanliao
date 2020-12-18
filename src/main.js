@@ -1,9 +1,9 @@
 import Vue from 'vue'
-import App from './App.vue'
+import App from './views/App.vue'
 import router from './router'
 import moment from 'moment'
 import smoothscroll from 'smoothscroll-polyfill'
-import '@/permission'
+import '@/common/utils/permission'
 
 smoothscroll.polyfill()
 Vue.prototype.$moment = moment
@@ -21,7 +21,7 @@ Vue.mixin({
     })
   },
   beforeRouteLeave(to, from, next) {
-    if (from.name === 'Edit' || from.name === 'Edit2') {
+    if (from.name === 'Edit' || from.name === 'Rectify') {
       const isModified = this.comparisonFormData()
       if (isModified === true) {
         if (this.submitSuccess === false) {

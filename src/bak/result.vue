@@ -20,10 +20,10 @@
 
 <script>
 // @ is an alias to /src
-import Header from '@/components/Header'
+import Header from '@/common/components/Header.vue'
 import Clipboard from 'clipboard'
 import { Message } from 'element-ui'
-import { reportEvent } from '@/utils'
+import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'Home',
@@ -44,17 +44,17 @@ export default {
   methods: {
     edit() {
       // 编辑结果页-编辑按钮-点击
-      BeaconAction.onEvent(`result-page-edit-button`, `result-page-edit-button`)
+      reportEvent('result-page-edit-button')
       window.location.href = `/edit/${this.musicId}/${this.$route.params.arrangeId}`
     },
     download() {
       // 编辑结果页-下载按钮-点击
-      BeaconAction.onEvent(`result-page-download-button`, `result-page-download-button`)
+      reportEvent('result-page-download-button')
       window.location.href = `/download/${this.$route.params.arrangeId}`
     },
     copyUrl(type) {
       // 编辑结果页-复制${type}链接按钮-点击
-      BeaconAction.onEvent(`result-page-copy-${type}-button`, `result-page-copy-${type}-button`)
+      reportEvent(`result-page-copy-${type}-button`)
       const c = new Clipboard('.button')
       c.on('success', e => {  
           Message.success('复制成功')

@@ -1,6 +1,10 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
-    <Header v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" ref="header" :currentPath="$router.history.current.path" :loginDialogShow="loginDialogShow" :openLoginDialog="openLoginDialog" :closeLoginDialog="closeLoginDialog" />
+    <Header v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
+      ref="header" :currentPath="$router.history.current.path" 
+      :loginDialogShow="loginDialogShow" 
+      :openLoginDialog="openLoginDialog" 
+      :closeLoginDialog="closeLoginDialog" />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
     <Footer v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
   </div>
@@ -8,8 +12,8 @@
 
 <script>
 // @ is an alias to /src
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import Header from '@/common/components/Header.vue'
+import Footer from '@/common/components/Footer'
 import HomeBg from '@/assets/bg-home.png'
 import normalBg from '@/assets/bg.png'
 import activityBg from '@/assets/activity-bg.jpg'

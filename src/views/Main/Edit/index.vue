@@ -148,7 +148,7 @@ import {
   submit,
   editInfo,
   melodyConfig,
-} from '@/api'
+} from '@/api/api'
 
 import {
   addDraft,
@@ -156,8 +156,8 @@ import {
   deleteDraft,
 } from '@/api/draft'
 
-import Header from '@/components/Header'
-import { reportEvent } from '@/utils'
+import Header from '@/common/components/Header.vue'
+import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'Home',
@@ -201,6 +201,7 @@ export default {
       melodyOptions: [],
       oldLyricList: [],
       toneList: [],
+      toneId: 0
     }
   },
   watch:{
@@ -225,9 +226,24 @@ export default {
     },
   },
   created() {
-    const musicId = parseInt(this.$route.params.musicId)
-    const arrangeId = this.$route.params.arrangeId
-    const draftId = sessionStorage.getItem('draftId')
+    const musicId = parseInt(this.$route.params.musicId) // 歌曲id
+    const arrangeId = this.$route.params.arrangeId // 编辑id
+    let toneId = this.$route.params.toneId // 音色id
+    const draftId = sessionStorage.getItem('draftId') // 草稿箱id
+    // if (sessionStorage.getItem('draftToneId')) { 
+    //   log('从我的草稿过来的')
+    //   // 这里做下兼容，如果是从我的草稿过来的(即有这个draftToneId),toneId就从session拿
+    //   toneId = sessionStorage.getItem('draftToneId')
+    //   sessionStorage.setItem('draftToneId', '')
+    // }
+    // if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
+    //   log('从rectify页面过来的')
+    //   // 这里兼容主要是从rectify页面来，然后拿到本地的tone_id。
+    //   toneId = (JSON.parse(sessionStorage.getItem('form')).new_lyric_list[0] || {}).tone_id
+    //   sessionStorage.setItem('isRectify', 0)
+    // }
+
+    this.toneId = toneId
     this.musicId = musicId
     this.arrangeId = arrangeId
     this.draftId = draftId
@@ -247,13 +263,8 @@ export default {
   },
   mounted() {
     reportEvent('edit-page-exposure')
-    window.onbeforeunload = (event) => {
-      const isModified = this.comparisonFormData()
-      if (isModified === true) {
-        this.submitDraft()
-        return '您可能有数据没有保存'
-      }
-    }
+    this.toOnBeforeUpload()
+    // this.initEdit()
     // setInterval(() => {
     //   this.submitDraft()
     // }, 1000)
@@ -262,7 +273,21 @@ export default {
     window.onbeforeunload = null
   },
   methods: {
+    // initEdit() { // 初始来的时候查询曲调信息
+    //   this.getMelodyConfig(this.toneId)
+    // },
+    toOnBeforeUpload() {
+      // 在浏览器退出之前，判断是否有数据修改了没保存
+      window.onbeforeunload = (event) => {
+        const isModified = this.comparisonFormData()
+        if (isModified === true) {
+          this.submitDraft()
+          return '您可能有数据没有保存'
+        }
+      }
+    },
     comparisonFormData() {
+      // 对比form两个有没改变
       const defaultForm = this.defaultForm
       const currentForm = this.getFormData()
       let isModified = false
@@ -272,12 +297,14 @@ export default {
       return isModified
     },
     getDraftInfo(draftId) {
+      // 拉取草稿箱
       fetchDraftDetailById(draftId).then((response) => {
         const { data } = response.data
         this.initFormData(data)
       })
     },
     getEditedInfo(arrangeId) {
+      // 查询歌曲的编辑信息
       editInfo(arrangeId).then((response) => {
         const { data } = response.data
         this.initFormData(data)
@@ -311,6 +338,7 @@ export default {
     },
     // 初始化表单数据
     initFormData(data) {
+      log('initFormData data:', data)
       let type = 'normal'
       if (this.arrangeId) {
         type = 'edit'
@@ -328,6 +356,7 @@ export default {
         },
         'edit': () => {
           const editInfo = data.edit_info
+          log('edit editInfo:', editInfo)
           this.maxTone = data.max_tone
           this.minTone = data.min_tone
           this.bpm = editInfo.bpm
@@ -336,6 +365,22 @@ export default {
           this.oldLyricList = data.lyric_list
           this.countAdjust = data.count_adjust || []
           this.initLyricData(editInfo)
+          // // 这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西
+          if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
+            const oldForm = JSON.parse(sessionStorage.getItem('form'))
+            log('oldForm:', oldForm)
+            log('toneList:', this.toneList)
+            this.toneType = oldForm.tone_type
+            this.bpm = oldForm.bpm
+            this.melody = oldForm.up_down_tone
+            // this.$nextTick(() => {
+            //   setTimeout(() => {
+            //     this.newLyricList = oldForm.new_lyric_list
+            //     this.firstSelectTone = true
+            //   }, 500)
+            // })
+            sessionStorage.setItem('isRectify', 0)
+          } 
         },
         'draft': () => {
           const draftDetail = data.audio_draft_info.content
@@ -420,6 +465,18 @@ export default {
         }
         melodyOptions.push(o)
       }
+      if (max < 0) { // 最大的小于0，并且没有0
+        melodyOptions.push({
+          value: 0,
+          label: '曲调不变(默认)'
+        })
+      }
+      if (min > 0) {
+        melodyOptions.unshift({
+          value: 0,
+          label: '曲调不变(默认)'
+        })
+      }
       this.melodyOptions = melodyOptions
     },
     /* 数据初始化 end */
@@ -427,6 +484,7 @@ export default {
     // 获取 melody 配置
     getMelodyConfig(toneId) {
       const musicId = this.musicId
+      console.log(`getMelodyConfig: musicId:${musicId}, toneId:${toneId}`)
       melodyConfig(musicId, toneId).then((response) => {
         this.melodySelectorDisable = false
         const { data } = response.data
@@ -460,6 +518,7 @@ export default {
         this.validateResult.tone[index] = false
       }
     },
+    // 选择谁来唱这首歌的事件
     singleToneIdChange(value) {
       if (value) {
         this.getMelodyConfig(value)
@@ -496,9 +555,10 @@ export default {
     // 上一页按钮点击
     prevButtonClick() {
       // 编辑页-上一步按钮-点击
-      BeaconAction.onEvent("edit-page-prev-button", "edit-page-prev-button")
+      reportEvent('edit-page-prev-button')
       this.$router.push('/search')
     },
+    // 删除草稿
     deleteDraft() {
       const draftId = sessionStorage.getItem('draftId')
       deleteDraft(draftId)
@@ -507,7 +567,7 @@ export default {
     // 确认按钮点击
     confirmButtonClick() {
       // 编辑页-确认按钮-点击
-      BeaconAction.onEvent("edit-page-confirm-button", "edit-page-confirm-button")
+      reportEvent('edit-page-confirm-button')
       const f = this.getFormData()
       const arrangeId = this.$route.params.arrangeId
       if (arrangeId) {
@@ -527,7 +587,7 @@ export default {
             sessionStorage.setItem('polyphonicList', JSON.stringify(data.polyphonic_list))
             sessionStorage.setItem('editPath', JSON.stringify(this.$router.history.current.path))
             // this.submitDraft()
-            this.$router.push('/edit2')
+            this.$router.push('/rectify')
           }
         }).then((response) => {
           if (!response) {
@@ -544,11 +604,11 @@ export default {
 
       if (this.defaultForm.bpm !== this.bpm) {
         // 编辑页-用户修改曲速
-        BeaconAction.onEvent("edit-page-update-bpm", "edit-page-update-bpm")
+        reportEvent('edit-page-update-bpm')
       }
       if (this.defaultForm.melody !== this.melody) {
         // 编辑页-用户修改曲调
-        BeaconAction.onEvent("edit-page-update-melody", "edit-page-update-melody")
+        reportEvent('edit-page-update-melody')
       }
     },
     /* 事件监听 end */
@@ -561,6 +621,7 @@ export default {
       }
       this.validateResult.contents[index] = o
     },
+    // 检查曲速
     checkBpmInput() {
       const bpm = this.bpm
       if (bpm < 50 || bpm > 200) {
@@ -569,6 +630,7 @@ export default {
         this.validateResult.bpm = true
       }
     },
+    // 检查唱歌内容
     checkSingleContentInput(value, index) {
       const countAdjust = this.countAdjust.find((item) => item.line === index + 1)
       const defaultValidateObject = {
@@ -602,12 +664,14 @@ export default {
       }
       return Array.from(this.oldLyricList[index]).length
     },
+    // 检查所有内容的输入
     checkAllContentInput() {
       this.newLyricList.forEach((item, index) => {
         const value = item.content
         this.checkSingleContentInput(value, index)
       })
     },
+    // 检查所有曲调的选择
     checkAllToneSelector() {
       if (this.toneType === 0) {
         if (this.singleToneId !== null) {

@@ -31,8 +31,8 @@
 
 <script>
 // @ is an alias to /src
-import { reportEvent } from '@/utils'
-import Header from '@/components/Header'
+import { reportEvent } from '@/common/utils/helper'
+import Header from '@/common/components/Header.vue'
 import {
   audioDetail,
 } from '@/api/profile'

@@ -15,7 +15,7 @@ npm run serve
 npm run build
 ```
 
-### Customize configuration
+### 参考文档
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ### 需求文档：
@@ -24,14 +24,35 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
   - Web1.1：账号体系（包括登录和作品列表）https://docs.qq.com/doc/DVWdhdW12THlSbXdO 该文档里面仅账号体系和作品列表相关的可以参考，其他的需求在后面都有变动，需参考后面的相关文档
   - Web1.2：草稿箱 https://docs.qq.com/doc/DVW9veVRqUENvR053
   - web1.3：视频发布及账号绑定 https://docs.qq.com/doc/DVWNrQVVYbVNIdE1V
-  - web1.4: 编辑器
+  - web1.4: 编辑器：https://docs.qq.com/doc/DVWVNTHpWanZWT0Rw 
   - 。。。等等
 
 ### 接口文档：
+  后台接口文档：
+  - 后台统一接口文档：http://git.tmeoa.com/simonygzhao/RESTfulAPI
+  分类如下：
+    - 短视频接口文档：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/video.md
+    - 草稿箱： http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_draft.md
+    - 登录：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/auth.md
+    - 主流程：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/kuwa.md
+    - 运营后台管理：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_manager_api.md
+    - 绑定酷狗账号：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_yan/yan_kugou_bus/musicx_yan_kugou_bus.proto
 
-  - 短视频接口文档：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/video.md
-  - 草稿箱： http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_draft.md
-  - 登录：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/auth.md
-  - 主流程：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/kuwa.md
-  - 运营后台管理：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_manager_api.
+### 代码提交规范
 
+遵循 https://www.conventionalcommits.org/zh/v1.0.0-beta.3/
+```
+feat: 新功能（feature）
+fix: 修补bug
+docs: 文档（documentation）
+style: 格式（不影响代码运行的变动）
+refactor: 重构（即不是新增功能，也不是修改bug的代码变动）
+test: 增加测试
+chore: 构建过程或辅助工具的变动
+
+（注意：冒号为英文半角冒号，后带空格，再接信息）
+```
+刚开始可使用辅助工具，https://github.com/commitizen/cz-cli
+```
+npm install -g commitizen
+```

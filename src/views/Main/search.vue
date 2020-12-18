@@ -62,9 +62,9 @@ import {
 } from "element-ui"
 import {
   search,
-} from "@/api"
-import Header from '@/components/Header'
-import { reportEvent } from '@/utils'
+} from "@/api/api"
+import Header from '@/common/components/Header.vue'
+import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: "Home",

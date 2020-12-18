@@ -33,7 +33,7 @@
 import {
   preSubmit,
   submit,
-} from '@/api'
+} from '@/api/api'
 
 import { 
   addDraft,
@@ -41,8 +41,8 @@ import {
   deleteDraft,
 } from "@/api/draft"
 
-import Header from '@/components/Header'
-import { reportEvent } from '@/utils'
+import Header from '@/common/components/Header.vue'
+import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'Home',
@@ -83,6 +83,7 @@ export default {
   },
   methods: {
     getDefaultInfo() {
+      console.log('this.oldForm:', this.oldForm)
       this.oldForm = JSON.parse(sessionStorage.getItem('form'))
       this.polyphonicList = JSON.parse(sessionStorage.getItem('polyphonicList'))
       this.initFormData()
@@ -96,6 +97,7 @@ export default {
       }).then((response) => {
         const { data } = response.data
         this.polyphonicList = data.polyphonic_list
+        console.log('fetchDraftDetailById this.polyphonicList:', this.polyphonicList)
         this.initFormData()
       })
     },
@@ -118,7 +120,7 @@ export default {
           // model: l[0],
         }
         if (this.oldForm.fix_pinyin_list && this.oldForm.fix_pinyin_list.length !== 0) {
-          this.polyphonicMap[x][y].model = this.oldForm.fix_pinyin_list.filter((i) => i.x === x).find((i) => i.y === y).pinyin
+          this.polyphonicMap[x][y].model = this.oldForm.fix_pinyin_list.filter((i) => i.x === x).find((i) => i.y === y).pinyin || ''
         } else {
           this.polyphonicMap[x][y].model = l[0]
         }
@@ -136,7 +138,10 @@ export default {
         const x = item.x
         const y = item.y
         if (this.polyphonicMap[x][y]) {
-          const v = this.polyphonicMap[x][y].model
+          let v = ''
+          if (this.polyphonicMap[x][y].model) {
+            v = this.polyphonicMap[x][y].model
+          }
           const o = {
             x,
             y,
@@ -164,6 +169,7 @@ export default {
         draft_id: draftId || '',
         fix_pinyin_list: JSON.parse(this.getFormData()),
       })
+      console.log('submitDraft f:', f)
       addDraft(f).then((response) => {
         const { data } = response.data
         const id = data.draft_id
@@ -182,10 +188,13 @@ export default {
     prevButtonClick() {
       // 多音字编辑页-上一步按钮-点击
       reportEvent("edit-page-2-prev-button")
-      const editPath = JSON.parse(sessionStorage.getItem('editPath'))
+      let editPath = sessionStorage.getItem('editPath')
+      console.log('editPath:', editPath)
       if (editPath) {
-        this.$router.push(editPath)
+        this.$router.push(JSON.parse(editPath))
+        sessionStorage.setItem('isRectify', 1)
       } else {
+        // debugger
         this.$router.push('/edit/' + this.oldForm.music_id)
       }
       // this.$router.go(-1)

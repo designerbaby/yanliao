@@ -1,0 +1,225 @@
+<template>
+  <div class="video-upload-page">
+    <div class="title">
+      <span>发布视频</span>
+      <span class="tips"> (发布的视频会同步在盐料视频 app) </span>
+    </div>
+    <el-form ref="videoForm" label-width="100px" :model="form" class="form" :rules="rules">
+      <el-form-item label="上传视频" prop="file">
+        <el-upload
+          ref="upload"
+          :accept="'video/*'"
+          :on-change="uploadChange"
+          :on-exceed="uploadExcced"
+          :auto-upload="false"
+          :limit="1"
+          drag
+          action=""
+          :multiple="false"
+        >
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__text">将视频文件拖到此处，或<em>点击上传</em></div>
+          <div class="el-upload__tip" slot="tip">只能上传avi、wmv、mpeg、mp4、m4v、mov、asf、flv、f4v文件，且不超过2GB</div>
+        </el-upload>
+      </el-form-item>
+      <el-form-item label="视频描述" prop="desc">
+        <el-input
+          type="textarea"
+          :autosize="{ minRows: 4, maxRows: 6}"
+          placeholder="请输入视频描述内容"
+          v-model="form.desc"
+          maxlength="50"
+          show-word-limit
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item label="关联歌曲" class="song-info">
+        <el-form-item prop="songName">
+          <el-input placeholder="输入视频所使用的歌曲名称" v-model="form.songName"></el-input>
+        </el-form-item>
+        <span> - </span>
+        <el-form-item prop="singerName">
+          <el-input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName"></el-input>
+        </el-form-item>
+      </el-form-item>
+    </el-form>
+    <el-button :loading="loading" @click="uploadButtonClick">发布</el-button>
+  </div>
+</template>
+
+<script>
+// @ is an alias to /src
+import TcVod from 'vod-js-sdk-v6'
+import { reportEvent } from '@/common/utils/helper'
+import Header from '@/common/components/Header'
+import {
+  Input,
+  Form,
+  FormItem,
+  Upload,
+  Message,
+  Button,
+} from 'element-ui'
+import {
+  fetchSign,
+} from '@/api/video'
+
+export default {
+  name: 'Home',
+  components: {
+    Header,
+    'el-input': Input,
+    'el-form': Form,
+    'el-form-item': FormItem,
+    'el-upload': Upload,
+    'el-button': Button,
+  },
+  data() {
+    return {
+      loading: false,
+      form: {
+        file: null,
+        desc: '',
+        songName: '',
+        singerName: '',
+      },
+      rules: {
+        file: [
+          { required: true, message: '请上传', trigger: 'change' },
+        ],
+        desc: [
+          { required: true, message: '请输入', trigger: 'blur' },
+        ],
+        songName: [
+          {validator: (rule, value, callback) => {
+            if (value === '' && this.form.singerName !== '') {
+              callback('请输入')
+            } else {
+              callback()
+            }
+          }, trigger: 'blur'}
+        ],
+        singerName: [
+          {validator: (rule, value, callback) => {
+            if (value === '' && this.form.songName !== '') {
+              callback('请输入')
+            } else {
+              callback()
+            }
+          }, trigger: 'blur'}
+        ],
+      },
+    }
+  },
+  mounted() {
+  },
+  methods: {
+    getSignature() {
+      const f = {
+        filesize: this.form.file.size,
+        desc: this.form.desc,
+        music: this.form.songName ? `${this.form.songName}-${this.form.singerName}` : ''
+      }
+      return fetchSign(f).then((response) => {
+        return response.data.data.sign
+      })
+    },
+    uploadChange(file) {
+      const size = file.size
+      if (size > 2147483648) {
+        Message.error('文件大小超过 2GB')
+        this.$refs['upload'].clearFiles()
+        return
+      }
+      this.form.file = file.raw
+    },
+    uploadExcced(files, fileList) {
+      Message.error('请勿重复上传')
+    },
+    uploadButtonClick() {
+      reportEvent('upvideo-page-up-button')
+      this.$refs['videoForm'].validate((result) => {
+        if (result === true) {
+          const tcVod = new TcVod({
+            getSignature: this.getSignature,
+          })
+          const uploader = tcVod.upload({
+            mediaFile: this.form.file,
+          })
+          this.loading = true
+          Message.success('上传中')
+          uploader.on('media_progress', (info) => {
+          })
+          uploader.done().then((doneResult) => {
+            setTimeout(() => {
+              this.loading = false
+              Message.success('上传成功')
+              this.$router.push('/profile?index=3')
+            }, 3000)
+          }).catch((error) => {
+            this.loading = false
+            Message.error('上传失败, 请重试')
+          })
+        }
+      })
+    },
+  },
+}
+</script>
+
+<style lang="less" scoped>
+  .video-upload-page {
+    padding-left: 110px;
+    .title {
+      font-size: 34px;
+      color: #000;
+      font-weight: 500;
+      .tips {
+        font-size: 18px;
+        color: #939393;
+      }
+    }
+    .form {
+      width: 600px;
+      margin-top: 36px;
+      .song-info {
+        .el-form-item {
+          display: inline-block;
+          .el-input {
+            width: 240px;
+          }
+        }
+        // .el-form-item + .el-form-item {
+        //   margin-left: 20px;
+        // }
+      }
+    }
+
+  }
+</style>
+
+<style lang="less">
+  .video-upload-page {
+    .el-form-item__label {
+      font-weight: 500;
+      font-size: 16px;
+      color: #000;
+    }
+    .el-button {
+      width: 150px;
+      background-image: linear-gradient(90deg, #79d2ff 0%, #44b5ff 100%);
+      border-radius: 20px;
+      height: 32px;
+      color: #fff;
+      border: none;
+      line-height: 32px;
+      padding: 0px;
+      margin: 100px auto 0px; 
+      display: block;
+    }
+    .el-upload__tip {
+      line-height: normal;
+      margin-top: -10px;
+    }
+  }
+</style>

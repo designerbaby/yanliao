@@ -3,13 +3,20 @@
     <div class="main">
       <div class="nav-menu-box">
         <el-menu :default-active="activeIndex" class="el-menu" mode="horizontal" @select="menuSelect">
-          <el-menu-item index="1">全部作品</el-menu-item>
-          <el-menu-item index="2">草稿箱</el-menu-item>
+          <el-menu-item index="1">我的作品</el-menu-item>
+          <el-menu-item index="2">我的草稿</el-menu-item>
+          <el-menu-item index="3">我的视频</el-menu-item>
         </el-menu>
-        <button class="new-works-button" @click="newWorksButtonClick">
-          <span class="el-icon-plus"></span>
-          <span>新建作品</span>
-        </button>
+        <div class="control">
+          <button class="add-button" @click="uploadVideoButtonClick">
+            <span class="el-icon-plus"></span>
+            <span>发布视频</span>
+          </button>
+          <button class="add-button" @click="newWorksButtonClick">
+            <span class="el-icon-plus"></span>
+            <span>新建作品</span>
+          </button>
+        </div>
       </div>
       <div v-if="activeIndex === '1'">
         <el-table
@@ -71,6 +78,9 @@
       <div v-if="activeIndex === '2'">
         <DraftTable />
       </div>
+      <div v-if="activeIndex === '3'">
+        <VideoTable />
+      </div>
     </div>
     <CommonDialog :show="dialogShow" titleText="确定删除该作品吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
   </div>
@@ -78,7 +88,7 @@
 
 <script>
 // @ is an alias to /src
-import { reportEvent } from '@/utils'
+import { reportEvent } from '@/common/utils/helper'
 import { 
   Table,
   TableColumn,
@@ -87,9 +97,10 @@ import {
   Pagination,
   Message,
 } from 'element-ui'
-import Header from '@/components/Header'
-import DraftTable from '@/components/DraftTable'
-import CommonDialog from '@/components/CommonDialog'
+import Header from '@/common/components/Header'
+import DraftTable from './DraftTable'
+import VideoTable from './VideoTable'
+import CommonDialog from '@/common/components/CommonDialog'
 import {
   fetchArrangeList,
   deleteAudio,
@@ -105,6 +116,7 @@ export default {
     'el-pagination': Pagination,
     Header,
     DraftTable,
+    VideoTable,
     CommonDialog,
   },
   data() {
@@ -119,6 +131,11 @@ export default {
   },
   mounted() {
     reportEvent('person-page-exposure')
+    reportEvent('person-page-myworktab-exposure')
+    const index = this.$router.history.current.query.index
+    if (index) {
+      this.activeIndex = index
+    }
     this.getList()
   },
   methods: {
@@ -153,7 +170,12 @@ export default {
       })
     },
     menuSelect(index) {
+      log(index)
       this.activeIndex = index
+      this.$router.push({
+        path: this.$route.path,
+        query: Object.assign({}, this.$route.query, { _: +new Date() }, {index,})
+      })
     },
     audioNameClick(arrangeId) {
       log('audioNameClick', arrangeId)
@@ -163,6 +185,10 @@ export default {
       // this.$vnode.parent.componentInstance.cache = {}
       sessionStorage.setItem('draftId', '')
       this.$router.push('/search')
+    },
+    uploadVideoButtonClick() {
+      reportEvent('person-page-uovideo-button')
+      this.$router.push('/videoUpload')
     },
     downloadButtonClick(row) {
       const arrangeId = row.arrange_id
@@ -185,14 +211,16 @@ export default {
         Message.error('音频合成中，暂不可编辑')
         return
       }
-      // sessionStorage.setItem('draftId', '')
+      sessionStorage.setItem('draftId', '')
       reportEvent('person-page-audioedit-button', 'person-page-audioedit-button', { arrangeId, })
       const editable = row.is_edit
       if (editable === 1) {
         this.$router.push('/exception')
         return
       }
-      window.location.href = `/edit/${row.music_id}/${row.arrange_id}`
+      console.log('profile editButtonClick row:', JSON.stringify(row))
+      this.$router.push(`/edit/${row.music_id}/${row.arrange_id}`)
+      // this.$router.push(`/edit/${row.music_id}/${row.arrange_id}/${row.tone_infos[0].tone_id}`)
     },
     deleteButtonClick(row) {
       const arrangeId = row.arrange_id
@@ -229,6 +257,20 @@ export default {
         display: flex;
         align-items: center;
         margin-bottom: 22px;
+        .control {
+          margin-left: auto;
+          .add-button {
+            width: 128px;
+            height: 36px;
+            background-color: #2cabff;
+            border-radius: 23px;
+            color: #fff;
+            font-size: 16px;
+          }
+          .add-button + .add-button {
+            margin-left: 12px;
+          }
+        }
         .el-menu {
           background: transparent;
         }

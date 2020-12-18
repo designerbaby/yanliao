@@ -22,13 +22,24 @@
         <img class="item" src="@/assets/icon-4.png" alt="">
       </div>
     </div>
+    <div class="video-section">
+      <div class="video-box">
+        <video src="https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/kuwa-wav/home-page.mp4" controls></video>
+        <div class="tips">视频由创作者"观察员布观察"提供</div>
+      </div>
+      <div class="text-box">
+        <div class="title">分享你的视频作品</div>
+        <div class="text">基于我们的创作工具生成的音频，可以进一步创作出一个视频作品并发布在这里，你发布的视频会同步在盐料视频的 app 端，并被更多喜欢鬼畜、人力v、搞笑、音乐等内容的人看见噢~</div>
+        <button @click="uploadVideoButtonClick">发布视频</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import Header from '@/components/Header'
-import { reportEvent } from '@/utils'
+import Header from '@/common/components/Header.vue'
+import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'Home',
@@ -49,6 +60,15 @@ export default {
         this.$emit('openLoginDialog')
       }
     },
+    uploadVideoButtonClick() {
+      reportEvent('home-page-upvideo-button')
+      const userInfo = sessionStorage.getItem('userInfo')
+      if (userInfo) {
+        this.$router.push('/videoUpload')
+      } else {
+        this.$emit('openLoginDialog')
+      }
+    }
   },
 }
 </script>
@@ -129,5 +149,49 @@ export default {
         background: #fff;
       }
     }
+    .video-section {
+      width: 1072px;
+      margin: 80px auto 0;
+      .video-box {
+        float: left;
+        margin-right: 48px;
+        video {
+          // width: 200px;
+          height: 300px;
+        }
+        video:focus {
+          outline: none;
+        }
+        .tips {
+          font-size: 20px;
+          font-weight: 500;
+          color: #b2b2b2;
+          text-align: center;
+        }
+      }
+      .text-box {
+        .title {
+          font-size: 40px;
+          line-height: 60px;
+        }
+        .text {
+          font-size: 20px;
+          color: #b2b2b2;
+          font-weight: 400;
+          margin-top: 16px;
+          // white-space: pre-wrap;
+        }
+        button {
+          margin-top: 40px;
+          width: 324px;
+          height: 64px;
+          border-radius: 40px;
+          color: #fff;
+          font-size: 26px;
+          background: linear-gradient(to right, #44b5ff, #79d2ff);
+        }
+      }
+    }
   }
+
 </style>

@@ -9,12 +9,12 @@
       <div class="subhead-text">爆款视频悬赏活动</div>
       <img src="@/assets/icon-act.png" alt="">
     </a>
+    <!-- <div class="audio-edit" @click="toAudioEditor">音频编辑器</div> -->
     <button v-if="nickName === ''" class="login-button" @click="loginButtonClick">登录</button>
-
     <div class="user-info" v-if="nickName !== ''">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
-      <!-- <button class="user-info-button">绑定酷狗账号</button> -->
+      <!-- <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button> -->
       <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
     </div>
 
@@ -59,24 +59,27 @@
         <button class="logout-cancel-button logout-button" @click="logoutDialogShow = false">取消</button>
       </div>
     </el-dialog>
+    <el-dialog
+      :visible.sync="kugouBindShow"
+      width="400px"
+      custom-class="logout-dialog"
+      top="15%"
+    >
+      <img src="@/assets/icon-complete.png" alt="success-icon" class="success-icon"/>
+      <div class="bind-success__title">绑定成功</div>
+      <div class="bind-success__kugou">您已经绑定酷狗音乐账号</div>
+      <div class="bind-success__nickname">{{ nickName }}</div>
+      <div>绑定有效期为3个月, 超过有效期重新绑定</div>
+      <div class="bind-success__validity">在个人主页发布视频同步到酷狗可获得<a href="/playIncentives" target="_blank" title="播放激励">播放激励</a></div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { 
-  Input,
-  Dialog,
-  FormItem,
-  Form,
-  Message,
-} from 'element-ui'
-import { reportEvent } from '@/utils'
-import { 
-  fetchAuthCode, 
-  login,
-  logout,
-  userInfo,
-} from '@/api/login'
+import { Input, Dialog, FormItem, Form, Message } from 'element-ui'
+import { reportEvent, isTestEnv, getUrlParameters } from '@/common/utils/helper'
+import { fetchAuthCode, login, logout, userInfo } from '@/api/login'
+import { bindKugou, showBindKuGou } from '@/api/bind' 
 
 export default {
   props: {
@@ -103,6 +106,9 @@ export default {
         phone: '',
         authCode: '',
       },
+      showBind: 1,
+      kugouBindShow: false,
+      code: getUrlParameters().code,  // 从酷狗登录回调之后拿到的code
       rules: {
         phone: [
           {required: true, message: '请输入正确的手机号码', pattern: /^1[3-9]\d{9}$/, trigger: 'submit'}
@@ -132,18 +138,23 @@ export default {
     }
   },
   mounted() {
-    userInfo().then((response) => {
-      const { data, ret_code } = response.data
-      if (ret_code !== 100000) {
-        if (data !== null) {
-          sessionStorage.setItem('userInfo', JSON.stringify(data))
-          this.nickName = data.nick_name
-          this.userLogo = data.user_logo
-        }
-      }
-    })
+    this.toGetUserInfo()
+    this.toShowBindKugou()
+    this.toBindKugouAccrossCode()
   },
   methods: {
+    toGetUserInfo() {
+      userInfo().then((response) => {
+        const { data, ret_code } = response.data
+        if (ret_code !== 100000) {
+          if (data !== null) {
+            sessionStorage.setItem('userInfo', JSON.stringify(data))
+            this.nickName = data.nick_name
+            this.userLogo = data.user_logo
+          }
+        }
+      })
+    },
     openHomePage() {
       this.$router.push('/')
     },
@@ -219,7 +230,47 @@ export default {
         }
       })
     },
-  },
+    bindKugou() {
+      reportEvent('person-page-userconnect_button')
+      const testJumpUrl = `https://voo.kugou.com/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10073&url=${encodeURIComponent('https://test-yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
+      const jumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10076&url=${encodeURIComponent('https://yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
+      if (!isTestEnv) {
+        location.href = jumpUrl
+      } else {
+        location.href = testJumpUrl
+      }
+      console.log('location.href:', location.href)
+    },
+    toBindKugouAccrossCode() {
+      if (this.code) { // url带有code才发起请求
+        this.kugouBindShow = true
+        bindKugou(this.code).then(res => {
+          const { data, ret_code } = res.data
+          console.log('bindKugou:', res)
+          if (ret_code === 0) { // 和酷狗账号绑定成功
+            this.nickName = data.nickname
+            this.userLogo = data.profile_photo
+          } else { // 绑定不成功的话，就再去请求下账号
+            this.toGetUserInfo()
+          }
+        })
+      }
+    },
+    toShowBindKugou() {
+      showBindKuGou().then((res) => {
+        const { data, ret_code } = res.data
+        if (ret_code === 0) {
+          if (data !== null) {
+            this.showBind = data.show_bind
+          } 
+        }
+      })
+    },
+    toAudioEditor() {
+      log('去编辑器页面')
+      this.$router.push(`/audioEditor`)
+    }
+  }
 }
 </script>
 
@@ -316,6 +367,17 @@ export default {
       padding: 0 17px;
       margin-left: 19px;
     }
+  }
+
+  .audio-edit {
+    border-right: 2px solid #2cabff;
+    color: #000;
+    // font-size: 30px;
+    font-weight: bold;
+    text-decoration: underline;
+    display: flex;
+    align-items: center;
+    margin-left: auto;
   }
 }
 
@@ -424,4 +486,34 @@ export default {
 	    border-radius: 31px;
     }
   }
+
+.success-icon {
+  width: 106px;
+  height: 106px;
+}
+.bind-success {
+  &__title {
+    font-size: 38px;
+    line-height: 40px;
+    margin: 30px auto;
+    color: #000;
+    font-weight: bold;
+  }
+  &__kugou {
+    color: #000;
+    font-size: 24px;
+  }
+  &__nickname {
+    color: #000;
+    font-size: 28px;
+    margin: 10px auto
+  }
+  &__validity {
+    margin: 80px auto 0 auto;
+    a {
+      color: #2cabff;
+      text-decoration: none;
+    }
+  }
+}
 </style>

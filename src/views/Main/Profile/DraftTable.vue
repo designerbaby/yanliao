@@ -43,8 +43,10 @@
 
 <script>
 // @ is an alias to /src
-import { reportEvent } from '@/utils'
-import CommonDialog from '@/components/CommonDialog'
+// 我的草稿组件
+import { reportEvent } from '@/common/utils/helper'
+import CommonDialog from '@/common/components/CommonDialog'
+
 import { 
   Table,
   TableColumn,
@@ -76,6 +78,7 @@ export default {
   },
   mounted() {
     this.getList()
+    reportEvent('person-page-mydrafttab-exposure')
   },
   methods: {
     getList() {
@@ -100,12 +103,17 @@ export default {
         return
       }
 
+      sessionStorage.setItem('editPath', '')
+      
       const step = row.step
       const musicId = row.music_id
       
       if (step === 2) {
-        this.$router.push(`/edit2`)
+        this.$router.push(`/rectify`)
       } else {
+        // const toneId = row.content.new_lyric_list[0].tone_id
+        // sessionStorage.setItem('draftToneId', toneId)
+        // log('从我的草稿跳过去')
         this.$router.push(`/edit/${musicId}`)
       }
       sessionStorage.setItem('draftId', draftId)

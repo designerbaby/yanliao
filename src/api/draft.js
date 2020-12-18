@@ -1,7 +1,9 @@
+// 草稿功能相关api
 import service from './main'
 
 const axios = service
 
+// 添加或修改草稿箱
 const addDraft = (data) => {
   return axios({
     method: 'post',
@@ -10,6 +12,7 @@ const addDraft = (data) => {
   })
 }
 
+// 删除草稿箱 
 const deleteDraft = (draftId) => {
   return axios({
     method: 'post',
@@ -20,6 +23,7 @@ const deleteDraft = (draftId) => {
   })
 }
 
+// 拉取草稿箱详情
 const fetchDraftDetailById = (draftId) => {
   return axios({
     method: 'post',
