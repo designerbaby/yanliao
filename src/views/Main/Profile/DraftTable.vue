@@ -111,6 +111,10 @@ export default {
       if (step === 2) {
         this.$router.push(`/rectify`)
       } else {
+        log('draft row:', JSON.stringify(row))
+        const toneId = row.content.new_lyric_list[0].tone_id
+        sessionStorage.setItem('draftToneId', toneId)
+        console.log('toneId:', toneId)
         this.$router.push(`/edit/${musicId}`)
       }
       sessionStorage.setItem('draftId', draftId)

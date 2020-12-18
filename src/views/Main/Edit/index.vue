@@ -228,8 +228,21 @@ export default {
   created() {
     const musicId = parseInt(this.$route.params.musicId)
     const arrangeId = this.$route.params.arrangeId
-    const toneId = this.$route.params.toneId
+    let toneId = this.$route.params.toneId
     const draftId = sessionStorage.getItem('draftId')
+    if (sessionStorage.getItem('draftToneId')) { 
+      log('从我的草稿过来的')
+      // 这里做下兼容，如果是从我的草稿过来的(即有这个draftToneId),toneId就从session拿
+      toneId = sessionStorage.getItem('draftToneId')
+      sessionStorage.setItem('draftToneId', '')
+    }
+    if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
+      log('从rectify页面过来的')
+      // 这里兼容主要是从rectify页面来，然后拿到本地的tone_id。
+      toneId = (JSON.parse(sessionStorage.getItem('form')).new_lyric_list[0] || {}).tone_id
+      sessionStorage.setItem('isRectify', 0)
+    }
+
     this.toneId = toneId
     this.musicId = musicId
     this.arrangeId = arrangeId

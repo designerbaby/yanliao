@@ -58,7 +58,7 @@ const routes = [
     meta: {
       rank: 1,
     },
-    component: () => import('../views/Main/profile.vue')
+    component: () => import('../views/Main/Profile/index.vue')
   },
   {
     path: '/audio/:arrangeId',

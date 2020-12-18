@@ -98,8 +98,8 @@ import {
   Message,
 } from 'element-ui'
 import Header from '@/common/components/Header'
-import DraftTable from '@/common/components/DraftTable'
-import VideoTable from '@/common/components/VideoTable'
+import DraftTable from './DraftTable'
+import VideoTable from './VideoTable'
 import CommonDialog from '@/common/components/CommonDialog'
 import {
   fetchArrangeList,
@@ -218,7 +218,7 @@ export default {
         this.$router.push('/exception')
         return
       }
-      console.log('editButtonClick row:', JSON.stringify(row))
+      console.log('profile editButtonClick row:', JSON.stringify(row))
       this.$router.push(`/edit/${row.music_id}/${row.arrange_id}/${row.tone_infos[0].tone_id}`)
     },
     deleteButtonClick(row) {
