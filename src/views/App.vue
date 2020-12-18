@@ -1,6 +1,10 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
-    <Header v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" ref="header" :currentPath="$router.history.current.path" :loginDialogShow="loginDialogShow" :openLoginDialog="openLoginDialog" :closeLoginDialog="closeLoginDialog" />
+    <Header v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
+      ref="header" :currentPath="$router.history.current.path" 
+      :loginDialogShow="loginDialogShow" 
+      :openLoginDialog="openLoginDialog" 
+      :closeLoginDialog="closeLoginDialog" />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
     <Footer v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
   </div>

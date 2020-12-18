@@ -9,8 +9,8 @@
       <div class="subhead-text">爆款视频悬赏活动</div>
       <img src="@/assets/icon-act.png" alt="">
     </a>
+    <!-- <div class="audio-edit" @click="toAudioEditor">音频编辑器</div> -->
     <button v-if="nickName === ''" class="login-button" @click="loginButtonClick">登录</button>
-
     <div class="user-info" v-if="nickName !== ''">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
@@ -265,6 +265,10 @@ export default {
           } 
         }
       })
+    },
+    toAudioEditor() {
+      log('去编辑器页面')
+      this.$router.push(`/audioEditor`)
     }
   }
 }
@@ -363,6 +367,17 @@ export default {
       padding: 0 17px;
       margin-left: 19px;
     }
+  }
+
+  .audio-edit {
+    border-right: 2px solid #2cabff;
+    color: #000;
+    // font-size: 30px;
+    font-weight: bold;
+    text-decoration: underline;
+    display: flex;
+    align-items: center;
+    margin-left: auto;
   }
 }
 

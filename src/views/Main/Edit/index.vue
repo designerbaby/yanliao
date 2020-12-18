@@ -243,8 +243,6 @@ export default {
       this.getEditedInfo(arrangeId)
     } else if (draftId) {
       this.getDraftInfo(draftId)
-    } else if (toneId) {
-      this.getMelodyConfig(this.toneId)
     } else {
       // 获取歌曲基本信息
       this.getSongInfo()
@@ -253,6 +251,7 @@ export default {
   mounted() {
     reportEvent('edit-page-exposure')
     this.toOnBeforeUpload()
+    this.initEdit()
     // setInterval(() => {
     //   this.submitDraft()
     // }, 1000)
@@ -261,6 +260,9 @@ export default {
     window.onbeforeunload = null
   },
   methods: {
+    initEdit() {
+      this.getMelodyConfig(this.toneId)
+    },
     toOnBeforeUpload() {
       // 在浏览器退出之前，判断是否有数据修改了没保存
       window.onbeforeunload = (event) => {
@@ -350,8 +352,12 @@ export default {
           // 这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西
           if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
             const oldForm = JSON.parse(sessionStorage.getItem('form'))
-            this.newLyricList = oldForm.new_lyric_list
+            log('oldForm:', oldForm)
+            log('toneList:', this.toneList)
             this.toneType = oldForm.tone_type
+            this.bpm = oldForm.bpm
+            this.melody = oldForm.up_down_tone
+            this.newLyricList = oldForm.new_lyric_list
             sessionStorage.setItem('isRectify', 0)
           } 
         },

@@ -106,6 +106,12 @@ const routes = [
       auth: 'noLogin',
     },
     component: () => import('../views/Policy/playIncentives.vue')
+  },
+  {
+    path: '/audioEditor',
+    name: 'AudioEditor',
+    meta: {},
+    component: () => import('../views/AudioEditor/index.vue')
   }
 ]
 

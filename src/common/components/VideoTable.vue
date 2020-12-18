@@ -320,9 +320,7 @@ export default {
       width: 20px;
       height: 20px;
       cursor: pointer;
-      // position: absolute;
-      // top: 0px;
-      // right: -10px;
+      margin: -20px 10px;
     }
   }
   .video-dialog {
