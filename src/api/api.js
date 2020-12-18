@@ -2,6 +2,7 @@ import service from '@/api/main'
 
 const axios = service
 
+// 搜索歌曲列表
 const search = (param) => {
   return axios({
     method: 'get',
@@ -10,6 +11,7 @@ const search = (param) => {
   })
 }
 
+// 查询歌曲的编辑信息
 const editInfo = (arrangeId) => {
   return axios({
     method: 'get',
@@ -20,6 +22,7 @@ const editInfo = (arrangeId) => {
   })
 }
 
+// 查询歌曲的合成状态
 const songDetail = (musicId) => {
   return axios({
     method: 'get',
@@ -30,7 +33,8 @@ const songDetail = (musicId) => {
   })
 }
 
-const songOtherDetail = (musicId) => {
+// 查询歌曲的其他信息
+const songOtherDetail = (musicId) => { 
   return axios({
     method: 'get',
     url: '/cgi-bin/musicx/kuwa/get_music_ext_info',
@@ -40,6 +44,7 @@ const songOtherDetail = (musicId) => {
   })
 }
 
+// 预提交改编歌曲
 const preSubmit = (form) => {
   return axios({
     method: 'post',
@@ -48,6 +53,7 @@ const preSubmit = (form) => {
   })
 }
 
+// 提交改编歌曲
 const submit = (form) => {
   return axios({
     method: 'post',
@@ -56,6 +62,7 @@ const submit = (form) => {
   })
 }
 
+// 查询歌曲合成的任务状态
 const downloadStatus = (arrangeId) => {
   return axios({
     method: 'get',
@@ -66,6 +73,7 @@ const downloadStatus = (arrangeId) => {
   })
 }
 
+// 获取音源曲调
 const melodyConfig = (musicId, singer) => {
   return axios({
     method: 'get',

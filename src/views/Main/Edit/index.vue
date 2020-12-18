@@ -226,10 +226,10 @@ export default {
     },
   },
   created() {
-    const musicId = parseInt(this.$route.params.musicId)
-    const arrangeId = this.$route.params.arrangeId
-    let toneId = this.$route.params.toneId
-    const draftId = sessionStorage.getItem('draftId')
+    const musicId = parseInt(this.$route.params.musicId) // 歌曲id
+    const arrangeId = this.$route.params.arrangeId // 编辑id
+    let toneId = this.$route.params.toneId // 音色id
+    const draftId = sessionStorage.getItem('draftId') // 草稿箱id
     if (sessionStorage.getItem('draftToneId')) { 
       log('从我的草稿过来的')
       // 这里做下兼容，如果是从我的草稿过来的(即有这个draftToneId),toneId就从session拿
@@ -273,7 +273,7 @@ export default {
     window.onbeforeunload = null
   },
   methods: {
-    initEdit() {
+    initEdit() { // 初始来的时候查询曲调信息
       this.getMelodyConfig(this.toneId)
     },
     toOnBeforeUpload() {
@@ -287,6 +287,7 @@ export default {
       }
     },
     comparisonFormData() {
+      // 对比form两个有没改变
       const defaultForm = this.defaultForm
       const currentForm = this.getFormData()
       let isModified = false
@@ -296,12 +297,14 @@ export default {
       return isModified
     },
     getDraftInfo(draftId) {
+      // 拉取草稿箱
       fetchDraftDetailById(draftId).then((response) => {
         const { data } = response.data
         this.initFormData(data)
       })
     },
     getEditedInfo(arrangeId) {
+      // 查询歌曲的编辑信息
       editInfo(arrangeId).then((response) => {
         const { data } = response.data
         this.initFormData(data)
@@ -510,6 +513,7 @@ export default {
         this.validateResult.tone[index] = false
       }
     },
+    // 选择谁来唱这首歌的事件
     singleToneIdChange(value) {
       if (value) {
         this.getMelodyConfig(value)
@@ -549,6 +553,7 @@ export default {
       reportEvent('edit-page-prev-button')
       this.$router.push('/search')
     },
+    // 删除草稿
     deleteDraft() {
       const draftId = sessionStorage.getItem('draftId')
       deleteDraft(draftId)
@@ -611,6 +616,7 @@ export default {
       }
       this.validateResult.contents[index] = o
     },
+    // 检查曲速
     checkBpmInput() {
       const bpm = this.bpm
       if (bpm < 50 || bpm > 200) {
@@ -619,6 +625,7 @@ export default {
         this.validateResult.bpm = true
       }
     },
+    // 检查唱歌内容
     checkSingleContentInput(value, index) {
       const countAdjust = this.countAdjust.find((item) => item.line === index + 1)
       const defaultValidateObject = {
@@ -652,12 +659,14 @@ export default {
       }
       return Array.from(this.oldLyricList[index]).length
     },
+    // 检查所有内容的输入
     checkAllContentInput() {
       this.newLyricList.forEach((item, index) => {
         const value = item.content
         this.checkSingleContentInput(value, index)
       })
     },
+    // 检查所有曲调的选择
     checkAllToneSelector() {
       if (this.toneType === 0) {
         if (this.singleToneId !== null) {
