@@ -123,12 +123,11 @@ export default {
       }
       this.videoDialogShow = true
       this.$nextTick(() => {
-        console.log('this.$refs.dialogVideo:', this.$refs.dialogVideo)
         this.$refs.dialogVideo.play()
       })
       this.currentVideoUrl = row.play_url
     },
-    getList() {
+    getList() { // 获取视频列表
       const p = {
         start: (this.currentPage - 1) * 10,
         count: 10,
@@ -144,6 +143,7 @@ export default {
       })
     },
     jumpToEditPage(row, origin) {
+      console.log(`VideoTable jumpToEditPage row:`, JSON.stringify(row))
       const draftId = row.id
       // reportEvent(`person-page-${origin}-button`, `person-page-${origin}-button`, { draftId, })
       const editable = row.is_edit
@@ -170,6 +170,7 @@ export default {
       this.targetId = targetId
     },
     deleteItem() {
+      // 删除视频按钮确认点击
       deleteVideo(this.targetId).then((response) => {
         const { data, ret_code } = response.data
         if (ret_code === 0) {
@@ -184,7 +185,7 @@ export default {
     },
     closeButtonClick() {
       this.videoDialogShow = false
-      this.$nextTick(() => {
+      this.$nextTick(() => { // 暂停视频
         this.$refs.dialogVideo.pause()
       })
     },

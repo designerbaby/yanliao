@@ -220,7 +220,6 @@ export default {
       }
       console.log('profile editButtonClick row:', JSON.stringify(row))
       this.$router.push(`/edit/${row.music_id}/${row.arrange_id}`)
-      // this.$router.push(`/edit/${row.music_id}/${row.arrange_id}/${row.tone_infos[0].tone_id}`)
     },
     deleteButtonClick(row) {
       const arrangeId = row.arrange_id

@@ -95,6 +95,7 @@ export default {
       })
     },
     jumpToEditPage(row, origin) {
+      console.log('jumpToEditPage:', row)
       const draftId = row.id
       reportEvent(`person-page-${origin}-button`, `person-page-${origin}-button`, { draftId, })
       const editable = row.is_edit
@@ -111,9 +112,6 @@ export default {
       if (step === 2) {
         this.$router.push(`/rectify`)
       } else {
-        // const toneId = row.content.new_lyric_list[0].tone_id
-        // sessionStorage.setItem('draftToneId', toneId)
-        // log('从我的草稿跳过去')
         this.$router.push(`/edit/${musicId}`)
       }
       sessionStorage.setItem('draftId', draftId)

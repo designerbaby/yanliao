@@ -171,14 +171,13 @@ export default {
   },
   data() {
     return {
-      submitSuccess: false,
-      // 是否编辑过
-      edited: false,
-      maxTone: 0,
-      minTone: 0,
-      melodySelectorDisable: true,
-      defaultValue: {},
-      showMelodyTips: false,
+      submitSuccess: false, // 是否提交成功
+      edited: false, // 是否编辑过
+      maxTone: 0, // 最大的曲调
+      minTone: 0, // 最小的曲调
+      melodySelectorDisable: true, // 曲调是否可编辑
+      // defaultValue: {},
+      // showMelodyTips: false,
       singleToneId: null,
       validateResult: {
         contents: [],
@@ -230,18 +229,7 @@ export default {
     const arrangeId = this.$route.params.arrangeId // 编辑id
     let toneId = this.$route.params.toneId // 音色id
     const draftId = sessionStorage.getItem('draftId') // 草稿箱id
-    // if (sessionStorage.getItem('draftToneId')) { 
-    //   log('从我的草稿过来的')
-    //   // 这里做下兼容，如果是从我的草稿过来的(即有这个draftToneId),toneId就从session拿
-    //   toneId = sessionStorage.getItem('draftToneId')
-    //   sessionStorage.setItem('draftToneId', '')
-    // }
-    // if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
-    //   log('从rectify页面过来的')
-    //   // 这里兼容主要是从rectify页面来，然后拿到本地的tone_id。
-    //   toneId = (JSON.parse(sessionStorage.getItem('form')).new_lyric_list[0] || {}).tone_id
-    //   sessionStorage.setItem('isRectify', 0)
-    // }
+    log(`musicId:${musicId}, arrangeId:${arrangeId},toneId:${toneId}`)
 
     this.toneId = toneId
     this.musicId = musicId
@@ -252,19 +240,27 @@ export default {
       const { data } = response.data
       this.toneList = data.tone_list
     })
-    if (arrangeId) {
-      this.getEditedInfo(arrangeId)
-    } else if (draftId) {
+    if (draftId) {
       this.getDraftInfo(draftId)
+    } else if (arrangeId) {
+      this.getEditedInfo(arrangeId)
     } else {
       // 获取歌曲基本信息
       this.getSongInfo()
     }
+    // !这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西。即草稿没有被加载
+    // if (arrangeId) {
+    //   this.getEditedInfo(arrangeId)
+    // } else if (draftId) {
+    //   this.getDraftInfo(draftId)
+    // } else {
+    //   // 获取歌曲基本信息
+    //   this.getSongInfo()
+    // }
   },
   mounted() {
     reportEvent('edit-page-exposure')
     this.toOnBeforeUpload()
-    // this.initEdit()
     // setInterval(() => {
     //   this.submitDraft()
     // }, 1000)
@@ -273,9 +269,6 @@ export default {
     window.onbeforeunload = null
   },
   methods: {
-    // initEdit() { // 初始来的时候查询曲调信息
-    //   this.getMelodyConfig(this.toneId)
-    // },
     toOnBeforeUpload() {
       // 在浏览器退出之前，判断是否有数据修改了没保存
       window.onbeforeunload = (event) => {
@@ -340,11 +333,17 @@ export default {
     initFormData(data) {
       log('initFormData data:', data)
       let type = 'normal'
-      if (this.arrangeId) {
-        type = 'edit'
-      } else if (this.draftId) {
+      if (this.draftId) {
         type = 'draft'
+      } else if (this.arrangeId) {
+        type = 'edit'
       }
+      // !这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西。即草稿没有被加载
+      // if (this.arrangeId) {
+      //   type = 'edit'
+      // } else if (this.draftId) {
+      //   type = 'draft'
+      // }
       const m = {
         'normal': () => {
           this.oldLyricList = data.lyric_list
@@ -365,22 +364,6 @@ export default {
           this.oldLyricList = data.lyric_list
           this.countAdjust = data.count_adjust || []
           this.initLyricData(editInfo)
-          // // 这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西
-          if (parseInt(sessionStorage.getItem('isRectify'), 10) === 1) {
-            const oldForm = JSON.parse(sessionStorage.getItem('form'))
-            log('oldForm:', oldForm)
-            log('toneList:', this.toneList)
-            this.toneType = oldForm.tone_type
-            this.bpm = oldForm.bpm
-            this.melody = oldForm.up_down_tone
-            // this.$nextTick(() => {
-            //   setTimeout(() => {
-            //     this.newLyricList = oldForm.new_lyric_list
-            //     this.firstSelectTone = true
-            //   }, 500)
-            // })
-            sessionStorage.setItem('isRectify', 0)
-          } 
         },
         'draft': () => {
           const draftDetail = data.audio_draft_info.content

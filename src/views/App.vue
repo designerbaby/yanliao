@@ -1,12 +1,12 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
-    <Header v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
+    <Header v-if="showHeaderOrFooter" 
       ref="header" :currentPath="$router.history.current.path" 
       :loginDialogShow="loginDialogShow" 
       :openLoginDialog="openLoginDialog" 
       :closeLoginDialog="closeLoginDialog" />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
-    <Footer v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
+    <Footer v-if="showHeaderOrFooter" />
   </div>
 </template>
 
@@ -31,6 +31,12 @@ export default {
     }
   },
   mounted() {
+    console.log('this.$router.history:', this.$router.history)
+  },
+  computed: {
+    showHeaderOrFooter() {
+      return this.$router.history.current.meta.auth !== 'noLogin' || this.$router.history.current.path === '/'
+    }
   },
   methods: {
     changeBg(data) {
