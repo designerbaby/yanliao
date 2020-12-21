@@ -10,15 +10,11 @@ import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'Home',
-  components: {
-  },
   mounted() {
     reportEvent('activity-page-exposure')
     this.$emit('changeBg', 2)
     document.title = '“点到为止”盐料爆款视频悬赏令'
-  },
-  methods: {
-  },
+  }
 }
 </script>
 

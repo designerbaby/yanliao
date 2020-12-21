@@ -83,8 +83,8 @@ export default {
   },
   methods: {
     getDefaultInfo() {
-      console.log('this.oldForm:', this.oldForm)
       this.oldForm = JSON.parse(sessionStorage.getItem('form'))
+      console.log('getDefaultInfo this.oldForm:', this.oldForm)
       this.polyphonicList = JSON.parse(sessionStorage.getItem('polyphonicList'))
       this.initFormData()
     },
@@ -92,6 +92,7 @@ export default {
       fetchDraftDetailById(draftId).then((response) => {
         const { data } = response.data
         const d = data.audio_draft_info.content
+        d.arrange_id = this.$route.query.arrangeId || undefined
         this.oldForm = d
         return preSubmit(d)
       }).then((response) => {
@@ -203,6 +204,7 @@ export default {
       reportEvent("edit-page-2-confirm-button")
       const f = this.oldForm
       f.fix_pinyin_list = JSON.parse(this.getFormData())
+      log('rectify confirmButtonClick 提交数据：', f)
       submit(f).then((response) => {
         const { data, ret_code } = response.data
         if (ret_code === 0) {

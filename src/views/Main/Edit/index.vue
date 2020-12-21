@@ -556,7 +556,7 @@ export default {
       if (arrangeId) {
         f.arrange_id = arrangeId
       }
-      log('提交数据', f)
+      log('edit confirmButtonClick提交数据', f)
       this.checkForm()
       if (this.formChecked === true) {
         preSubmit(f).then((response) => {
@@ -570,7 +570,7 @@ export default {
             sessionStorage.setItem('polyphonicList', JSON.stringify(data.polyphonic_list))
             sessionStorage.setItem('editPath', JSON.stringify(this.$router.history.current.path))
             // this.submitDraft()
-            this.$router.push('/rectify')
+            this.$router.push(`/rectify?arrangeId=${f.arrange_id || ''}`)
           }
         }).then((response) => {
           if (!response) {
