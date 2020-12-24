@@ -30,9 +30,7 @@ export default {
       loginDialogShow: false,
     }
   },
-  mounted() {
-    console.log('this.$router.history:', this.$router.history)
-  },
+  mounted() {},
   computed: {
     showHeaderOrFooter() {
       return this.$router.history.current.meta.auth !== 'noLogin' || this.$router.history.current.path === '/'

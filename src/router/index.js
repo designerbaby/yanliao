@@ -108,7 +108,7 @@ const routes = [
     component: () => import('../views/Policy/playIncentives.vue')
   },
   {
-    path: '/audioEditor',
+    path: '/audioEditor', // 音频编辑器页面
     name: 'AudioEditor',
     meta: {},
     component: () => import('../views/AudioEditor/index.vue')

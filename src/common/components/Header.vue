@@ -9,15 +9,15 @@
       <div class="subhead-text">爆款视频悬赏活动</div>
       <img src="@/assets/icon-act.png" alt="">
     </a>
-    <!-- <div class="audio-edit" @click="toAudioEditor">音频编辑器</div> -->
-    <button v-if="nickName === ''" class="login-button" @click="loginButtonClick">登录</button>
-    <div class="user-info" v-if="nickName !== ''">
+    <div class="audio-edit" @click="toAudioEditor">音频编辑器</div>
+    <div class="user-info" v-if="mxIsLogin || nickName">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
-      <!-- <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button> -->
+      <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button>
       <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
     </div>
-
+    <button v-else class="login-button" @click="loginButtonClick">登录</button>
+    
     <el-dialog
       :visible.sync="loginDialogShow"
       width="400px"
@@ -77,7 +77,7 @@
 
 <script>
 import { Input, Dialog, FormItem, Form, Message } from 'element-ui'
-import { reportEvent, isTestEnv, getUrlParameters } from '@/common/utils/helper'
+import { reportEvent, isTestEnv, getUrlParameters, getCookie } from '@/common/utils/helper'
 import { fetchAuthCode, login, logout, userInfo } from '@/api/login'
 import { bindKugou, showBindKuGou } from '@/api/bind' 
 
@@ -106,6 +106,7 @@ export default {
         phone: '',
         authCode: '',
       },
+      mxIsLogin: getCookie('mx_is_login'),
       showBind: 1,
       kugouBindShow: false,
       code: getUrlParameters().code,  // 从酷狗登录回调之后拿到的code
@@ -232,7 +233,8 @@ export default {
     },
     bindKugou() {
       reportEvent('person-page-userconnect_button')
-      const testJumpUrl = `https://voo.kugou.com/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10073&url=${encodeURIComponent('https://test-yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
+      // 测试环境酷狗链接https://voo.kugou.com/1559c530-3925-11eb-b63e-b5551d784bc1/index.html
+      const testJumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10073&url=${encodeURIComponent('https://test-yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
       const jumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10076&url=${encodeURIComponent('https://yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
       if (!isTestEnv) {
         location.href = jumpUrl
@@ -250,6 +252,7 @@ export default {
           if (ret_code === 0) { // 和酷狗账号绑定成功
             this.nickName = data.nickname
             this.userLogo = data.profile_photo
+            this.toShowBindKugou() // 绑定成功后再去查下不显示绑定的按钮
           } else { // 绑定不成功的话，就再去请求下账号
             this.toGetUserInfo()
           }
@@ -267,7 +270,6 @@ export default {
       })
     },
     toAudioEditor() {
-      log('去编辑器页面')
       this.$router.push(`/audioEditor`)
     }
   }

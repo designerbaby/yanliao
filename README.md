@@ -31,11 +31,12 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
   后台接口文档：
   - 后台统一接口文档：http://git.tmeoa.com/simonygzhao/RESTfulAPI
   分类如下：
-    - 短视频接口文档：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/video.md
+    - 短视频：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/video.md
     - 草稿箱： http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/audio_draft.md
     - 登录：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/auth.md
     - 主流程：http://git.tmeoa.com/simonygzhao/RESTfulAPI/blob/master/kuwa.md
     - 绑定酷狗账号：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_yan/yan_kugou_bus/musicx_yan_kugou_bus.proto
+    - 编辑器：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_kuwa/kuwa_music_synth/musicx_kuwa_music_synth.proto
 
 ### 代码提交规范
 

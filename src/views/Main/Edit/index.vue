@@ -240,6 +240,7 @@ export default {
       const { data } = response.data
       this.toneList = data.tone_list
     })
+    // !这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西。即草稿没有被加载
     if (draftId) {
       this.getDraftInfo(draftId)
     } else if (arrangeId) {
@@ -248,7 +249,6 @@ export default {
       // 获取歌曲基本信息
       this.getSongInfo()
     }
-    // !这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西。即草稿没有被加载
     // if (arrangeId) {
     //   this.getEditedInfo(arrangeId)
     // } else if (draftId) {
@@ -731,7 +731,7 @@ export default {
         return o
       })
     },
-  },
+  }
 }
 </script>
 
