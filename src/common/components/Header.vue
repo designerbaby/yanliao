@@ -68,7 +68,7 @@
       <img src="@/assets/icon-complete.png" alt="success-icon" class="success-icon"/>
       <div class="bind-success__title">绑定成功</div>
       <div class="bind-success__kugou">您已经绑定酷狗音乐账号</div>
-      <div class="bind-success__nickname">{{ nickName }}</div>
+      <div class="bind-success__nickname">{{ kugouNickName }}</div>
       <div>绑定有效期为3个月, 超过有效期重新绑定</div>
       <div class="bind-success__validity">在个人主页发布视频同步到酷狗可获得<a href="/playIncentives" target="_blank" title="播放激励">播放激励</a></div>
     </el-dialog>
@@ -99,6 +99,7 @@ export default {
       sendAuthCodeText: '获取验证码',
       validatePass: '',
       nickName: '',
+      kugouNickName: '',
       userLogo: '',
       timeLeft: 60,
       logoutDialogShow: false,
@@ -250,7 +251,7 @@ export default {
           const { data, ret_code } = res.data
           console.log('bindKugou:', res)
           if (ret_code === 0) { // 和酷狗账号绑定成功
-            // this.nickName = data.nickname
+            this.kugouNickName = data.nickname
             // this.userLogo = data.profile_photo
             this.toShowBindKugou() // 绑定成功后再去查下不显示绑定的按钮
           } else { // 绑定不成功的话，就再去请求下账号

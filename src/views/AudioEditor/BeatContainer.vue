@@ -45,7 +45,8 @@
     >
       <template v-for="(it, index) in stagePitches">
       <div
-        class="audioEditor__stage__pitch"
+        :class="['audioEditor__stage__pitch', selectedPitch === index ? 'is-active' : '']"
+        class=""
         :style="{
           width: `${it.width}px`,
           height: `${it.height}px`,
@@ -121,7 +122,7 @@ export default {
         clientX: event.clientX,
         clientY: event.clientY
       }
-      console.log(`this.movePitchStart:`, this.movePitchStart)
+      // console.log(`this.movePitchStart:`, this.movePitchStart)
     },
     onPitchMouseMove(event){
       // 绿色块鼠标移动事件
@@ -253,7 +254,8 @@ export default {
     },
 
     toSelectPitch (index) {
-      console.log('toSelectPitch:', index)
+      // console.log('toSelectPitch:', index)
+      this.selectedPitch = index
     }
   }
 };
