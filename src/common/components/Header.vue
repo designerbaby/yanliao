@@ -9,11 +9,11 @@
       <div class="subhead-text">爆款视频悬赏活动</div>
       <img src="@/assets/icon-act.png" alt="">
     </a>
-    <!-- <div class="audio-edit" @click="toAudioEditor">音频编辑器</div> -->
+    <div class="audio-edit" @click="toAudioEditor">音频编辑器</div>
     <div class="user-info" v-if="mxIsLogin || nickName">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
-      <!-- <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button> -->
+      <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button>
       <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
     </div>
     <button v-else class="login-button" @click="loginButtonClick">登录</button>
@@ -250,8 +250,8 @@ export default {
           const { data, ret_code } = res.data
           console.log('bindKugou:', res)
           if (ret_code === 0) { // 和酷狗账号绑定成功
-            this.nickName = data.nickname
-            this.userLogo = data.profile_photo
+            // this.nickName = data.nickname
+            // this.userLogo = data.profile_photo
             this.toShowBindKugou() // 绑定成功后再去查下不显示绑定的按钮
           } else { // 绑定不成功的话，就再去请求下账号
             this.toGetUserInfo()

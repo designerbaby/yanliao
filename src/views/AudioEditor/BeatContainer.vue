@@ -27,6 +27,7 @@
             v-for="j in 32 / beatForm.fenmu"
             :key="j"
             @dblclick="toCreateRecTangle"
+            :style="{ width: `${noteWidth}px` }"
           ></div>
         </div>
       </div>
@@ -57,6 +58,7 @@
         @mousemove.stop="onPitchMouseMove"
         @mouseup.stop="onPitchMouseUp($event, index)"
         @mouseleave.stop="onPitchMouseUp($event, index)"
+        @click="toSelectPitch(index)"
       ></div>
       </template>
       <div class="audioEditor__stage__sharp" ref="sharp"></div>
@@ -80,8 +82,10 @@ export default {
       isMouseMove: false,
       stageOffset: null,
       stagePitches: [],
-      movePitchStart: null
-    };
+      movePitchStart: null,
+      noteWidth: 20, // 32分音符占据的最小像素单位
+      selectedPitch: -1
+    }
   },
   
   mounted() {
@@ -99,7 +103,7 @@ export default {
       // 初始化舞台的位置
       this.stageOffset = this.getOffset(this.$refs.stage);
 
-      console.log(`updateStageOffset`, this.stageOffset)
+      // console.log(`updateStageOffset`, this.stageOffset)
     },
     toShowBeat() {
       this.$emit("showBeat");
@@ -108,6 +112,7 @@ export default {
       console.log("toCreateRecTangle:", event);
     },
     onPitchMouseDown(event){
+      // 绿色块鼠标按下事件
       const target = event.target
       target.style.opacity = 0.8
       this.movePitchStart = {
@@ -119,6 +124,7 @@ export default {
       console.log(`this.movePitchStart:`, this.movePitchStart)
     },
     onPitchMouseMove(event){
+      // 绿色块鼠标移动事件
       if (this.movePitchStart) {
         
         const newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
@@ -136,6 +142,7 @@ export default {
       }
     },
     onPitchMouseUp(event, index) {
+      // 绿色块鼠标移走事件
       event.target.style.opacity = 1
       this.movePitchStart = null
 
@@ -147,7 +154,7 @@ export default {
       pitch.left = left
       pitch.top = top - (top % 25);
     },
-    getOffset(ele) {
+    getOffset(ele) { // 获取距离父元素的位置
       let par = ele.offsetParent;
       let left = ele.offsetLeft;
       let top = ele.offsetTop;
@@ -159,12 +166,13 @@ export default {
       return { left, top };
     },
     onMouseDown(event) {
-      console.log("mouseMove", event);
-      this.isMouseDown = true;
+      console.log("onMouseDown", event);
+      this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
       this.startPos = {
         x: event.clientX - this.stageOffset.left,
         y: event.clientY - this.stageOffset.top
       };
+      // 初始化绿色块
       this.$refs.sharp.style.left = `${this.startPos.x}px`;
       this.$refs.sharp.style.top = `${this.startPos.y}px`;
       this.$refs.sharp.style.width = `1px`;
@@ -217,10 +225,13 @@ export default {
 
         // 取25的倍数，因为每一行是25px
         const top = topPx - (topPx % 25);
-        const left = Math.min(this.startPos.x, this.endPos.x);
-
-        // 取矩形的宽度
-        const width = Math.abs(this.startPos.x - this.endPos.x);
+        const initLeft = Math.min(this.startPos.x, this.endPos.x);
+        // 根据32分音符的最小像素调整左边距
+        const left = Math.floor(initLeft / this.noteWidth) * this.noteWidth
+        
+        const initWidth = Math.abs(this.startPos.x - this.endPos.x);
+        // 根据32分音符的最小像素调整宽度
+        const width = Math.ceil(initWidth/ this.noteWidth) * this.noteWidth
 
         this.addOnePitch({
           width,
@@ -229,18 +240,20 @@ export default {
           top
         });
       }
-      // console.log("mouseMove", event);
-      // console.log("mouseLeave event:", event);
     },
 
     addOnePitch({ width, height, left, top }) {
-      console.log(`addOnePitch:`, width, height, left, top)
+      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}`)
       this.stagePitches.push({
         width,
         height,
         left,
         top
       });
+    },
+
+    toSelectPitch (index) {
+      console.log('toSelectPitch:', index)
     }
   }
 };
@@ -264,11 +277,14 @@ export default {
 .audioEditor__stage__pitch {
   height: 0;
   width: 0;
-  background: rgb(20, 155, 49);
+  background: #57673b;
   border-radius: 3px;
   position: absolute;
   left: 0;
   top: 0;
+  &.is-active {
+    background: rgb(20, 155, 49)
+  }
 }
 .audioEditor__stage__sharp {
   border: 1px solid #ccc;
@@ -378,7 +394,8 @@ export default {
   &--fenmu {
     border-left: 1px solid #292828;
     background: transparent;
-    width: 20px;
+    // width: 20px;
+    width: 0px;
     height: 2100px;
   }
 }

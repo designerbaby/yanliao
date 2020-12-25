@@ -5,6 +5,7 @@
         <div class="audioEditor__play--icon"></div>
         播放控制
       </div>
+      <div class="audioEditor__bpm">{{bpm}} BPM</div>
     </div>
     <BeatContainer @showBeat="toShowBeat" :beatForm="beatForm"></BeatContainer>
     <BeatSelector ref="BeatSelector" @changeBeat="toChangeBeat"></BeatSelector>
@@ -16,6 +17,7 @@ import { Icon } from 'element-ui'
 import BeatSelector from './BeatSelector.vue'
 import BeatContainer from './BeatContainer.vue'
 import { editorSynth } from '@/api/audio'
+import { pitchItem } from '@/common/utils/const'
 
 export default {
   name: 'AudioEditor',
@@ -31,9 +33,9 @@ export default {
     }
     return {
       beatForm: JSON.parse(sessionStorage.getItem('beatForm')) || defaultForm,
+      bpm: 90
     }
   },
-  mounted() {},
   methods: {
     toPlay() {
       this.toSynthesize()
@@ -70,6 +72,7 @@ export default {
   &__header {
     width: 100%;
     border-top: 1px solid #505050;
+    position: relative;
   }
   &__play {
     width: 100px;
@@ -86,6 +89,12 @@ export default {
       border-bottom: 10px solid transparent;
     }
   }
- 
+}
+.audioEditor__bpm {
+  color: #fff;
+  font-size: 13px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 </style>
