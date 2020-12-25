@@ -4,8 +4,7 @@
     :visible.sync="dialogVisible"
     width="400px"
     :rules="rules"
-    ref="beatForm"
-    :model="beatForm">
+    ref="ruleForm">
     <Form label-position="top" label-width="80px" :model="beatForm">
       <FormItem label="分子" prop="fenzi">
         <Input v-model="beatForm.fenzi"></Input>
@@ -16,7 +15,7 @@
     </Form>
     <span slot="footer" class="dialog-footer">
       <Button @click="dialogVisible = false">取 消</Button>
-      <Button type="primary" @click="toSubmitBeat('beatForm')">确 定</Button>
+      <Button type="primary" @click="toSubmitBeat">确 定</Button>
     </span>
   </Dialog>
 </template>
@@ -37,34 +36,35 @@ export default {
   data() {
     return {
       dialogVisible: false,
-      beatForm: {
-        fenzi: 4,
-        fenmu: 4
-      },
+      beatForm: {},
       rules: {
         fenzi: [
-          { required: true, message: '请输入分子', trigger: 'blur' },
-          { type: 'number', message: '必须为正整数', validate: validateInt }
+          { required: true, message: '请输入分子, 必须为正整数', 
+            trigger: 'blur', type: 'number', validate: validateInt }
         ],
         fenmu: [
-          { required: true, message: '请输入分母', trigger: 'blur' },
-          { type: 'number', message: '只能为2,4,8或16', validate: validateFenmu }
+          { required: true, message: '请输入分母, 只能为2,4,8或16', 
+            trigger: 'blur', type: 'number', validate: validateFenmu }
         ]
       }
     }
   },
   methods: {
-    toSubmitBeat(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          this.$emit('changeBeat', this.beatForm)
-        } else {
-          Message.error('请全部填写完整并正确再提交')
-        }
-      })
+    toSubmitBeat() {
+      this.$emit('changeBeat', this.beatForm)
+      this.dialogVisible = false
+      // console.log('this.$refs.ruleForm:', this.$refs.ruleForm)
+      // this.$refs.ruleForm.validate((valid) => {
+      //   if (valid) {
+          
+      //   } else {
+      //     Message.error('请全部填写完整并正确再提交')
+      //   }
+      // })
     },
-    showBeatDialog() {
+    showBeatDialog(form) {
       this.dialogVisible = true
+      this.beatForm = form
     }
   }
 }

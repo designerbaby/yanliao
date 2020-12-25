@@ -16,7 +16,8 @@
     "smoothscroll-polyfill": "^0.4.4",
     "vod-js-sdk-v6": "^1.4.11",
     "vue": "^2.6.11",
-    "vue-router": "^3.2.0"
+    "vue-router": "^3.2.0",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

@@ -1,19 +1,19 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
-    <Header v-if="showHeaderOrFooter" 
+    <Header v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
       ref="header" :currentPath="$router.history.current.path" 
       :loginDialogShow="loginDialogShow" 
       :openLoginDialog="openLoginDialog" 
       :closeLoginDialog="closeLoginDialog" />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
-    <Footer v-if="showHeaderOrFooter" />
+    <Footer v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
 import Header from '@/common/components/Header.vue'
-import Footer from '@/common/components/Footer'
+import Footer from '@/common/components/Footer.vue'
 import HomeBg from '@/assets/bg-home.png'
 import normalBg from '@/assets/bg.png'
 import activityBg from '@/assets/activity-bg.jpg'
@@ -31,11 +31,7 @@ export default {
     }
   },
   mounted() {},
-  computed: {
-    showHeaderOrFooter() {
-      return this.$router.history.current.meta.auth !== 'noLogin' || this.$router.history.current.path === '/'
-    }
-  },
+  computed: {},
   methods: {
     changeBg(data) {
       if (data === 0) {

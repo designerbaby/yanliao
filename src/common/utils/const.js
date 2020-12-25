@@ -420,3 +420,13 @@ export const pitchList = [
     type: 0
   }
 ]
+
+export const pitchItem = {
+  duration: 10,
+  pitch: 24,
+  singer: 'luoxiang',
+  'start_time': 0,
+  pinyin: 'la',
+  hanzi: '啦',
+  'tone_id': 1
+}
