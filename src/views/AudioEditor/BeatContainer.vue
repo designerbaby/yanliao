@@ -60,7 +60,7 @@
         @mouseup.stop="onPitchMouseUp($event, index)"
         @mouseleave.stop="onPitchMouseUp($event, index)"
         @click="toSelectPitch(index)"
-      ></div>
+      >{{ it.hanzi }}</div>
       </template>
       <div class="audioEditor__stage__sharp" ref="sharp"></div>
     </div>
@@ -139,7 +139,7 @@ export default {
         event.target.dataset.left = newLeft
         event.target.dataset.top = newTop
 
-        console.log(`onPitchMouseMove:`)
+        // console.log(`onPitchMouseMove:`)
       }
     },
     onPitchMouseUp(event, index) {
@@ -190,7 +190,7 @@ export default {
         const width = pos.x - this.startPos.x;
         const height = pos.y - this.startPos.y;
 
-        console.log(`size:`, width, height);
+        // console.log(`size:`, width, height);
 
         // 小于0 表示从开始位置在右边，从右边往左边滑
         if (width < 0) {
@@ -233,28 +233,31 @@ export default {
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
         const width = Math.ceil(initWidth/ this.noteWidth) * this.noteWidth
+        const hanzi = '啦'
 
         this.addOnePitch({
           width,
           height: 25,
           left,
-          top
+          top,
+          hanzi
         });
       }
     },
 
-    addOnePitch({ width, height, left, top }) {
-      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}`)
+    addOnePitch({ width, height, left, top, hanzi }) {
+      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
       this.stagePitches.push({
         width,
         height,
         left,
-        top
+        top,
+        hanzi
       });
+      this.$emit('getPitches', this.stagePitches, this.noteWidth)
     },
 
     toSelectPitch (index) {
-      // console.log('toSelectPitch:', index)
       this.selectedPitch = index
     }
   }
@@ -284,6 +287,9 @@ export default {
   position: absolute;
   left: 0;
   top: 0;
+  font-size: 12px;
+  line-height: 25px;
+  // text-align: center;
   &.is-active {
     background: rgb(20, 155, 49)
   }

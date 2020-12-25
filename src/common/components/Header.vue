@@ -491,8 +491,8 @@ export default {
   }
 
 .success-icon {
-  width: 106px;
-  height: 106px;
+  width: 100px;
+  height: 100px;
 }
 .bind-success {
   &__title {
@@ -509,7 +509,7 @@ export default {
   &__nickname {
     color: #000;
     font-size: 28px;
-    margin: 10px auto
+    margin: 20px auto
   }
   &__validity {
     margin: 80px auto 0 auto;
