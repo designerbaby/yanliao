@@ -421,12 +421,18 @@ export const pitchList = [
   }
 ]
 
-export const pitchItem = {
-  duration: 10,
-  pitch: 24,
-  singer: 'luoxiang',
-  'start_time': 0,
-  pinyin: 'la',
-  hanzi: '啦',
-  'tone_id': 1
+export const processStatus = { // 进度从0到4对应的百分比
+  0: 0,
+  1: 15,
+  2: 30,
+  3: 80,
+  4: 100
+}
+
+export const statusMap = {
+  0: '待跑状态',
+  1: '进行中',
+  2: '已成功',
+  3: '失效',
+  4: '失败'
 }

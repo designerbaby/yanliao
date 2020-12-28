@@ -2,25 +2,31 @@
   <div class="audioEditor" ref="audioEditor">
     <div class="audioEditor__header">
       <div class="audioEditor__play" @click="toPlay">
-        <div class="audioEditor__play--icon"></div>
+        <img src="@/assets/icon-pause.png" class="audioEditor__play--icon" v-if="isPlaying"/>
+        <img src="@/assets/icon-play.png" class="audioEditor__play--icon" v-else/>
         播放控制
       </div>
       <div class="audioEditor__bpm">{{bpm}} BPM</div>
     </div>
-    <audio :src="onlineUrl" ref="AudioUrl" type="audio/wav" controls autoplay class="audioPlay"></audio>
-    <BeatContainer @showBeat="toShowBeat" :beatForm="beatForm" @getPitches="toGetPictData"></BeatContainer>
+    <audio :src="onlineUrl" ref="AudioUrl" type="audio/wav" controls class="audioPlay"></audio>
+    <BeatContainer 
+      ref="BeatContainer"
+      @showBeat="toShowBeat" 
+      :beatForm="beatForm" 
+      @getPitches="toGetPictData"
+    ></BeatContainer>
     <BeatSelector ref="BeatSelector" @changeBeat="toChangeBeat"></BeatSelector>
     <StatusDialog ref="StatusDialog"></StatusDialog>
   </div>
 </template>
 
 <script>
-import { Message, Confirm } from 'element-ui'
+import { Message } from 'element-ui'
 import BeatSelector from './BeatSelector.vue'
 import BeatContainer from './BeatContainer.vue'
 import StatusDialog from './StatusDialog.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult } from '@/api/audio'
-import { pitchItem } from '@/common/utils/const'
+import { processStatus, statusMap } from '@/common/utils/const'
 
 export default {
   name: 'AudioEditor',
@@ -41,17 +47,30 @@ export default {
       newPitches: [],
       isPlaying: false,
       timer: null,
-      onlineUrl: ''
+      onlineUrl: '',
+      rollTime: 0, // 轮询请求状态循环次数
+      playTime: 0,
+      timeout: null
     }
   },
   mounted() {},
   methods: {
     toPlay() {
-      if (this.onlineUrl) { // 有现成的音频，直接播放
-        this.$refs.AudioUrl.play()
+      if (!this.isPlaying) {
+        if (this.onlineUrl) { // 有现成的音频，直接播放
+          this.toPlayAudio()
+        } else {
+          this.toSynthesize() // 合成音频
+        }
       } else {
-        this.toSynthesize()
+        this.toPauseAudio()
       }
+    },
+    toMoveLine() {
+      this.$refs.BeatContainer.toMoveLinePos()
+    },
+    toRestartLine() {
+      this.$refs.BeatContainer.toRestartLinePos()
     },
     toGetPictData(pitches, note) {
       const newPitches = []
@@ -69,9 +88,16 @@ export default {
           tone_id: 1
         }
         newPitches.push(pitchItem)
+        this.toGetMaxSecond(duration, startTime)
       })
-      console.log('newPitches:', newPitches)
       this.newPitches = newPitches
+      log('this.newPitches:', this.newPitches)
+    },
+    toGetMaxSecond(duration, startTime) { // 获取当前音频的最大时长
+      const maxTime = duration + startTime
+      if (maxTime > this.playTime) {
+        this.playTime = maxTime
+      }
     },
     toShowBeat() {
       this.$refs.BeatSelector.showBeatDialog(this.beatForm)
@@ -91,20 +117,26 @@ export default {
       }
       const { data } = await editorSynth(req)
       log('editorSynth:', data)
+      Message.success('开始合成音频中~')
       if (data.ret_code === 0) {
         this.toRollStatus(data.data.param_id, data.data.task_id)
       } else {
-        Message.error(`请求歌词合成失败, 错误信息:${data.err_msg}, 请重试~`)
+        Message.error(`合成失败, 错误信息:${data.err_msg}, 请重试~`)
       }
     },
     async toEditorSynthStatus (paramId, taskId) {
+      log('this.rollTime:', this.rollTime)
+      this.rollTime += 1
       const { data } = await editorSynthStatus(paramId)
-      if (data.ret_code === 0) { 
-        // Message.success(`正在合成中,合成状态为: ${data.data.status}`)
-        this.$refs.StatusDialog.showStatus(data.data.status)
+      log('editorSynthStatus:', data)
+      if (data.ret_code === 0) {
         if (data.data.status === 4) {
+          Message.success('音频合成成功~')
           clearInterval(this.timer)
           this.toEditorSynthResult(taskId)
+        } else {
+          Message.success(`算法努力合成音频中(${processStatus[data.data.status]}%)`)
+          // this.$refs.StatusDialog.showStatus(data.data.status)
         }
       } else {
         Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
@@ -112,29 +144,42 @@ export default {
     },
     toRollStatus (paramId, taskId) {
       clearInterval(this.timer)
-      this.timer = setInterval(() => {
-        this.toEditorSynthStatus(paramId, taskId)
-      }, 3000)
+      if (this.rollTime <= 10) {
+        this.timer = setInterval(() => {
+          this.toEditorSynthStatus(paramId, taskId)
+        }, 3000)
+      }
     },
     async toEditorSynthResult (taskId) {
       const { data } = await editorSynthResult(taskId)
+      log('editorSynthResult:', data)
       if (data.ret_code === 0) {
         if (data.data.state === 2) {
           this.onlineUrl = data.data.online_url
-          this.$refs.AudioUrl.play()
+          this.$refs.StatusDialog.hideStatus()
+          this.$nextTick(() => {
+            this.toPlayAudio()
+            this.isPlaying = false
+          })
         } else {
-          const statusMap = {
-            0: '待跑状态',
-            1: '进行中',
-            2: '已成功',
-            3: '失效',
-            4: '失败'
-          }
           Message.error(`合成状态: ${statusMap[data.data.state]}`)
         }
       } else {
         Message.error(`合成失败, 错误信息: ${data.err_msg}`)
       }
+    },
+    toPlayAudio() {
+      this.isPlaying = true
+      this.$refs.AudioUrl.play()
+      this.toMoveLine()
+      this.timeout = setTimeout(() => {
+        this.toPauseAudio()
+      }, this.playTime + 500)
+    },
+    toPauseAudio() {
+      this.$refs.AudioUrl.pause()
+      this.isPlaying = false
+      this.toRestartLine()
     }
   }
 }
@@ -161,9 +206,14 @@ export default {
     font-size: 15px;
     margin: 10px 20px;
     &--icon {
-      border-left: 10px solid #b8b8b8;
-      border-top: 10px solid transparent;
-      border-bottom: 10px solid transparent;
+      width: 22px;
+      height: 22px;
+      // border-left: 10px solid #b8b8b8;
+      // border-top: 10px solid transparent;
+      // border-bottom: 10px solid transparent;
+      // background-image: url('@/assets/icon-play.png');
+      // background-repeat: no-repeat;
+      // background-size: 100%;
     }
   }
 }

@@ -26,15 +26,15 @@
             class="audioEditor__column--fenmu"
             v-for="j in 32 / beatForm.fenmu"
             :key="j"
-            @dblclick="toCreateRecTangle"
             :style="{ width: `${noteWidth}px` }"
           ></div>
         </div>
       </div>
     </div>
-    <div class="audioEditor__line" :style="{ left: linex }">
-      <span></span>
-    </div>
+    <div 
+      :class="['audioEditor__line', lineActive ? 'is-active' : '']" 
+      ref="audioEditorLine"
+    ><span></span></div>
     <div
       ref="stage"
       class="audioEditor__stage"
@@ -42,25 +42,49 @@
       @mousemove="onMouseMove"
       @mouseup="onMouseUp"
       @mouseleave="onMouseUp"
+      id="audioStage"
     >
       <template v-for="(it, index) in stagePitches">
-      <div
-        :class="['audioEditor__stage__pitch', selectedPitch === index ? 'is-active' : '']"
-        class=""
-        :style="{
-          width: `${it.width}px`,
-          height: `${it.height}px`,
-          transform: `translate(${it.left}px, ${it.top}px)`
-        }"
-        :key="index"
-        :data-left="it.left"
-        :data-top="it.top"
-        @mousedown.stop="onPitchMouseDown"
-        @mousemove.stop="onPitchMouseMove"
-        @mouseup.stop="onPitchMouseUp($event, index)"
-        @mouseleave.stop="onPitchMouseUp($event, index)"
-        @click="toSelectPitch(index)"
-      >{{ it.hanzi }}</div>
+        <div
+          :class="['audioEditor__stage__pitch', selectedPitch === index ? 'is-active' : '']"
+          :style="{
+            width: `${it.width}px`,
+            height: `${it.height}px`,
+            transform: `translate(${it.left}px, ${it.top}px)`
+          }"
+          :key="index"
+          :data-left="it.left"
+          :data-top="it.top"
+          @mousedown.stop="onPitchMouseDown"
+          @mousemove.stop="onPitchMouseMove"
+          @mouseup.stop="onPitchMouseUp($event, index)"
+          @mouseleave.stop="onPitchMouseUp($event, index)"
+          @click.left="toSelectPitch(index)"
+          @click.right="toPitchRight(index)"
+          slot="reference"
+        >
+          {{ it.hanzi }}
+          <img src="@/assets/right.png"
+            :class="['audioEditor__stage__left', showArrow === `1${index}` ? 'is-active' : '']"
+            @mouseenter.stop="onArrowEnter(`1${index}`)"
+            @mouseleave.stop="onArrowLeave"
+            @mousemove.stop="onArrowMouseMove($event, index)"/>
+          <img src="@/assets/right.png"
+            :class="['audioEditor__stage__right', showArrow === `2${index}` ? 'is-active' : '']"
+            @mouseenter.stop="onArrowEnter(`2${index}`)"
+            @mouseleave.stop="onArrowLeave"
+            @mousemove.stop="onArrowMouseMove($event, index)"/>
+          <div class="audioEditor__stage__list" 
+            v-if="showList === index"
+          >
+            <Card class="box-card">
+              <div slot="header" class="clearfix">
+                <span>操作列表</span>
+              </div>
+              <Button type="danger" @click.stop="toDeletePitch(index)">删除</Button>
+            </Card>
+          </div>
+        </div>
       </template>
       <div class="audioEditor__stage__sharp" ref="sharp"></div>
     </div>
@@ -68,15 +92,21 @@
 </template>
 
 <script>
-import { pitchList } from "@/common/utils/const";
+import { pitchList } from "@/common/utils/const"
+import { Card, Button } from "element-ui"
+
 export default {
   name: "BeatContainer",
   props: ["beatForm"],
+  components: {
+    Card,
+    Button
+  },
   data() {
     return {
       pitchList: pitchList,
       matter: 3, // 默认先给10个小节
-      linex: `55px`,
+      linex: 0,
       isMouseDown: false,
       startPos: null,
       endPos: null,
@@ -85,37 +115,48 @@ export default {
       stagePitches: [],
       movePitchStart: null,
       noteWidth: 20, // 32分音符占据的最小像素单位
-      selectedPitch: -1
+      selectedPitch: -1,
+      showArrow: -1,
+      lineActive: false,
+      maxLeft: 0,
+      visible: false,
+      showList: -1
     }
   },
   
   mounted() {
-    
-    this.updateStageOffset()
-    window.addEventListener('resize', () => {
-      this.updateStageOffset()
-    })
-    document.querySelector('#app').addEventListener('scroll', () => {
-      this.updateStageOffset()
-    })
+    // this.updateStageOffset()
+    // window.addEventListener('resize', () => {
+    //   this.updateStageOffset()
+    // })
+    // document.querySelector('#app').addEventListener('scroll', () => {
+    //   this.updateStageOffset()
+    // })
+    document.getElementById('audioStage').oncontextmenu = (e) => { 
+      // 右键基础事件被阻止掉了
+      return false
+    }
   },
   methods: {
     updateStageOffset() {
       // 初始化舞台的位置
-      this.stageOffset = this.getOffset(this.$refs.stage);
+      // this.stageOffset = this.getOffset(this.$refs.stage);
+      const rect = this.$refs.stage.getBoundingClientRect()
 
-      // console.log(`updateStageOffset`, this.stageOffset)
+      this.stageOffset = {
+        left: rect.left,
+        top: rect.top
+      }
+
     },
     toShowBeat() {
       this.$emit("showBeat");
-    },
-    toCreateRecTangle(event) {
-      console.log("toCreateRecTangle:", event);
     },
     onPitchMouseDown(event){
       // 绿色块鼠标按下事件
       const target = event.target
       target.style.opacity = 0.8
+      // target.style.background = '#149b31'
       this.movePitchStart = {
         left: Number(target.dataset.left),
         top: Number(target.dataset.top),
@@ -139,7 +180,6 @@ export default {
         event.target.dataset.left = newLeft
         event.target.dataset.top = newTop
 
-        // console.log(`onPitchMouseMove:`)
       }
     },
     onPitchMouseUp(event, index) {
@@ -167,24 +207,27 @@ export default {
       return { left, top };
     },
     onMouseDown(event) {
-      console.log("onMouseDown", event);
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
+
+      const rect = this.$refs.stage.getBoundingClientRect()
+
       this.startPos = {
-        x: event.clientX - this.stageOffset.left,
-        y: event.clientY - this.stageOffset.top
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
       };
       // 初始化绿色块
-      this.$refs.sharp.style.left = `${this.startPos.x}px`;
-      this.$refs.sharp.style.top = `${this.startPos.y}px`;
-      this.$refs.sharp.style.width = `1px`;
-      this.$refs.sharp.style.height = `1px`;
-      this.$refs.sharp.style.display = "block";
+      // this.$refs.sharp.style.left = `${this.startPos.x}px`;
+      // this.$refs.sharp.style.top = `${this.startPos.y}px`;
+      // this.$refs.sharp.style.width = `1px`;
+      // this.$refs.sharp.style.height = `1px`;
+      // this.$refs.sharp.style.display = "block";
     },
     onMouseMove(event) {
       if (this.isMouseDown) {
+        const rect = this.$refs.stage.getBoundingClientRect()
         const pos = {
-          x: event.clientX - this.stageOffset.left,
-          y: event.clientY - this.stageOffset.top
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
         };
 
         const width = pos.x - this.startPos.x;
@@ -209,9 +252,10 @@ export default {
       // 必须先按下了鼠标，才有松开鼠标事件
       if (this.isMouseDown) {
         this.isMouseDown = false;
+        const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
-          x: event.clientX - this.stageOffset.left,
-          y: event.clientY - this.stageOffset.top
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
         };
 
         this.$refs.sharp.style.display = "none";
@@ -232,7 +276,7 @@ export default {
         
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
-        const width = Math.ceil(initWidth/ this.noteWidth) * this.noteWidth
+        const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
         const hanzi = '啦'
 
         this.addOnePitch({
@@ -255,10 +299,45 @@ export default {
         hanzi
       });
       this.$emit('getPitches', this.stagePitches, this.noteWidth)
+      this.toGetMaxLeft(width, left)
     },
 
-    toSelectPitch (index) {
+    toGetMaxLeft(width, left) { // 获取距离左边最大的值
+      let maxLeft = this.maxLeft
+      const newLeft = width + left
+      if (newLeft > this.maxLeft) { // 如果最新的那个块比最大的块的左边大
+        this.maxLeft = newLeft
+      }
+    },
+
+    toSelectPitch(index) {
       this.selectedPitch = index
+    },
+     
+    onArrowEnter(num) {
+      this.showArrow = num
+    },
+    onArrowLeave() {
+      this.showArrow = -1
+    },
+    onArrowMouseMove(event, index) {
+      // log(`onArrowMouseMove, event: ${event}, index: ${index}`)
+    },
+    toMoveLinePos() {
+      this.lineActive = true
+      this.linex = this.maxLeft + 55
+      this.$refs.audioEditorLine.style.left = `${this.linex}px`
+    },
+    toRestartLinePos() {
+      this.lineActive = false
+      this.$refs.audioEditorLine.style.left = '55px'
+    },
+    toPitchRight(index) {
+      this.showList = index
+    },
+    toDeletePitch(index) {
+      this.stagePitches.splice(index, 1)
+      this.showList = -1 // 删除掉顺便把选择的还原
     }
   }
 };
@@ -277,6 +356,7 @@ export default {
   width: calc(100% - 50px);
   height: 100%;
   left: 50px;
+  user-select: none;
   top: 0;
 }
 .audioEditor__stage__pitch {
@@ -302,6 +382,48 @@ export default {
   width: 1px;
   height: 1px;
   background-color: rgba(204, 204, 204, 0.514);
+}
+.audioEditor__stage__left {
+  position: absolute;
+  height: 25px;
+  width: 30px;
+  right: -27px;
+  top: 0;
+  opacity: 0;
+  &.is-active {
+    opacity: 1;
+  }
+}
+
+.audioEditor__stage__right {
+  transform: scale(-1);
+  position: absolute;
+  height: 25px;
+  width: 30px;
+  left: -27px;
+  top: 0;
+  opacity: 0;
+  &.is-active {
+    opacity: 1;
+  }
+}
+
+.audioEditor__stage__list {
+  width: 100px;
+  // height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  position: absolute;
+  top: 30px;
+  border-radius: 2px;
+  &::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 10px;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    border-bottom: 5px solid rgba(255, 255, 255, 0.5);
+  }
 }
 .audioEditor__beat {
   position: absolute;
@@ -409,8 +531,8 @@ export default {
 }
 .audioEditor__line {
   position: absolute;
-  top: 0;
-  left: 60px;
+  top: 0px;
+  left: 55px;
   span {
     border-right: 8px solid transparent;
     border-left: 8px solid transparent;
@@ -422,5 +544,8 @@ export default {
   width: 3px;
   height: 2100px;
   background: #b8b8b8;
+  &.is-active {
+    transition: left 0.3s linear;
+  }
 }
 </style>
