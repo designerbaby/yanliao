@@ -1,6 +1,6 @@
 <template>
-  <div class="audioEditor__con">
-    <div class="audioEditor__beat" @click="toShowBeat">{{ beatForm.fenzi }}/{{ beatForm.fenmu }}</div>
+  <div ref="container" class="audioEditor__con">
+    <div class="audioEditor__beat" @click="toShowBeat">{{ fenzi }}/{{ fenmu }}</div>
     <div class="audioEditor__left">
       <template v-for="it in pitchList">
         <div class="audioEditor__left--white" v-if="it.type === 0" :key="it.pitch">{{ it.pitch }}</div>
@@ -21,20 +21,17 @@
     <div class="audioEditor__column">
       <div class="audioEditor__column--matter" v-for="n in matter" :key="n">
         <div class="audioEditor__column--num">{{ n }}</div>
-        <div class="audioEditor__column--fenzi" v-for="m in beatForm.fenzi" :key="m">
+        <div class="audioEditor__column--fenzi" v-for="m in fenzi" :key="m">
           <div
             class="audioEditor__column--fenmu"
-            v-for="j in 32 / beatForm.fenmu"
+            v-for="j in 32 / fenmu"
             :key="j"
             :style="{ width: `${noteWidth}px` }"
           ></div>
         </div>
       </div>
     </div>
-    <div 
-      :class="['audioEditor__line', lineActive ? 'is-active' : '']" 
-      ref="audioEditorLine"
-    ><span></span></div>
+    <BeatLine ref="BeatLine" :rect="rect" @saveLeft="toSaveLeft"></BeatLine>
     <div
       ref="stage"
       class="audioEditor__stage"
@@ -94,38 +91,39 @@
 <script>
 import { pitchList } from "@/common/utils/const"
 import { Card, Button } from "element-ui"
+import BeatLine from './BeatLine.vue'
 
 export default {
   name: "BeatContainer",
   props: ["beatForm"],
   components: {
     Card,
-    Button
+    Button,
+    BeatLine
   },
   data() {
     return {
       pitchList: pitchList,
-      matter: 3, // 默认先给10个小节
-      linex: 0,
+      matter: 3, // 默认先给3个小节
       isMouseDown: false,
       startPos: null,
       endPos: null,
-      isMouseMove: false,
       stageOffset: null,
       stagePitches: [],
       movePitchStart: null,
       noteWidth: 20, // 32分音符占据的最小像素单位
       selectedPitch: -1,
       showArrow: -1,
-      lineActive: false,
       maxLeft: 0,
-      visible: false,
-      showList: -1
+      showList: -1,
+      rect: null,
+      fenzi: parseInt(this.beatForm.fenzi, 10),
+      fenmu: parseInt(this.beatForm.fenmu, 10)
     }
   },
   
   mounted() {
-    // this.updateStageOffset()
+    this.updateStageOffset()
     // window.addEventListener('resize', () => {
     //   this.updateStageOffset()
     // })
@@ -142,7 +140,7 @@ export default {
       // 初始化舞台的位置
       // this.stageOffset = this.getOffset(this.$refs.stage);
       const rect = this.$refs.stage.getBoundingClientRect()
-
+      this.rect = this.$refs.container.getBoundingClientRect()
       this.stageOffset = {
         left: rect.left,
         top: rect.top
@@ -216,11 +214,11 @@ export default {
         y: event.clientY - rect.top
       };
       // 初始化绿色块
-      // this.$refs.sharp.style.left = `${this.startPos.x}px`;
-      // this.$refs.sharp.style.top = `${this.startPos.y}px`;
-      // this.$refs.sharp.style.width = `1px`;
-      // this.$refs.sharp.style.height = `1px`;
-      // this.$refs.sharp.style.display = "block";
+      this.$refs.sharp.style.left = `${this.startPos.x}px`;
+      this.$refs.sharp.style.top = `${this.startPos.y}px`;
+      this.$refs.sharp.style.width = `1px`;
+      this.$refs.sharp.style.height = `1px`;
+      this.$refs.sharp.style.display = "block";
     },
     onMouseMove(event) {
       if (this.isMouseDown) {
@@ -324,20 +322,28 @@ export default {
       // log(`onArrowMouseMove, event: ${event}, index: ${index}`)
     },
     toMoveLinePos() {
-      this.lineActive = true
-      this.linex = this.maxLeft + 55
-      this.$refs.audioEditorLine.style.left = `${this.linex}px`
+      this.$refs.BeatLine.toMove(this.maxLeft)
     },
     toRestartLinePos() {
-      this.lineActive = false
-      this.$refs.audioEditorLine.style.left = '55px'
+      this.$refs.BeatLine.toRestart()
     },
     toPitchRight(index) {
       this.showList = index
     },
     toDeletePitch(index) {
       this.stagePitches.splice(index, 1)
-      this.showList = -1 // 删除掉顺便把选择的还原
+      this.showList = -1 // 删除掉之后顺便把选择的还原
+    },
+    toSaveLeft(endLeft) {
+      const stagePitches = this.stagePitches
+      const excessPitches = []
+      stagePitches.forEach(item => {
+        if (item.left > endLeft || (item.left + item.width) > endLeft) {
+          excessPitches.push(item)
+        }
+      })
+      log('excessPitches:', excessPitches)
+      // this.$emit('getPitches', excessPitches, this.noteWidth)
     }
   }
 };
@@ -529,23 +535,5 @@ export default {
     height: 2100px;
   }
 }
-.audioEditor__line {
-  position: absolute;
-  top: 0px;
-  left: 55px;
-  span {
-    border-right: 8px solid transparent;
-    border-left: 8px solid transparent;
-    border-top: 8px solid #b8b8b8;
-    border-bottom: 8px solid transparent;
-    position: absolute;
-    left: -7px;
-  }
-  width: 3px;
-  height: 2100px;
-  background: #b8b8b8;
-  &.is-active {
-    transition: left 0.3s linear;
-  }
-}
+
 </style>

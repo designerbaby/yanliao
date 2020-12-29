@@ -42,7 +42,7 @@ export default {
       fenmu: 4
     }
     return {
-      beatForm: JSON.parse(sessionStorage.getItem('beatForm')) || defaultForm,
+      beatForm: defaultForm,
       bpm: 90,
       newPitches: [],
       isPlaying: false,
@@ -104,11 +104,12 @@ export default {
     },
     toChangeBeat(form) {
       this.beatForm = form
-      sessionStorage.setItem('beatForm', JSON.stringify(form))
+      // TODO 引入vuex
     },
     async toSynthesize() {
       if (this.newPitches.length === 0) {
         Message.error('请画好音符再播放~')
+        this.toPauseAudio()
         return
       }
       const req = {
@@ -125,8 +126,8 @@ export default {
       }
     },
     async toEditorSynthStatus (paramId, taskId) {
-      log('this.rollTime:', this.rollTime)
       this.rollTime += 1
+      log('this.rollTime:', this.rollTime)
       const { data } = await editorSynthStatus(paramId)
       log('editorSynthStatus:', data)
       if (data.ret_code === 0) {
@@ -144,11 +145,11 @@ export default {
     },
     toRollStatus (paramId, taskId) {
       clearInterval(this.timer)
-      if (this.rollTime <= 10) {
-        this.timer = setInterval(() => {
+      this.timer = setInterval(() => {
+        if (this.rollTime <= 10) { // 小于10才循环
           this.toEditorSynthStatus(paramId, taskId)
-        }, 3000)
-      }
+        }
+      }, 3000)
     },
     async toEditorSynthResult (taskId) {
       const { data } = await editorSynthResult(taskId)
@@ -156,7 +157,7 @@ export default {
       if (data.ret_code === 0) {
         if (data.data.state === 2) {
           this.onlineUrl = data.data.online_url
-          this.$refs.StatusDialog.hideStatus()
+          // this.$refs.StatusDialog.hideStatus()
           this.$nextTick(() => {
             this.toPlayAudio()
             this.isPlaying = false
@@ -177,9 +178,9 @@ export default {
       }, this.playTime + 500)
     },
     toPauseAudio() {
+      this.toRestartLine()
       this.$refs.AudioUrl.pause()
       this.isPlaying = false
-      this.toRestartLine()
     }
   }
 }

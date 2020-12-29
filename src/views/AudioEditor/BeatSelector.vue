@@ -2,15 +2,13 @@
   <Dialog
     title="编辑拍号"
     :visible.sync="dialogVisible"
-    width="400px"
-    :rules="rules"
-    ref="ruleForm">
-    <Form label-position="top" label-width="80px" :model="beatForm">
-      <FormItem label="分子" prop="fenzi">
-        <Input v-model="beatForm.fenzi"></Input>
+    width="400px">
+    <Form label-position="top" :rules="rules" ref="ruleForm" label-width="80px" :model="ruleForm">
+      <FormItem label="分子" required prop="fenzi">
+        <InputNumber v-model="ruleForm.fenzi"></InputNumber>
       </FormItem>
-      <FormItem label="分母" prop="fenmu">
-        <Input v-model="beatForm.fenmu"></Input>
+      <FormItem label="分母" required prop="fenmu">
+        <InputNumber v-model="ruleForm.fenmu"></InputNumber>
       </FormItem>
     </Form>
     <span slot="footer" class="dialog-footer">
@@ -20,7 +18,7 @@
   </Dialog>
 </template>
 <script>
-import { Dialog, Form, FormItem, Input, Button, Message } from 'element-ui'
+import { Dialog, Form, FormItem, InputNumber, Button, Message } from 'element-ui'
 import { validateInt, validateFenmu } from '@/common/utils/validate'
 
 export default {
@@ -29,42 +27,40 @@ export default {
     Dialog,
     Form,
     FormItem,
-    Input,
+    InputNumber,
     Button,
     Message
   },
   data() {
     return {
       dialogVisible: false,
-      beatForm: {},
+      ruleForm: {},
       rules: {
         fenzi: [
-          { required: true, message: '请输入分子, 必须为正整数', 
-            trigger: 'blur', type: 'number', validate: validateInt }
+          { required: true, message: '请输入分子,且必须为正整数', 
+            trigger: 'blur', validator: validateInt }
         ],
         fenmu: [
-          { required: true, message: '请输入分母, 只能为2,4,8或16', 
-            trigger: 'blur', type: 'number', validate: validateFenmu }
+          { required: true, message: '请输入分母,只能为2,4,8或16', 
+            trigger: 'blur', validator: validateFenmu }
         ]
       }
     }
   },
   methods: {
     toSubmitBeat() {
-      this.$emit('changeBeat', this.beatForm)
-      this.dialogVisible = false
-      // console.log('this.$refs.ruleForm:', this.$refs.ruleForm)
-      // this.$refs.ruleForm.validate((valid) => {
-      //   if (valid) {
-          
-      //   } else {
-      //     Message.error('请全部填写完整并正确再提交')
-      //   }
-      // })
+      this.$refs.ruleForm.validate((valid) => {
+        if (valid) {
+          this.$emit('changeBeat', this.ruleForm)
+          this.dialogVisible = false 
+        } else {
+          Message.error('请全部填写完整并正确再提交')
+        }
+      })
     },
     showBeatDialog(form) {
       this.dialogVisible = true
-      this.beatForm = form
+      this.ruleForm = form
     }
   }
 }
