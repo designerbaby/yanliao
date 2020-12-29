@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import App from './views/App.vue'
 import router from './router'
+import store from './store'
 import moment from 'moment'
 import smoothscroll from 'smoothscroll-polyfill'
 import '@/common/utils/permission'
@@ -36,6 +37,8 @@ Vue.mixin({
 })
 
 new Vue({
+  el: '#app',
   router,
+  store,
   render: h => h(App)
-}).$mount('#app')
+})

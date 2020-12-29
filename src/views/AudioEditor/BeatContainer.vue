@@ -1,6 +1,6 @@
 <template>
   <div ref="container" class="audioEditor__con">
-    <div class="audioEditor__beat" @click="toShowBeat">{{ fenzi }}/{{ fenmu }}</div>
+    <div class="audioEditor__beat" @click="toShowBeat">{{ beatForm.fenzi }}/{{ beatForm.fenmu }}</div>
     <div class="audioEditor__left">
       <template v-for="it in pitchList">
         <div class="audioEditor__left--white" v-if="it.type === 0" :key="it.pitch">{{ it.pitch }}</div>
@@ -13,25 +13,27 @@
       </template>
     </div>
     <div class="audioEditor__right">
-      <template v-for="it in pitchList">
-        <div class="audioEditor__right--gray" :key="it.pitch" v-if="it.type === 0"></div>
-        <div class="audioEditor__right--black" :key="it.pitch" v-else></div>
-      </template>
+      <BeatLine ref="BeatLine"></BeatLine>
+      <div class="audioEditor__rightCon">
+        <template v-for="it in pitchList">
+          <div class="audioEditor__rightCon--gray" :key="it.pitch" v-if="it.type === 0"></div>
+          <div class="audioEditor__rightCon--black" :key="it.pitch" v-else></div>
+        </template>
+      </div>
     </div>
     <div class="audioEditor__column">
       <div class="audioEditor__column--matter" v-for="n in matter" :key="n">
         <div class="audioEditor__column--num">{{ n }}</div>
-        <div class="audioEditor__column--fenzi" v-for="m in fenzi" :key="m">
+        <div class="audioEditor__column--fenzi" v-for="m in beatForm.fenzi" :key="m">
           <div
             class="audioEditor__column--fenmu"
-            v-for="j in 32 / fenmu"
+            v-for="j in 32 / beatForm.fenmu"
             :key="j"
             :style="{ width: `${noteWidth}px` }"
           ></div>
         </div>
       </div>
     </div>
-    <BeatLine ref="BeatLine" :rect="rect" @saveLeft="toSaveLeft"></BeatLine>
     <div
       ref="stage"
       class="audioEditor__stage"
@@ -95,7 +97,6 @@ import BeatLine from './BeatLine.vue'
 
 export default {
   name: "BeatContainer",
-  props: ["beatForm"],
   components: {
     Card,
     Button,
@@ -114,11 +115,9 @@ export default {
       noteWidth: 20, // 32分音符占据的最小像素单位
       selectedPitch: -1,
       showArrow: -1,
-      maxLeft: 0,
       showList: -1,
-      rect: null,
-      fenzi: parseInt(this.beatForm.fenzi, 10),
-      fenmu: parseInt(this.beatForm.fenmu, 10)
+      // rect: null,
+      beatForm: this.$store.state.beatForm
     }
   },
   
@@ -140,7 +139,7 @@ export default {
       // 初始化舞台的位置
       // this.stageOffset = this.getOffset(this.$refs.stage);
       const rect = this.$refs.stage.getBoundingClientRect()
-      this.rect = this.$refs.container.getBoundingClientRect()
+      // this.rect = this.$refs.container.getBoundingClientRect()
       this.stageOffset = {
         left: rect.left,
         top: rect.top
@@ -297,17 +296,8 @@ export default {
         hanzi
       });
       this.$emit('getPitches', this.stagePitches, this.noteWidth)
-      this.toGetMaxLeft(width, left)
     },
-
-    toGetMaxLeft(width, left) { // 获取距离左边最大的值
-      let maxLeft = this.maxLeft
-      const newLeft = width + left
-      if (newLeft > this.maxLeft) { // 如果最新的那个块比最大的块的左边大
-        this.maxLeft = newLeft
-      }
-    },
-
+    
     toSelectPitch(index) {
       this.selectedPitch = index
     },
@@ -321,8 +311,8 @@ export default {
     onArrowMouseMove(event, index) {
       // log(`onArrowMouseMove, event: ${event}, index: ${index}`)
     },
-    toMoveLinePos() {
-      this.$refs.BeatLine.toMove(this.maxLeft)
+    toMoveLinePos(maxLeft) {
+      this.$refs.BeatLine.toMove(maxLeft)
     },
     toRestartLinePos() {
       this.$refs.BeatLine.toRestart()
@@ -333,17 +323,6 @@ export default {
     toDeletePitch(index) {
       this.stagePitches.splice(index, 1)
       this.showList = -1 // 删除掉之后顺便把选择的还原
-    },
-    toSaveLeft(endLeft) {
-      const stagePitches = this.stagePitches
-      const excessPitches = []
-      stagePitches.forEach(item => {
-        if (item.left > endLeft || (item.left + item.width) > endLeft) {
-          excessPitches.push(item)
-        }
-      })
-      log('excessPitches:', excessPitches)
-      // this.$emit('getPitches', excessPitches, this.noteWidth)
     }
   }
 };
@@ -493,15 +472,23 @@ export default {
 .audioEditor__right {
   width: 1700px;
   overflow: scroll;
+  position: relative;
+}
+
+.audioEditor__rightCon {
+  width: auto;
   &--gray {
+    width: auto;
     background: #2d2d2d;
     height: 25px;
   }
   &--black {
+    width: auto;
     height: 25px;
     background: #232323;
   }
 }
+
 .audioEditor__column {
   position: absolute;
   top: 0;

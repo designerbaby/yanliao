@@ -34,7 +34,7 @@ export default {
   data() {
     return {
       dialogVisible: false,
-      ruleForm: {},
+      ruleForm: this.$store.state.beatForm,
       rules: {
         fenzi: [
           { required: true, message: '请输入分子,且必须为正整数', 
@@ -51,16 +51,15 @@ export default {
     toSubmitBeat() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          this.$emit('changeBeat', this.ruleForm)
+          this.$store.state.beatForm = this.ruleForm
           this.dialogVisible = false 
         } else {
           Message.error('请全部填写完整并正确再提交')
         }
       })
     },
-    showBeatDialog(form) {
+    showBeatDialog() {
       this.dialogVisible = true
-      this.ruleForm = form
     }
   }
 }

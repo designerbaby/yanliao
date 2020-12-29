@@ -14,38 +14,34 @@
 </template>
 
 <script>
+import Bus from '@/common/utils/bus'
+
 export default {
   name: 'BeatLine',
   data() {
     return {
       isLineMouseDown: false,
       lineActive: false,
-      linex: 0,
-      left: 55, // 这里要基于0来做
-      endLeft: 0,
+      left: 0,
       startLeft: 0,
-      startX: 0,
-      leaveTimer: 0
+      startX: 0
     }
   },
   methods: {
     onLineMouseDown(event) {
       this.isLineMouseDown = true
-      // console.log(`onLineMouseDown`, event)
-
       this.startLeft = this.left
       this.startX = event.clientX
-      console.log(`down event.clientX`, event.clientX)
+      // console.log(`down event.clientX`, event.clientX)
 
       document.addEventListener('mousemove', this.onLineMouseMove)
       document.addEventListener('mouseleave', this.onLineMouseUp)
     },
     onLineMouseMove(event) {
-      // console.log(`onLineMouseMove`, event)
       if (this.isLineMouseDown) {
         const movePx = event.clientX - this.startX
         const left = this.startLeft + movePx
-        console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
+        // console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
         this.left = left
       }
     },
@@ -54,17 +50,19 @@ export default {
       document.removeEventListener('onMouseUp', this.onLineMouseUp)
       if (this.isLineMouseDown) {
         this.isLineMouseDown = false
-        this.$emit('saveLeft', this.left)
+        this.$store.state.lineLeft = this.left // 将播放线存起来
+        log('this.$store.state.lineLeft:', this.$store.state.lineLeft)
+        Bus.$emit('pitchChange')
       }
     },
     toMove(maxLeft) {
       this.lineActive = true
-      this.linex = maxLeft + 55
-      this.$refs.audioEditorLine.style.left = `${this.linex}px`
+      const linex = maxLeft
+      this.$refs.audioEditorLine.style.left = `${linex}px`
     },
     toRestart() {
       this.lineActive = false
-      this.$refs.audioEditorLine.style.left = '55px'
+      this.$refs.audioEditorLine.style.left = '0px'
     }
   }
 }

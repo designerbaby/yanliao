@@ -12,10 +12,9 @@
     <BeatContainer 
       ref="BeatContainer"
       @showBeat="toShowBeat" 
-      :beatForm="beatForm" 
       @getPitches="toGetPictData"
     ></BeatContainer>
-    <BeatSelector ref="BeatSelector" @changeBeat="toChangeBeat"></BeatSelector>
+    <BeatSelector ref="BeatSelector"></BeatSelector>
     <StatusDialog ref="StatusDialog"></StatusDialog>
   </div>
 </template>
@@ -27,6 +26,7 @@ import BeatContainer from './BeatContainer.vue'
 import StatusDialog from './StatusDialog.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult } from '@/api/audio'
 import { processStatus, statusMap } from '@/common/utils/const'
+import Bus from '@/common/utils/bus'
 
 export default {
   name: 'AudioEditor',
@@ -37,27 +37,27 @@ export default {
     StatusDialog
   },
   data() {
-    const defaultForm = {
-      fenzi: 4,
-      fenmu: 4
-    }
     return {
-      beatForm: defaultForm,
       bpm: 90,
-      newPitches: [],
+      pitches: [],
       isPlaying: false,
       timer: null,
       onlineUrl: '',
       rollTime: 0, // 轮询请求状态循环次数
       playTime: 0,
-      timeout: null
+      timeout: null,
+      pitchHasChange: false, // 记录下音符块是否已经改动了
+      note: 20,
+      maxLeft: 0
     }
   },
-  mounted() {},
+  mounted() {
+    Bus.$on('pitchChange', this.onPitchChange)
+  },
   methods: {
     toPlay() {
       if (!this.isPlaying) {
-        if (this.onlineUrl) { // 有现成的音频，直接播放
+        if (this.onlineUrl && !this.pitchHasChange) { // 有现成的音频，直接播放
           this.toPlayAudio()
         } else {
           this.toSynthesize() // 合成音频
@@ -66,18 +66,37 @@ export default {
         this.toPauseAudio()
       }
     },
+    toRefreshData() { // 重新开始就清除数据
+      this.maxLeft = 0
+      this.playTime = 0
+    },
     toMoveLine() {
-      this.$refs.BeatContainer.toMoveLinePos()
+      this.$refs.BeatContainer.toMoveLinePos(this.maxLeft)
     },
     toRestartLine() {
       this.$refs.BeatContainer.toRestartLinePos()
     },
+    onPitchChange() {
+      this.pitchHasChange = true
+    },
     toGetPictData(pitches, note) {
-      const newPitches = []
+      this.note = note
+      this.pitches = pitches
+      this.pitchHasChange = true // 一改动就记录下来
+    },
+    toHandlePitches (pitches) {
+      const lineLeft = this.$store.state.lineLeft // 根据音高线的距离去获取相应的块
+      let excessPitches = []
       pitches.forEach(item => {
-        const duration = Math.floor((60 * (parseInt(item.width) / note) * 1000) / (8 * this.bpm))
+        if (item.left > lineLeft || (item.left + item.width) > lineLeft) {
+          excessPitches.push(item)
+        }
+      })
+      const newPitches = []
+      excessPitches.forEach(item => {
+        const duration = Math.floor((60 * (parseInt(item.width) / this.note) * 1000) / (8 * this.bpm))
         const pitch = (item.top / item.height) + 24
-        const startTime = Math.floor(((item.left / note) * 60 * 1000) / (8 * this.bpm))
+        const startTime = Math.floor(((item.left / this.note) * 60 * 1000) / (8 * this.bpm))
         const pitchItem = {
           duration: duration,
           pitch: pitch,
@@ -88,32 +107,41 @@ export default {
           tone_id: 1
         }
         newPitches.push(pitchItem)
-        this.toGetMaxSecond(duration, startTime)
+        this.toGetMaxSecond(duration, startTime) // 获取当前音频的最大时长
+        this.toGetMaxLineLeft(excessPitches) // 获取当前最大的偏移量
       })
-      this.newPitches = newPitches
-      log('this.newPitches:', this.newPitches)
+      return newPitches
     },
-    toGetMaxSecond(duration, startTime) { // 获取当前音频的最大时长
+    toGetMaxSecond(duration, startTime) {
       const maxTime = duration + startTime
       if (maxTime > this.playTime) {
         this.playTime = maxTime
       }
     },
-    toShowBeat() {
-      this.$refs.BeatSelector.showBeatDialog(this.beatForm)
+    toGetMaxLineLeft(pitches) {
+      let maxLeft = this.maxLeft
+      pitches.forEach(item => {
+        const newLeft = item.width + item.left
+        if (newLeft > this.maxLeft) {
+          this.maxLeft = newLeft
+        }
+      })
     },
-    toChangeBeat(form) {
-      this.beatForm = form
-      // TODO 引入vuex
+    toShowBeat() {
+      this.$refs.BeatSelector.showBeatDialog()
     },
     async toSynthesize() {
-      if (this.newPitches.length === 0) {
+      this.toRefreshData()
+      const finalPitches = await this.toHandlePitches(this.pitches)
+
+      if (finalPitches.length === 0) {
         Message.error('请画好音符再播放~')
         this.toPauseAudio()
         return
       }
+
       const req = {
-        pitch_list: this.newPitches,
+        pitch_list: finalPitches,
         f0: []
       }
       const { data } = await editorSynth(req)
@@ -135,6 +163,7 @@ export default {
           Message.success('音频合成成功~')
           clearInterval(this.timer)
           this.toEditorSynthResult(taskId)
+          clearInterval(this.timer)
         } else {
           Message.success(`算法努力合成音频中(${processStatus[data.data.status]}%)`)
           // this.$refs.StatusDialog.showStatus(data.data.status)
@@ -148,6 +177,8 @@ export default {
       this.timer = setInterval(() => {
         if (this.rollTime <= 10) { // 小于10才循环
           this.toEditorSynthStatus(paramId, taskId)
+        } else {
+          this.toEditorSynthResult(taskId)
         }
       }, 3000)
     },
@@ -160,7 +191,6 @@ export default {
           // this.$refs.StatusDialog.hideStatus()
           this.$nextTick(() => {
             this.toPlayAudio()
-            this.isPlaying = false
           })
         } else {
           Message.error(`合成状态: ${statusMap[data.data.state]}`)
@@ -168,19 +198,23 @@ export default {
       } else {
         Message.error(`合成失败, 错误信息: ${data.err_msg}`)
       }
+      clearInterval(this.timer)
+      this.rollTime = 0
     },
     toPlayAudio() {
       this.isPlaying = true
       this.$refs.AudioUrl.play()
       this.toMoveLine()
+      clearTimeout(this.timeout)
       this.timeout = setTimeout(() => {
         this.toPauseAudio()
-      }, this.playTime + 500)
+      }, this.playTime + 500) // 这里主要是算法那边计算总和后加0.5s做缓冲
     },
     toPauseAudio() {
       this.toRestartLine()
       this.$refs.AudioUrl.pause()
       this.isPlaying = false
+      this.pitchHasChange = false
     }
   }
 }
@@ -209,12 +243,6 @@ export default {
     &--icon {
       width: 22px;
       height: 22px;
-      // border-left: 10px solid #b8b8b8;
-      // border-top: 10px solid transparent;
-      // border-bottom: 10px solid transparent;
-      // background-image: url('@/assets/icon-play.png');
-      // background-repeat: no-repeat;
-      // background-size: 100%;
     }
   }
 }
