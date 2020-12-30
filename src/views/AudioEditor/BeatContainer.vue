@@ -1,51 +1,22 @@
 <template>
-  <div ref="container" class="audioEditor__con">
-    <div class="audioEditor__beat" @click="toShowBeat">{{ beatForm.fenzi }}/{{ beatForm.fenmu }}</div>
-    <div class="audioEditor__left">
-      <template v-for="it in pitchList">
-        <div class="audioEditor__left--white" v-if="it.type === 0" :key="it.pitch">{{ it.pitch }}</div>
-      </template>
+  <div ref="container" :class="$style.container">
+    <div :class="$style.beat" @click="toShowBeat">
+      {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
     </div>
-    <div class="audioEditor__middle">
-      <template v-for="it in pitchList">
-        <div class="audioEditor__middle--white" v-if="it.type === 0" :key="it.pitch">{{ it.pitch }}</div>
-        <div class="audioEditor__middle--black" v-else :key="it.pitch">{{ it.pitch }}</div>
-      </template>
-    </div>
-    <div class="audioEditor__right">
-      <BeatLine ref="BeatLine"></BeatLine>
-      <div class="audioEditor__rightCon">
-        <template v-for="it in pitchList">
-          <div class="audioEditor__rightCon--gray" :key="it.pitch" v-if="it.type === 0"></div>
-          <div class="audioEditor__rightCon--black" :key="it.pitch" v-else></div>
-        </template>
-      </div>
-    </div>
-    <div class="audioEditor__column">
-      <div class="audioEditor__column--matter" v-for="n in matter" :key="n">
-        <div class="audioEditor__column--num">{{ n }}</div>
-        <div class="audioEditor__column--fenzi" v-for="m in beatForm.fenzi" :key="m">
-          <div
-            class="audioEditor__column--fenmu"
-            v-for="j in 32 / beatForm.fenmu"
-            :key="j"
-            :style="{ width: `${noteWidth}px` }"
-          ></div>
-        </div>
-      </div>
-    </div>
+    <BeatPiano></BeatPiano>
     <div
       ref="stage"
-      class="audioEditor__stage"
+      :class="$style.stage"
       @mousedown="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup="onMouseUp"
       @mouseleave="onMouseUp"
       id="audioStage"
     >
+      <BeatStageBg :noteWidth="noteWidth"></BeatStageBg>
       <template v-for="(it, index) in stagePitches">
         <div
-          :class="['audioEditor__stage__pitch', selectedPitch === index ? 'is-active' : '']"
+          :class="[$style.pitch, selectedPitch === index ? 'is-active' : '', it.red ? 'is-red': '']"
           :style="{
             width: `${it.width}px`,
             height: `${it.height}px`,
@@ -64,16 +35,20 @@
         >
           {{ it.hanzi }}
           <img src="@/assets/right.png"
-            :class="['audioEditor__stage__left', showArrow === `1${index}` ? 'is-active' : '']"
+            :class="[$style.left, showArrow === `1${index}` ? 'is-active' : '']"
             @mouseenter.stop="onArrowEnter(`1${index}`)"
             @mouseleave.stop="onArrowLeave"
-            @mousemove.stop="onArrowMouseMove($event, index)"/>
+            @mouseup.stop="onArrowLeave"
+            @mousemove.stop="onArrowMouseMove($event, 'left')"
+            @mousedown.stop="onArrowMouseDown($event, 'left')"/>
           <img src="@/assets/right.png"
-            :class="['audioEditor__stage__right', showArrow === `2${index}` ? 'is-active' : '']"
+            :class="[$style.right, showArrow === `2${index}` ? 'is-active' : '']"
             @mouseenter.stop="onArrowEnter(`2${index}`)"
             @mouseleave.stop="onArrowLeave"
-            @mousemove.stop="onArrowMouseMove($event, index)"/>
-          <div class="audioEditor__stage__list" 
+            @mouseup.stop="onArrowLeave"
+            @mousemove.stop="onArrowMouseMove($event, 'right')"
+            @mousedown.stop="onArrowMouseDown($event, 'right')"/>
+          <div :class="$style.list" 
             v-if="showList === index"
           >
             <Card class="box-card">
@@ -85,7 +60,7 @@
           </div>
         </div>
       </template>
-      <div class="audioEditor__stage__sharp" ref="sharp"></div>
+      <div :class="$style.sharp" ref="sharp"></div>
     </div>
   </div>
 </template>
@@ -93,31 +68,37 @@
 <script>
 import { pitchList } from "@/common/utils/const"
 import { Card, Button } from "element-ui"
-import BeatLine from './BeatLine.vue'
+import BeatPiano from './BeatPiano.vue'
+import BeatStageBg from './BeatStageBg.vue'
 
 export default {
   name: "BeatContainer",
   components: {
     Card,
     Button,
-    BeatLine
+    BeatPiano,
+    BeatStageBg
   },
   data() {
     return {
       pitchList: pitchList,
-      matter: 3, // 默认先给3个小节
       isMouseDown: false,
       startPos: null,
       endPos: null,
       stageOffset: null,
       stagePitches: [],
       movePitchStart: null,
+      moveArrowStart: null,
       noteWidth: 20, // 32分音符占据的最小像素单位
       selectedPitch: -1,
       showArrow: -1,
       showList: -1,
-      // rect: null,
-      beatForm: this.$store.state.beatForm
+      beforeItemPos: 0
+    }
+  },
+  computed: {
+    beatForm() {
+      return this.$store.state.beatForm
     }
   },
   
@@ -139,7 +120,6 @@ export default {
       // 初始化舞台的位置
       // this.stageOffset = this.getOffset(this.$refs.stage);
       const rect = this.$refs.stage.getBoundingClientRect()
-      // this.rect = this.$refs.container.getBoundingClientRect()
       this.stageOffset = {
         left: rect.left,
         top: rect.top
@@ -169,10 +149,6 @@ export default {
         const newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
         const newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
 
-        // 要使用css3 的transform来优化性能
-        // event.target.style.left = `${newLeft}px`
-        // event.target.style.top = `${newTop}px`
-
         event.target.style.transform = `translate(${newLeft}px, ${newTop}px)`
         event.target.dataset.left = newLeft
         event.target.dataset.top = newTop
@@ -191,6 +167,7 @@ export default {
       const pitch = this.stagePitches[index]
       pitch.left = left
       pitch.top = top - (top % 25);
+  
     },
     getOffset(ele) { // 获取距离父元素的位置
       let par = ele.offsetParent;
@@ -204,6 +181,8 @@ export default {
       return { left, top };
     },
     onMouseDown(event) {
+      this.selectedPitch = -1
+      this.showList = -1
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
 
       const rect = this.$refs.stage.getBoundingClientRect()
@@ -287,38 +266,68 @@ export default {
     },
 
     addOnePitch({ width, height, left, top, hanzi }) {
-      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
-      this.stagePitches.push({
-        width,
-        height,
-        left,
-        top,
-        hanzi
-      });
+      let red = false
+      // if (this.beforeItemPos >= left) {
+      //   red = true
+      // }
+      if (width > 25) {
+        console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
+        this.stagePitches.push({
+          width,
+          height,
+          left,
+          top,
+          hanzi,
+          red: red
+        });
+        this.selectedPitch = this.stagePitches.length - 1
+      }
+      
+      // this.beforeItemPos = width + left
+
       this.$emit('getPitches', this.stagePitches, this.noteWidth)
     },
     
     toSelectPitch(index) {
       this.selectedPitch = index
     },
+    toPitchRight(index) {
+      this.selectedPitch = index
+      this.showList = index
+    },
      
     onArrowEnter(num) {
       this.showArrow = num
     },
+    onArrowMouseDown(event, type) { // 鼠标按下事件
+      const target = event.target
+      target.style.opacity = 0.8
+      this.moveArrowStart = {
+        width: target.parentNode.style.width,
+        left: target.style.left,
+        clientX: event.clientX
+      }
+      
+      log('moveArrowStart:', JSON.stringify(this.moveArrowStart))
+    },
+    onArrowMouseMove(event, type) {
+      if (this.moveArrowStart) {
+        if (type === 'right') {
+          const newWidth = this.moveArrowStart.width + (event.clientX - this.moveArrowStart.clientX)
+          event.target.parentNode.style.width = newWidth
+        } else {
+          const pianyi = event.clientX - this.moveArrowStart.clientX
+          const newWidth = this.moveArrowStart.width + pianyi
+          const newLeft = this.moveArrowStart.left - pianyi
+          event.target.parentNode.style.width = newWidth
+          event.target.parentNode.style.left = newLeft
+        }
+      }
+    },
     onArrowLeave() {
       this.showArrow = -1
-    },
-    onArrowMouseMove(event, index) {
-      // log(`onArrowMouseMove, event: ${event}, index: ${index}`)
-    },
-    toMoveLinePos(maxLeft) {
-      this.$refs.BeatLine.toMove(maxLeft)
-    },
-    toRestartLinePos() {
-      this.$refs.BeatLine.toRestart()
-    },
-    toPitchRight(index) {
-      this.showList = index
+      this.moveArrowStart = null
+      const left = parseInt(this.moveArrowStart)
     },
     toDeletePitch(index) {
       this.stagePitches.splice(index, 1)
@@ -328,23 +337,33 @@ export default {
 };
 </script>
 
-<style lang="less">
-.audioEditor__con {
+<style lang="less" module>
+.container {
   border-top: 1px solid #282828;
   display: flex;
   width: 100%;
-  margin: 20px 0px;
+  margin: 0px;
   position: relative;
+  padding-top: 20px;
 }
-.audioEditor__stage {
+.stage {
   position: absolute;
   width: calc(100% - 50px);
   height: 100%;
   left: 50px;
   user-select: none;
-  top: 0;
+  top: 20px;
+  // padding-top: 20px;
+  overflow-x: scroll;
 }
-.audioEditor__stage__pitch {
+.beat {
+  position: absolute;
+  color: #fff;
+  font-size: 13px;
+  top: 0px;
+  left: 15px;
+}
+.pitch {
   height: 0;
   width: 0;
   background: #57673b;
@@ -358,17 +377,12 @@ export default {
   &.is-active {
     background: rgb(20, 155, 49)
   }
+  &.is-red {
+    border: 1px solid red;
+  }
 }
-.audioEditor__stage__sharp {
-  border: 1px solid #ccc;
-  position: absolute;
-  left: 300px;
-  top: 200px;
-  width: 1px;
-  height: 1px;
-  background-color: rgba(204, 204, 204, 0.514);
-}
-.audioEditor__stage__left {
+
+.left {
   position: absolute;
   height: 25px;
   width: 30px;
@@ -380,7 +394,7 @@ export default {
   }
 }
 
-.audioEditor__stage__right {
+.right {
   transform: scale(-1);
   position: absolute;
   height: 25px;
@@ -393,7 +407,7 @@ export default {
   }
 }
 
-.audioEditor__stage__list {
+.list {
   width: 100px;
   // height: 20px;
   background: rgba(255, 255, 255, 0.5);
@@ -410,117 +424,14 @@ export default {
     border-bottom: 5px solid rgba(255, 255, 255, 0.5);
   }
 }
-.audioEditor__beat {
-  position: absolute;
-  color: #fff;
-  font-size: 13px;
-  top: -20px;
-  left: 15px;
-}
-.audioEditor__left {
-  display: flex;
-  flex-direction: column;
-  color: #fff;
-  font-size: 8px;
-  width: 50px;
-  position: relative;
-  float: left;
-  font-size: 0;
-  &--white {
-    width: 50px;
-    height: 42.86px;
-    background: #b4b4b4;
-    border: 1px solid #8b8b8b;
-    border-right: #353535;
-    border-bottom: #5d5e5e;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    z-index: 0;
-    &:hover {
-      background: rgb(4, 219, 51);
-    }
-    &:active {
-      background: rgb(20, 155, 49);
-    }
-  }
-}
-.audioEditor__middle {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 0;
-  &--white {
-    height: 25px;
-    background: #fff;
-    visibility: hidden;
-    pointer-events: none;
-  }
-  &--black {
-    width: 25px;
-    height: 25px;
-    background: #1d1d1d;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    &:hover {
-      background: rgb(4, 219, 51);
-    }
-    &:active {
-      background: rgb(20, 155, 49);
-    }
-  }
-}
-.audioEditor__right {
-  width: 1700px;
-  overflow: scroll;
-  position: relative;
-}
 
-.audioEditor__rightCon {
-  width: auto;
-  &--gray {
-    width: auto;
-    background: #2d2d2d;
-    height: 25px;
-  }
-  &--black {
-    width: auto;
-    height: 25px;
-    background: #232323;
-  }
-}
-
-.audioEditor__column {
+.sharp {
+  border: 1px solid #ccc;
   position: absolute;
-  top: 0;
-  left: 50px;
-  // border: 1px solid red;
-  background: transparent;
-  display: flex;
-  &--matter {
-    background: transparent;
-    display: flex;
-    position: relative;
-  }
-  &--num {
-    color: #fff;
-    font-size: 13px;
-    border-left: 1px solid #626263;
-    position: absolute;
-    top: -20px;
-    background: transparent;
-  }
-  &--fenzi {
-    border-left: 1px solid #252525;
-    background: transparent;
-    display: flex;
-  }
-  &--fenmu {
-    border-left: 1px solid #292828;
-    background: transparent;
-    // width: 20px;
-    width: 0px;
-    height: 2100px;
-  }
+  left: 300px;
+  top: 200px;
+  width: 1px;
+  height: 1px;
+  background-color: rgba(204, 204, 204, 0.514);
 }
-
 </style>

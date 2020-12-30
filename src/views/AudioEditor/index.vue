@@ -1,14 +1,6 @@
 <template>
-  <div class="audioEditor" ref="audioEditor">
-    <div class="audioEditor__header">
-      <div class="audioEditor__play" @click="toPlay">
-        <img src="@/assets/icon-pause.png" class="audioEditor__play--icon" v-if="isPlaying"/>
-        <img src="@/assets/icon-play.png" class="audioEditor__play--icon" v-else/>
-        播放控制
-      </div>
-      <div class="audioEditor__bpm">{{bpm}} BPM</div>
-    </div>
-    <audio :src="onlineUrl" ref="AudioUrl" type="audio/wav" controls class="audioPlay"></audio>
+  <div :class="$style.audioEditor" ref="audioEditor">
+    <BeatHeader :isPlaying="isPlaying" :bpm="bpm" @play="toPlay"></BeatHeader>
     <BeatContainer 
       ref="BeatContainer"
       @showBeat="toShowBeat" 
@@ -16,6 +8,7 @@
     ></BeatContainer>
     <BeatSelector ref="BeatSelector"></BeatSelector>
     <StatusDialog ref="StatusDialog"></StatusDialog>
+    <audio :src="onlineUrl" ref="AudioUrl" type="audio/wav" controls :class="$style.audioPlay"></audio>
   </div>
 </template>
 
@@ -24,6 +17,7 @@ import { Message } from 'element-ui'
 import BeatSelector from './BeatSelector.vue'
 import BeatContainer from './BeatContainer.vue'
 import StatusDialog from './StatusDialog.vue'
+import BeatHeader from './BeatHeader.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult } from '@/api/audio'
 import { processStatus, statusMap } from '@/common/utils/const'
 import Bus from '@/common/utils/bus'
@@ -34,7 +28,8 @@ export default {
     Message,
     BeatSelector,
     BeatContainer,
-    StatusDialog
+    StatusDialog,
+    BeatHeader
   },
   data() {
     return {
@@ -71,10 +66,10 @@ export default {
       this.playTime = 0
     },
     toMoveLine() {
-      this.$refs.BeatContainer.toMoveLinePos(this.maxLeft)
+      Bus.$emit('toMoveLinePos', this.maxLeft, this.playTime)
     },
     toRestartLine() {
-      this.$refs.BeatContainer.toRestartLinePos()
+      Bus.$emit('toRestartLinePos')
     },
     onPitchChange() {
       this.pitchHasChange = true
@@ -86,12 +81,19 @@ export default {
     },
     toHandlePitches (pitches) {
       const lineLeft = this.$store.state.lineLeft // 根据音高线的距离去获取相应的块
+      log('lineLeft:', lineLeft)
       let excessPitches = []
       pitches.forEach(item => {
         if (item.left > lineLeft || (item.left + item.width) > lineLeft) {
           excessPitches.push(item)
         }
       })
+      for (let i = 0; i < excessPitches.length; i += 1) {
+        if (excessPitches[i].red) {
+          Message.error('音符存在重叠, 请调整好~')
+          return
+        }
+      }
       const newPitches = []
       excessPitches.forEach(item => {
         const duration = Math.floor((60 * (parseInt(item.width) / this.note) * 1000) / (8 * this.bpm))
@@ -131,6 +133,7 @@ export default {
       this.$refs.BeatSelector.showBeatDialog()
     },
     async toSynthesize() {
+
       this.toRefreshData()
       const finalPitches = await this.toHandlePitches(this.pitches)
 
@@ -220,42 +223,16 @@ export default {
 }
 </script>
 
-<style scoped lang="less">
+<style module lang="less">
 .audioEditor {
-  // width: 1072px;
   margin: 0 93px;
   background:#373736;
-  overflow-x: scroll;
-  &__header {
-    width: 100%;
-    border-top: 1px solid #505050;
-    position: relative;
-  }
-  &__play {
-    width: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    color: #b8b8b8;
-    font-size: 15px;
-    margin: 10px 20px;
-    &--icon {
-      width: 22px;
-      height: 22px;
-    }
-  }
-}
-.audioEditor__bpm {
-  color: #fff;
-  font-size: 13px;
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  color: #b8b8b8;
 }
 
 .audioPlay {
   width: 0;
   height: 0;
+  display: none;
 }
 </style>

@@ -3,12 +3,12 @@
     title="编辑拍号"
     :visible.sync="dialogVisible"
     width="400px">
-    <Form label-position="top" :rules="rules" ref="ruleForm" label-width="80px" :model="ruleForm">
+    <Form label-position="top" :rules="rules" ref="ruleForm" label-width="80px" :model="beatForm">
       <FormItem label="分子" required prop="fenzi">
-        <InputNumber v-model="ruleForm.fenzi"></InputNumber>
+        <InputNumber v-model="beatForm.fenzi"></InputNumber>
       </FormItem>
       <FormItem label="分母" required prop="fenmu">
-        <InputNumber v-model="ruleForm.fenmu"></InputNumber>
+        <InputNumber v-model="beatForm.fenmu"></InputNumber>
       </FormItem>
     </Form>
     <span slot="footer" class="dialog-footer">
@@ -34,7 +34,10 @@ export default {
   data() {
     return {
       dialogVisible: false,
-      ruleForm: this.$store.state.beatForm,
+      beatForm: {
+        fenzi: 0,
+        fenmu: 0
+      },
       rules: {
         fenzi: [
           { required: true, message: '请输入分子,且必须为正整数', 
@@ -51,7 +54,7 @@ export default {
     toSubmitBeat() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          this.$store.state.beatForm = this.ruleForm
+          this.$store.dispatch('updateBeatForm', this.beatForm)
           this.dialogVisible = false 
         } else {
           Message.error('请全部填写完整并正确再提交')
@@ -59,6 +62,9 @@ export default {
       })
     },
     showBeatDialog() {
+      this.beatForm = {
+        ...this.$store.state.beatForm
+      }
       this.dialogVisible = true
     }
   }

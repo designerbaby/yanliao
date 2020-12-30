@@ -1,5 +1,5 @@
 <template>
-  <div class="statusDialog">
+  <div :class="$style.statusDialog">
     <Dialog :visible.sync="statusVisible" 
       width="30%"
       center>
@@ -55,7 +55,7 @@ export default {
   }
 }
 </script>
-<style lang="less">
+<style lang="less" module>
 .statusDialog {
   text-align: center;
 }
