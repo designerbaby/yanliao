@@ -1,4 +1,4 @@
-export const pitchList = [
+export const pitchListBefore = [
   {
     pitch: 24,
     str: 'C1',
@@ -504,6 +504,8 @@ export const pitchList = [
     show: 0
   }
 ]
+
+export const pitchList = pitchListBefore.reverse()
 
 export const processStatus = { // 进度从0到4对应的百分比
   0: 0,

@@ -18,9 +18,14 @@ import { Icon } from 'element-ui'
 
 export default {
   name: 'BeatHeader',
-  props: ['isPlaying', 'bpm'],
+  props: ['isPlaying'],
   data() {
     return {}
+  },
+  computed: {
+    bpm() {
+      return this.$store.getters.bpm
+    }
   },
   components: {
     Icon

@@ -7,16 +7,18 @@
     <div
       ref="stage"
       :class="$style.stage"
+      id="audioStage"
+    >
+      <BeatStageBg></BeatStageBg>
+      <div 
       @mousedown="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup="onMouseUp"
       @mouseleave="onMouseUp"
-      id="audioStage"
-    >
-      <BeatStageBg :noteWidth="noteWidth"></BeatStageBg>
+      :class="$style.drawStage" :style="{ width: `${$store.getters.stageWidth}px`, height: `${$store.getters.stageHeight}px`}"></div>
       <template v-for="(it, index) in stagePitches">
         <div
-          :class="[$style.pitch, selectedPitch === index ? 'is-active' : '', it.red ? 'is-red': '']"
+          :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
           :style="{
             width: `${it.width}px`,
             height: `${it.height}px`,
@@ -25,29 +27,13 @@
           :key="index"
           :data-left="it.left"
           :data-top="it.top"
-          @mousedown.stop="onPitchMouseDown"
-          @mousemove.stop="onPitchMouseMove"
-          @mouseup.stop="onPitchMouseUp($event, index)"
-          @mouseleave.stop="onPitchMouseUp($event, index)"
-          @click.left="toSelectPitch(index)"
-          @click.right="toPitchRight(index)"
+          @mousedown.self="onPitchMouseDown($event, index)"
+          @mouseup.self="onPitchMouseUp"
           slot="reference"
         >
           {{ it.hanzi }}
-          <img src="@/assets/right.png"
-            :class="[$style.left, showArrow === `1${index}` ? 'is-active' : '']"
-            @mouseenter.stop="onArrowEnter(`1${index}`)"
-            @mouseleave.stop="onArrowLeave"
-            @mouseup.stop="onArrowLeave"
-            @mousemove.stop="onArrowMouseMove($event, 'left')"
-            @mousedown.stop="onArrowMouseDown($event, 'left')"/>
-          <img src="@/assets/right.png"
-            :class="[$style.right, showArrow === `2${index}` ? 'is-active' : '']"
-            @mouseenter.stop="onArrowEnter(`2${index}`)"
-            @mouseleave.stop="onArrowLeave"
-            @mouseup.stop="onArrowLeave"
-            @mousemove.stop="onArrowMouseMove($event, 'right')"
-            @mousedown.stop="onArrowMouseDown($event, 'right')"/>
+          <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+          <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
           <div :class="$style.list" 
             v-if="showList === index"
           >
@@ -70,6 +56,7 @@ import { pitchList } from "@/common/utils/const"
 import { Card, Button } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
+import Arrow from './Arrow.vue'
 
 export default {
   name: "BeatContainer",
@@ -77,7 +64,8 @@ export default {
     Card,
     Button,
     BeatPiano,
-    BeatStageBg
+    BeatStageBg,
+    Arrow
   },
   data() {
     return {
@@ -89,19 +77,19 @@ export default {
       stagePitches: [],
       movePitchStart: null,
       moveArrowStart: null,
-      noteWidth: 20, // 32分音符占据的最小像素单位
       selectedPitch: -1,
       showArrow: -1,
-      showList: -1,
-      beforeItemPos: 0
+      showList: -1
     }
   },
   computed: {
     beatForm() {
       return this.$store.state.beatForm
+    },
+    noteWidth() {
+      return this.$store.getters.noteWidth
     }
   },
-  
   mounted() {
     this.updateStageOffset()
     // window.addEventListener('resize', () => {
@@ -114,8 +102,45 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
+    window.addEventListener('keyup', event => {
+      log('keyup', event)
+      if (event.ctrlKey && event.keyCode == 90) {
+        log('按下了ctrl+z')
+      }
+    })
   },
   methods: {
+    checkPitchDuplicated(){
+      const pitches = this.stagePitches
+      for(let i = 0; i < pitches.length; i++){
+        const pitch1 = pitches[i]
+        pitch1.isRed = false
+        for(let j = 0; j < pitches.length; j++){
+          const pitch2 = pitches[j]
+          if (i !== j) {
+            let leftPitch = null
+            let rightPitch = null
+
+            if (pitch1.left < pitch2.left) {
+              leftPitch = pitch1
+              rightPitch = pitch2
+            } else {
+              leftPitch = pitch2
+              rightPitch = pitch1
+            }
+            
+            const isRed = leftPitch.left + leftPitch.width > rightPitch.left
+            if (isRed) {
+              pitch1.red = isRed
+            }
+            // console.log(`检查外层第${i}个格子left:${pitch1.left},width:${pitch1.width}，内层第${j}个格子left:${pitch2.left},width:${pitch2.width} ,red:${isRed}`)
+          }
+        }
+      }
+
+      // console.log(`pitches：`, pitches)
+      this.$emit('getPitches', pitches)
+    },
     updateStageOffset() {
       // 初始化舞台的位置
       // this.stageOffset = this.getOffset(this.$refs.stage);
@@ -129,7 +154,8 @@ export default {
     toShowBeat() {
       this.$emit("showBeat");
     },
-    onPitchMouseDown(event){
+    onPitchMouseDown(event, index){
+      // console.log(`onPitchMouseDown`, event, index)
       // 绿色块鼠标按下事件
       const target = event.target
       target.style.opacity = 0.8
@@ -138,36 +164,48 @@ export default {
         left: Number(target.dataset.left),
         top: Number(target.dataset.top),
         clientX: event.clientX,
-        clientY: event.clientY
+        clientY: event.clientY,
+        target,
+        index
       }
+
+      document.addEventListener('mousemove', this.onPitchMouseMove)
+      document.addEventListener('mouseleave', this.onPitchMouseUp)
       // console.log(`this.movePitchStart:`, this.movePitchStart)
     },
     onPitchMouseMove(event){
       // 绿色块鼠标移动事件
       if (this.movePitchStart) {
         
+        const { target } = this.movePitchStart
         const newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
         const newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
 
-        event.target.style.transform = `translate(${newLeft}px, ${newTop}px)`
-        event.target.dataset.left = newLeft
-        event.target.dataset.top = newTop
+        target.style.transform = `translate(${newLeft}px, ${newTop}px)`
+        target.dataset.left = newLeft
+        target.dataset.top = newTop
 
       }
     },
-    onPitchMouseUp(event, index) {
-      // 绿色块鼠标移走事件
-      event.target.style.opacity = 1
-      this.movePitchStart = null
+    onPitchMouseUp(event) {
+      // console.log(`onPitchMouseUp`)
+      if (this.movePitchStart) {
+        document.removeEventListener('mousemove', this.onPitchMouseMove)
+        document.removeEventListener('mouseleave', this.onPitchMouseUp)
+        const { target, index } = this.movePitchStart
+        // 绿色块鼠标移走事件
+        event.target.style.opacity = 1
+        this.movePitchStart = null
 
-      const left = parseInt(event.target.dataset.left, 10)
-      const top = parseInt(event.target.dataset.top, 10)
+        const left = parseInt(event.target.dataset.left, 10)
+        const top = parseInt(event.target.dataset.top, 10)
 
-      // 松开时修正位置
-      const pitch = this.stagePitches[index]
-      pitch.left = left
-      pitch.top = top - (top % 25);
-  
+        // 松开时修正位置
+        const pitch = this.stagePitches[index]
+        pitch.left = left
+        pitch.top = top - (top % 25);
+        this.checkPitchDuplicated()
+      }
     },
     getOffset(ele) { // 获取距离父元素的位置
       let par = ele.offsetParent;
@@ -181,6 +219,7 @@ export default {
       return { left, top };
     },
     onMouseDown(event) {
+      // console.log(`onStageMouseDown`)
       this.selectedPitch = -1
       this.showList = -1
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
@@ -225,6 +264,7 @@ export default {
       }
     },
     onMouseUp(event) {
+      // console.log(`onStageMouseUp`, this.isMouseDown)
       // 必须先按下了鼠标，才有松开鼠标事件
       if (this.isMouseDown) {
         this.isMouseDown = false;
@@ -266,10 +306,6 @@ export default {
     },
 
     addOnePitch({ width, height, left, top, hanzi }) {
-      let red = false
-      // if (this.beforeItemPos >= left) {
-      //   red = true
-      // }
       if (width > 25) {
         console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
         this.stagePitches.push({
@@ -278,14 +314,17 @@ export default {
           left,
           top,
           hanzi,
-          red: red
+          red: false
         });
-        this.selectedPitch = this.stagePitches.length - 1
+        this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
       }
-      
-      // this.beforeItemPos = width + left
+      this.checkPitchDuplicated()
+    },
 
-      this.$emit('getPitches', this.stagePitches, this.noteWidth)
+    onArrowMoveEnd({ width, left }, index) {
+      const pitch = this.stagePitches[index]
+      pitch.left = left
+      pitch.width = width
     },
     
     toSelectPitch(index) {
@@ -294,40 +333,6 @@ export default {
     toPitchRight(index) {
       this.selectedPitch = index
       this.showList = index
-    },
-     
-    onArrowEnter(num) {
-      this.showArrow = num
-    },
-    onArrowMouseDown(event, type) { // 鼠标按下事件
-      const target = event.target
-      target.style.opacity = 0.8
-      this.moveArrowStart = {
-        width: target.parentNode.style.width,
-        left: target.style.left,
-        clientX: event.clientX
-      }
-      
-      log('moveArrowStart:', JSON.stringify(this.moveArrowStart))
-    },
-    onArrowMouseMove(event, type) {
-      if (this.moveArrowStart) {
-        if (type === 'right') {
-          const newWidth = this.moveArrowStart.width + (event.clientX - this.moveArrowStart.clientX)
-          event.target.parentNode.style.width = newWidth
-        } else {
-          const pianyi = event.clientX - this.moveArrowStart.clientX
-          const newWidth = this.moveArrowStart.width + pianyi
-          const newLeft = this.moveArrowStart.left - pianyi
-          event.target.parentNode.style.width = newWidth
-          event.target.parentNode.style.left = newLeft
-        }
-      }
-    },
-    onArrowLeave() {
-      this.showArrow = -1
-      this.moveArrowStart = null
-      const left = parseInt(this.moveArrowStart)
     },
     toDeletePitch(index) {
       this.stagePitches.splice(index, 1)
@@ -344,7 +349,7 @@ export default {
   width: 100%;
   margin: 0px;
   position: relative;
-  padding-top: 20px;
+  // padding-top: 20px;
 }
 .stage {
   position: absolute;
@@ -352,9 +357,15 @@ export default {
   height: 100%;
   left: 50px;
   user-select: none;
-  top: 20px;
+  // top: 20px;
   // padding-top: 20px;
   overflow-x: scroll;
+}
+.drawStage {
+  position: absolute;
+  left: 0;
+  top: 20px;
+  z-index: 10;
 }
 .beat {
   position: absolute;
@@ -373,39 +384,16 @@ export default {
   top: 0;
   font-size: 12px;
   line-height: 25px;
+  z-index: 20;
   // text-align: center;
-  &.is-active {
+  &.isActive {
     background: rgb(20, 155, 49)
   }
-  &.is-red {
+  &.isRed {
     border: 1px solid red;
   }
 }
 
-.left {
-  position: absolute;
-  height: 25px;
-  width: 30px;
-  right: -27px;
-  top: 0;
-  opacity: 0;
-  &.is-active {
-    opacity: 1;
-  }
-}
-
-.right {
-  transform: scale(-1);
-  position: absolute;
-  height: 25px;
-  width: 30px;
-  left: -27px;
-  top: 0;
-  opacity: 0;
-  &.is-active {
-    opacity: 1;
-  }
-}
 
 .list {
   width: 100px;
@@ -426,6 +414,7 @@ export default {
 }
 
 .sharp {
+  display: none;
   border: 1px solid #ccc;
   position: absolute;
   left: 300px;

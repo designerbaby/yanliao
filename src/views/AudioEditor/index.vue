@@ -1,6 +1,6 @@
 <template>
   <div :class="$style.audioEditor" ref="audioEditor">
-    <BeatHeader :isPlaying="isPlaying" :bpm="bpm" @play="toPlay"></BeatHeader>
+    <BeatHeader :isPlaying="isPlaying" @play="toPlay"></BeatHeader>
     <BeatContainer 
       ref="BeatContainer"
       @showBeat="toShowBeat" 
@@ -33,7 +33,6 @@ export default {
   },
   data() {
     return {
-      bpm: 90,
       pitches: [],
       isPlaying: false,
       timer: null,
@@ -42,12 +41,19 @@ export default {
       playTime: 0,
       timeout: null,
       pitchHasChange: false, // 记录下音符块是否已经改动了
-      note: 20,
       maxLeft: 0
     }
   },
   mounted() {
     Bus.$on('pitchChange', this.onPitchChange)
+  },
+  computed: {
+    noteWidth() {
+      return this.$store.getters.noteWidth
+    },
+    bpm() {
+      return this.$store.getters.bpm
+    }
   },
   methods: {
     toPlay() {
@@ -74,8 +80,7 @@ export default {
     onPitchChange() {
       this.pitchHasChange = true
     },
-    toGetPictData(pitches, note) {
-      this.note = note
+    toGetPictData(pitches) {
       this.pitches = pitches
       this.pitchHasChange = true // 一改动就记录下来
     },
@@ -96,9 +101,9 @@ export default {
       }
       const newPitches = []
       excessPitches.forEach(item => {
-        const duration = Math.floor((60 * (parseInt(item.width) / this.note) * 1000) / (8 * this.bpm))
-        const pitch = (item.top / item.height) + 24
-        const startTime = Math.floor(((item.left / this.note) * 60 * 1000) / (8 * this.bpm))
+        const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
+        const pitch = 107 - (item.top / item.height)
+        const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
         const pitchItem = {
           duration: duration,
           pitch: pitch,

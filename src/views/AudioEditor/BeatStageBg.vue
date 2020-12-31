@@ -29,7 +29,6 @@ import { pitchList } from "@/common/utils/const"
 
 export default {
   name: 'BeatStageBg',
-  props: ['noteWidth'],
   components: {
     BeatLine
   },
@@ -43,11 +42,17 @@ export default {
       return this.$store.state.beatForm
     },
     stageWidth() {
-      return (this.noteWidth + 1) * (32 / this.beatForm.fenmu) * this.beatForm.fenzi * this.matter
+      return this.$store.getters.stageWidth
     },
     matter() {
       return this.$store.state.matter
+    },
+    noteWidth() {
+      return this.$store.getters.noteWidth
     }
+  },
+  mounted() {
+    log('getters:', this.$store.getters)
   }
 }
 </script>
@@ -55,6 +60,7 @@ export default {
 <style lang="less" module>
 .container {
   position: relative;
+  top: 20px;
 }
 .row {
   position: relative;
@@ -83,6 +89,7 @@ export default {
   background: transparent;
   display: flex;
   position: relative;
+  top: -20px;
 }
 .fenzi {
   border-left: 1px solid #252525;

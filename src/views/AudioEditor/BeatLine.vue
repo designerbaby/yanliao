@@ -1,6 +1,6 @@
 <template>
   <div 
-      :class="[$style.line, lineActive ? 'is-active' : '']"
+      :class="[$style.line, lineActive ? $style.isActive : '']"
       :style="{
         transform: `translateX(${left}px)`
       }" 
@@ -33,6 +33,7 @@ export default {
   },
   methods: {
     onLineMouseDown(event) {
+      console.log(`onLineMouseDown`)
       this.isLineMouseDown = true
       this.startLeft = this.left
       this.startX = event.clientX
@@ -53,8 +54,9 @@ export default {
       }
     },
     onLineMouseUp(event) {
-      document.removeEventListener('onMouseMove', this.onLineMouseMove)
-      document.removeEventListener('onMouseUp', this.onLineMouseUp)
+      console.log(`onLineMouseUp`)
+      document.removeEventListener('mousemove', this.onLineMouseMove)
+      document.removeEventListener('mouseleave', this.onLineMouseUp)
       if (this.isLineMouseDown) {
         this.isLineMouseDown = false
         // 移动好线之后先存起来
@@ -89,7 +91,7 @@ export default {
     opacity: 0.5;
   }
  
-  &.is-active {
+  &.isActive {
     transition: left 0.3s linear;
   }
 }

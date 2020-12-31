@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import { pitchList } from '@/common/utils/const'
 
 Vue.use(Vuex)
 
@@ -10,9 +11,24 @@ const store = new Vuex.Store({
       fenmu: 4
     },
     lineLeft: 0, // 播放线的左边距
-    matter: 10 // 总共有多少个小节
+    matter: 10, // 总共有多少个小节
+    noteWidth: 20, // 32分音符占据的最小像素单位
+    bpm: 90 // 音调
   },
-  getters: {},
+  getters: {
+    stageWidth: state => {
+      return state.noteWidth * (32 / state.beatForm.fenmu) * state.beatForm.fenzi * state.matter
+    },
+    stageHeight: state => {
+      return pitchList.length * 25
+    },
+    noteWidth: state => {
+      return state.noteWidth
+    },
+    bpm: state => {
+      return state.bpm
+    }
+  },
   mutations: {
     updateBeatForm(state, form) {
       state.beatForm = {
