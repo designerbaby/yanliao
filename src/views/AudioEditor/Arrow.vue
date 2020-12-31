@@ -7,6 +7,8 @@
 </template>
 
 <script>
+import { Message } from 'element-ui'
+
 export default {
   name: 'Arrow',
   props: ['direction', 'pitch'],
@@ -17,8 +19,20 @@ export default {
       moveArrowEnd: null
     }
   },
+  components: {
+    Message
+  },
+  computed: {
+    isSynthetizing() {
+      return this.$store.getters.isSynthetizing
+    }
+  },
   methods: {
     onArrowMouseDown(event) { // 鼠标按下事件
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
       document.addEventListener('mousemove', this.onArrowMouseMove)
       document.addEventListener('mouseleave', this.onArrowLeave)
       const target = event.target
@@ -30,7 +44,6 @@ export default {
         clientX: event.clientX
       }
 
-    
       log('moveArrowStart:', JSON.stringify(this.moveArrowStart))
     },
     onArrowMouseMove(event) {
@@ -46,9 +59,9 @@ export default {
         if (this.direction === 'right') {
           newLeft = this.moveArrowStart.left
           newWidth = Math.max(20, this.moveArrowStart.width + movePx)
-        } else if (this.direction === 'left'){
-          newLeft = this.moveArrowStart.left - movePx
-          newWidth = Math.max(20, this.moveArrowStart.width + movePx)
+        } else if (this.direction === 'left') {
+          newLeft = this.moveArrowStart.left + movePx // 这里要加是因为往左话，movePx是负的
+          newWidth = Math.max(20, this.moveArrowStart.width - movePx)
         }
         parentNode.style.width = `${newWidth}px`
         parentNode.style.transform = `translate(${newLeft}px, ${newTop}px)`

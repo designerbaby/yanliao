@@ -13,7 +13,8 @@ const store = new Vuex.Store({
     lineLeft: 0, // 播放线的左边距
     matter: 10, // 总共有多少个小节
     noteWidth: 20, // 32分音符占据的最小像素单位
-    bpm: 90 // 音调
+    bpm: 90, // 音调
+    isSynthetizing: false // 是否在合成音频中
   },
   getters: {
     stageWidth: state => {
@@ -27,6 +28,15 @@ const store = new Vuex.Store({
     },
     bpm: state => {
       return state.bpm
+    },
+    matter: state => {
+      return state.matter
+    },
+    beatForm: state => {
+      return state.beatForm
+    },
+    isSynthetizing: state => {
+      return state.isSynthetizing
     }
   },
   mutations: {
@@ -38,6 +48,9 @@ const store = new Vuex.Store({
     },
     updateLineLeft(state, left) {
       state.lineLeft = left
+    },
+    updateIsSynthetizing(state, isSynthetizing) {
+      state.isSynthetizing = isSynthetizing
     }
   },
   actions: {
@@ -46,6 +59,9 @@ const store = new Vuex.Store({
     },
     updateLineLeft (context, left) {
       context.commit('updateLineLeft', left)
+    },
+    updateIsSynthetizing(context, isSynthetizing) {
+      context.commit('updateIsSynthetizing', isSynthetizing)
     }
   },
   modules: {}

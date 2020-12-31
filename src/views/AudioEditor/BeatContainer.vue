@@ -4,18 +4,17 @@
       {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
     </div>
     <BeatPiano></BeatPiano>
-    <div
-      ref="stage"
-      :class="$style.stage"
-      id="audioStage"
-    >
+    <div ref="stage" :class="$style.stage" id="audioStage">
       <BeatStageBg></BeatStageBg>
       <div 
-      @mousedown="onMouseDown"
-      @mousemove="onMouseMove"
-      @mouseup="onMouseUp"
-      @mouseleave="onMouseUp"
-      :class="$style.drawStage" :style="{ width: `${$store.getters.stageWidth}px`, height: `${$store.getters.stageHeight}px`}"></div>
+        ref="drawStage"
+        @mousedown="onMouseDown"
+        @mousemove="onMouseMove"
+        @mouseup="onMouseUp"
+        @mouseleave="onMouseUp"
+        :class="$style.drawStage" 
+        :style="{ width: `${$store.getters.stageWidth}px`, height: `${$store.getters.stageHeight}px`}"
+      ></div>
       <template v-for="(it, index) in stagePitches">
         <div
           :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
@@ -34,9 +33,7 @@
           {{ it.hanzi }}
           <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
           <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-          <div :class="$style.list" 
-            v-if="showList === index"
-          >
+          <div :class="$style.list" v-if="showList === index">
             <Card class="box-card">
               <div slot="header" class="clearfix">
                 <span>操作列表</span>
@@ -53,7 +50,7 @@
 
 <script>
 import { pitchList } from "@/common/utils/const"
-import { Card, Button } from "element-ui"
+import { Card, Button, Message} from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import Arrow from './Arrow.vue'
@@ -65,7 +62,8 @@ export default {
     Button,
     BeatPiano,
     BeatStageBg,
-    Arrow
+    Arrow,
+    Message
   },
   data() {
     return {
@@ -76,18 +74,19 @@ export default {
       stageOffset: null,
       stagePitches: [],
       movePitchStart: null,
-      moveArrowStart: null,
       selectedPitch: -1,
-      showArrow: -1,
       showList: -1
     }
   },
   computed: {
     beatForm() {
-      return this.$store.state.beatForm
+      return this.$store.getters.beatForm
     },
     noteWidth() {
       return this.$store.getters.noteWidth
+    },
+    isSynthetizing() {
+      return this.$store.getters.isSynthetizing
     }
   },
   mounted() {
@@ -102,15 +101,17 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
-    window.addEventListener('keyup', event => {
-      log('keyup', event)
-      if (event.ctrlKey && event.keyCode == 90) {
-        log('按下了ctrl+z')
+    document.addEventListener('keydown', event => {
+      if (event && event.preventDefault) {
+        event.preventDefault()
+      }
+      if (event.ctrlKey && event.keyCode == 90 || event.metaKey && event.keyCode == 90) {
       }
     })
   },
   methods: {
     checkPitchDuplicated(){
+      log('checkPitchDuplicated pitches:', this.stagePitches)
       const pitches = this.stagePitches
       for(let i = 0; i < pitches.length; i++){
         const pitch1 = pitches[i]
@@ -137,14 +138,13 @@ export default {
           }
         }
       }
-
       // console.log(`pitches：`, pitches)
       this.$emit('getPitches', pitches)
     },
     updateStageOffset() {
       // 初始化舞台的位置
       // this.stageOffset = this.getOffset(this.$refs.stage);
-      const rect = this.$refs.stage.getBoundingClientRect()
+      const rect = this.$refs.drawStage.getBoundingClientRect()
       this.stageOffset = {
         left: rect.left,
         top: rect.top
@@ -152,14 +152,21 @@ export default {
 
     },
     toShowBeat() {
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
       this.$emit("showBeat");
     },
     onPitchMouseDown(event, index){
-      // console.log(`onPitchMouseDown`, event, index)
+      // console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
       const target = event.target
       target.style.opacity = 0.8
-      // target.style.background = '#149b31'
+      this.toSelectPitch(index)
+      if (event.button === 2) { // 按下了鼠标右键
+        this.toPitchRight(index)
+      }
       this.movePitchStart = {
         left: Number(target.dataset.left),
         top: Number(target.dataset.top),
@@ -202,7 +209,7 @@ export default {
 
         // 松开时修正位置
         const pitch = this.stagePitches[index]
-        pitch.left = left
+        pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
         pitch.top = top - (top % 25);
         this.checkPitchDuplicated()
       }
@@ -220,6 +227,10 @@ export default {
     },
     onMouseDown(event) {
       // console.log(`onStageMouseDown`)
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
       this.selectedPitch = -1
       this.showList = -1
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
@@ -264,7 +275,6 @@ export default {
       }
     },
     onMouseUp(event) {
-      // console.log(`onStageMouseUp`, this.isMouseDown)
       // 必须先按下了鼠标，才有松开鼠标事件
       if (this.isMouseDown) {
         this.isMouseDown = false;
@@ -273,7 +283,7 @@ export default {
           x: event.clientX - rect.left,
           y: event.clientY - rect.top
         };
-
+        
         this.$refs.sharp.style.display = "none";
 
         //
@@ -323,8 +333,11 @@ export default {
 
     onArrowMoveEnd({ width, left }, index) {
       const pitch = this.stagePitches[index]
-      pitch.left = left
-      pitch.width = width
+      // pitch.left = left
+      // pitch.width = width
+      // 结束后修正宽度和左边距
+      pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
+      pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
     },
     
     toSelectPitch(index) {
@@ -337,6 +350,7 @@ export default {
     toDeletePitch(index) {
       this.stagePitches.splice(index, 1)
       this.showList = -1 // 删除掉之后顺便把选择的还原
+      this.checkPitchDuplicated()
     }
   }
 };
@@ -349,7 +363,6 @@ export default {
   width: 100%;
   margin: 0px;
   position: relative;
-  // padding-top: 20px;
 }
 .stage {
   position: absolute;
@@ -357,21 +370,19 @@ export default {
   height: 100%;
   left: 50px;
   user-select: none;
-  // top: 20px;
-  // padding-top: 20px;
   overflow-x: scroll;
 }
 .drawStage {
   position: absolute;
   left: 0;
-  top: 20px;
+  top: 25px;
   z-index: 10;
 }
 .beat {
   position: absolute;
   color: #fff;
   font-size: 13px;
-  top: 0px;
+  top: 3px;
   left: 15px;
 }
 .pitch {

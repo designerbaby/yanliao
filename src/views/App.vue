@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
+  <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }" @keyup.ctrl.90.stop="onKeyUpCtrlZ">
     <Header v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
       ref="header" :currentPath="$router.history.current.path" 
       :loginDialogShow="loginDialogShow" 
@@ -30,7 +30,8 @@ export default {
       loginDialogShow: false,
     }
   },
-  mounted() {},
+  mounted() {
+  },
   computed: {},
   methods: {
     changeBg(data) {
@@ -47,6 +48,9 @@ export default {
     },
     closeLoginDialog() {
       this.loginDialogShow = false
+    },
+    onKeyUpCtrlZ() {
+      log('按下了onKeyUpCtrlZ')
     }
   }
 }

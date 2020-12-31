@@ -53,10 +53,17 @@ export default {
     },
     bpm() {
       return this.$store.getters.bpm
+    },
+    isSynthetizing() {
+      return this.$store.getters.isSynthetizing
     }
   },
   methods: {
     toPlay() {
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,请耐心等待~')
+        return
+      }
       if (!this.isPlaying) {
         if (this.onlineUrl && !this.pitchHasChange) { // 有现成的音频，直接播放
           this.toPlayAudio()
@@ -102,7 +109,7 @@ export default {
       const newPitches = []
       excessPitches.forEach(item => {
         const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
-        const pitch = 107 - (item.top / item.height)
+        const pitch = 107 - ((item.top - 25) / item.height)
         const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
         const pitchItem = {
           duration: duration,
@@ -117,6 +124,7 @@ export default {
         this.toGetMaxSecond(duration, startTime) // 获取当前音频的最大时长
         this.toGetMaxLineLeft(excessPitches) // 获取当前最大的偏移量
       })
+      log('newPitches:', newPitches)
       return newPitches
     },
     toGetMaxSecond(duration, startTime) {
@@ -138,7 +146,6 @@ export default {
       this.$refs.BeatSelector.showBeatDialog()
     },
     async toSynthesize() {
-
       this.toRefreshData()
       const finalPitches = await this.toHandlePitches(this.pitches)
 
@@ -147,7 +154,7 @@ export default {
         this.toPauseAudio()
         return
       }
-
+      this.$store.dispatch('updateIsSynthetizing', true)
       const req = {
         pitch_list: finalPitches,
         f0: []
@@ -208,6 +215,7 @@ export default {
       }
       clearInterval(this.timer)
       this.rollTime = 0
+      this.$store.dispatch('updateIsSynthetizing', false)
     },
     toPlayAudio() {
       this.isPlaying = true

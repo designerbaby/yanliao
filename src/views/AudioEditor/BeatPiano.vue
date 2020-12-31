@@ -30,7 +30,7 @@ export default {
 <style lang="less" module>
 .container {
   position: relative;
-  margin-top: 20px;
+  margin-top: 25px;
 }
 
 .left {

@@ -31,9 +31,18 @@ export default {
     Bus.$on('toMoveLinePos', this.toMove)
     Bus.$on('toRestartLinePos', this.toRestart)
   },
+  computed: {
+    isSynthetizing() {
+      return this.$store.getters.isSynthetizing
+    }
+  },
   methods: {
     onLineMouseDown(event) {
       console.log(`onLineMouseDown`)
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
       this.isLineMouseDown = true
       this.startLeft = this.left
       this.startX = event.clientX

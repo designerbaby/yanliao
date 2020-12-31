@@ -39,20 +39,17 @@ export default {
   },
   computed: {
     beatForm() {
-      return this.$store.state.beatForm
+      return this.$store.getters.beatForm
     },
     stageWidth() {
       return this.$store.getters.stageWidth
     },
     matter() {
-      return this.$store.state.matter
+      return this.$store.getters.matter
     },
     noteWidth() {
       return this.$store.getters.noteWidth
     }
-  },
-  mounted() {
-    log('getters:', this.$store.getters)
   }
 }
 </script>
@@ -60,7 +57,7 @@ export default {
 <style lang="less" module>
 .container {
   position: relative;
-  top: 20px;
+  top: 25px;
 }
 .row {
   position: relative;
@@ -89,12 +86,21 @@ export default {
   background: transparent;
   display: flex;
   position: relative;
-  top: -20px;
+  // top: -20px;
 }
 .fenzi {
-  border-left: 1px solid #252525;
   background: transparent;
   display: flex;
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 2100px;
+    background: #252525;
+  }
 }
 .fenmu {
   border-left: 1px solid #292828;
@@ -109,7 +115,9 @@ export default {
   background: transparent;
   text-align: left;
   position: absolute;
-  // top: -10px;
+  top: -25px;
   padding-left: 5px;
+  height: 25px;
+  line-height: 25px;
 }
 </style>
