@@ -41,7 +41,8 @@ export default {
       playTime: 0,
       timeout: null,
       pitchHasChange: false, // 记录下音符块是否已经改动了
-      maxLeft: 0
+      maxLeft: 0, // 播放线应该跑的最大偏移量
+      minLeft: 0  // 播放线最开始应该在的位置
     }
   },
   mounted() {
@@ -79,7 +80,7 @@ export default {
       this.playTime = 0
     },
     toMoveLine() {
-      Bus.$emit('toMoveLinePos', this.maxLeft, this.playTime)
+      Bus.$emit('toMoveLinePos', this.minLeft, this.maxLeft, this.playTime)
     },
     toRestartLine() {
       Bus.$emit('toRestartLinePos')
@@ -92,17 +93,16 @@ export default {
       this.pitchHasChange = true // 一改动就记录下来
     },
     toHandlePitches (pitches) {
-      const lineLeft = this.$store.state.lineLeft // 根据音高线的距离去获取相应的块
+      const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
       log('lineLeft:', lineLeft)
       let excessPitches = []
       pitches.forEach(item => {
-        if (item.left > lineLeft || (item.left + item.width) > lineLeft) {
+        if (item.left >= lineLeft || (item.left + item.width) >= lineLeft) {
           excessPitches.push(item)
         }
       })
       for (let i = 0; i < excessPitches.length; i += 1) {
         if (excessPitches[i].red) {
-          Message.error('音符存在重叠, 请调整好~')
           return
         }
       }
@@ -122,7 +122,7 @@ export default {
         }
         newPitches.push(pitchItem)
         this.toGetMaxSecond(duration, startTime) // 获取当前音频的最大时长
-        this.toGetMaxLineLeft(excessPitches) // 获取当前最大的偏移量
+        this.toGetLineLeft(excessPitches) // 获取线的偏移量
       })
       log('newPitches:', newPitches)
       return newPitches
@@ -135,10 +135,15 @@ export default {
     },
     toGetMaxLineLeft(pitches) {
       let maxLeft = this.maxLeft
+      let minLeft = this.minLeft
       pitches.forEach(item => {
         const newLeft = item.width + item.left
         if (newLeft > this.maxLeft) {
           this.maxLeft = newLeft
+        }
+        const newMinLeft = item.left
+        if (newMinLeft < this.minLeft) {
+          this.minLeft = newMinLeft
         }
       })
     },
@@ -147,14 +152,22 @@ export default {
     },
     async toSynthesize() {
       this.toRefreshData()
+
       const finalPitches = await this.toHandlePitches(this.pitches)
 
-      if (finalPitches.length === 0) {
+      log('finalPitches:', finalPitches)
+      if (finalPitches === undefined) {
+        Message.error('音符存在重叠, 请调整好~')
+        return
+      }
+      if (!finalPitches.length) {
         Message.error('请画好音符再播放~')
         this.toPauseAudio()
         return
       }
+
       this.$store.dispatch('updateIsSynthetizing', true)
+
       const req = {
         pitch_list: finalPitches,
         f0: []

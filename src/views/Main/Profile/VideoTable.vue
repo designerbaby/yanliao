@@ -56,7 +56,9 @@
     <CommonDialog :show="dialogShow" titleText="确定删除该视频吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
     <el-dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
       <div class="video-container">
-        <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo"/>
+        <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo">
+          您的浏览器不支持 video 标签。
+        </video>
         <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
       </div>
     </el-dialog>

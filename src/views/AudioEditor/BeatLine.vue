@@ -73,14 +73,15 @@ export default {
         Bus.$emit('pitchChange')
       }
     },
-    toMove(maxLeft, playTime) {
+    toMove(minLeft, maxLeft, playTime) {
       this.lineActive = true
-      const linex = maxLeft
-      this.$refs.audioEditorLine.style.left = `${linex}px`
+      this.$refs.audioEditorLine.style.left = `${minLeft}px`
       this.$refs.audioEditorLine.style.transitionDuration = `${(playTime / 1000).toFixed(1)}s`
+      this.$refs.audioEditorLine.style.left = `${maxLeft}px`
     },
     toRestart() {
       this.lineActive = false
+      this.$refs.audioEditorLine.style.transitionDuration = '0.3s'
       this.$refs.audioEditorLine.style.left = '0px'
     }
   }

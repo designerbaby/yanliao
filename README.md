@@ -60,7 +60,6 @@ npm install -g commitizen
 ### TODO
 
 - 1、播放预览的时候，发音的时间和音符的节拍对不上，有时还会不发音
-- 3、增加ctrl+Z的快捷键代表撤销
-- 2、video标签要支持flv等格式的文件
-- 4、音标标红
-- 5、鼠标拖动后，在很远的地方出现音标
+- 2、video标签要支持avi、wmv、mpeg、m4v、mov、asf、flv、f4v格式的文件
+只能支持mp4、WebM或Ogg。
+任何瀏覽器都不支持AVI和XVID，但您可以使用Flash播放器播放flv。

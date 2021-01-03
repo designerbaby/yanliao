@@ -44,6 +44,7 @@
         </div>
       </template>
       <div :class="$style.sharp" ref="sharp"></div>
+      <!-- <PitchLine></PitchLine> -->
     </div>
   </div>
 </template>
@@ -54,7 +55,7 @@ import { Card, Button, Message} from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import Arrow from './Arrow.vue'
-
+// import PitchLine from './PitchLine.vue'
 export default {
   name: "BeatContainer",
   components: {
@@ -63,7 +64,8 @@ export default {
     BeatPiano,
     BeatStageBg,
     Arrow,
-    Message
+    Message,
+    // PitchLine
   },
   data() {
     return {
@@ -94,9 +96,9 @@ export default {
     // window.addEventListener('resize', () => {
     //   this.updateStageOffset()
     // })
-    // document.querySelector('#app').addEventListener('scroll', () => {
-    //   this.updateStageOffset()
-    // })
+    this.$refs.stage.addEventListener('scroll', () => {
+      this.updateStageOffset()
+    })
     document.getElementById('audioStage').oncontextmenu = (e) => { 
       // 右键基础事件被阻止掉了
       return false
@@ -106,16 +108,22 @@ export default {
         event.preventDefault()
       }
       if (event.ctrlKey && event.keyCode == 90 || event.metaKey && event.keyCode == 90) {
+        this.toResetPitches()
       }
     })
   },
   methods: {
-    checkPitchDuplicated(){
-      log('checkPitchDuplicated pitches:', this.stagePitches)
+    toResetPitches() {
+      log('toResetPitches')
+      this.stagePitches.splice(this.stagePitches.length - 1, 1)
+      this.checkPitchDuplicated()
+    },
+    checkPitchDuplicated() {
+      // log('checkPitchDuplicated pitches:', this.stagePitches)
       const pitches = this.stagePitches
       for(let i = 0; i < pitches.length; i++){
         const pitch1 = pitches[i]
-        pitch1.isRed = false
+        pitch1.red = false
         for(let j = 0; j < pitches.length; j++){
           const pitch2 = pitches[j]
           if (i !== j) {
@@ -143,11 +151,11 @@ export default {
     },
     updateStageOffset() {
       // 初始化舞台的位置
-      // this.stageOffset = this.getOffset(this.$refs.stage);
-      const rect = this.$refs.drawStage.getBoundingClientRect()
+      const scrollLeft = this.$refs.stage.scrollLeft
+      const scrollTop = this.$refs.stage.scrollTop
       this.stageOffset = {
-        left: rect.left,
-        top: rect.top
+        scrollLeft,
+        scrollTop
       }
 
     },
@@ -238,8 +246,8 @@ export default {
       const rect = this.$refs.stage.getBoundingClientRect()
 
       this.startPos = {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top
+        x: event.clientX + this.stageOffset.scrollLeft - rect.left,
+        y: event.clientY + this.stageOffset.scrollTop - rect.top
       };
       // 初始化绿色块
       this.$refs.sharp.style.left = `${this.startPos.x}px`;
@@ -252,8 +260,8 @@ export default {
       if (this.isMouseDown) {
         const rect = this.$refs.stage.getBoundingClientRect()
         const pos = {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top
+          x: event.clientX + this.stageOffset.scrollLeft - rect.left,
+          y: event.clientY + this.stageOffset.scrollTop - rect.top
         };
 
         const width = pos.x - this.startPos.x;
@@ -280,8 +288,8 @@ export default {
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top
+          x: event.clientX + this.stageOffset.scrollLeft - rect.left,
+          y: event.clientY + this.stageOffset.scrollTop - rect.top
         };
         
         this.$refs.sharp.style.display = "none";
@@ -338,6 +346,7 @@ export default {
       // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
       pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
+      this.checkPitchDuplicated()
     },
     
     toSelectPitch(index) {
