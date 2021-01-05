@@ -33,8 +33,17 @@ const editorSynthResult = (taskId) => {
   })
 }
 
+const getF0Data = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/sdk_client/get_f0_data',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
-  editorSynthResult
+  editorSynthResult,
+  getF0Data
 }

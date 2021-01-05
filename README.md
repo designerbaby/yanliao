@@ -61,5 +61,6 @@ npm install -g commitizen
 
 - 1、播放预览的时候，发音的时间和音符的节拍对不上，有时还会不发音
 - 2、video标签要支持avi、wmv、mpeg、m4v、mov、asf、flv、f4v格式的文件
-只能支持mp4、WebM或Ogg。
-任何瀏覽器都不支持AVI和XVID，但您可以使用Flash播放器播放flv。
+
+  - m4v: 浏览器不支持m4v格式文件，这些格式需要播放器支持。这些文件直接无法在浏览器中运行。 像chrome，firefox，ie ......等。
+因为这些文件格式属于iOS操作系统，由apple开发

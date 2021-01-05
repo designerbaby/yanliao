@@ -94,7 +94,7 @@ export default {
     },
     toHandlePitches (pitches) {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
-      log('lineLeft:', lineLeft)
+      console.log('lineLeft:', lineLeft)
       let excessPitches = []
       pitches.forEach(item => {
         if (item.left >= lineLeft || (item.left + item.width) >= lineLeft) {
@@ -109,13 +109,13 @@ export default {
       const newPitches = []
       excessPitches.forEach(item => {
         const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
-        const pitch = 107 - ((item.top - 25) / item.height)
+        const pitch = 81 - ((item.top - 25) / item.height)
         const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
         const pitchItem = {
           duration: duration,
           pitch: pitch,
           singer: 'luoxiang',
-          start_time: startTime,
+          startTime: startTime,
           pinyin: 'la',
           hanzi: item.hanzi,
           tone_id: 1
@@ -124,7 +124,7 @@ export default {
         this.toGetMaxSecond(duration, startTime) // 获取当前音频的最大时长
         this.toGetLineLeft(excessPitches) // 获取线的偏移量
       })
-      log('newPitches:', newPitches)
+      // console.log('newPitches:', newPitches)
       return newPitches
     },
     toGetMaxSecond(duration, startTime) {
@@ -133,7 +133,7 @@ export default {
         this.playTime = maxTime
       }
     },
-    toGetMaxLineLeft(pitches) {
+    toGetLineLeft(pitches) {
       let maxLeft = this.maxLeft
       let minLeft = this.minLeft
       pitches.forEach(item => {
@@ -155,7 +155,7 @@ export default {
 
       const finalPitches = await this.toHandlePitches(this.pitches)
 
-      log('finalPitches:', finalPitches)
+      // console.log('finalPitches:', finalPitches)
       if (finalPitches === undefined) {
         Message.error('音符存在重叠, 请调整好~')
         return
@@ -167,13 +167,13 @@ export default {
       }
 
       this.$store.dispatch('updateIsSynthetizing', true)
-
+      this.$store.dispatch('updatePitchList', finalPitches)
       const req = {
-        pitch_list: finalPitches,
+        pitchList: finalPitches,
         f0: []
       }
       const { data } = await editorSynth(req)
-      log('editorSynth:', data)
+      console.log('editorSynth:', data)
       Message.success('开始合成音频中~')
       if (data.ret_code === 0) {
         this.toRollStatus(data.data.param_id, data.data.task_id)
@@ -183,15 +183,15 @@ export default {
     },
     async toEditorSynthStatus (paramId, taskId) {
       this.rollTime += 1
-      log('this.rollTime:', this.rollTime)
+      console.log('this.rollTime:', this.rollTime)
       const { data } = await editorSynthStatus(paramId)
-      log('editorSynthStatus:', data)
+      console.log('editorSynthStatus:', data)
       if (data.ret_code === 0) {
         if (data.data.status === 4) {
           Message.success('音频合成成功~')
           clearInterval(this.timer)
           this.toEditorSynthResult(taskId)
-          clearInterval(this.timer)
+          // Bus.$emit('getPitchLine')
         } else {
           Message.success(`算法努力合成音频中(${processStatus[data.data.status]}%)`)
           // this.$refs.StatusDialog.showStatus(data.data.status)
@@ -212,7 +212,7 @@ export default {
     },
     async toEditorSynthResult (taskId) {
       const { data } = await editorSynthResult(taskId)
-      log('editorSynthResult:', data)
+      console.log('editorSynthResult:', data)
       if (data.ret_code === 0) {
         if (data.data.state === 2) {
           this.onlineUrl = data.data.online_url
@@ -240,10 +240,12 @@ export default {
       }, this.playTime + 500) // 这里主要是算法那边计算总和后加0.5s做缓冲
     },
     toPauseAudio() {
-      this.toRestartLine()
-      this.$refs.AudioUrl.pause()
-      this.isPlaying = false
-      this.pitchHasChange = false
+      if (this.isPlaying) {
+        // this.$refs.AudioUrl.pause()
+        this.isPlaying = false
+        this.toRestartLine()
+        this.pitchHasChange = false
+      }
     }
   }
 }

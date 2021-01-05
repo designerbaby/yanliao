@@ -15,7 +15,7 @@
             :class="$style.fenmu"
             v-for="j in 32 / beatForm.fenmu"
             :key="j"
-            :style="{ width: `${noteWidth}px` }"
+            :style="{ width: `${noteWidth}px`, height: `${stageHeight}px` }"
           ></div>
         </div>
       </div>
@@ -49,6 +49,9 @@ export default {
     },
     noteWidth() {
       return this.$store.getters.noteWidth
+    },
+    stageHeight() {
+      return this.$store.getters.stageHeight
     }
   }
 }
@@ -98,14 +101,13 @@ export default {
     top: 0;
     left: 0;
     width: 1px;
-    height: 2100px;
+    height: 100%;
     background: #252525;
   }
 }
 .fenmu {
   border-left: 1px solid #292828;
   background: transparent;
-  height: 2100px;
 }
 
 .num {

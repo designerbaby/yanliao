@@ -44,18 +44,19 @@
         </div>
       </template>
       <div :class="$style.sharp" ref="sharp"></div>
-      <!-- <PitchLine></PitchLine> -->
+      <PitchLine></PitchLine>
     </div>
   </div>
 </template>
 
 <script>
 import { pitchList } from "@/common/utils/const"
-import { Card, Button, Message} from "element-ui"
+import { Card, Button, Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import Arrow from './Arrow.vue'
-// import PitchLine from './PitchLine.vue'
+import PitchLine from './PitchLine.vue'
+
 export default {
   name: "BeatContainer",
   components: {
@@ -65,7 +66,7 @@ export default {
     BeatStageBg,
     Arrow,
     Message,
-    // PitchLine
+    PitchLine
   },
   data() {
     return {
@@ -157,7 +158,6 @@ export default {
         scrollLeft,
         scrollTop
       }
-
     },
     toShowBeat() {
       if (this.isSynthetizing) {
@@ -203,7 +203,7 @@ export default {
       }
     },
     onPitchMouseUp(event) {
-      // console.log(`onPitchMouseUp`)
+      console.log(`onPitchMouseUp`)
       if (this.movePitchStart) {
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
@@ -217,22 +217,27 @@ export default {
 
         // 松开时修正位置
         const pitch = this.stagePitches[index]
+        
         pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
         pitch.top = top - (top % 25);
+
+        target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
+        target.dataset.left = pitch.left
+        target.dataset.top = pitch.top
         this.checkPitchDuplicated()
       }
     },
-    getOffset(ele) { // 获取距离父元素的位置
-      let par = ele.offsetParent;
-      let left = ele.offsetLeft;
-      let top = ele.offsetTop;
-      while (par) {
-        left += par.offsetLeft;
-        top += par.offsetTop;
-        par = par.offsetParent;
-      }
-      return { left, top };
-    },
+    // getOffset(ele) { // 获取距离父元素的位置
+    //   let par = ele.offsetParent;
+    //   let left = ele.offsetLeft;
+    //   let top = ele.offsetTop;
+    //   while (par) {
+    //     left += par.offsetLeft;
+    //     top += par.offsetTop;
+    //     par = par.offsetParent;
+    //   }
+    //   return { left, top };
+    // },
     onMouseDown(event) {
       // console.log(`onStageMouseDown`)
       if (this.isSynthetizing) {
@@ -405,7 +410,7 @@ export default {
   font-size: 12px;
   line-height: 25px;
   z-index: 20;
-  // text-align: center;
+  padding-left: 5px;
   &.isActive {
     background: rgb(20, 155, 49)
   }

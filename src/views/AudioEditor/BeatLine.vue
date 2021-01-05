@@ -2,7 +2,8 @@
   <div 
       :class="[$style.line, lineActive ? $style.isActive : '']"
       :style="{
-        transform: `translateX(${left}px)`
+        transform: `translateX(${left}px)`,
+        height: `${stageHeight}px`
       }" 
       ref="audioEditorLine"
       @mousedown.stop="onLineMouseDown"
@@ -15,6 +16,7 @@
 
 <script>
 import Bus from '@/common/utils/bus'
+import { Message } from 'element-ui'
 
 export default {
   name: 'BeatLine',
@@ -34,6 +36,9 @@ export default {
   computed: {
     isSynthetizing() {
       return this.$store.getters.isSynthetizing
+    },
+    stageHeight() {
+      return this.$store.getters.stageHeight
     }
   },
   methods: {
@@ -46,7 +51,7 @@ export default {
       this.isLineMouseDown = true
       this.startLeft = this.left
       this.startX = event.clientX
-      // console.log(`down event.clientX`, event.clientX)
+      console.log(`down event.clientX`, event.clientX)
 
       document.addEventListener('mousemove', this.onLineMouseMove)
       document.addEventListener('mouseleave', this.onLineMouseUp)
@@ -55,11 +60,12 @@ export default {
       if (this.isLineMouseDown) {
         const movePx = event.clientX - this.startX
         const left = this.startLeft + movePx
-        // console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
-        if (left < 0) { // 小于0 不向左移动
-          return
-        }
+        console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
+        // if (left < 0) { // 小于0 不向左移动
+        //   return
+        // }
         this.left = left
+        console.log(`this.left: ${this.left}`)
       }
     },
     onLineMouseUp(event) {
@@ -95,7 +101,7 @@ export default {
   left: 0px;
   z-index: 1000;
   width: 16px;
-  height: 2100px;
+  // height: 2100px;
 
   &:active {
     opacity: 0.5;
