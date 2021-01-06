@@ -18,10 +18,11 @@
             <div class="detail">
               <span v-if="scope.row.music" class="music-info">所用歌曲: {{scope.row.music}}</span>
               <span class="upload-time">{{scope.row.publish_time}}</span>
-              <span v-if="scope.row.state === 3" class="video-state">发布中</span>
+              <span class="video-state">{{scope.row.state_detail.state_pub_desc || ''}}</span>
+              <!-- <span v-if="scope.row.state === 3" class="video-state">发布中</span>
               <span v-if="scope.row.state === 1 || scope.row.state === 0" class="video-state video-state-success">发布成功</span>
               <span v-if="scope.row.state === 4" class="video-state">发布失败</span>
-              <span v-if="scope.row.state === 2" class="video-state video-state-invalid">被下线</span>
+              <span v-if="scope.row.state === 2" class="video-state video-state-invalid">被下线</span> -->
             </div>
             <div class="data-column">
               <span class="data-item">
@@ -56,7 +57,17 @@
     <CommonDialog :show="dialogShow" titleText="确定删除该视频吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
     <el-dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
       <div class="video-container">
-        <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo"/>
+        <!-- <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo">
+          您的浏览器不支持 video 标签。
+        </video> -->
+        <video class="video" controls autoplay ref="dialogVideo">
+          <source :src="videoGroup.url" :type="videoGroup.type">
+          <object id="video" v-if="videoGroup.type === 'avi' || videoGroup.type === 'wmv' || videoGroup.type === 'asf'">
+            <embed border="0" showdisplay="0" showcontrols="1" autostart="1" :filename="videoGroup.url" :src="videoGroup.url">
+            </embed> 
+          </object>
+          Your browser is too old which doesn't support HTML5 video.
+        </video>
         <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
       </div>
     </el-dialog>
@@ -106,6 +117,38 @@ export default {
       dataReady: false,
     }
   },
+  computed: {
+    videoGroup() {
+      const currentVideoUrl = this.currentVideoUrl
+      const type = currentVideoUrl.split(currentVideoUrl)[1] || 'mp4'
+      switch (type) {
+        case 'ogg': 
+          return {
+            url: currentVideoUrl,
+            type: 'video/ogg'
+          }
+          break
+        case 'webm':
+          return {
+            url: currentVideoUrl,
+            type: 'video/webm'
+          }
+          break
+        case 'mov':
+          return {
+            url: currentVideoUrl,
+            type: 'video/mov'
+          }
+          break
+        case 'mp4':
+          return {
+            url: currentVideoUrl,
+            type: 'video/mp4'
+          }
+          break
+      }
+    }
+  },
   mounted() {
     this.getList()
     reportEvent('person-page-myvideotab-exposure')
@@ -117,15 +160,15 @@ export default {
     },
     coverClick(row) {
       reportEvent('person-page-videocover-click')
-      if (row.state === 2) {
-        Message.error('视频已下线')
+      if (row.control.ban_play) {
+        Message.error(row.control.ban_play_msg)
         return
       }
       this.videoDialogShow = true
+      this.currentVideoUrl = row.play_url
       this.$nextTick(() => {
         this.$refs.dialogVideo.play()
       })
-      this.currentVideoUrl = row.play_url
     },
     getList() { // 获取视频列表
       const p = {

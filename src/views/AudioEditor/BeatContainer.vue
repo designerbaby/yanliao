@@ -1,177 +1,265 @@
 <template>
-  <div class="audioEditor__con">
-    <div class="audioEditor__beat" @click="toShowBeat">{{ beatForm.fenzi }}/{{ beatForm.fenmu }}</div>
-    <div class="audioEditor__left">
-      <template v-for="it in pitchList">
-        <div class="audioEditor__left--white" v-if="it.type === 0" :key="it.pitch">{{ it.pitch }}</div>
-      </template>
+  <div ref="container" :class="$style.container">
+    <div :class="$style.beat" @click="toShowBeat">
+      {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
     </div>
-    <div class="audioEditor__middle">
-      <template v-for="it in pitchList">
-        <div class="audioEditor__middle--white" v-if="it.type === 0" :key="it.pitch">{{ it.pitch }}</div>
-        <div class="audioEditor__middle--black" v-else :key="it.pitch">{{ it.pitch }}</div>
-      </template>
-    </div>
-    <div class="audioEditor__right">
-      <template v-for="it in pitchList">
-        <div class="audioEditor__right--gray" :key="it.pitch" v-if="it.type === 0"></div>
-        <div class="audioEditor__right--black" :key="it.pitch" v-else></div>
-      </template>
-    </div>
-    <div class="audioEditor__column">
-      <div class="audioEditor__column--matter" v-for="n in matter" :key="n">
-        <div class="audioEditor__column--num">{{ n }}</div>
-        <div class="audioEditor__column--fenzi" v-for="m in beatForm.fenzi" :key="m">
-          <div
-            class="audioEditor__column--fenmu"
-            v-for="j in 32 / beatForm.fenmu"
-            :key="j"
-            @dblclick="toCreateRecTangle"
-            :style="{ width: `${noteWidth}px` }"
-          ></div>
-        </div>
-      </div>
-    </div>
-    <div class="audioEditor__line" :style="{ left: linex }">
-      <span></span>
-    </div>
-    <div
-      ref="stage"
-      class="audioEditor__stage"
-      @mousedown="onMouseDown"
-      @mousemove="onMouseMove"
-      @mouseup="onMouseUp"
-      @mouseleave="onMouseUp"
-    >
+    <BeatPiano></BeatPiano>
+    <div ref="stage" :class="$style.stage" id="audioStage">
+      <BeatStageBg></BeatStageBg>
+      <div 
+        ref="drawStage"
+        @mousedown="onMouseDown"
+        @mousemove="onMouseMove"
+        @mouseup="onMouseUp"
+        @mouseleave="onMouseUp"
+        :class="$style.drawStage" 
+        :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
+      ></div>
       <template v-for="(it, index) in stagePitches">
-      <div
-        :class="['audioEditor__stage__pitch', selectedPitch === index ? 'is-active' : '']"
-        class=""
-        :style="{
-          width: `${it.width}px`,
-          height: `${it.height}px`,
-          transform: `translate(${it.left}px, ${it.top}px)`
-        }"
-        :key="index"
-        :data-left="it.left"
-        :data-top="it.top"
-        @mousedown.stop="onPitchMouseDown"
-        @mousemove.stop="onPitchMouseMove"
-        @mouseup.stop="onPitchMouseUp($event, index)"
-        @mouseleave.stop="onPitchMouseUp($event, index)"
-        @click="toSelectPitch(index)"
-      >{{ it.hanzi }}</div>
+        <div
+          :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
+          :style="{
+            width: `${it.width}px`,
+            height: `${it.height}px`,
+            transform: `translate(${it.left}px, ${it.top}px)`
+          }"
+          :key="index"
+          :data-left="it.left"
+          :data-top="it.top"
+          @mousedown.self="onPitchMouseDown($event, index)"
+          @mouseup.self="onPitchMouseUp"
+          slot="reference"
+        >
+          {{ it.hanzi }}
+          <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+          <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+          <div :class="$style.list" v-if="showList === index">
+            <Card class="box-card">
+              <div slot="header" class="clearfix">
+                <span>操作列表</span>
+              </div>
+              <Button type="danger" @click.stop="toDeletePitch(index)">删除</Button>
+            </Card>
+          </div>
+        </div>
       </template>
-      <div class="audioEditor__stage__sharp" ref="sharp"></div>
+      <div :class="$style.sharp" ref="sharp"></div>
+      <!-- <PitchLine></PitchLine> -->
     </div>
   </div>
 </template>
 
 <script>
-import { pitchList } from "@/common/utils/const";
+import { pitchList } from "@/common/utils/const"
+import { Card, Button, Message } from "element-ui"
+import BeatPiano from './BeatPiano.vue'
+import BeatStageBg from './BeatStageBg.vue'
+import Arrow from './Arrow.vue'
+// import PitchLine from './PitchLine.vue'
+
 export default {
   name: "BeatContainer",
-  props: ["beatForm"],
+  components: {
+    Card,
+    Button,
+    Message,
+    BeatPiano,
+    BeatStageBg,
+    Arrow
+    // PitchLine
+  },
   data() {
     return {
       pitchList: pitchList,
-      matter: 3, // 默认先给10个小节
-      linex: `55px`,
       isMouseDown: false,
       startPos: null,
       endPos: null,
-      isMouseMove: false,
       stageOffset: null,
       stagePitches: [],
       movePitchStart: null,
-      noteWidth: 20, // 32分音符占据的最小像素单位
-      selectedPitch: -1
+      selectedPitch: -1,
+      showList: -1
     }
   },
-  
+  computed: {
+    beatForm() {
+      return this.$store.getters.beatForm
+    },
+    noteWidth() {
+      return this.$store.getters.noteWidth
+    },
+    isSynthetizing() {
+      return this.$store.getters.isSynthetizing
+    },
+    stageWidth() {
+      return this.$store.getters.stageWidth
+    },
+    stageHeight() {
+      return this.$store.getters.stageHeight
+    }
+  },
   mounted() {
-    
     this.updateStageOffset()
-    window.addEventListener('resize', () => {
+    // window.addEventListener('resize', () => {
+    //   this.updateStageOffset()
+    // })
+    this.$refs.stage.addEventListener('scroll', () => {
       this.updateStageOffset()
     })
-    document.querySelector('#app').addEventListener('scroll', () => {
-      this.updateStageOffset()
-    })
+    document.getElementById('audioStage').oncontextmenu = (e) => { 
+      // 右键基础事件被阻止掉了
+      return false
+    }
+    // document.getElementById('audioStage').addEventListener('keydown', event => {
+    //   console.log('keydown:')
+    //   if (event && event.preventDefault) {
+    //     event.preventDefault()
+    //   }
+    //   if (event.ctrlKey && event.keyCode == 90 || event.metaKey && event.keyCode == 90) {
+    //     this.toResetPitches()
+    //   }
+    // })
   },
   methods: {
+    // TODO 这个撤销功能要重新规划下
+    // toResetPitches() {
+    //   console.log('toResetPitches')
+    //   this.stagePitches.splice(this.stagePitches.length - 1, 1)
+    //   this.checkPitchDuplicated()
+    // },
+    checkPitchDuplicated() {
+      // log('checkPitchDuplicated pitches:', this.stagePitches)
+      const pitches = this.stagePitches
+      for(let i = 0; i < pitches.length; i++){
+        const pitch1 = pitches[i]
+        pitch1.red = false
+        for(let j = 0; j < pitches.length; j++){
+          const pitch2 = pitches[j]
+          if (i !== j) {
+            let leftPitch = null
+            let rightPitch = null
+
+            if (pitch1.left < pitch2.left) {
+              leftPitch = pitch1
+              rightPitch = pitch2
+            } else {
+              leftPitch = pitch2
+              rightPitch = pitch1
+            }
+            
+            const isRed = leftPitch.left + leftPitch.width > rightPitch.left
+            if (isRed) {
+              pitch1.red = isRed
+            }
+            // console.log(`检查外层第${i}个格子left:${pitch1.left},width:${pitch1.width}，内层第${j}个格子left:${pitch2.left},width:${pitch2.width} ,red:${isRed}`)
+          }
+        }
+      }
+      // console.log(`pitches：`, pitches)
+      this.$emit('getPitches', pitches)
+    },
     updateStageOffset() {
       // 初始化舞台的位置
-      this.stageOffset = this.getOffset(this.$refs.stage);
-
-      // console.log(`updateStageOffset`, this.stageOffset)
+      const scrollLeft = this.$refs.stage.scrollLeft
+      const scrollTop = this.$refs.stage.scrollTop
+      this.stageOffset = {
+        scrollLeft,
+        scrollTop
+      }
     },
     toShowBeat() {
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
       this.$emit("showBeat");
     },
-    toCreateRecTangle(event) {
-      console.log("toCreateRecTangle:", event);
-    },
-    onPitchMouseDown(event){
+    onPitchMouseDown(event, index){
+      // console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
       const target = event.target
       target.style.opacity = 0.8
+      this.toSelectPitch(index)
+      if (event.button === 2) { // 按下了鼠标右键
+        this.toPitchRight(index)
+      }
       this.movePitchStart = {
         left: Number(target.dataset.left),
         top: Number(target.dataset.top),
         clientX: event.clientX,
-        clientY: event.clientY
+        clientY: event.clientY,
+        target,
+        index
       }
+
+      document.addEventListener('mousemove', this.onPitchMouseMove)
+      document.addEventListener('mouseleave', this.onPitchMouseUp)
       // console.log(`this.movePitchStart:`, this.movePitchStart)
     },
     onPitchMouseMove(event){
       // 绿色块鼠标移动事件
       if (this.movePitchStart) {
-        
+        const { target } = this.movePitchStart
         const newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
         const newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
 
-        // 要使用css3 的transform来优化性能
-        // event.target.style.left = `${newLeft}px`
-        // event.target.style.top = `${newTop}px`
-
-        event.target.style.transform = `translate(${newLeft}px, ${newTop}px)`
-        event.target.dataset.left = newLeft
-        event.target.dataset.top = newTop
-
-        // console.log(`onPitchMouseMove:`)
+        target.style.transform = `translate(${newLeft}px, ${newTop}px)`
+        target.dataset.left = newLeft
+        target.dataset.top = newTop
+        console.log(`onPitchMouseMove: this.movePitchStart.left: ${this.movePitchStart.left}, event.clientY:${event.clientY}, this.movePitchStart.clientY: ${this.movePitchStart.clientY}`)
       }
     },
-    onPitchMouseUp(event, index) {
-      // 绿色块鼠标移走事件
-      event.target.style.opacity = 1
-      this.movePitchStart = null
+    onPitchMouseUp(event) {
+      console.log(`onPitchMouseUp`)
+      if (this.movePitchStart) {
+        document.removeEventListener('mousemove', this.onPitchMouseMove)
+        document.removeEventListener('mouseleave', this.onPitchMouseUp)
+        const { target, index } = this.movePitchStart
+        // 绿色块鼠标移走事件
+        event.target.style.opacity = 1
+        this.movePitchStart = null
 
-      const left = parseInt(event.target.dataset.left, 10)
-      const top = parseInt(event.target.dataset.top, 10)
+        const left = parseInt(event.target.dataset.left, 10)
+        const top = parseInt(event.target.dataset.top, 10)
 
-      // 松开时修正位置
-      const pitch = this.stagePitches[index]
-      pitch.left = left
-      pitch.top = top - (top % 25);
-    },
-    getOffset(ele) { // 获取距离父元素的位置
-      let par = ele.offsetParent;
-      let left = ele.offsetLeft;
-      let top = ele.offsetTop;
-      while (par) {
-        left += par.offsetLeft;
-        top += par.offsetTop;
-        par = par.offsetParent;
+        // 松开时修正位置
+        const pitch = this.stagePitches[index]
+        
+        pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
+        pitch.top = top - (top % 25);
+
+        target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
+        target.dataset.left = pitch.left
+        target.dataset.top = pitch.top
+        this.checkPitchDuplicated()
       }
-      return { left, top };
     },
+    // getOffset(ele) { // 获取距离父元素的位置
+    //   let par = ele.offsetParent;
+    //   let left = ele.offsetLeft;
+    //   let top = ele.offsetTop;
+    //   while (par) {
+    //     left += par.offsetLeft;
+    //     top += par.offsetTop;
+    //     par = par.offsetParent;
+    //   }
+    //   return { left, top };
+    // },
     onMouseDown(event) {
-      console.log("onMouseDown", event);
+      // console.log(`onStageMouseDown`)
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
+      this.selectedPitch = -1
+      this.showList = -1
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
+
+      const rect = this.$refs.stage.getBoundingClientRect()
+
       this.startPos = {
-        x: event.clientX - this.stageOffset.left,
-        y: event.clientY - this.stageOffset.top
+        x: event.clientX + this.stageOffset.scrollLeft - rect.left,
+        y: event.clientY + this.stageOffset.scrollTop - rect.top
       };
       // 初始化绿色块
       this.$refs.sharp.style.left = `${this.startPos.x}px`;
@@ -182,11 +270,12 @@ export default {
     },
     onMouseMove(event) {
       if (this.isMouseDown) {
+        const rect = this.$refs.stage.getBoundingClientRect()
         const pos = {
-          x: event.clientX - this.stageOffset.left,
-          y: event.clientY - this.stageOffset.top
+          x: event.clientX + this.stageOffset.scrollLeft - rect.left,
+          y: event.clientY + this.stageOffset.scrollTop - rect.top
         };
-
+        
         const width = pos.x - this.startPos.x;
         const height = pos.y - this.startPos.y;
 
@@ -203,17 +292,19 @@ export default {
 
         this.$refs.sharp.style.width = `${Math.abs(width)}px`;
         this.$refs.sharp.style.height = `${Math.abs(height)}px`;
+        this.toCheckOverStage(pos.x)
+        // this.toScrollStage(event.clientX, rect.left)
       }
     },
     onMouseUp(event) {
       // 必须先按下了鼠标，才有松开鼠标事件
       if (this.isMouseDown) {
         this.isMouseDown = false;
+        const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
-          x: event.clientX - this.stageOffset.left,
-          y: event.clientY - this.stageOffset.top
+          x: event.clientX + this.stageOffset.scrollLeft - rect.left,
+          y: event.clientY + this.stageOffset.scrollTop - rect.top
         };
-
         this.$refs.sharp.style.display = "none";
 
         //
@@ -232,7 +323,7 @@ export default {
         
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
-        const width = Math.ceil(initWidth/ this.noteWidth) * this.noteWidth
+        const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
         const hanzi = '啦'
 
         this.addOnePitch({
@@ -242,44 +333,100 @@ export default {
           top,
           hanzi
         });
+        this.toCheckOverStage(this.endPos.x)
       }
     },
 
     addOnePitch({ width, height, left, top, hanzi }) {
-      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
-      this.stagePitches.push({
-        width,
-        height,
-        left,
-        top,
-        hanzi
-      });
-      this.$emit('getPitches', this.stagePitches, this.noteWidth)
+      if (width > 25) {
+        console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
+        this.stagePitches.push({
+          width,
+          height,
+          left,
+          top,
+          hanzi,
+          red: false
+        });
+        this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
+      }
+      this.checkPitchDuplicated()
     },
 
-    toSelectPitch (index) {
+    onArrowMoveEnd({ width, left, top, target }, index) {
+      const pitch = this.stagePitches[index]
+      
+      // 结束后修正宽度和左边距
+      pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
+      pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
+      pitch.top = top
+      target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
+      target.style.width = pitch.width
+
+      this.checkPitchDuplicated()
+    },
+    
+    toSelectPitch(index) {
       this.selectedPitch = index
+    },
+    toPitchRight(index) {
+      this.selectedPitch = index
+      this.showList = index
+    },
+    toDeletePitch(index) {
+      this.stagePitches.splice(index, 1)
+      this.showList = -1 // 删除掉之后顺便把选择的还原
+      this.checkPitchDuplicated()
+    },
+    toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
+      // console.log('toCheckOverStage:x', x)
+      // console.log('this.stageWidth:', this.stageWidth)
+      if ((x + 5) >= this.stageWidth) {
+        this.$store.dispatch('updateMatter', 15)
+      }
     }
+    // toScrollStage(clientX, left) { // 如果移动超过舞台最右边，那要帮他滚动下滚动条,滚动条触发另一个bug,滚动取鼠标事件的bug
+    //   const stageConWidth = this.$store.stageSize.width
+    //   const stanceLeft = clientX + left
+    //   if (stanceLeft > stageConWidth) {
+    //     const distance = stageConWidth - stanceLeft
+    //     this.$refs.stage.scrollLeft -= distance
+    //   }
+    // }
   }
 };
 </script>
 
-<style lang="less">
-.audioEditor__con {
+<style lang="less" module>
+.container {
   border-top: 1px solid #282828;
   display: flex;
   width: 100%;
-  margin: 20px 0px;
+  margin: 0px;
   position: relative;
 }
-.audioEditor__stage {
+.stage {
   position: absolute;
   width: calc(100% - 50px);
   height: 100%;
   left: 50px;
-  top: 0;
+  user-select: none;
+  overflow-x: scroll;
 }
-.audioEditor__stage__pitch {
+.drawStage {
+  position: absolute;
+  left: 0;
+  top: 25px;
+  z-index: 10;
+}
+.beat {
+  position: absolute;
+  color: #fff;
+  font-size: 13px;
+  top: 3px;
+  left: 15px;
+}
+.pitch {
   height: 0;
   width: 0;
   background: #57673b;
@@ -289,12 +436,37 @@ export default {
   top: 0;
   font-size: 12px;
   line-height: 25px;
-  // text-align: center;
-  &.is-active {
+  z-index: 20;
+  padding-left: 5px;
+  &.isActive {
     background: rgb(20, 155, 49)
   }
+  &.isRed {
+    border: 1px solid red;
+  }
 }
-.audioEditor__stage__sharp {
+
+
+.list {
+  width: 100px;
+  // height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  position: absolute;
+  top: 30px;
+  border-radius: 2px;
+  &::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 10px;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    border-bottom: 5px solid rgba(255, 255, 255, 0.5);
+  }
+}
+
+.sharp {
+  display: none;
   border: 1px solid #ccc;
   position: absolute;
   left: 300px;
@@ -302,125 +474,5 @@ export default {
   width: 1px;
   height: 1px;
   background-color: rgba(204, 204, 204, 0.514);
-}
-.audioEditor__beat {
-  position: absolute;
-  color: #fff;
-  font-size: 13px;
-  top: -20px;
-  left: 15px;
-}
-.audioEditor__left {
-  display: flex;
-  flex-direction: column;
-  color: #fff;
-  font-size: 8px;
-  width: 50px;
-  position: relative;
-  float: left;
-  font-size: 0;
-  &--white {
-    width: 50px;
-    height: 42.86px;
-    background: #b4b4b4;
-    border: 1px solid #8b8b8b;
-    border-right: #353535;
-    border-bottom: #5d5e5e;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    z-index: 0;
-    &:hover {
-      background: rgb(4, 219, 51);
-    }
-    &:active {
-      background: rgb(20, 155, 49);
-    }
-  }
-}
-.audioEditor__middle {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 0;
-  &--white {
-    height: 25px;
-    background: #fff;
-    visibility: hidden;
-    pointer-events: none;
-  }
-  &--black {
-    width: 25px;
-    height: 25px;
-    background: #1d1d1d;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    &:hover {
-      background: rgb(4, 219, 51);
-    }
-    &:active {
-      background: rgb(20, 155, 49);
-    }
-  }
-}
-.audioEditor__right {
-  width: 1700px;
-  overflow: scroll;
-  &--gray {
-    background: #2d2d2d;
-    height: 25px;
-  }
-  &--black {
-    height: 25px;
-    background: #232323;
-  }
-}
-.audioEditor__column {
-  position: absolute;
-  top: 0;
-  left: 50px;
-  // border: 1px solid red;
-  background: transparent;
-  display: flex;
-  &--matter {
-    background: transparent;
-    display: flex;
-    position: relative;
-  }
-  &--num {
-    color: #fff;
-    font-size: 13px;
-    border-left: 1px solid #626263;
-    position: absolute;
-    top: -20px;
-    background: transparent;
-  }
-  &--fenzi {
-    border-left: 1px solid #252525;
-    background: transparent;
-    display: flex;
-  }
-  &--fenmu {
-    border-left: 1px solid #292828;
-    background: transparent;
-    // width: 20px;
-    width: 0px;
-    height: 2100px;
-  }
-}
-.audioEditor__line {
-  position: absolute;
-  top: 0;
-  left: 60px;
-  span {
-    border-right: 8px solid transparent;
-    border-left: 8px solid transparent;
-    border-top: 8px solid #b8b8b8;
-    border-bottom: 8px solid transparent;
-    position: absolute;
-    left: -7px;
-  }
-  width: 3px;
-  height: 2100px;
-  background: #b8b8b8;
 }
 </style>

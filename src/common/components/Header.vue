@@ -148,7 +148,9 @@ export default {
     toGetUserInfo() {
       userInfo().then((response) => {
         const { data, ret_code } = response.data
-        if (ret_code !== 100000) {
+        if (ret_code === 100000) {
+          this.loginDialogShow = true
+        } else if (ret_code !== 100000) {
           if (data !== null) {
             sessionStorage.setItem('userInfo', JSON.stringify(data))
             this.nickName = data.nick_name
@@ -235,8 +237,8 @@ export default {
     bindKugou() {
       reportEvent('person-page-userconnect_button')
       // 测试环境酷狗链接https://voo.kugou.com/1559c530-3925-11eb-b63e-b5551d784bc1/index.html
-      const testJumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10073&url=${encodeURIComponent('https://test-yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
-      const jumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10076&url=${encodeURIComponent('https://yan.qq.com')}&scpoe=${encodeURIComponent('userinfo')}`
+      const testJumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10073&url=${encodeURIComponent('https://test-yan.qq.com')}&scpoe=${encodeURIComponent('userinfo|upload')}`
+      const jumpUrl = `https://h5.kugou.com/apps/vo-activity/1559c530-3925-11eb-b63e-b5551d784bc1/index.html?openappid=10076&url=${encodeURIComponent('https://yan.qq.com')}&scpoe=${encodeURIComponent('userinfo|upload')}`
       if (!isTestEnv) {
         location.href = jumpUrl
       } else {

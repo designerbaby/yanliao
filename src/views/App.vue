@@ -30,7 +30,8 @@ export default {
       loginDialogShow: false,
     }
   },
-  mounted() {},
+  mounted() {
+  },
   computed: {},
   methods: {
     changeBg(data) {

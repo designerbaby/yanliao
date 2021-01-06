@@ -1,5 +1,5 @@
 <template>
-  <div class="statusDialog">
+  <div :class="$style.statusDialog">
     <Dialog :visible.sync="statusVisible" 
       width="30%"
       center>
@@ -13,6 +13,9 @@ import { Dialog } from 'element-ui'
 
 export default {
   name: 'statusDialog',
+  components: {
+    Dialog
+  },
   data() {
     return {
       statusVisible: false,
@@ -42,12 +45,18 @@ export default {
   },
   methods: {
     showStatus(status) {
+      log('showStatus:', status)
       this.statusVisible = true
       this.status = status
+    },
+    hideStatus() {
+      this.statusVisible = false
     }
   }
 }
 </script>
-<style lang="less">
-
+<style lang="less" module>
+.statusDialog {
+  text-align: center;
+}
 </style>
