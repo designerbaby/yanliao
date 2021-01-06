@@ -32,6 +32,7 @@ export default {
   mounted() {
     Bus.$on('toMoveLinePos', this.toMove)
     Bus.$on('toRestartLinePos', this.toRestart)
+    Bus.$on('toStopLine', this.toStop)
   },
   computed: {
     isSynthetizing() {
@@ -89,6 +90,9 @@ export default {
       this.lineActive = false
       this.$refs.audioEditorLine.style.transitionDuration = '0.3s'
       this.$refs.audioEditorLine.style.left = '0px'
+    },
+    toStop() {
+
     }
   }
 }
@@ -108,7 +112,16 @@ export default {
   }
  
   &.isActive {
-    transition: left 0.3s linear;
+    // transition: left 0.3s linear;
+    animation: move 0.3s linear;
+  }
+}
+@keyframes move {
+  0%{
+    left: 0;
+  }
+  100% {
+    left: 0;
   }
 }
 .innerSpan{

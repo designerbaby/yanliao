@@ -45,7 +45,7 @@ export default {
 }
 .white {
   width: 50px;
-  height: 42.86px;
+  height: 42.4px;
   background: #b4b4b4;
   border: 1px solid #8b8b8b;
   border-right: #353535;
@@ -59,6 +59,9 @@ export default {
   }
   &:active {
     background: rgb(20, 155, 49);
+  }
+  &:last-child {
+    height: 35px;
   }
 }
 
@@ -78,6 +81,7 @@ export default {
 .middleBlack {
   width: 25px;
   height: 25px;
+  line-height: 25px;
   background: #1d1d1d;
   border-top-right-radius: 3px;
   border-bottom-right-radius: 3px;

@@ -68,7 +68,8 @@ export default {
         this.moveArrowEnd = {
           width: newWidth,
           left: newLeft,
-          top: newTop
+          top: newTop,
+          target: parentNode
         }
       }
     },

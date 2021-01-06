@@ -3,8 +3,8 @@
     <div :class="$style.row">
       <BeatLine></BeatLine>
       <template v-for="it in pitchList">
-        <div :class="$style.gray" :key="it.pitch" v-if="it.type === 0" ></div>
-        <div :class="$style.black" :key="it.pitch" v-else></div>
+        <div :class="$style.gray" :key="it.pitch" v-if="it.type === 0" >{{ it.pitch }}</div>
+        <div :class="$style.black" :key="it.pitch" v-else>{{ it.pitch }}</div>
       </template>
     </div>
     <div :class="$style.column">
@@ -69,6 +69,7 @@ export default {
 .gray {
   background: #2d2d2d;
   height: 25px;
+  border-bottom: 1px solid #1d1d1d;
 }
 
 .black {
@@ -78,9 +79,9 @@ export default {
 
 .column {
   position: absolute;
-  top: 0;
+  top: 0px;
   left: 0px;
-  // border: 1px solid red;
+
   background: transparent;
   display: flex;
 }
@@ -102,11 +103,11 @@ export default {
     left: 0;
     width: 1px;
     height: 100%;
-    background: #252525;
+    background: #1d1d1d;
   }
 }
 .fenmu {
-  border-left: 1px solid #292828;
+  border-left: 1px solid #272727;
   background: transparent;
 }
 

@@ -18,10 +18,11 @@
             <div class="detail">
               <span v-if="scope.row.music" class="music-info">所用歌曲: {{scope.row.music}}</span>
               <span class="upload-time">{{scope.row.publish_time}}</span>
-              <span v-if="scope.row.state === 3" class="video-state">发布中</span>
+              <span class="video-state">{{scope.row.state_detail.state_pub_desc || ''}}</span>
+              <!-- <span v-if="scope.row.state === 3" class="video-state">发布中</span>
               <span v-if="scope.row.state === 1 || scope.row.state === 0" class="video-state video-state-success">发布成功</span>
               <span v-if="scope.row.state === 4" class="video-state">发布失败</span>
-              <span v-if="scope.row.state === 2" class="video-state video-state-invalid">被下线</span>
+              <span v-if="scope.row.state === 2" class="video-state video-state-invalid">被下线</span> -->
             </div>
             <div class="data-column">
               <span class="data-item">
@@ -159,8 +160,8 @@ export default {
     },
     coverClick(row) {
       reportEvent('person-page-videocover-click')
-      if (row.state === 2) {
-        Message.error('视频已下线')
+      if (row.control.ban_play) {
+        Message.error(row.control.ban_play_msg)
         return
       }
       this.videoDialogShow = true

@@ -13,7 +13,7 @@
         @mouseup="onMouseUp"
         @mouseleave="onMouseUp"
         :class="$style.drawStage" 
-        :style="{ width: `${$store.getters.stageWidth}px`, height: `${$store.getters.stageHeight}px`}"
+        :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
       ></div>
       <template v-for="(it, index) in stagePitches">
         <div
@@ -44,7 +44,7 @@
         </div>
       </template>
       <div :class="$style.sharp" ref="sharp"></div>
-      <PitchLine></PitchLine>
+      <!-- <PitchLine></PitchLine> -->
     </div>
   </div>
 </template>
@@ -55,18 +55,18 @@ import { Card, Button, Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import Arrow from './Arrow.vue'
-import PitchLine from './PitchLine.vue'
+// import PitchLine from './PitchLine.vue'
 
 export default {
   name: "BeatContainer",
   components: {
     Card,
     Button,
+    Message,
     BeatPiano,
     BeatStageBg,
-    Arrow,
-    Message,
-    PitchLine
+    Arrow
+    // PitchLine
   },
   data() {
     return {
@@ -90,6 +90,12 @@ export default {
     },
     isSynthetizing() {
       return this.$store.getters.isSynthetizing
+    },
+    stageWidth() {
+      return this.$store.getters.stageWidth
+    },
+    stageHeight() {
+      return this.$store.getters.stageHeight
     }
   },
   mounted() {
@@ -104,21 +110,23 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
-    document.addEventListener('keydown', event => {
-      if (event && event.preventDefault) {
-        event.preventDefault()
-      }
-      if (event.ctrlKey && event.keyCode == 90 || event.metaKey && event.keyCode == 90) {
-        this.toResetPitches()
-      }
-    })
+    // document.getElementById('audioStage').addEventListener('keydown', event => {
+    //   console.log('keydown:')
+    //   if (event && event.preventDefault) {
+    //     event.preventDefault()
+    //   }
+    //   if (event.ctrlKey && event.keyCode == 90 || event.metaKey && event.keyCode == 90) {
+    //     this.toResetPitches()
+    //   }
+    // })
   },
   methods: {
-    toResetPitches() {
-      log('toResetPitches')
-      this.stagePitches.splice(this.stagePitches.length - 1, 1)
-      this.checkPitchDuplicated()
-    },
+    // TODO 这个撤销功能要重新规划下
+    // toResetPitches() {
+    //   console.log('toResetPitches')
+    //   this.stagePitches.splice(this.stagePitches.length - 1, 1)
+    //   this.checkPitchDuplicated()
+    // },
     checkPitchDuplicated() {
       // log('checkPitchDuplicated pitches:', this.stagePitches)
       const pitches = this.stagePitches
@@ -191,7 +199,6 @@ export default {
     onPitchMouseMove(event){
       // 绿色块鼠标移动事件
       if (this.movePitchStart) {
-        
         const { target } = this.movePitchStart
         const newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
         const newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
@@ -199,7 +206,7 @@ export default {
         target.style.transform = `translate(${newLeft}px, ${newTop}px)`
         target.dataset.left = newLeft
         target.dataset.top = newTop
-
+        console.log(`onPitchMouseMove: this.movePitchStart.left: ${this.movePitchStart.left}, event.clientY:${event.clientY}, this.movePitchStart.clientY: ${this.movePitchStart.clientY}`)
       }
     },
     onPitchMouseUp(event) {
@@ -268,7 +275,7 @@ export default {
           x: event.clientX + this.stageOffset.scrollLeft - rect.left,
           y: event.clientY + this.stageOffset.scrollTop - rect.top
         };
-
+        
         const width = pos.x - this.startPos.x;
         const height = pos.y - this.startPos.y;
 
@@ -285,6 +292,8 @@ export default {
 
         this.$refs.sharp.style.width = `${Math.abs(width)}px`;
         this.$refs.sharp.style.height = `${Math.abs(height)}px`;
+        this.toCheckOverStage(pos.x)
+        // this.toScrollStage(event.clientX, rect.left)
       }
     },
     onMouseUp(event) {
@@ -296,7 +305,6 @@ export default {
           x: event.clientX + this.stageOffset.scrollLeft - rect.left,
           y: event.clientY + this.stageOffset.scrollTop - rect.top
         };
-        
         this.$refs.sharp.style.display = "none";
 
         //
@@ -325,6 +333,7 @@ export default {
           top,
           hanzi
         });
+        this.toCheckOverStage(this.endPos.x)
       }
     },
 
@@ -344,13 +353,16 @@ export default {
       this.checkPitchDuplicated()
     },
 
-    onArrowMoveEnd({ width, left }, index) {
+    onArrowMoveEnd({ width, left, top, target }, index) {
       const pitch = this.stagePitches[index]
-      // pitch.left = left
-      // pitch.width = width
+      
       // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
-      pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
+      pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
+      pitch.top = top
+      target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
+      target.style.width = pitch.width
+
       this.checkPitchDuplicated()
     },
     
@@ -365,7 +377,22 @@ export default {
       this.stagePitches.splice(index, 1)
       this.showList = -1 // 删除掉之后顺便把选择的还原
       this.checkPitchDuplicated()
+    },
+    toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
+      // console.log('toCheckOverStage:x', x)
+      // console.log('this.stageWidth:', this.stageWidth)
+      if ((x + 5) >= this.stageWidth) {
+        this.$store.dispatch('updateMatter', 15)
+      }
     }
+    // toScrollStage(clientX, left) { // 如果移动超过舞台最右边，那要帮他滚动下滚动条,滚动条触发另一个bug,滚动取鼠标事件的bug
+    //   const stageConWidth = this.$store.stageSize.width
+    //   const stanceLeft = clientX + left
+    //   if (stanceLeft > stageConWidth) {
+    //     const distance = stageConWidth - stanceLeft
+    //     this.$refs.stage.scrollLeft -= distance
+    //   }
+    // }
   }
 };
 </script>

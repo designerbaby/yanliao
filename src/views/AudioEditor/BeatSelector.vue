@@ -4,10 +4,10 @@
     :visible.sync="dialogVisible"
     width="400px">
     <Form label-position="top" :rules="rules" ref="ruleForm" label-width="80px" :model="beatForm">
-      <FormItem label="分子" required prop="fenzi">
+      <FormItem label="分子" prop="fenzi">
         <InputNumber v-model="beatForm.fenzi"></InputNumber>
       </FormItem>
-      <FormItem label="分母" required prop="fenmu">
+      <FormItem label="分母" prop="fenmu">
         <InputNumber v-model="beatForm.fenmu"></InputNumber>
       </FormItem>
     </Form>
@@ -50,16 +50,31 @@ export default {
       }
     }
   },
+  computed: {
+    stageWidth() {
+      return this.$store.getters.stageWidth
+    }
+  },
   methods: {
     toSubmitBeat() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
           this.$store.dispatch('updateBeatForm', this.beatForm)
-          this.dialogVisible = false 
+          this.dialogVisible = false
+          this.toUpdateStage()
         } else {
           Message.error('请全部填写完整并正确再提交')
         }
       })
+    },
+    toUpdateStage() { // 根据内外舞台的框进行比较
+      const stageConWidth = this.$store.state.stageSize.width
+      const stageWidth = this.stageWidth
+      // console.log('stageConWidth:', stageConWidth)
+      // console.log('stageWidth:', stageWidth)
+      if (stageConWidth > stageWidth) { // 外框比里框更大
+        this.$store.dispatch('updateMatter', 15)
+      }
     },
     showBeatDialog() {
       this.beatForm = {

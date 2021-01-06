@@ -61,6 +61,7 @@ export default {
   },
   methods: {
     toPlay() {
+      // 音频播放3个状态 play noplay stop
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,请耐心等待~')
         return
@@ -75,15 +76,30 @@ export default {
         this.toPauseAudio()
       }
     },
+    toPlayAudio() {
+      this.isPlaying = true
+      this.$refs.AudioUrl.play()
+      Bus.$emit('toMoveLinePos', this.minLeft, this.maxLeft, this.playTime)
+      clearTimeout(this.timeout)
+      this.timeout = setTimeout(() => {
+        this.toPauseAudio()
+      }, this.playTime + 500) // 这里主要是算法那边计算总和后加0.5s做缓冲
+    },
+    toRestartAudio() {
+      this.$refs.AudioUrl.pause()
+      Bus.$emit('toStopLine')
+    },
+    toPauseAudio() {
+      if (this.isPlaying) {
+        // this.$refs.AudioUrl.pause()
+        this.isPlaying = false
+        Bus.$emit('toRestartLinePos')
+        this.pitchHasChange = false
+      }
+    },
     toRefreshData() { // 重新开始就清除数据
       this.maxLeft = 0
       this.playTime = 0
-    },
-    toMoveLine() {
-      Bus.$emit('toMoveLinePos', this.minLeft, this.maxLeft, this.playTime)
-    },
-    toRestartLine() {
-      Bus.$emit('toRestartLinePos')
     },
     onPitchChange() {
       this.pitchHasChange = true
@@ -168,14 +184,15 @@ export default {
 
       this.$store.dispatch('updateIsSynthetizing', true)
       this.$store.dispatch('updatePitchList', finalPitches)
+
       const req = {
         pitchList: finalPitches,
         f0: []
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
-      Message.success('开始合成音频中~')
       if (data.ret_code === 0) {
+        Message.success('开始合成音频中~')
         this.toRollStatus(data.data.param_id, data.data.task_id)
       } else {
         Message.error(`合成失败, 错误信息:${data.err_msg}, 请重试~`)
@@ -183,7 +200,6 @@ export default {
     },
     async toEditorSynthStatus (paramId, taskId) {
       this.rollTime += 1
-      console.log('this.rollTime:', this.rollTime)
       const { data } = await editorSynthStatus(paramId)
       console.log('editorSynthStatus:', data)
       if (data.ret_code === 0) {
@@ -191,7 +207,6 @@ export default {
           Message.success('音频合成成功~')
           clearInterval(this.timer)
           this.toEditorSynthResult(taskId)
-          // Bus.$emit('getPitchLine')
         } else {
           Message.success(`算法努力合成音频中(${processStatus[data.data.status]}%)`)
           // this.$refs.StatusDialog.showStatus(data.data.status)
@@ -229,23 +244,6 @@ export default {
       clearInterval(this.timer)
       this.rollTime = 0
       this.$store.dispatch('updateIsSynthetizing', false)
-    },
-    toPlayAudio() {
-      this.isPlaying = true
-      this.$refs.AudioUrl.play()
-      this.toMoveLine()
-      clearTimeout(this.timeout)
-      this.timeout = setTimeout(() => {
-        this.toPauseAudio()
-      }, this.playTime + 500) // 这里主要是算法那边计算总和后加0.5s做缓冲
-    },
-    toPauseAudio() {
-      if (this.isPlaying) {
-        // this.$refs.AudioUrl.pause()
-        this.isPlaying = false
-        this.toRestartLine()
-        this.pitchHasChange = false
-      }
     }
   }
 }

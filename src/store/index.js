@@ -11,11 +11,13 @@ const store = new Vuex.Store({
       fenmu: 4
     },
     lineLeft: 0,   // 播放线的左边距
-    matter: 10,    // 总共有多少个小节
+    matter: 15,    // 总共有多少个小节
     noteWidth: 20, // 32分音符占据的最小像素单位
     bpm: 90,       // 音调
     isSynthetizing: false, // 是否在合成音频中
-    pitchList: []  // 音块列表
+    pitchList: [],  // 音块列表
+    stageConWidth: 0, // 舞台最外面的宽度
+    stageSize: {}
   },
   getters: {
     stageWidth: state => {
@@ -58,6 +60,9 @@ const store = new Vuex.Store({
     },
     updatePitchList(state, pitchList) {
       state.pitchList = pitchList
+    },
+    updateMatter(state, matter) {
+      state.matter += matter
     }
   },
   actions: {
@@ -72,9 +77,24 @@ const store = new Vuex.Store({
     },
     updatePitchList(context, pitchList) {
       context.commit('updatePitchList', pitchList)
+    },
+    updateMatter(context, matter) {
+      context.commit('updateMatter', matter)
     }
   },
   modules: {}
 })
 
+const updateStageSize = () => {
+  const windowWidth = window.innerWidth
+  const stageConWidth = windowWidth - 93*2 - 50
+  // console.log('windowWidth:', windowWidth)
+  store.state.stageSize = {
+    width: stageConWidth
+  }
+}
+updateStageSize()
+window.addEventListener('resize', () => {
+  updateStageSize()
+})
 export default store
