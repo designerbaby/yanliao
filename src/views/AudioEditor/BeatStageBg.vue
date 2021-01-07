@@ -1,7 +1,6 @@
 <template>
   <div :class="$style.container" :style="{ width: `${stageWidth}px` }">
     <div :class="$style.row">
-      <BeatLine></BeatLine>
       <template v-for="it in pitchList">
         <div :class="$style.gray" :key="it.pitch" v-if="it.type === 0"></div>
         <div :class="$style.black" :key="it.pitch" v-else></div>
@@ -24,14 +23,11 @@
 </template>
 
 <script>
-import BeatLine from './BeatLine.vue'
 import { pitchList } from "@/common/utils/const"
 
 export default {
   name: 'BeatStageBg',
-  components: {
-    BeatLine
-  },
+  components: {},
   data() {
     return {
       pitchList: pitchList

@@ -44,7 +44,7 @@ export default {
         clientX: event.clientX
       }
 
-      log('moveArrowStart:', JSON.stringify(this.moveArrowStart))
+      console.log('moveArrowStart:', JSON.stringify(this.moveArrowStart))
     },
     onArrowMouseMove(event) {
       // console.log(`onArrowMouseMove:`, this.direction)

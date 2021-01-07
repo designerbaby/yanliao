@@ -18,7 +18,9 @@ const store = new Vuex.Store({
     pitchList: [],  // 音块列表
     stageConWidth: 0, // 舞台最外面的宽度
     stageSize: {},
-    showBindKugou: false // 标志有没绑定酷狗账号，true的话就是绑定，false的话就是没有绑定
+    showBindKugou: false, // 标志有没绑定酷狗账号，true的话就是绑定，false的话就是没有绑定
+    pitchHasChange: false, // 音块是否有改变
+    maxPitchRight: 0 // 音块最右边的位置
   },
   getters: {
     stageWidth: state => {
@@ -29,6 +31,9 @@ const store = new Vuex.Store({
     },
     beatWidth: state => {
       return state.noteWidth * (32 / state.beatForm.fenmu) * state.beatForm.fenzi
+    },
+    firstPitch: state => {
+      return pitchList[0].pitch
     }
   },
   mutations: {
@@ -52,6 +57,12 @@ const store = new Vuex.Store({
     },
     updateShowBindKugou(state, showBindKugou) {
       state.showBindKugou = showBindKugou
+    },
+    updatePitchHasChange(state, pitchHasChange) {
+      state.pitchHasChange = pitchHasChange
+    },
+    updateMaxPitchRight(state, maxPitchRight) {
+      state.maxPitchRight = maxPitchRight
     }
   },
   actions: {
@@ -72,6 +83,12 @@ const store = new Vuex.Store({
     },
     updateShowBindKugou(context, showBindKugou) {
       context.commit('updateShowBindKugou', showBindKugou)
+    },
+    updatePitchHasChange(context, pitchHasChange) {
+      context.commit('updatePitchHasChange', pitchHasChange)
+    },
+    updateMaxPitchRight(context, maxPitchRight) {
+      context.commit('updateMaxPitchRight', maxPitchRight)
     }
   },
   modules: {}

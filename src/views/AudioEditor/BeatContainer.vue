@@ -10,6 +10,7 @@
       </div>
       <div ref="stage" :class="$style.stage" id="audioStage">
         <BeatStageBg></BeatStageBg>
+        <BeatLine></BeatLine>
         <div 
           ref="drawStage"
           @mousedown="onMouseDown"
@@ -59,6 +60,7 @@ import { pitchList } from "@/common/utils/const"
 import { Card, Button, Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
+import BeatLine from './BeatLine.vue'
 import Arrow from './Arrow.vue'
 // import PitchLine from './PitchLine.vue'
 
@@ -70,7 +72,8 @@ export default {
     Message,
     BeatPiano,
     BeatStageBg,
-    Arrow
+    Arrow,
+    BeatLine
     // PitchLine
   },
   data() {
@@ -91,7 +94,7 @@ export default {
       return this.$store.state.beatForm
     },
     noteWidth() {
-      return this.$store.getters.noteWidth
+      return this.$store.state.noteWidth
     },
     isSynthetizing() {
       return this.$store.state.isSynthetizing
@@ -121,23 +124,8 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
-    // document.getElementById('audioStage').addEventListener('keydown', event => {
-    //   console.log('keydown:')
-    //   if (event && event.preventDefault) {
-    //     event.preventDefault()
-    //   }
-    //   if (event.ctrlKey && event.keyCode == 90 || event.metaKey && event.keyCode == 90) {
-    //     this.toResetPitches()
-    //   }
-    // })
   },
   methods: {
-    // TODO 这个撤销功能要重新规划下
-    // toResetPitches() {
-    //   console.log('toResetPitches')
-    //   this.stagePitches.splice(this.stagePitches.length - 1, 1)
-    //   this.checkPitchDuplicated()
-    // },
     checkPitchDuplicated() {
       // log('checkPitchDuplicated pitches:', this.stagePitches)
       const pitches = this.stagePitches
@@ -250,17 +238,6 @@ export default {
         this.checkPitchDuplicated()
       }
     },
-    // getOffset(ele) { // 获取距离父元素的位置
-    //   let par = ele.offsetParent;
-    //   let left = ele.offsetLeft;
-    //   let top = ele.offsetTop;
-    //   while (par) {
-    //     left += par.offsetLeft;
-    //     top += par.offsetTop;
-    //     par = par.offsetParent;
-    //   }
-    //   return { left, top };
-    // },
     onMouseDown(event) {
       // console.log(`onStageMouseDown`)
       if (this.isSynthetizing) {
@@ -309,7 +286,6 @@ export default {
         this.$refs.sharp.style.width = `${Math.abs(width)}px`;
         this.$refs.sharp.style.height = `${Math.abs(height)}px`;
         this.toCheckOverStage(pos.x)
-        // this.toScrollStage(event.clientX, rect.left)
       }
     },
     onMouseUp(event) {
@@ -341,7 +317,6 @@ export default {
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
         const hanzi = '啦'
-
         this.addOnePitch({
           width,
           height: 25,
@@ -367,6 +342,7 @@ export default {
         this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
       }
       this.checkPitchDuplicated()
+      this.checkPitchesOverStage()
     },
 
     onArrowMoveEnd({ width, left, top, target }, index) {
@@ -375,6 +351,7 @@ export default {
       // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
       pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
+      // right 坐标
       pitch.top = top
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = pitch.width
@@ -397,18 +374,18 @@ export default {
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
       // console.log('this.stageWidth:', this.stageWidth)
-      if ((x + 5) >= this.stageWidth) {
+      if ((x + 100) >= this.stageWidth) {
         this.$store.dispatch('updateMatter', 15)
       }
+    },
+    checkPitchesOverStage() {
+      let maxPitchRight = 0
+      this.stagePitches.forEach((item) => {
+        const right = item.left + item.width
+        maxPitchRight = Math.max(maxPitchRight, right)
+        this.$store.dispatch('updateMaxPitchRight', maxPitchRight)
+      })
     }
-    // toScrollStage(clientX, left) { // 如果移动超过舞台最右边，那要帮他滚动下滚动条,滚动条触发另一个bug,滚动取鼠标事件的bug
-    //   const stageConWidth = this.$store.stageSize.width
-    //   const stanceLeft = clientX + left
-    //   if (stanceLeft > stageConWidth) {
-    //     const distance = stageConWidth - stanceLeft
-    //     this.$refs.stage.scrollLeft -= distance
-    //   }
-    // }
   }
 };
 </script>
@@ -439,7 +416,7 @@ export default {
 
 .stage {
   position: relative;
-  width: calc(100% - 50px);
+  // width: calc(100% - 50px);
   user-select: none;
 }
 .matter {
