@@ -268,6 +268,7 @@ export default {
         if (ret_code === 0) {
           if (data !== null) {
             this.showBind = data.show_bind
+            this.$store.dispatch('updateShowBindKugou', this.showBind)
           } 
         }
       })

@@ -2,7 +2,7 @@
   <div 
       :class="[$style.line, lineActive ? $style.isActive : '']"
       :style="{
-        transform: `translateX(${left}px)`,
+        transform: `translateX(${lineLeft}px)`,
         height: `${stageHeight}px`
       }" 
       ref="audioEditorLine"
@@ -23,26 +23,39 @@ export default {
   data() {
     return {
       isLineMouseDown: false,
-      lineActive: false,
+      // lineActive: false,
       left: 0,
       startLeft: 0,
-      startX: 0
+      startX: 0,
+      // isToStop: false,
+      eventListener: null
     }
   },
   mounted() {
-    Bus.$on('toMoveLinePos', this.toMove)
-    Bus.$on('toRestartLinePos', this.toRestart)
-    Bus.$on('toStopLine', this.toStop)
+    // Bus.$on('toMoveLine', this.toMove)
+    // Bus.$on('toBeginLine', this.toBegin)
+    // Bus.$on('toStopLine', this.toStop)
+    // this.$refs.audioEditorLine.addEventListener('transitionend', this.onTransitionEnd)
   },
   computed: {
     isSynthetizing() {
-      return this.$store.getters.isSynthetizing
+      return this.$store.state.isSynthetizing
     },
     stageHeight() {
       return this.$store.getters.stageHeight
+    },
+    lineLeft() {
+      return this.$store.state.lineLeft
     }
   },
   methods: {
+    // onTransitionEnd() {
+    //   console.log('transitionEnd')
+    //   if (!this.isToStop) {
+    //     this.toBegin()
+    //   }
+    //   Bus.$emit('moveEnd')
+    // },
     onLineMouseDown(event) {
       console.log(`onLineMouseDown`)
       if (this.isSynthetizing) {
@@ -52,7 +65,7 @@ export default {
       this.isLineMouseDown = true
       this.startLeft = this.left
       this.startX = event.clientX
-      console.log(`down event.clientX`, event.clientX)
+      // console.log(`down event.clientX`, event.clientX)
 
       document.addEventListener('mousemove', this.onLineMouseMove)
       document.addEventListener('mouseleave', this.onLineMouseUp)
@@ -61,12 +74,14 @@ export default {
       if (this.isLineMouseDown) {
         const movePx = event.clientX - this.startX
         const left = this.startLeft + movePx
-        console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
+        // console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
         // if (left < 0) { // 小于0 不向左移动
         //   return
         // }
-        this.left = left
-        console.log(`this.left: ${this.left}`)
+        // this.left = left
+        // console.log(`this.left: ${this.left}`)
+
+        this.$store.dispatch('updateLineLeft', left)
       }
     },
     onLineMouseUp(event) {
@@ -75,25 +90,36 @@ export default {
       document.removeEventListener('mouseleave', this.onLineMouseUp)
       if (this.isLineMouseDown) {
         this.isLineMouseDown = false
+
+        const movePx = event.clientX - this.startX
+        const left = this.startLeft + movePx
+
         // 移动好线之后先存起来
-        this.$store.dispatch('updateLineLeft', this.left)
+        this.$store.dispatch('updateLineLeft', left)
         Bus.$emit('pitchChange')
       }
-    },
-    toMove(minLeft, maxLeft, playTime) {
-      this.lineActive = true
-      this.$refs.audioEditorLine.style.left = `${minLeft}px`
-      this.$refs.audioEditorLine.style.transitionDuration = `${(playTime / 1000).toFixed(1)}s`
-      this.$refs.audioEditorLine.style.left = `${maxLeft}px`
-    },
-    toRestart() {
-      this.lineActive = false
-      this.$refs.audioEditorLine.style.transitionDuration = '0.3s'
-      this.$refs.audioEditorLine.style.left = '0px'
-    },
-    toStop() {
-
     }
+    // toMove(minLeft, maxLeft, playTime) {
+    //   this.isToStop = false
+    //   this.lineActive = true
+    //   this.$refs.audioEditorLine.style.left = `${minLeft}px`
+    //   this.$refs.audioEditorLine.style.transitionDuration = `${(playTime / 1000).toFixed(1)}s`
+    //   this.$refs.audioEditorLine.style.left = `${maxLeft}px`
+    // },
+    // toBegin() {
+    //   this.$refs.audioEditorLine.removeEventListener('transitionend', this.onTransitionEnd)
+    //   this.lineActive = false
+    //   this.$refs.audioEditorLine.style.transitionDuration = '0.3s'
+    //   this.$refs.audioEditorLine.style.left = '0px'
+    // },
+    // toStop() {
+    //   this.isToStop = true
+    //   this.lineActive = false
+    //   const audioEditorLine = this.$refs.audioEditorLine
+    //   const computedStyle = window.getComputedStyle(audioEditorLine)
+    //   const left = computedStyle.getPropertyValue('left')
+    //   audioEditorLine.style.left = left
+    // }
   }
 }
 </script>
@@ -105,25 +131,16 @@ export default {
   left: 0px;
   z-index: 1000;
   width: 16px;
-  // height: 2100px;
-
+  
   &:active {
     opacity: 0.5;
   }
  
   &.isActive {
-    // transition: left 0.3s linear;
-    animation: move 0.3s linear;
+    transition: left 0.3s linear;
   }
 }
-@keyframes move {
-  0%{
-    left: 0;
-  }
-  100% {
-    left: 0;
-  }
-}
+
 .innerSpan{
   border-right: 8px solid transparent;
   border-left: 8px solid transparent;

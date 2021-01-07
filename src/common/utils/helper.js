@@ -16,6 +16,8 @@ export const getUrlParameters = _ => {
   return {}
 }
 
+export const sleep = delay => new Promise(resolve => setTimeout(resolve, delay))
+
 // 获取cookie里面的信息
 export const getCookie = name => {
   const RE = new RegExp(`(^| )${name}=([^;]*)(;|$)`)

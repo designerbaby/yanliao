@@ -26,10 +26,10 @@ export default {
   },
   computed: {
     noteWidth() {
-      return this.$store.getters.noteWidth
+      return this.$store.state.noteWidth
     },
     bpm() {
-      return this.$store.getters.bpm
+      return this.$store.state.bpm
     },
     stageWidth() {
       return this.$store.getters.stageWidth
@@ -55,7 +55,7 @@ export default {
       return finalData
     },
     pitchList() {
-      return this.$store.getters.pitchList
+      return this.$store.state.pitchList
     },
     svgData() {
       const finalData = this.filterF0Data

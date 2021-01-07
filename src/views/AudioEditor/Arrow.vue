@@ -24,7 +24,7 @@ export default {
   },
   computed: {
     isSynthetizing() {
-      return this.$store.getters.isSynthetizing
+      return this.$store.state.isSynthetizing
     }
   },
   methods: {
@@ -62,6 +62,9 @@ export default {
         } else if (this.direction === 'left') {
           newLeft = this.moveArrowStart.left + movePx // 这里要加是因为往左话，movePx是负的
           newWidth = Math.max(20, this.moveArrowStart.width - movePx)
+        }
+        if (newLeft < 0) {
+          newLeft = 0
         }
         parentNode.style.width = `${newWidth}px`
         parentNode.style.transform = `translate(${newLeft}px, ${newTop}px)`

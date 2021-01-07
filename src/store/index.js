@@ -17,7 +17,8 @@ const store = new Vuex.Store({
     isSynthetizing: false, // 是否在合成音频中
     pitchList: [],  // 音块列表
     stageConWidth: 0, // 舞台最外面的宽度
-    stageSize: {}
+    stageSize: {},
+    showBindKugou: false // 标志有没绑定酷狗账号，true的话就是绑定，false的话就是没有绑定
   },
   getters: {
     stageWidth: state => {
@@ -26,23 +27,8 @@ const store = new Vuex.Store({
     stageHeight: state => {
       return pitchList.length * 25
     },
-    noteWidth: state => {
-      return state.noteWidth
-    },
-    bpm: state => {
-      return state.bpm
-    },
-    matter: state => {
-      return state.matter
-    },
-    beatForm: state => {
-      return state.beatForm
-    },
-    isSynthetizing: state => {
-      return state.isSynthetizing
-    },
-    pitchList: state => {
-      return state.pitchList
+    beatWidth: state => {
+      return state.noteWidth * (32 / state.beatForm.fenmu) * state.beatForm.fenzi
     }
   },
   mutations: {
@@ -63,6 +49,9 @@ const store = new Vuex.Store({
     },
     updateMatter(state, matter) {
       state.matter += matter
+    },
+    updateShowBindKugou(state, showBindKugou) {
+      state.showBindKugou = showBindKugou
     }
   },
   actions: {
@@ -80,6 +69,9 @@ const store = new Vuex.Store({
     },
     updateMatter(context, matter) {
       context.commit('updateMatter', matter)
+    },
+    updateShowBindKugou(context, showBindKugou) {
+      context.commit('updateShowBindKugou', showBindKugou)
     }
   },
   modules: {}
@@ -87,6 +79,7 @@ const store = new Vuex.Store({
 
 const updateStageSize = () => {
   const windowWidth = window.innerWidth
+  // TODO 这里如果外框的margin值改变了，93这个值也要改
   const stageConWidth = windowWidth - 93*2 - 50
   // console.log('windowWidth:', windowWidth)
   store.state.stageSize = {

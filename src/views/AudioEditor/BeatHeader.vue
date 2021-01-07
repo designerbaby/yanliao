@@ -9,10 +9,6 @@
       <Icon class="el-icon-refresh-left"></Icon>
       清除
     </div> -->
-    <!-- <div :class="$style.refresh" @click="toClear">
-      <Icon class="el-icon-refresh-left"></Icon>
-      清除
-    </div> -->
     <div :class="$style.bpm">{{bpm}} BPM</div>
   </div>
 </template>
@@ -28,7 +24,7 @@ export default {
   },
   computed: {
     bpm() {
-      return this.$store.getters.bpm
+      return this.$store.state.bpm
     }
   },
   components: {

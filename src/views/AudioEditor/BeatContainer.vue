@@ -4,47 +4,52 @@
       {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
     </div>
     <BeatPiano></BeatPiano>
-    <div ref="stage" :class="$style.stage" id="audioStage">
-      <BeatStageBg></BeatStageBg>
-      <div 
-        ref="drawStage"
-        @mousedown="onMouseDown"
-        @mousemove="onMouseMove"
-        @mouseup="onMouseUp"
-        @mouseleave="onMouseUp"
-        :class="$style.drawStage" 
-        :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
-      ></div>
-      <template v-for="(it, index) in stagePitches">
-        <div
-          :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
-          :style="{
-            width: `${it.width}px`,
-            height: `${it.height}px`,
-            transform: `translate(${it.left}px, ${it.top}px)`
-          }"
-          :key="index"
-          :data-left="it.left"
-          :data-top="it.top"
-          @mousedown.self="onPitchMouseDown($event, index)"
-          @mouseup.self="onPitchMouseUp"
-          slot="reference"
-        >
-          {{ it.hanzi }}
-          <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-          <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-          <div :class="$style.list" v-if="showList === index">
-            <Card class="box-card">
-              <div slot="header" class="clearfix">
-                <span>操作列表</span>
-              </div>
-              <Button type="danger" @click.stop="toDeletePitch(index)">删除</Button>
-            </Card>
+    <div :class="$style.right">
+      <div :class="$style.top">
+        <div :class="$style.matter" v-for="n in matter" :key="n" :style="{width: `${beatWidth}px`}">{{ n }}</div>
+      </div>
+      <div ref="stage" :class="$style.stage" id="audioStage">
+        <BeatStageBg></BeatStageBg>
+        <div 
+          ref="drawStage"
+          @mousedown="onMouseDown"
+          @mousemove="onMouseMove"
+          @mouseup="onMouseUp"
+          @mouseleave="onMouseUp"
+          :class="$style.drawStage" 
+          :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
+        ></div>
+        <template v-for="(it, index) in stagePitches">
+          <div
+            :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
+            :style="{
+              width: `${it.width}px`,
+              height: `${it.height}px`,
+              transform: `translate(${it.left}px, ${it.top}px)`
+            }"
+            :key="index"
+            :data-left="it.left"
+            :data-top="it.top"
+            @mousedown.self="onPitchMouseDown($event, index)"
+            @mouseup.self="onPitchMouseUp"
+            slot="reference"
+          >
+            {{ it.hanzi }}
+            <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+            <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+            <div :class="$style.list" v-if="showList === index">
+              <Card class="box-card">
+                <div slot="header" class="clearfix">
+                  <span>操作列表</span>
+                </div>
+                <Button type="danger" @click.stop="toDeletePitch(index)">删除</Button>
+              </Card>
+            </div>
           </div>
-        </div>
-      </template>
-      <div :class="$style.sharp" ref="sharp"></div>
-      <!-- <PitchLine></PitchLine> -->
+        </template>
+        <div :class="$style.sharp" ref="sharp"></div>
+        <!-- <PitchLine></PitchLine> -->
+      </div>
     </div>
   </div>
 </template>
@@ -83,19 +88,25 @@ export default {
   },
   computed: {
     beatForm() {
-      return this.$store.getters.beatForm
+      return this.$store.state.beatForm
     },
     noteWidth() {
       return this.$store.getters.noteWidth
     },
     isSynthetizing() {
-      return this.$store.getters.isSynthetizing
+      return this.$store.state.isSynthetizing
     },
     stageWidth() {
       return this.$store.getters.stageWidth
     },
+    matter() {
+      return this.$store.state.matter
+    },
     stageHeight() {
       return this.$store.getters.stageHeight
+    },
+    beatWidth() {
+      return this.$store.getters.beatWidth
     }
   },
   mounted() {
@@ -200,13 +211,18 @@ export default {
       // 绿色块鼠标移动事件
       if (this.movePitchStart) {
         const { target } = this.movePitchStart
-        const newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
-        const newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
+        let newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
+        let newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
 
+        if (newTop < 0) {
+          newTop = 0
+        }
+        if (newLeft < 0) {
+          newLeft = 0
+        }
         target.style.transform = `translate(${newLeft}px, ${newTop}px)`
         target.dataset.left = newLeft
         target.dataset.top = newTop
-        console.log(`onPitchMouseMove: this.movePitchStart.left: ${this.movePitchStart.left}, event.clientY:${event.clientY}, this.movePitchStart.clientY: ${this.movePitchStart.clientY}`)
       }
     },
     onPitchMouseUp(event) {
@@ -405,7 +421,8 @@ export default {
   margin: 0px;
   position: relative;
 }
-.stage {
+
+.right {
   position: absolute;
   width: calc(100% - 50px);
   height: 100%;
@@ -413,11 +430,36 @@ export default {
   user-select: none;
   overflow-x: scroll;
 }
+
+.top {
+  height: 25px;
+  position: relative;
+  display: flex;
+}
+
+.stage {
+  position: relative;
+  width: calc(100% - 50px);
+  user-select: none;
+}
+.matter {
+  height: 25px;
+  color: #fff;
+  font-size: 13px;
+  border-left: 1px solid #626263;
+  text-align: left;
+  position: relative;
+  padding-left: 5px;
+  line-height: 25px;
+  flex-shrink: 0;
+}
+
 .drawStage {
   position: absolute;
   left: 0;
-  top: 25px;
+  top: 0px;
   z-index: 10;
+  overflow: hidden;
 }
 .beat {
   position: absolute;
@@ -475,4 +517,6 @@ export default {
   height: 1px;
   background-color: rgba(204, 204, 204, 0.514);
 }
+
+
 </style>
