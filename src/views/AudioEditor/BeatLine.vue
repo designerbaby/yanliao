@@ -82,6 +82,7 @@ export default {
         // 移动好线之后先存起来
         this.$store.dispatch('updateLineLeft', left)
         this.$store.dispatch('updatePitchHasChange', true)
+        this.$store.dispatch('updateLineMove', true)
       }
     }
   }
@@ -92,7 +93,7 @@ export default {
 .line {
   position: absolute;
   top: 0px;
-  left: -6px;
+  left: 0px;
   z-index: 1000;
   width: 16px;
   

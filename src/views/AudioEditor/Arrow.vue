@@ -72,7 +72,8 @@ export default {
           width: newWidth,
           left: newLeft,
           top: newTop,
-          target: parentNode
+          target: parentNode,
+          direction: this.direction
         }
       }
     },

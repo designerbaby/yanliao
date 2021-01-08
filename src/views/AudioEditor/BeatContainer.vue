@@ -345,15 +345,24 @@ export default {
       this.checkPitchesOverStage()
     },
 
-    onArrowMoveEnd({ width, left, top, target }, index) {
+    onArrowMoveEnd({ width, left, top, target, direction }, index) {
       const pitch = this.stagePitches[index]
-      
+      // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
       // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
-      pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
+      pitch.top = top
+      if (direction === 'left') {
+        // 向左的话,他是要增的，所以要向上取整
+        pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
+      } else {
+        pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
+      }
+      
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
       
+      // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
+
       this.checkPitchDuplicated()
     },
     

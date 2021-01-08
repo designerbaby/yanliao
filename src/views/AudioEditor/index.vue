@@ -69,7 +69,10 @@ export default {
       if (this.state === StatePlaying) {
         this.toPauseAudio()
       } else if (this.state === StatePaused) {
+        const lineLeft = this.$store.state.lineLeft
+        // console.log('lineLeft:', lineLeft)
         this.state = StatePlaying
+        // this.audio.currentTime = Math.floor(((lineLeft / this.noteWidth) * 60) / (8 * this.bpm))
         this.audio.play()
         // this.toPlayAudio(this.onlineUrl)
       } else {
@@ -83,8 +86,10 @@ export default {
       console.log('toPlayAudio')
       this.state = StatePlaying
 
-      const { start, end } = this.getLinePosition()
-
+      let { start, end } = this.getLinePosition()
+      if (this.$store.state.hasMoveLine) {
+        start = this.$store.state.lineLeft
+      }
       console.log(`getLinePosition: start`, start, `end`, end)
 
       const length = end - start
@@ -94,6 +99,7 @@ export default {
 
       const ticker = (timestamp) => {
         if (this.state === StatePlaying){
+          // console.log('current:', current)
           this.$store.dispatch('updateLineLeft', current)
           window.requestAnimationFrame(ticker);
         }
@@ -106,15 +112,14 @@ export default {
         onProgress: (time) => {
           // console.log('PlayAudio', time)
           // this.audioCurrentTime = time
-          const move = (time * 8 * this.bpm * this.noteWidth) / 60
-          const x = start + move
+          // const move = (time * 8 * this.bpm * this.noteWidth) / 60
+          // const x = start + move
 
           // console.log(`onProgress time:${time}, left:${x}`)
           // console.log('this.audioCurrentTime:', time)
           // this.$store.dispatch('updateLineLeft', x)
         },
         onPlay: (dom) => {
-          console.log('onPlay', dom)
           this.timerId = setInterval(() => {
             if (dom.duration) {
               const duration = dom.duration * 1000
@@ -138,6 +143,7 @@ export default {
           clearInterval(this.timerId)
           this.$store.dispatch('updateLineLeft', start)
           this.$store.dispatch('updatePitchHasChange', false)
+          this.$store.dispatch('updateLineMove', false)
         }
       })
 
@@ -198,7 +204,7 @@ export default {
           lineStartX = Math.min(lineStartX, item.left)
           lineEndX = Math.max(lineEndX, right)
         }
-        console.log(`lineStartX: ${lineStartX}, lineEndX: ${lineEndX}`)
+        // console.log(`lineStartX: ${lineStartX}, lineEndX: ${lineEndX}`)
       })
       return {
         start: lineStartX,
@@ -210,8 +216,6 @@ export default {
     },
     async getAudioInfo() {
       let url = ''
-      console.log(`this.pitchHasChange: ${this.pitchHasChange}`)
-      console.log(`this.onlineUrl && !this.pitchHasChange: this.onlineUrl: ${this.onlineUrl}, !this.pitchHasChange: ${!this.pitchHasChange}`)
       if (this.onlineUrl && !this.pitchHasChange) {
         url = this.onlineUrl
       } else {

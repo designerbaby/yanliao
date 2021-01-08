@@ -20,7 +20,8 @@ const store = new Vuex.Store({
     stageSize: {},
     showBindKugou: false, // 标志有没绑定酷狗账号，true的话就是绑定，false的话就是没有绑定
     pitchHasChange: false, // 音块是否有改变
-    maxPitchRight: 0 // 音块最右边的位置
+    maxPitchRight: 0, // 音块最右边的位置
+    lineMove: false  // 音高线是否已经被移动了
   },
   getters: {
     stageWidth: state => {
@@ -63,6 +64,9 @@ const store = new Vuex.Store({
     },
     updateMaxPitchRight(state, maxPitchRight) {
       state.maxPitchRight = maxPitchRight
+    },
+    updateLineMove(state, lineMove) {
+      state.lineMove = lineMove
     }
   },
   actions: {
@@ -89,6 +93,9 @@ const store = new Vuex.Store({
     },
     updateMaxPitchRight(context, maxPitchRight) {
       context.commit('updateMaxPitchRight', maxPitchRight)
+    },
+    updateLineMove(context, lineMove) {
+      context.commit('updateLineMove', lineMove)
     }
   },
   modules: {}
