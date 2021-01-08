@@ -92,7 +92,7 @@ export default {
 .line {
   position: absolute;
   top: 0px;
-  left: 0px;
+  left: -6px;
   z-index: 1000;
   width: 16px;
   

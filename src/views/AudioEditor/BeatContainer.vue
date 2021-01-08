@@ -351,11 +351,9 @@ export default {
       // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
       pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
-      // right 坐标
-      pitch.top = top
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
-      target.style.width = pitch.width
-
+      target.style.width = `${pitch.width}px`
+      
       this.checkPitchDuplicated()
     },
     

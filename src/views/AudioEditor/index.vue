@@ -69,6 +69,7 @@ export default {
       if (this.state === StatePlaying) {
         this.toPauseAudio()
       } else if (this.state === StatePaused) {
+        this.state = StatePlaying
         this.audio.play()
         // this.toPlayAudio(this.onlineUrl)
       } else {
@@ -113,6 +114,7 @@ export default {
           // this.$store.dispatch('updateLineLeft', x)
         },
         onPlay: (dom) => {
+          console.log('onPlay', dom)
           this.timerId = setInterval(() => {
             if (dom.duration) {
               const duration = dom.duration * 1000
@@ -134,7 +136,7 @@ export default {
         onEnd: () => {
           this.state = StateStopped
           clearInterval(this.timerId)
-          this.$store.dispatch('updateLineLeft', 0)
+          this.$store.dispatch('updateLineLeft', start)
           this.$store.dispatch('updatePitchHasChange', false)
         }
       })
