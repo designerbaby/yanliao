@@ -18,7 +18,7 @@
       </div>
       <div :class="$style.text">播放控制</div>
     </div>
-    <div :class="$style.common">
+    <div :class="$style.common" @click="toGenerateAudio">
       <div :class="$style.but">
         <div :class="$style.mode">
           <Icon class="el-icon-top-right"></Icon>
@@ -26,16 +26,20 @@
       </div>
       <div :class="$style.text">生成音频</div>
     </div>
-    <!-- <div :class="$style.refresh" @click="toClear">
-      <Icon class="el-icon-refresh-left"></Icon>
-      清除
-    </div> -->
+    <div :class="$style.common" @click="toClear">
+      <div :class="$style.but">
+        <div :class="$style.mode">
+          <Icon class="el-icon-refresh-left"></Icon>
+        </div>
+      </div>
+      <div :class="$style.text">全部清除</div>
+    </div>
     <div :class="$style.bpm">{{bpm}} BPM</div>
   </div>
 </template>
 
 <script>
-import { Icon, Button } from 'element-ui'
+import { Icon, Button, Message } from 'element-ui'
 
 export default {
   name: 'BeatHeader',
@@ -64,7 +68,11 @@ export default {
       this.$emit('play')
     },
     selectMode(mode) {
-      this.$store.dispatch('updateMode', mode)
+      this.$store.dispatch('changeStoreState', { mode: mode })
+    },
+    toGenerateAudio() {
+      // TODO
+      Message.error('这里需要根据音高线去生成新的音频，暂时没做，先放着。')
     }
   }
 }

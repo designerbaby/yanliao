@@ -8,6 +8,7 @@
 
 <script>
 import { Message } from 'element-ui'
+import { playState } from '@/common/utils/const'
 
 export default {
   name: 'Arrow',
@@ -25,12 +26,19 @@ export default {
   computed: {
     isSynthetizing() {
       return this.$store.state.isSynthetizing
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   methods: {
     onArrowMouseDown(event) { // 鼠标按下事件
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
         return
       }
       document.addEventListener('mousemove', this.onArrowMouseMove)

@@ -28,3 +28,8 @@ export const getCookie = name => {
   return ''
 }
 
+// 将像素转成相应时间的方法
+export const pxToTime = (target, note, bpm) => {
+  return Math.floor(((parseInt(target, 10) / note) * 60 * 1000) / (8 * bpm))
+}
+

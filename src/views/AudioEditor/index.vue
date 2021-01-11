@@ -17,8 +17,7 @@ import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult } from '@/api/audio'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import Bus from '@/common/utils/bus'
-import { sleep } from '@/common/utils/helper'
+import { sleep, pxToTime } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
 
 export default {
@@ -34,7 +33,6 @@ export default {
       pitches: [],
       timerId: 0,
       audio: null,
-      isStagePitchesChanged: false,
       linePosition: null, // 播放时，线所在的位置播放
 
       // 播放线
@@ -51,7 +49,7 @@ export default {
       state => state.stagePitches,
       (newValue, oldValue) => {
         console.log('watch store', oldValue, newValue)
-        this.isStagePitchesChanged = true
+        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
       },
       {
         deep: true
@@ -76,6 +74,9 @@ export default {
     },
     isManualMovedLine() { // 是否手动移动了线
       return this.$store.state.lineLeft !== this.playLine.current
+    },
+    isStagePitchesChanged() {
+      return this.$store.state.isStagePitchesChanged
     }
   },
   methods: {
@@ -129,7 +130,7 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.isStagePitchesChanged = false
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
@@ -138,7 +139,7 @@ export default {
       // 百分比不能为负数，最小为0
       const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
       const startTime = percent * duration / 1000
-      console.log(`duration:$${duration}, startTime:$${startTime}, percent:${percent}`)
+      console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
       if (generator) {
         const url = await this.toSynthesize()
         this.playLine = {
@@ -176,7 +177,6 @@ export default {
       clearInterval(this.timerId)
       const ticker = (timestamp) => {
         if (this.playState === playState.StatePlaying){
-          // this.$store.dispatch('updateLineLeft', this.playLine.current)
           window.requestAnimationFrame(ticker);
         }
       }
@@ -198,7 +198,7 @@ export default {
 
               // console.log(`onPlay , current`, current, step)
               this.playLine.current += step
-              this.$store.dispatch('updateLineLeft', this.playLine.current)
+              this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
             }
           }, 16)
 
@@ -210,7 +210,7 @@ export default {
         onEnd: () => {
           clearInterval(this.timerId)
           this.changePlayState(playState.StateEnded)
-          this.$store.dispatch('updateLineLeft', this.playLine.start)
+          this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.start })
           this.playLine.current = this.playLine.start
         }
       })
@@ -218,7 +218,6 @@ export default {
     },
     toGetPictData(pitches) {
       this.pitches = pitches
-      this.$store.dispatch('updatePitchHasChange', true)
     },
     toHandlePitches (pitches) {
       // const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
@@ -239,9 +238,11 @@ export default {
       }
       const newPitches = []
       pitches.forEach(item => {
-        const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
+        // const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
+        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
         const pitch = firstPitch - (item.top / item.height)
-        const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
+        // const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
+        const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
         const pitchItem = {
           duration: duration,
           pitch: pitch,
@@ -279,9 +280,11 @@ export default {
         minStart = Math.min(minStart, item.left)
         maxEnd = Math.max(maxEnd, right)
 
-        const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
-        const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
-
+        // const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
+        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
+        // const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
+        const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
+        
         if (startTime < firstPitchStartTime) {
           firstPitchStartTime = startTime
         }
@@ -312,9 +315,9 @@ export default {
 
       const finalPitches = await this.toHandlePitches(this.pitches)
 
-      // console.log('finalPitches:', finalPitches)
       if (finalPitches === undefined) {
         Message.error('音符存在重叠, 请调整好~')
+        this.changePlayState(playState.StateNone)
         return
       }
       if (!finalPitches.length) {
@@ -322,8 +325,7 @@ export default {
         return
       }
 
-      this.$store.dispatch('updateIsSynthetizing', true)
-      this.$store.dispatch('updatePitchList', finalPitches)
+      this.$store.dispatch('changeStoreState', { isSynthetizing: true })
 
       const req = {
         pitchList: finalPitches,
@@ -364,7 +366,7 @@ export default {
         await sleep(3000)
       }
 
-      this.$store.dispatch('updateIsSynthetizing', false)
+      this.$store.dispatch('changeStoreState', { isSynthetizing: false })
 
       return url
     }

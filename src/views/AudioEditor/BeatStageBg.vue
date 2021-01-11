@@ -2,8 +2,8 @@
   <div :class="$style.container" :style="{ width: `${stageWidth}px` }">
     <div :class="$style.row">
       <template v-for="it in pitchList">
-        <div :class="$style.gray" :key="it.pitch" v-if="it.type === 0"></div>
-        <div :class="$style.black" :key="it.pitch" v-else></div>
+        <div :class="$style.gray" :key="it.pitch" v-if="it.type === 0">{{ it.pitch }}</div>
+        <div :class="$style.black" :key="it.pitch" v-else>{{ it.pitch }}</div>
       </template>
     </div>
     <div :class="$style.column">

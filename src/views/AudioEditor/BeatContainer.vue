@@ -49,20 +49,20 @@
           </div>
         </template>
         <div :class="$style.sharp" ref="sharp"></div>
-        <!-- <PitchLine></PitchLine> -->
+        <PitchLine v-if="this.$store.state.mode === 1"></PitchLine>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { pitchList } from "@/common/utils/const"
+import { pitchList, playState } from "@/common/utils/const"
 import { Card, Button, Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
-import BeatLine from './BeatLine.vue'
+import BeatLine from './BeatLine.vue' // 播放线
 import Arrow from './Arrow.vue'
-// import PitchLine from './PitchLine.vue'
+import PitchLine from './PitchLine.vue' // 音高线
 
 export default {
   name: "BeatContainer",
@@ -73,8 +73,8 @@ export default {
     BeatPiano,
     BeatStageBg,
     Arrow,
-    BeatLine
-    // PitchLine
+    BeatLine,
+    PitchLine
   },
   data() {
     return {
@@ -113,6 +113,9 @@ export default {
     },
     beatWidth() {
       return this.$store.getters.beatWidth
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   mounted() {
@@ -174,11 +177,23 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       this.$emit("showBeat");
     },
     onPitchMouseDown(event, index){
       // console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       const target = event.target
       target.style.opacity = 0.8
       this.toSelectPitch(index)
@@ -245,6 +260,10 @@ export default {
       // console.log(`onStageMouseDown`)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
         return
       }
       this.selectedPitch = -1
@@ -393,7 +412,7 @@ export default {
       this.stagePitches.forEach((item) => {
         const right = item.left + item.width
         maxPitchRight = Math.max(maxPitchRight, right)
-        this.$store.dispatch('updateMaxPitchRight', maxPitchRight)
+        this.$store.dispatch('changeStoreState', { maxPitchRight: maxPitchRight})
       })
     }
   }

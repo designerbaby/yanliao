@@ -17,6 +17,7 @@
 
 <script>
 import { Message } from "element-ui";
+import { playState } from '@/common/utils/const'
 
 export default {
   name: "BeatLine",
@@ -39,14 +40,21 @@ export default {
     },
     lineLeft() {
       return this.$store.state.lineLeft;
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   methods: {
     onLineMouseDown(event) {
       console.log(`onLineMouseDown`);
       if (this.isSynthetizing) {
-        Message.error("正在合成音频中,不能修改哦~");
-        return;
+        Message.error("正在合成音频中,不能修改哦~")
+        return
+      }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
       }
       this.isLineMouseDown = true;
       this.startLeft = this.lineLeft;
@@ -67,7 +75,7 @@ export default {
         this.left = left;
         // console.log(`this.left: ${this.left}`)
 
-        this.$store.dispatch("updateLineLeft", left);
+        this.$store.dispatch("changeStoreState", { lineLeft: left })
       }
     },
     onLineMouseUp(event) {
@@ -81,9 +89,7 @@ export default {
         const left = this.startLeft + movePx;
 
         // 移动好线之后先存起来
-        this.$store.dispatch("updateLineLeft", left);
-        // this.$store.dispatch('updatePitchHasChange', true)
-        // this.$store.dispatch('updateLineMove', true)
+        this.$store.dispatch("changeStoreState", { lineLeft: left })
       }
     }
   }

@@ -42,7 +42,7 @@
           <el-input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName"></el-input>
         </el-form-item>
       </el-form-item>
-      <el-form-item v-if="this.$store.state.showBindKugou">
+      <el-form-item v-if="this.$store.state.profile.showBindKugou">
         <el-checkbox v-model="form.synKuGou">
           同步视频到酷狗音乐App获得
           <a href="/playIncentives" target="_blank" title="播放激励" class="validity">播放激励</a>
@@ -120,8 +120,7 @@ export default {
       },
     }
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
     getSignature() {
       const f = {
