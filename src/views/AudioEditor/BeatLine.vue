@@ -1,24 +1,25 @@
 <template>
-  <div 
-      :class="$style.line"
-      :style="{
-        transform: `translateX(${lineLeft}px)`,
-        height: `${stageHeight}px`
-      }" 
-      ref="audioEditorLine"
-      @mousedown.stop="onLineMouseDown"
-      @mouseup.stop="onLineMouseUp"
-    >
-    <span :class="$style.innerSpan"></span>
-    <div :class="$style.inner"></div>
+  <div
+    :class="$style.container"
+    :style="{
+      transform: `translateX(${lineLeft}px)`,
+      height: `${stageHeight}px`
+    }"
+    @mousedown.stop="onLineMouseDown"
+    @mouseup.stop="onLineMouseUp"
+  >
+    <div :class="$style.line">
+      <span :class="$style.innerSpan"></span>
+      <div :class="$style.inner"></div>
+    </div>
   </div>
 </template>
 
 <script>
-import { Message } from 'element-ui'
+import { Message } from "element-ui";
 
 export default {
-  name: 'BeatLine',
+  name: "BeatLine",
   data() {
     return {
       isLineMouseDown: false,
@@ -26,87 +27,95 @@ export default {
       startLeft: 0,
       startX: 0,
       eventListener: null
-    }
+    };
   },
   mounted() {},
   computed: {
     isSynthetizing() {
-      return this.$store.state.isSynthetizing
+      return this.$store.state.isSynthetizing;
     },
     stageHeight() {
-      return this.$store.getters.stageHeight
+      return this.$store.getters.stageHeight;
     },
     lineLeft() {
-      return this.$store.state.lineLeft
+      return this.$store.state.lineLeft;
     }
   },
   methods: {
     onLineMouseDown(event) {
-      console.log(`onLineMouseDown`)
+      console.log(`onLineMouseDown`);
       if (this.isSynthetizing) {
-        Message.error('正在合成音频中,不能修改哦~')
-        return
+        Message.error("正在合成音频中,不能修改哦~");
+        return;
       }
-      this.isLineMouseDown = true
-      this.startLeft = this.lineLeft
-      this.startX = event.clientX
+      this.isLineMouseDown = true;
+      this.startLeft = this.lineLeft;
+      this.startX = event.clientX;
       // console.log(`down event.clientX`, event.clientX)
 
-      document.addEventListener('mousemove', this.onLineMouseMove)
-      document.addEventListener('mouseleave', this.onLineMouseUp)
+      document.addEventListener("mousemove", this.onLineMouseMove);
+      document.addEventListener("mouseleave", this.onLineMouseUp);
     },
     onLineMouseMove(event) {
       if (this.isLineMouseDown) {
-        const movePx = event.clientX - this.startX
-        const left = this.startLeft + movePx
+        const movePx = event.clientX - this.startX;
+        const left = this.startLeft + movePx;
         // console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
         // if (left < 0) { // 小于0 不向左移动
         //   return
         // }
-        this.left = left
+        this.left = left;
         // console.log(`this.left: ${this.left}`)
 
-        this.$store.dispatch('updateLineLeft', left)
+        this.$store.dispatch("updateLineLeft", left);
       }
     },
     onLineMouseUp(event) {
-      console.log(`onLineMouseUp`)
-      document.removeEventListener('mousemove', this.onLineMouseMove)
-      document.removeEventListener('mouseleave', this.onLineMouseUp)
+      console.log(`onLineMouseUp`);
+      document.removeEventListener("mousemove", this.onLineMouseMove);
+      document.removeEventListener("mouseleave", this.onLineMouseUp);
       if (this.isLineMouseDown) {
-        this.isLineMouseDown = false
+        this.isLineMouseDown = false;
 
-        const movePx = event.clientX - this.startX
-        const left = this.startLeft + movePx
+        const movePx = event.clientX - this.startX;
+        const left = this.startLeft + movePx;
 
         // 移动好线之后先存起来
-        this.$store.dispatch('updateLineLeft', left)
-        this.$store.dispatch('updatePitchHasChange', true)
-        this.$store.dispatch('updateLineMove', true)
+        this.$store.dispatch("updateLineLeft", left);
+        // this.$store.dispatch('updatePitchHasChange', true)
+        // this.$store.dispatch('updateLineMove', true)
       }
     }
   }
-}
+};
 </script>
 
 <style lang="less" module>
-.line {
+.container {
   position: absolute;
   top: 0px;
   left: 0px;
   z-index: 1000;
-  width: 16px;
-  
+  width: 2px;
+
   &:active {
     opacity: 0.5;
   }
- 
+
   &.isActive {
     transition: left 0.3s linear;
   }
 }
 
-.innerSpan{
+.line {
+  width: 16px;
+  position: absolute;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.innerSpan {
   border-right: 8px solid transparent;
   border-left: 8px solid transparent;
   border-top: 8px solid #b8b8b8;

@@ -1,3 +1,6 @@
+// import {Howl, Howler} from 'howler';
+// https://github.com/goldfire/howler.js
+
 export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onEnd}) => {
   console.log(`PlayAudio:`, url, startTime)
   const eleId = `my-audio`
@@ -15,7 +18,7 @@ export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onE
 
   audio.addEventListener("timeupdate", (event) => {
     const time = event.target.currentTime
-    onProgress(time)
+    onProgress && onProgress(time)
   })
 
   audio.addEventListener("ended", (event) => {
@@ -33,8 +36,8 @@ export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onE
 
   document.body.appendChild(audio)
 
-  audio.play()
-  audio.currentTime = startTime
+  // audio.play()
+  // audio.currentTime = startTime
 
   return audio
 }

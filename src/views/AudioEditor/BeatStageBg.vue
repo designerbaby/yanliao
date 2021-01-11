@@ -8,7 +8,6 @@
     </div>
     <div :class="$style.column">
       <div :class="$style.fenziCon" v-for="n in matter" :key="n">
-        
         <div :class="$style.fenzi" v-for="m in beatForm.fenzi" :key="m">
           <div
             :class="$style.fenmu"

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { pitchList } from '@/common/utils/const'
+import { pitchList, playState } from '@/common/utils/const'
 
 Vue.use(Vuex)
 
@@ -10,7 +10,7 @@ const store = new Vuex.Store({
       fenzi: 4,
       fenmu: 4
     },
-    lineLeft: 0,   // 播放线的左边距
+    lineLeft: 6,   // 播放线的左边距
     matter: 15,    // 总共有多少个小节
     noteWidth: 20, // 32分音符占据的最小像素单位
     bpm: 90,       // 音调
@@ -21,7 +21,10 @@ const store = new Vuex.Store({
     showBindKugou: false, // 标志有没绑定酷狗账号，true的话就是绑定，false的话就是没有绑定
     pitchHasChange: false, // 音块是否有改变
     maxPitchRight: 0, // 音块最右边的位置
-    lineMove: false  // 音高线是否已经被移动了
+    lineMove: false,  // 音高线是否已经被移动了
+    mode: 0, // 0 代表音符模式, 1代表音高线模式
+    playState: playState.StateNone, // 播放状态
+    stagePitches: [] // 舞台音块
   },
   getters: {
     stageWidth: state => {
@@ -67,6 +70,16 @@ const store = new Vuex.Store({
     },
     updateLineMove(state, lineMove) {
       state.lineMove = lineMove
+    },
+    updateMode(state, mode) {
+      state.mode = mode
+    },
+    // 通用改成state方法
+    changeStoreState(state, props) {
+      Object.keys(props).forEach(k => {
+        console.log(`changeStoreState`, k, props[k])
+        state[k] = props[k]
+      })
     }
   },
   actions: {
@@ -96,6 +109,13 @@ const store = new Vuex.Store({
     },
     updateLineMove(context, lineMove) {
       context.commit('updateLineMove', lineMove)
+    },
+    updateMode(context, mode) {
+      context.commit('updateMode', mode)
+    },
+    // 通用改方法
+    changeStoreState({ commit }, props) {
+      commit('changeStoreState', props)
     }
   },
   modules: {}

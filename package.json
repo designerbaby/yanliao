@@ -9,10 +9,10 @@
   "dependencies": {
     "axios": "^0.20.0",
     "babel-plugin-component": "^1.1.1",
-    "buzz": "^1.2.1",
     "clipboard": "^2.0.6",
     "core-js": "^3.6.5",
     "element-ui": "^2.13.2",
+    "howler": "^2.2.1",
     "moment": "^2.29.1",
     "smoothscroll-polyfill": "^0.4.4",
     "vod-js-sdk-v6": "^1.4.11",

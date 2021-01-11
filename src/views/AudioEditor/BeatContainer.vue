@@ -83,13 +83,16 @@ export default {
       startPos: null,
       endPos: null,
       stageOffset: null,
-      stagePitches: [],
+      // stagePitches: [],
       movePitchStart: null,
       selectedPitch: -1,
       showList: -1
     }
   },
   computed: {
+    stagePitches() {
+      return this.$store.state.stagePitches
+    },
     beatForm() {
       return this.$store.state.beatForm
     },
