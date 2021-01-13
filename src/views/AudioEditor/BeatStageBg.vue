@@ -1,15 +1,13 @@
 <template>
   <div :class="$style.container" :style="{ width: `${stageWidth}px` }">
     <div :class="$style.row">
-      <BeatLine></BeatLine>
       <template v-for="it in pitchList">
-        <div :class="$style.gray" :key="it.pitch" v-if="it.type === 0" >{{ it.pitch }}</div>
+        <div :class="$style.gray" :key="it.pitch" v-if="it.type === 0">{{ it.pitch }}</div>
         <div :class="$style.black" :key="it.pitch" v-else>{{ it.pitch }}</div>
       </template>
     </div>
     <div :class="$style.column">
-      <div :class="$style.matter" v-for="n in matter" :key="n">
-        <div :class="$style.num">{{ n }}</div>
+      <div :class="$style.fenziCon" v-for="n in matter" :key="n">
         <div :class="$style.fenzi" v-for="m in beatForm.fenzi" :key="m">
           <div
             :class="$style.fenmu"
@@ -24,14 +22,11 @@
 </template>
 
 <script>
-import BeatLine from './BeatLine.vue'
 import { pitchList } from "@/common/utils/const"
 
 export default {
   name: 'BeatStageBg',
-  components: {
-    BeatLine
-  },
+  components: {},
   data() {
     return {
       pitchList: pitchList
@@ -39,16 +34,16 @@ export default {
   },
   computed: {
     beatForm() {
-      return this.$store.getters.beatForm
+      return this.$store.state.beatForm
     },
     stageWidth() {
       return this.$store.getters.stageWidth
     },
     matter() {
-      return this.$store.getters.matter
+      return this.$store.state.matter
     },
     noteWidth() {
-      return this.$store.getters.noteWidth
+      return this.$store.state.noteWidth
     },
     stageHeight() {
       return this.$store.getters.stageHeight
@@ -60,7 +55,7 @@ export default {
 <style lang="less" module>
 .container {
   position: relative;
-  top: 25px;
+  // top: 25px;
 }
 .row {
   position: relative;
@@ -77,6 +72,9 @@ export default {
   background: #232323;
 }
 
+.fenziCon {
+  display: flex;
+}
 .column {
   position: absolute;
   top: 0px;
@@ -86,12 +84,7 @@ export default {
   display: flex;
 }
 
-.matter {
-  background: transparent;
-  display: flex;
-  position: relative;
-  // top: -20px;
-}
+
 .fenzi {
   background: transparent;
   display: flex;
@@ -111,16 +104,4 @@ export default {
   background: transparent;
 }
 
-.num {
-  color: #fff;
-  font-size: 13px;
-  border-left: 1px solid #626263;
-  background: transparent;
-  text-align: left;
-  position: absolute;
-  top: -25px;
-  padding-left: 5px;
-  height: 25px;
-  line-height: 25px;
-}
 </style>

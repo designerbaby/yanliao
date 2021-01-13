@@ -42,6 +42,12 @@
           <el-input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName"></el-input>
         </el-form-item>
       </el-form-item>
+      <el-form-item v-if="this.$store.state.profile.showBindKugou">
+        <el-checkbox v-model="form.synKuGou">
+          同步视频到酷狗音乐App获得
+          <a href="/playIncentives" target="_blank" title="播放激励" class="validity">播放激励</a>
+        </el-checkbox>
+      </el-form-item>
     </el-form>
     <el-button :loading="loading" @click="uploadButtonClick">发布</el-button>
   </div>
@@ -59,6 +65,7 @@ import {
   Upload,
   Message,
   Button,
+  Checkbox
 } from 'element-ui'
 import {
   fetchSign,
@@ -73,6 +80,7 @@ export default {
     'el-form-item': FormItem,
     'el-upload': Upload,
     'el-button': Button,
+    'el-checkbox': Checkbox
   },
   data() {
     return {
@@ -82,6 +90,7 @@ export default {
         desc: '',
         songName: '',
         singerName: '',
+        synKuGou: false
       },
       rules: {
         file: [
@@ -111,14 +120,15 @@ export default {
       },
     }
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
     getSignature() {
       const f = {
         filesize: this.form.file.size,
         desc: this.form.desc,
-        music: this.form.songName ? `${this.form.songName}-${this.form.singerName}` : ''
+        music: this.form.songName ? `${this.form.songName}-${this.form.singerName}` : '',
+        syn_ku_gou: this.form.synKuGou,
+        source: 0
       }
       return fetchSign(f).then((response) => {
         return response.data.data.sign
@@ -221,5 +231,9 @@ export default {
       line-height: normal;
       margin-top: -10px;
     }
+  }
+  .validity {
+    color: #2cabff;
+    text-decoration: none;
   }
 </style>

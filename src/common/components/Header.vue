@@ -9,7 +9,7 @@
       <div class="subhead-text">爆款视频悬赏活动</div>
       <img src="@/assets/icon-act.png" alt="">
     </a>
-    <div class="audio-edit" @click="toAudioEditor">音频编辑器</div>
+    <!-- <div class="audio-edit" @click="toAudioEditor">音频编辑器</div> -->
     <div class="user-info" v-if="mxIsLogin || nickName">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
@@ -268,6 +268,7 @@ export default {
         if (ret_code === 0) {
           if (data !== null) {
             this.showBind = data.show_bind
+            this.$store.dispatch('updateShowBindKugou', this.showBind)
           } 
         }
       })

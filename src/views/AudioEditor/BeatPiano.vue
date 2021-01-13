@@ -3,7 +3,7 @@
     <div :class="$style.left">
       <template v-for="it in pitchList">
         <div :class="$style.white" v-if="it.type === 0 && it.show === 1" :key="it.pitch">{{ it.str }}</div>
-        <div :class="$style.white" v-else-if="it.type === 0" :key="it.pitch"></div>
+        <div :class="$style.white" v-else-if="it.type === 0" :key="it.pitch">{{ it.str }}</div>
       </template>
     </div>
     <div :class="$style.middle">

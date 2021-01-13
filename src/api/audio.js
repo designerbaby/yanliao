@@ -33,6 +33,7 @@ const editorSynthResult = (taskId) => {
   })
 }
 
+// 获取音高线接口
 const getF0Data = (data) => {
   return axios({
     method: 'post',

@@ -4,58 +4,65 @@
       {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
     </div>
     <BeatPiano></BeatPiano>
-    <div ref="stage" :class="$style.stage" id="audioStage">
-      <BeatStageBg></BeatStageBg>
-      <div 
-        ref="drawStage"
-        @mousedown="onMouseDown"
-        @mousemove="onMouseMove"
-        @mouseup="onMouseUp"
-        @mouseleave="onMouseUp"
-        :class="$style.drawStage" 
-        :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
-      ></div>
-      <template v-for="(it, index) in stagePitches">
-        <div
-          :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
-          :style="{
-            width: `${it.width}px`,
-            height: `${it.height}px`,
-            transform: `translate(${it.left}px, ${it.top}px)`
-          }"
-          :key="index"
-          :data-left="it.left"
-          :data-top="it.top"
-          @mousedown.self="onPitchMouseDown($event, index)"
-          @mouseup.self="onPitchMouseUp"
-          slot="reference"
-        >
-          {{ it.hanzi }}
-          <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-          <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-          <div :class="$style.list" v-if="showList === index">
-            <Card class="box-card">
-              <div slot="header" class="clearfix">
-                <span>操作列表</span>
-              </div>
-              <Button type="danger" @click.stop="toDeletePitch(index)">删除</Button>
-            </Card>
+    <div :class="$style.right">
+      <div :class="$style.top">
+        <div :class="$style.matter" v-for="n in matter" :key="n" :style="{width: `${beatWidth}px`}">{{ n }}</div>
+      </div>
+      <div ref="stage" :class="$style.stage" id="audioStage">
+        <BeatStageBg></BeatStageBg>
+        <BeatLine></BeatLine>
+        <div 
+          ref="drawStage"
+          @mousedown="onMouseDown"
+          @mousemove="onMouseMove"
+          @mouseup="onMouseUp"
+          @mouseleave="onMouseUp"
+          :class="$style.drawStage" 
+          :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
+        ></div>
+        <template v-for="(it, index) in stagePitches">
+          <div
+            :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
+            :style="{
+              width: `${it.width}px`,
+              height: `${it.height}px`,
+              transform: `translate(${it.left}px, ${it.top}px)`
+            }"
+            :key="index"
+            :data-left="it.left"
+            :data-top="it.top"
+            @mousedown.self="onPitchMouseDown($event, index)"
+            @mouseup.self="onPitchMouseUp"
+            slot="reference"
+          >
+            {{ it.hanzi }}
+            <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+            <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+            <div :class="$style.list" v-if="showList === index">
+              <Card class="box-card">
+                <div slot="header" class="clearfix">
+                  <span>操作列表</span>
+                </div>
+                <Button type="danger" @click.stop="toDeletePitch(index)">删除</Button>
+              </Card>
+            </div>
           </div>
-        </div>
-      </template>
-      <div :class="$style.sharp" ref="sharp"></div>
-      <!-- <PitchLine></PitchLine> -->
+        </template>
+        <div :class="$style.sharp" ref="sharp"></div>
+        <PitchLine v-if="this.$store.state.mode === 1"></PitchLine>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { pitchList } from "@/common/utils/const"
+import { pitchList, playState } from "@/common/utils/const"
 import { Card, Button, Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
+import BeatLine from './BeatLine.vue' // 播放线
 import Arrow from './Arrow.vue'
-// import PitchLine from './PitchLine.vue'
+import PitchLine from './PitchLine.vue' // 音高线
 
 export default {
   name: "BeatContainer",
@@ -65,8 +72,9 @@ export default {
     Message,
     BeatPiano,
     BeatStageBg,
-    Arrow
-    // PitchLine
+    Arrow,
+    BeatLine,
+    PitchLine
   },
   data() {
     return {
@@ -75,27 +83,39 @@ export default {
       startPos: null,
       endPos: null,
       stageOffset: null,
-      stagePitches: [],
+      // stagePitches: [],
       movePitchStart: null,
       selectedPitch: -1,
       showList: -1
     }
   },
   computed: {
+    stagePitches() {
+      return this.$store.state.stagePitches
+    },
     beatForm() {
-      return this.$store.getters.beatForm
+      return this.$store.state.beatForm
     },
     noteWidth() {
-      return this.$store.getters.noteWidth
+      return this.$store.state.noteWidth
     },
     isSynthetizing() {
-      return this.$store.getters.isSynthetizing
+      return this.$store.state.isSynthetizing
     },
     stageWidth() {
       return this.$store.getters.stageWidth
     },
+    matter() {
+      return this.$store.state.matter
+    },
     stageHeight() {
       return this.$store.getters.stageHeight
+    },
+    beatWidth() {
+      return this.$store.getters.beatWidth
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   mounted() {
@@ -110,23 +130,8 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
-    // document.getElementById('audioStage').addEventListener('keydown', event => {
-    //   console.log('keydown:')
-    //   if (event && event.preventDefault) {
-    //     event.preventDefault()
-    //   }
-    //   if (event.ctrlKey && event.keyCode == 90 || event.metaKey && event.keyCode == 90) {
-    //     this.toResetPitches()
-    //   }
-    // })
   },
   methods: {
-    // TODO 这个撤销功能要重新规划下
-    // toResetPitches() {
-    //   console.log('toResetPitches')
-    //   this.stagePitches.splice(this.stagePitches.length - 1, 1)
-    //   this.checkPitchDuplicated()
-    // },
     checkPitchDuplicated() {
       // log('checkPitchDuplicated pitches:', this.stagePitches)
       const pitches = this.stagePitches
@@ -172,11 +177,23 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       this.$emit("showBeat");
     },
     onPitchMouseDown(event, index){
       // console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       const target = event.target
       target.style.opacity = 0.8
       this.toSelectPitch(index)
@@ -200,13 +217,18 @@ export default {
       // 绿色块鼠标移动事件
       if (this.movePitchStart) {
         const { target } = this.movePitchStart
-        const newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
-        const newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
+        let newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
+        let newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
 
+        if (newTop < 0) {
+          newTop = 0
+        }
+        if (newLeft < 0) {
+          newLeft = 0
+        }
         target.style.transform = `translate(${newLeft}px, ${newTop}px)`
         target.dataset.left = newLeft
         target.dataset.top = newTop
-        console.log(`onPitchMouseMove: this.movePitchStart.left: ${this.movePitchStart.left}, event.clientY:${event.clientY}, this.movePitchStart.clientY: ${this.movePitchStart.clientY}`)
       }
     },
     onPitchMouseUp(event) {
@@ -234,21 +256,14 @@ export default {
         this.checkPitchDuplicated()
       }
     },
-    // getOffset(ele) { // 获取距离父元素的位置
-    //   let par = ele.offsetParent;
-    //   let left = ele.offsetLeft;
-    //   let top = ele.offsetTop;
-    //   while (par) {
-    //     left += par.offsetLeft;
-    //     top += par.offsetTop;
-    //     par = par.offsetParent;
-    //   }
-    //   return { left, top };
-    // },
     onMouseDown(event) {
       // console.log(`onStageMouseDown`)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
         return
       }
       this.selectedPitch = -1
@@ -293,7 +308,6 @@ export default {
         this.$refs.sharp.style.width = `${Math.abs(width)}px`;
         this.$refs.sharp.style.height = `${Math.abs(height)}px`;
         this.toCheckOverStage(pos.x)
-        // this.toScrollStage(event.clientX, rect.left)
       }
     },
     onMouseUp(event) {
@@ -325,7 +339,6 @@ export default {
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
         const hanzi = '啦'
-
         this.addOnePitch({
           width,
           height: 25,
@@ -351,17 +364,26 @@ export default {
         this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
       }
       this.checkPitchDuplicated()
+      this.checkPitchesOverStage()
     },
 
-    onArrowMoveEnd({ width, left, top, target }, index) {
+    onArrowMoveEnd({ width, left, top, target, direction }, index) {
       const pitch = this.stagePitches[index]
-      
+      // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
       // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
-      pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
       pitch.top = top
+      if (direction === 'left') {
+        // 向左的话,他是要增的，所以要向上取整
+        pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
+      } else {
+        pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
+      }
+      
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
-      target.style.width = pitch.width
+      target.style.width = `${pitch.width}px`
+      
+      // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
 
       this.checkPitchDuplicated()
     },
@@ -381,18 +403,18 @@ export default {
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
       // console.log('this.stageWidth:', this.stageWidth)
-      if ((x + 5) >= this.stageWidth) {
+      if ((x + 100) >= this.stageWidth) {
         this.$store.dispatch('updateMatter', 15)
       }
+    },
+    checkPitchesOverStage() {
+      let maxPitchRight = 0
+      this.stagePitches.forEach((item) => {
+        const right = item.left + item.width
+        maxPitchRight = Math.max(maxPitchRight, right)
+        this.$store.dispatch('changeStoreState', { maxPitchRight: maxPitchRight})
+      })
     }
-    // toScrollStage(clientX, left) { // 如果移动超过舞台最右边，那要帮他滚动下滚动条,滚动条触发另一个bug,滚动取鼠标事件的bug
-    //   const stageConWidth = this.$store.stageSize.width
-    //   const stanceLeft = clientX + left
-    //   if (stanceLeft > stageConWidth) {
-    //     const distance = stageConWidth - stanceLeft
-    //     this.$refs.stage.scrollLeft -= distance
-    //   }
-    // }
   }
 };
 </script>
@@ -405,7 +427,8 @@ export default {
   margin: 0px;
   position: relative;
 }
-.stage {
+
+.right {
   position: absolute;
   width: calc(100% - 50px);
   height: 100%;
@@ -413,11 +436,36 @@ export default {
   user-select: none;
   overflow-x: scroll;
 }
+
+.top {
+  height: 25px;
+  position: relative;
+  display: flex;
+}
+
+.stage {
+  position: relative;
+  // width: calc(100% - 50px);
+  user-select: none;
+}
+.matter {
+  height: 25px;
+  color: #fff;
+  font-size: 13px;
+  border-left: 1px solid #626263;
+  text-align: left;
+  position: relative;
+  padding-left: 5px;
+  line-height: 25px;
+  flex-shrink: 0;
+}
+
 .drawStage {
   position: absolute;
   left: 0;
-  top: 25px;
+  top: 0px;
   z-index: 10;
+  overflow: hidden;
 }
 .beat {
   position: absolute;
@@ -475,4 +523,6 @@ export default {
   height: 1px;
   background-color: rgba(204, 204, 204, 0.514);
 }
+
+
 </style>

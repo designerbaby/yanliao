@@ -1,130 +1,127 @@
 <template>
-  <div 
-      :class="[$style.line, lineActive ? $style.isActive : '']"
-      :style="{
-        transform: `translateX(${left}px)`,
-        height: `${stageHeight}px`
-      }" 
-      ref="audioEditorLine"
-      @mousedown.stop="onLineMouseDown"
-      @mouseup.stop="onLineMouseUp"
-    >
-    <span :class="$style.innerSpan"></span>
-    <div :class="$style.inner"></div>
+  <div
+    :class="$style.container"
+    :style="{
+      transform: `translateX(${lineLeft}px)`,
+      height: `${stageHeight}px`
+    }"
+    @mousedown.stop="onLineMouseDown"
+    @mouseup.stop="onLineMouseUp"
+  >
+    <div :class="$style.line">
+      <span :class="$style.innerSpan"></span>
+      <div :class="$style.inner"></div>
+    </div>
   </div>
 </template>
 
 <script>
-import Bus from '@/common/utils/bus'
-import { Message } from 'element-ui'
+import { Message } from "element-ui";
+import { playState } from '@/common/utils/const'
 
 export default {
-  name: 'BeatLine',
+  name: "BeatLine",
   data() {
     return {
       isLineMouseDown: false,
-      lineActive: false,
       left: 0,
       startLeft: 0,
-      startX: 0
-    }
+      startX: 0,
+      eventListener: null
+    };
   },
-  mounted() {
-    Bus.$on('toMoveLinePos', this.toMove)
-    Bus.$on('toRestartLinePos', this.toRestart)
-    Bus.$on('toStopLine', this.toStop)
-  },
+  mounted() {},
   computed: {
     isSynthetizing() {
-      return this.$store.getters.isSynthetizing
+      return this.$store.state.isSynthetizing;
     },
     stageHeight() {
-      return this.$store.getters.stageHeight
+      return this.$store.getters.stageHeight;
+    },
+    lineLeft() {
+      return this.$store.state.lineLeft;
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   methods: {
     onLineMouseDown(event) {
-      console.log(`onLineMouseDown`)
+      console.log(`onLineMouseDown`);
       if (this.isSynthetizing) {
-        Message.error('正在合成音频中,不能修改哦~')
+        Message.error("正在合成音频中,不能修改哦~")
         return
       }
-      this.isLineMouseDown = true
-      this.startLeft = this.left
-      this.startX = event.clientX
-      console.log(`down event.clientX`, event.clientX)
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
+      this.isLineMouseDown = true;
+      this.startLeft = this.lineLeft;
+      this.startX = event.clientX;
+      // console.log(`down event.clientX`, event.clientX)
 
-      document.addEventListener('mousemove', this.onLineMouseMove)
-      document.addEventListener('mouseleave', this.onLineMouseUp)
+      document.addEventListener("mousemove", this.onLineMouseMove);
+      document.addEventListener("mouseleave", this.onLineMouseUp);
     },
     onLineMouseMove(event) {
       if (this.isLineMouseDown) {
-        const movePx = event.clientX - this.startX
-        const left = this.startLeft + movePx
-        console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
+        const movePx = event.clientX - this.startX;
+        const left = this.startLeft + movePx;
+        // console.log(`move event.clientX`, this.startX, event.clientX, movePx, left)
         // if (left < 0) { // 小于0 不向左移动
         //   return
         // }
-        this.left = left
-        console.log(`this.left: ${this.left}`)
+        this.left = left;
+        // console.log(`this.left: ${this.left}`)
+
+        this.$store.dispatch("changeStoreState", { lineLeft: left })
       }
     },
     onLineMouseUp(event) {
-      console.log(`onLineMouseUp`)
-      document.removeEventListener('mousemove', this.onLineMouseMove)
-      document.removeEventListener('mouseleave', this.onLineMouseUp)
+      console.log(`onLineMouseUp`);
+      document.removeEventListener("mousemove", this.onLineMouseMove);
+      document.removeEventListener("mouseleave", this.onLineMouseUp);
       if (this.isLineMouseDown) {
-        this.isLineMouseDown = false
-        // 移动好线之后先存起来
-        this.$store.dispatch('updateLineLeft', this.left)
-        Bus.$emit('pitchChange')
-      }
-    },
-    toMove(minLeft, maxLeft, playTime) {
-      this.lineActive = true
-      this.$refs.audioEditorLine.style.left = `${minLeft}px`
-      this.$refs.audioEditorLine.style.transitionDuration = `${(playTime / 1000).toFixed(1)}s`
-      this.$refs.audioEditorLine.style.left = `${maxLeft}px`
-    },
-    toRestart() {
-      this.lineActive = false
-      this.$refs.audioEditorLine.style.transitionDuration = '0.3s'
-      this.$refs.audioEditorLine.style.left = '0px'
-    },
-    toStop() {
+        this.isLineMouseDown = false;
 
+        const movePx = event.clientX - this.startX;
+        const left = this.startLeft + movePx;
+
+        // 移动好线之后先存起来
+        this.$store.dispatch("changeStoreState", { lineLeft: left })
+      }
     }
   }
-}
+};
 </script>
 
 <style lang="less" module>
-.line {
+.container {
   position: absolute;
   top: 0px;
   left: 0px;
   z-index: 1000;
-  width: 16px;
-  // height: 2100px;
+  width: 2px;
 
   &:active {
     opacity: 0.5;
   }
- 
+
   &.isActive {
-    // transition: left 0.3s linear;
-    animation: move 0.3s linear;
+    transition: left 0.3s linear;
   }
 }
-@keyframes move {
-  0%{
-    left: 0;
-  }
-  100% {
-    left: 0;
-  }
+
+.line {
+  width: 16px;
+  position: absolute;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
 }
-.innerSpan{
+
+.innerSpan {
   border-right: 8px solid transparent;
   border-left: 8px solid transparent;
   border-top: 8px solid #b8b8b8;

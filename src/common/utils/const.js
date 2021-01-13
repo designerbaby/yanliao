@@ -240,3 +240,11 @@ export const statusMap = {
   3: '失效',
   4: '失败'
 }
+// 音频状态映射
+export const playState = {
+  StateNone: 0, // 初始状态
+  StatePlaying: 1, // 播放中
+  StatePaused: 2, // 暂停
+  StateEnded: 3 // 播放完成
+}
+

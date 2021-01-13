@@ -1,14 +1,12 @@
 <template>
   <div :class="$style.audioEditor" ref="audioEditor">
-    <BeatHeader :isPlaying="isPlaying" @play="toPlay"></BeatHeader>
+    <BeatHeader :isPlaying="playState == 1" @play="toPlay"></BeatHeader>
     <BeatContainer 
       ref="BeatContainer"
       @showBeat="toShowBeat" 
       @getPitches="toGetPictData"
     ></BeatContainer>
     <BeatSelector ref="BeatSelector"></BeatSelector>
-    <StatusDialog ref="StatusDialog"></StatusDialog>
-    <audio :src="onlineUrl" ref="AudioUrl" type="audio/wav" controls :class="$style.audioPlay"></audio>
   </div>
 </template>
 
@@ -16,11 +14,11 @@
 import { Message } from 'element-ui'
 import BeatSelector from './BeatSelector.vue'
 import BeatContainer from './BeatContainer.vue'
-import StatusDialog from './StatusDialog.vue'
 import BeatHeader from './BeatHeader.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult } from '@/api/audio'
-import { processStatus, statusMap } from '@/common/utils/const'
-import Bus from '@/common/utils/bus'
+import { processStatus, statusMap, playState } from '@/common/utils/const'
+import { sleep, pxToTime } from '@/common/utils/helper'
+import { PlayAudio } from '@/common/utils/player'
 
 export default {
   name: 'AudioEditor',
@@ -28,105 +26,223 @@ export default {
     Message,
     BeatSelector,
     BeatContainer,
-    StatusDialog,
     BeatHeader
   },
   data() {
     return {
       pitches: [],
-      isPlaying: false,
-      timer: null,
-      onlineUrl: '',
-      rollTime: 0, // 轮询请求状态循环次数
-      playTime: 0,
-      timeout: null,
-      pitchHasChange: false, // 记录下音符块是否已经改动了
-      maxLeft: 0, // 播放线应该跑的最大偏移量
-      minLeft: 0  // 播放线最开始应该在的位置
+      timerId: 0,
+      audio: null,
+      linePosition: null, // 播放时，线所在的位置播放
+
+      // 播放线
+      playLine: {
+        start: 0,
+        end: 0,
+        current: 0 // 当前的位置, px
+      },
+      playStartTime: 0 // 从第几秒开始播放
     }
   },
   mounted() {
-    Bus.$on('pitchChange', this.onPitchChange)
+    this.storeStagePitchesWatcher = this.$store.watch(
+      state => state.stagePitches,
+      (newValue, oldValue) => {
+        console.log('watch store', oldValue, newValue)
+        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
+      },
+      {
+        deep: true
+      }
+    )
+  },
+  destroyed() {
+    this.storeStagePitchesWatcher()
   },
   computed: {
     noteWidth() {
-      return this.$store.getters.noteWidth
+      return this.$store.state.noteWidth
     },
     bpm() {
-      return this.$store.getters.bpm
+      return this.$store.state.bpm
     },
     isSynthetizing() {
-      return this.$store.getters.isSynthetizing
+      return this.$store.state.isSynthetizing
+    },
+    playState() {
+      return this.$store.state.playState
+    },
+    isManualMovedLine() { // 是否手动移动了线
+      return this.$store.state.lineLeft !== this.playLine.current
+    },
+    isStagePitchesChanged() {
+      return this.$store.state.isStagePitchesChanged
     }
   },
   methods: {
-    toPlay() {
-      // 音频播放3个状态 play noplay stop
+    changePlayState(stateValue) {
+      this.$store.dispatch('changeStoreState', { playState: stateValue })
+    },
+    isNeedGenerate() {
+      // 舞台音块改变
+      if (this.isStagePitchesChanged) {
+        return true
+      }
+
+      // 线的开始位置如果比上一次播放的位置还靠前，则要重新生成
+      // let { start, end } = this.getLinePosition()
+      // if (start < this.playLine.start) {
+      //   return true
+      // }
+      return false
+    },
+    async toPlay() {
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,请耐心等待~')
         return
       }
-      if (!this.isPlaying) {
-        if (this.onlineUrl && !this.pitchHasChange) { // 有现成的音频，直接播放
-          this.toPlayAudio()
+
+      console.log(`Click play button, current state: ${this.playState}`)
+
+      // 如果当前是播放中状态，则暂时
+      if (this.playState === playState.StateNone) {
+        this.doPlay(true)
+        this.changePlayState(playState.StatePlaying)
+      } else if (this.playState === playState.StatePlaying) {
+        this.audio.pause()
+        this.changePlayState(playState.StatePaused)
+      } else if (this.playState === playState.StatePaused) {
+        if (this.isNeedGenerate()) {
+          this.doPlay(true)
+        } else if(this.isManualMovedLine) {
+          this.doPlay(false)
         } else {
-          this.toSynthesize() // 合成音频
+          this.doPlay(false, true)
         }
+        this.changePlayState(playState.StatePlaying)
+      } else if (this.playState === playState.StateEnded) {
+        if (this.isNeedGenerate()) {
+          this.doPlay(true)
+        } else if(this.isManualMovedLine) {
+          this.doPlay(false)
+        } else {
+          this.doPlay(false)
+        }
+        this.changePlayState(playState.StatePlaying)
+      }
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
+    },
+    async doPlay(generator = true, isContinue = false) {
+      const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
+      console.log(`doPlay generator:${generator}, isContinue:${isContinue}, start: ${start}, end: ${end}, minStart:${minStart}, maxEnd: ${maxEnd}, duration:${duration}`)
+      
+      // 百分比不能为负数，最小为0
+      const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
+      const startTime = percent * duration / 1000
+      console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
+      if (generator) {
+        const url = await this.toSynthesize()
+        this.playLine = {
+          current: start,
+          start,
+          end
+        }
+        this.playStartTime = startTime
+        this.toPlayAudio(url)
+        this.audio.currentTime = startTime
+        this.audio.play()
       } else {
-        this.toPauseAudio()
+        if (isContinue) {
+          console.log(`play continue with start: ${this.playStartTime}`)
+          // this.audio.currentTime = this.playStartTime
+          this.audio.play()
+        } else {
+          this.playLine = {
+            current: start,
+            start,
+            end
+          }
+          // const duration = this.audio.duration
+          // 百分比不能为负数，最小为0
+          // const startTime = percent * duration
+          // console.log(`percent:${percent}, duration:$${duration}, startTime:$${startTime}`)
+          this.playStartTime = startTime
+          this.audio.currentTime = startTime
+          this.audio.play()
+        }
+        
       }
     },
-    toPlayAudio() {
-      this.isPlaying = true
-      this.$refs.AudioUrl.play()
-      Bus.$emit('toMoveLinePos', this.minLeft, this.maxLeft, this.playTime)
-      clearTimeout(this.timeout)
-      this.timeout = setTimeout(() => {
-        this.toPauseAudio()
-      }, this.playTime + 500) // 这里主要是算法那边计算总和后加0.5s做缓冲
-    },
-    toRestartAudio() {
-      this.$refs.AudioUrl.pause()
-      Bus.$emit('toStopLine')
-    },
-    toPauseAudio() {
-      if (this.isPlaying) {
-        // this.$refs.AudioUrl.pause()
-        this.isPlaying = false
-        Bus.$emit('toRestartLinePos')
-        this.pitchHasChange = false
+    toPlayAudio(url) {
+      clearInterval(this.timerId)
+      const ticker = (timestamp) => {
+        if (this.playState === playState.StatePlaying){
+          window.requestAnimationFrame(ticker);
+        }
       }
-    },
-    toRefreshData() { // 重新开始就清除数据
-      this.maxLeft = 0
-      this.playTime = 0
-    },
-    onPitchChange() {
-      this.pitchHasChange = true
+    
+      this.audio = PlayAudio({
+        url,
+        onPlay: (audio) => {
+          this.timerId = setInterval(() => {
+            if (audio.duration) {
+              // 需要播放的音频长度，如果移动了线，则可能从中间位置开始播
+              const duration = audio.duration // 音频总长度
+              const restDuration = duration - this.playStartTime
+              const msDuration = restDuration * 1000
+              
+              const length = this.playLine.end - this.playLine.start
+              const times = msDuration / 16
+              const step = length / times
+              // console.log(audio, `duration`, duration, `times`, times, `step`, step)
+
+              // console.log(`onPlay , current`, current, step)
+              this.playLine.current += step
+              this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
+            }
+          }, 16)
+
+          window.requestAnimationFrame(ticker);
+        },
+        onPause: (dom) => {
+          clearInterval(this.timerId)
+        },
+        onEnd: () => {
+          clearInterval(this.timerId)
+          this.changePlayState(playState.StateEnded)
+          this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.start })
+          this.playLine.current = this.playLine.start
+        }
+      })
+
     },
     toGetPictData(pitches) {
       this.pitches = pitches
-      this.pitchHasChange = true // 一改动就记录下来
     },
     toHandlePitches (pitches) {
-      const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
-      console.log('lineLeft:', lineLeft)
-      let excessPitches = []
-      pitches.forEach(item => {
-        if (item.left >= lineLeft || (item.left + item.width) >= lineLeft) {
-          excessPitches.push(item)
-        }
-      })
-      for (let i = 0; i < excessPitches.length; i += 1) {
-        if (excessPitches[i].red) {
+      // const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
+      const firstPitch = this.$store.getters.firstPitch // 拿到钢琴的最高的pitch
+
+      // console.log('lineLeft:', lineLeft)
+      // let excessPitches = []
+      // pitches.forEach(item => {
+      //   // if (item.left >= lineLeft || (item.left + item.width) >= lineLeft) {
+      //     excessPitches.push(item)
+      //   // }
+      // })
+      // 检测是否重叠了，重叠了就标红不给合成播放
+      for (let i = 0; i < pitches.length; i += 1) {
+        if (pitches[i].red) {
           return
         }
       }
       const newPitches = []
-      excessPitches.forEach(item => {
-        const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
-        const pitch = 81 - ((item.top - 25) / item.height)
-        const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
+      pitches.forEach(item => {
+        // const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
+        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
+        const pitch = firstPitch - (item.top / item.height)
+        // const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
+        const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
         const pitchItem = {
           duration: duration,
           pitch: pitch,
@@ -137,53 +253,79 @@ export default {
           tone_id: 1
         }
         newPitches.push(pitchItem)
-        this.toGetMaxSecond(duration, startTime) // 获取当前音频的最大时长
-        this.toGetLineLeft(excessPitches) // 获取线的偏移量
       })
       // console.log('newPitches:', newPitches)
       return newPitches
     },
-    toGetMaxSecond(duration, startTime) {
-      const maxTime = duration + startTime
-      if (maxTime > this.playTime) {
-        this.playTime = maxTime
-      }
-    },
-    toGetLineLeft(pitches) {
-      let maxLeft = this.maxLeft
-      let minLeft = this.minLeft
-      pitches.forEach(item => {
-        const newLeft = item.width + item.left
-        if (newLeft > this.maxLeft) {
-          this.maxLeft = newLeft
+    getLinePosition() {
+      const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
+      const excessPitches = []
+      let lineStartX = 10000000
+      let lineEndX = 0
+      let minStart = 1000000000
+      let maxEnd = 0
+
+
+      let firstPitchStartTime = 0
+      let lastPitchStartTime = 0
+      let lastPitchDuration = 0
+
+      this.pitches.forEach(item => {
+        const right = item.left + item.width
+        if (item.left >= lineLeft || right >= lineLeft) {
+          lineStartX = Math.min(lineStartX, item.left)
+          lineEndX = Math.max(lineEndX, right)
         }
-        const newMinLeft = item.left
-        if (newMinLeft < this.minLeft) {
-          this.minLeft = newMinLeft
+
+        minStart = Math.min(minStart, item.left)
+        maxEnd = Math.max(maxEnd, right)
+
+        // const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
+        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
+        // const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
+        const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
+        
+        if (startTime < firstPitchStartTime) {
+          firstPitchStartTime = startTime
         }
+
+        if (startTime > lastPitchStartTime) {
+          lastPitchStartTime = startTime
+          lastPitchDuration = duration
+        }
+        
+
+        // console.log(`lineStartX: ${lineStartX}, lineEndX: ${lineEndX}`)
       })
+
+      const totalDuration = lastPitchStartTime - firstPitchStartTime + lastPitchDuration
+      return {
+        start: lineStartX,
+        end: lineEndX,
+        minStart,
+        maxEnd,
+        duration: totalDuration 
+      } 
     },
     toShowBeat() {
       this.$refs.BeatSelector.showBeatDialog()
     },
     async toSynthesize() {
-      this.toRefreshData()
+      console.log('toSynthesize')
 
       const finalPitches = await this.toHandlePitches(this.pitches)
 
-      // console.log('finalPitches:', finalPitches)
       if (finalPitches === undefined) {
         Message.error('音符存在重叠, 请调整好~')
+        this.changePlayState(playState.StateNone)
         return
       }
       if (!finalPitches.length) {
-        Message.error('请画好音符再播放~')
-        this.toPauseAudio()
+        Message.error('播放线后已经没有音符, 请画好音符再播放~')
         return
       }
 
-      this.$store.dispatch('updateIsSynthetizing', true)
-      this.$store.dispatch('updatePitchList', finalPitches)
+      this.$store.dispatch('changeStoreState', { isSynthetizing: true })
 
       const req = {
         pitchList: finalPitches,
@@ -191,59 +333,42 @@ export default {
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
-      if (data.ret_code === 0) {
-        Message.success('开始合成音频中~')
-        this.toRollStatus(data.data.param_id, data.data.task_id)
-      } else {
+      if (data.ret_code !== 0) {
         Message.error(`合成失败, 错误信息:${data.err_msg}, 请重试~`)
-      }
-    },
-    async toEditorSynthStatus (paramId, taskId) {
-      this.rollTime += 1
-      const { data } = await editorSynthStatus(paramId)
-      console.log('editorSynthStatus:', data)
-      if (data.ret_code === 0) {
+        return
+      } 
+
+      const paramId = data.data.param_id
+      const taskId = data.data.task_id
+    
+      // Message.success('开始合成音频中~')
+
+      let url = ''
+
+      for (let i = 0; i < 10 ;i ++) {
+        const { data } = await editorSynthStatus(paramId)
+        if (data.ret_code !== 0) {
+          Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
+          break
+        }
+        // 合成成功
         if (data.data.status === 4) {
-          Message.success('音频合成成功~')
-          clearInterval(this.timer)
-          this.toEditorSynthResult(taskId)
+            const resp = await editorSynthResult(taskId)
+            console.log('editorSynthResult:', data)
+            if (resp.data.ret_code === 0 && resp.data.data.state === 2 ) {
+              url = resp.data.data.online_url
+              Message.success('音频合成成功~')
+              break
+            }
         } else {
           Message.success(`算法努力合成音频中(${processStatus[data.data.status]}%)`)
-          // this.$refs.StatusDialog.showStatus(data.data.status)
         }
-      } else {
-        Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
+        await sleep(3000)
       }
-    },
-    toRollStatus (paramId, taskId) {
-      clearInterval(this.timer)
-      this.timer = setInterval(() => {
-        if (this.rollTime <= 10) { // 小于10才循环
-          this.toEditorSynthStatus(paramId, taskId)
-        } else {
-          this.toEditorSynthResult(taskId)
-        }
-      }, 3000)
-    },
-    async toEditorSynthResult (taskId) {
-      const { data } = await editorSynthResult(taskId)
-      console.log('editorSynthResult:', data)
-      if (data.ret_code === 0) {
-        if (data.data.state === 2) {
-          this.onlineUrl = data.data.online_url
-          // this.$refs.StatusDialog.hideStatus()
-          this.$nextTick(() => {
-            this.toPlayAudio()
-          })
-        } else {
-          Message.error(`合成状态: ${statusMap[data.data.state]}`)
-        }
-      } else {
-        Message.error(`合成失败, 错误信息: ${data.err_msg}`)
-      }
-      clearInterval(this.timer)
-      this.rollTime = 0
-      this.$store.dispatch('updateIsSynthetizing', false)
+
+      this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+
+      return url
     }
   }
 }

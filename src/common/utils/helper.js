@@ -16,6 +16,8 @@ export const getUrlParameters = _ => {
   return {}
 }
 
+export const sleep = delay => new Promise(resolve => setTimeout(resolve, delay))
+
 // 获取cookie里面的信息
 export const getCookie = name => {
   const RE = new RegExp(`(^| )${name}=([^;]*)(;|$)`)
@@ -24,5 +26,10 @@ export const getCookie = name => {
     return unescape(arr[2])
   }
   return ''
+}
+
+// 将像素转成相应时间的方法
+export const pxToTime = (target, note, bpm) => {
+  return Math.floor(((parseInt(target, 10) / note) * 60 * 1000) / (8 * bpm))
 }
 
