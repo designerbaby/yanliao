@@ -120,7 +120,6 @@ export default {
   computed: {
     videoGroup() {
       const currentVideoUrl = this.currentVideoUrl
-      console.log('currentVideoUrl:', currentVideoUrl)
       const type = currentVideoUrl.split(currentVideoUrl)[1] || 'mp4'
       switch (type) {
         case 'ogg': 
@@ -160,7 +159,6 @@ export default {
       video.pause()
     },
     coverClick(row) {
-      console.log(`coverClick row: ${JSON.stringify(row)}`)
       reportEvent('person-page-videocover-click')
       if (row.control.ban_play) {
         Message.error(row.control.ban_play_msg)
@@ -168,7 +166,6 @@ export default {
       }
       this.videoDialogShow = true
       this.currentVideoUrl = row.play_url
-      console.log('')
       this.$nextTick(() => {
         this.$refs.dialogVideo.play()
       })
