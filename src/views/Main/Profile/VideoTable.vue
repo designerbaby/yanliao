@@ -57,17 +57,17 @@
     <CommonDialog :show="dialogShow" titleText="确定删除该视频吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
     <el-dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
       <div class="video-container">
-        <!-- <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo">
+        <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo">
           您的浏览器不支持 video 标签。
-        </video> -->
-        <video class="video" controls autoplay ref="dialogVideo">
-          <source :src="videoGroup.url" :type="videoGroup.type">
+        </video>
+        <!-- <video class="video" controls autoplay ref="dialogVideo">
+          <source :src="currentVideoUrl" :type="videoGroup.type">
           <object id="video" v-if="videoGroup.type === 'avi' || videoGroup.type === 'wmv' || videoGroup.type === 'asf'">
-            <embed border="0" showdisplay="0" showcontrols="1" autostart="1" :filename="videoGroup.url" :src="videoGroup.url">
+            <embed border="0" showdisplay="0" showcontrols="1" autostart="1" :filename="currentVideoUrl" :src="currentVideoUrl">
             </embed> 
           </object>
           Your browser is too old which doesn't support HTML5 video.
-        </video>
+        </video> -->
         <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
       </div>
     </el-dialog>
@@ -120,6 +120,7 @@ export default {
   computed: {
     videoGroup() {
       const currentVideoUrl = this.currentVideoUrl
+      console.log('currentVideoUrl:', currentVideoUrl)
       const type = currentVideoUrl.split(currentVideoUrl)[1] || 'mp4'
       switch (type) {
         case 'ogg': 
@@ -159,6 +160,7 @@ export default {
       video.pause()
     },
     coverClick(row) {
+      console.log(`coverClick row: ${JSON.stringify(row)}`)
       reportEvent('person-page-videocover-click')
       if (row.control.ban_play) {
         Message.error(row.control.ban_play_msg)
@@ -166,6 +168,7 @@ export default {
       }
       this.videoDialogShow = true
       this.currentVideoUrl = row.play_url
+      console.log('')
       this.$nextTick(() => {
         this.$refs.dialogVideo.play()
       })
