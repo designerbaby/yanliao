@@ -9,7 +9,7 @@
       <div class="subhead-text">爆款视频悬赏活动</div>
       <img src="@/assets/icon-act.png" alt="">
     </a>
-    <!-- <div class="audio-edit" @click="toAudioEditor">音频编辑器</div> -->
+    <div class="audio-edit" @click="toAudioEditor">音频编辑器</div>
     <div class="user-info" v-if="mxIsLogin || nickName">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
@@ -116,7 +116,7 @@ export default {
           {required: true, message: '请输入正确的手机号码', pattern: /^1[3-9]\d{9}$/, trigger: 'submit'}
         ],
         authCode: [
-          {required: true, message: '请输入正确的验证码', pattern: /^\d{6}$/, trigger: 'submit'},
+          {required: true, message: '请输入正确的验证码', pattern: /^\d{4}$/, trigger: 'submit'},
           {validator: (rule, value, callback) => {
             const f = {
               phone: this.loginForm.phone,

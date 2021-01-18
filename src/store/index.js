@@ -22,7 +22,9 @@ const store = new Vuex.Store({
     mode: 0, // 0 代表音符模式, 1代表音高线模式
     playState: playState.StateNone, // 播放状态
     stagePitches: [], // 舞台音块
-    isStagePitchesChanged: false // 舞台音块是否有改变
+    isStagePitchesChanged: false, // 舞台音块是否有改变
+    f0AI: [],
+    f0Draw: []
   },
   getters: {
     stageWidth: state => {
@@ -54,6 +56,11 @@ const store = new Vuex.Store({
         console.log(`changeStoreState`, k, props[k])
         state[k] = props[k]
       })
+    },
+    changeF0(state, { index, value }) {
+      const f0 = state.f0Draw
+      f0[index] = value
+      state.f0Draw = [...f0]
     }
   },
   actions: {
@@ -66,6 +73,9 @@ const store = new Vuex.Store({
     // 通用改方法
     changeStoreState({ commit }, props) {
       commit('changeStoreState', props)
+    },
+    changeF0({ commit }, { index, value }){
+      commit('changeF0', { index, value})
     }
   },
   modules: {

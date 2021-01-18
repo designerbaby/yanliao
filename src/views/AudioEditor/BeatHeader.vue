@@ -26,14 +26,22 @@
       </div>
       <div :class="$style.text">生成音频</div>
     </div>
-    <div :class="$style.common" @click="toClear">
+    <div :class="$style.common" @click="toSet">
+      <div :class="$style.but">
+        <div :class="$style.mode">
+          <Icon class=""></Icon>
+        </div>
+      </div>
+    </div>
+    <!-- <div :class="$style.common" @click="toClear">
       <div :class="$style.but">
         <div :class="$style.mode">
           <Icon class="el-icon-refresh-left"></Icon>
         </div>
       </div>
       <div :class="$style.text">全部清除</div>
-    </div>
+    </div> -->
+
     <div :class="$style.bpm">{{bpm}} BPM</div>
   </div>
 </template>
