@@ -42,9 +42,19 @@ const getF0Data = (data) => {
   })
 }
 
+// 汉字转拼音接口
+const Hanzi2Pinyin = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/synth/h2p',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
   editorSynthResult,
-  getF0Data
+  getF0Data,
+  Hanzi2Pinyin
 }

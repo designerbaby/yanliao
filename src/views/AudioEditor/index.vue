@@ -1,11 +1,16 @@
 <template>
   <div :class="$style.audioEditor" ref="audioEditor">
-    <BeatHeader :isPlaying="playState == 1" @play="toPlay"></BeatHeader>
+    <BeatHeader 
+      :isPlaying="playState == 1" 
+      @play="toPlay"
+      @openDrawer="toOpenDrawer"
+    ></BeatHeader>
     <BeatContainer 
       ref="BeatContainer"
       @showBeat="toShowBeat" 
       @getPitches="toGetPictData"
     ></BeatContainer>
+    <BeatSetting ref="BeatSetting" @buildPitchLine="buildPitchLineHandler"></BeatSetting>
     <BeatSelector ref="BeatSelector"></BeatSelector>
   </div>
 </template>
@@ -19,6 +24,7 @@ import { editorSynth, editorSynthStatus, editorSynthResult } from '@/api/audio'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
 import { sleep, pxToTime } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
+import BeatSetting from './BeatSetting.vue' // 更多信息设置面板
 
 export default {
   name: 'AudioEditor',
@@ -26,7 +32,8 @@ export default {
     Message,
     BeatSelector,
     BeatContainer,
-    BeatHeader
+    BeatHeader,
+    BeatSetting
   },
   data() {
     return {
@@ -48,8 +55,8 @@ export default {
     this.storeStagePitchesWatcher = this.$store.watch(
       state => state.stagePitches,
       (newValue, oldValue) => {
-        console.log('watch store', oldValue, newValue)
-        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
+        // console.log('watch store', oldValue, newValue)
+        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true, isNeedCreatePitchLine: true })
       },
       {
         deep: true
@@ -77,15 +84,32 @@ export default {
     },
     isStagePitchesChanged() {
       return this.$store.state.isStagePitchesChanged
+    },
+    mode() {
+      return this.$store.state.mode
     }
   },
   methods: {
+    toOpenDrawer() {
+      this.$refs.BeatSetting.showDrawer()
+    },
+    buildPitchLineHandler() {
+      this.$refs.BeatContainer.toBuildPitchLine()
+    },
+    // async toGenerateAudio() {
+    //   const { downUrl } = await this.toSynthesize() // 根据音高线去合成音频
+    //   this.$store.dispatch('changeStoreState', { downUrl: downUrl })
+    // },
     changePlayState(stateValue) {
       this.$store.dispatch('changeStoreState', { playState: stateValue })
     },
     isNeedGenerate() {
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
+        return true
+      }
+      // 音高线变化
+      if (this.$store.state.isNeedCreatePitchLine) {
         return true
       }
 
@@ -130,7 +154,7 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isNeedCreatePitchLine: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
@@ -141,7 +165,7 @@ export default {
       const startTime = percent * duration / 1000
       console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
       if (generator) {
-        const url = await this.toSynthesize()
+        const { url } = await this.toSynthesize()
         this.playLine = {
           current: start,
           start,
@@ -149,6 +173,7 @@ export default {
         }
         this.playStartTime = startTime
         this.toPlayAudio(url)
+        console.log('this.audio:', this.audio)
         this.audio.currentTime = startTime
         this.audio.play()
       } else {
@@ -196,9 +221,9 @@ export default {
               const step = length / times
               // console.log(audio, `duration`, duration, `times`, times, `step`, step)
 
-              // console.log(`onPlay , current`, current, step)
               this.playLine.current += step
               this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
+              // console.log('this.playLine.current:', this.playLine.current)
             }
           }, 16)
 
@@ -246,11 +271,11 @@ export default {
         const pitchItem = {
           duration: duration,
           pitch: pitch,
-          singer: 'luoxiang',
+          singer: this.$store.state.toneName,
           startTime: startTime,
-          pinyin: 'la',
+          pinyin: item.pinyin,
           hanzi: item.hanzi,
-          tone_id: 1
+          tone_id: this.$store.state.toneId
         }
         newPitches.push(pitchItem)
       })
@@ -269,17 +294,16 @@ export default {
       let firstPitchStartTime = 0
       let lastPitchStartTime = 0
       let lastPitchDuration = 0
-
+      const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
       this.pitches.forEach(item => {
         const right = item.left + item.width
         if (item.left >= lineLeft || right >= lineLeft) {
           lineStartX = Math.min(lineStartX, item.left)
           lineEndX = Math.max(lineEndX, right)
         }
-
+        
         minStart = Math.min(minStart, item.left)
         maxEnd = Math.max(maxEnd, right)
-
         // const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
         const duration = pxToTime(item.width, this.noteWidth, this.bpm)
         // const startTime = Math.floor(((item.left / this.noteWidth) * 60 * 1000) / (8 * this.bpm))
@@ -301,35 +325,55 @@ export default {
       const totalDuration = lastPitchStartTime - firstPitchStartTime + lastPitchDuration
       return {
         start: lineStartX,
-        end: lineEndX,
+        end: lineEndX + full, // full代表sdk补的宽度
         minStart,
-        maxEnd,
-        duration: totalDuration 
+        maxEnd: maxEnd + full, // full代表sdk补的宽度
+        duration: totalDuration + 500 // 补了500个数据，一个数据10ms,总共5000ms
       } 
     },
     toShowBeat() {
       this.$refs.BeatSelector.showBeatDialog()
     },
+    handleF0() {
+      let f0ai = []
+      let f0draw = []
+      if (this.mode === 1) { // 音高线模式
+        const f0AI= this.$store.state.f0AI
+        const f0Draw = this.$store.state.f0Draw
+        f0AI.forEach(item => {
+          f0ai.push(parseFloat(item/ 100).toFixed(2))
+        })
+        f0Draw.forEach(item => {
+          f0draw.push(Math.floor(item / 100))
+        })
+      }
+      return {
+        f0ai,
+        f0draw
+      }
+    },
     async toSynthesize() {
-      console.log('toSynthesize')
-
+      
       const finalPitches = await this.toHandlePitches(this.pitches)
-
+      console.log('finalPitches:', finalPitches)
       if (finalPitches === undefined) {
         Message.error('音符存在重叠, 请调整好~')
         this.changePlayState(playState.StateNone)
         return
       }
       if (!finalPitches.length) {
-        Message.error('播放线后已经没有音符, 请画好音符再播放~')
+        Message.error('没有音符！！')
         return
       }
 
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
-
+      
+      const { f0ai, f0draw } = await this.handleF0()
       const req = {
         pitchList: finalPitches,
-        f0: []
+        f0_ai: f0ai,
+        f0_draw: f0draw,
+        task_id: 0
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -344,6 +388,7 @@ export default {
       // Message.success('开始合成音频中~')
 
       let url = ''
+      let downUrl = ''
 
       for (let i = 0; i < 10 ;i ++) {
         const { data } = await editorSynthStatus(paramId)
@@ -357,6 +402,7 @@ export default {
             console.log('editorSynthResult:', data)
             if (resp.data.ret_code === 0 && resp.data.data.state === 2 ) {
               url = resp.data.data.online_url
+              downUrl = resp.data.data.down_url
               Message.success('音频合成成功~')
               break
             }
@@ -368,7 +414,10 @@ export default {
 
       this.$store.dispatch('changeStoreState', { isSynthetizing: false })
 
-      return url
+      return {
+        url,
+        downUrl
+      }
     }
   }
 }
@@ -379,6 +428,7 @@ export default {
   margin: 0 93px;
   background:#373736;
   color: #b8b8b8;
+  position: relative;
 }
 
 .audioPlay {
