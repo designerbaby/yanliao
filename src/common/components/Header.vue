@@ -148,9 +148,7 @@ export default {
     toGetUserInfo() {
       userInfo().then((response) => {
         const { data, ret_code } = response.data
-        if (ret_code === 100000) {
-          this.openLoginDialog()
-        } else if (ret_code !== 100000) {
+        if (ret_code !== 100000) {
           if (data !== null) {
             sessionStorage.setItem('userInfo', JSON.stringify(data))
             this.nickName = data.nick_name

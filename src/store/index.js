@@ -23,8 +23,14 @@ const store = new Vuex.Store({
     playState: playState.StateNone, // 播放状态
     stagePitches: [], // 舞台音块
     isStagePitchesChanged: false, // 舞台音块是否有改变
+    isNeedCreatePitchLine: true, // 是否需要生成音高线
     f0AI: [],
-    f0Draw: []
+    f0Draw: [],
+    f0IndexSet: new Set(),
+    downUrl: '', // 下载音频
+    toneId: 1, // 选择的toneId
+    toneName: 'luoxiang', // 选择的toneName
+    selectRadio: 0
   },
   getters: {
     stageWidth: state => {
@@ -38,6 +44,10 @@ const store = new Vuex.Store({
     },
     firstPitch: state => {
       return pitchList[0].pitch
+    },
+    pitchWidth: state => { // 音高线2个数据之间的px值
+      // 10是因为数据的每一项间隔10ms
+      return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
     }
   },
   mutations: {
@@ -53,7 +63,7 @@ const store = new Vuex.Store({
     // 通用改成state方法
     changeStoreState(state, props) {
       Object.keys(props).forEach(k => {
-        console.log(`changeStoreState`, k, props[k])
+        // console.log(`changeStoreState`, k, props[k])
         state[k] = props[k]
       })
     },
@@ -61,6 +71,11 @@ const store = new Vuex.Store({
       const f0 = state.f0Draw
       f0[index] = value
       state.f0Draw = [...f0]
+    },
+    changeStagePitches(state, { index, key, value }) {
+      const stagePitches = state.stagePitches
+      stagePitches[index][key] = value
+      state.stagePitches = [...stagePitches]
     }
   },
   actions: {
@@ -76,6 +91,9 @@ const store = new Vuex.Store({
     },
     changeF0({ commit }, { index, value }){
       commit('changeF0', { index, value})
+    },
+    changeStagePitches({ commit }, { index, key, value }) {
+      commit('changeStagePitches', { index, key, value })
     }
   },
   modules: {

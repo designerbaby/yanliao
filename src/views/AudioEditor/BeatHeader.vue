@@ -2,10 +2,10 @@
   <div :class="$style.header">
     <div :class="$style.common">
       <div :class="$style.but">
-        <div :class="[$style.mode, select === 0 ? $style.isActive : '']" @click="selectMode(0)">
+        <div :class="[$style.mode, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
           <Icon class="el-icon-s-operation"></Icon>
         </div>
-        <div :class="[$style.mode, select === 1 ? $style.isActive : '']" @click="selectMode(1)">
+        <div :class="[$style.mode, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
           <Icon class="el-icon-sort-up"></Icon>
         </div>
       </div>
@@ -18,7 +18,7 @@
       </div>
       <div :class="$style.text">播放控制</div>
     </div>
-    <div :class="$style.common" @click="toGenerateAudio">
+    <div :class="$style.common" @click="toGenerateAudio" v-if="mode === 1">
       <div :class="$style.but">
         <div :class="$style.mode">
           <Icon class="el-icon-top-right"></Icon>
@@ -26,12 +26,21 @@
       </div>
       <div :class="$style.text">生成音频</div>
     </div>
-    <div :class="$style.common" @click="toSet">
+    <!-- <div :class="$style.common" @click="toDownload" v-if="mode === 1">
       <div :class="$style.but">
         <div :class="$style.mode">
-          <Icon class=""></Icon>
+          <Icon class="el-icon-download"></Icon>
         </div>
       </div>
+      <div :class="$style.text">下载音频</div>
+    </div> -->
+    <div :class="[$style.common, $style.set]" @click="toSet">
+      <div :class="$style.but">
+        <div :class="$style.mode">
+          <Icon class="el-icon-s-tools"></Icon>
+        </div>
+      </div>
+      <div :class="$style.text">更多信息</div>
     </div>
     <!-- <div :class="$style.common" @click="toClear">
       <div :class="$style.but">
@@ -48,6 +57,7 @@
 
 <script>
 import { Icon, Button, Message } from 'element-ui'
+import { playState } from "@/common/utils/const"
 
 export default {
   name: 'BeatHeader',
@@ -60,8 +70,17 @@ export default {
     bpm() {
       return this.$store.state.bpm
     },
-    select() {
+    mode() {
       return this.$store.state.mode
+    },
+    downUrl() {
+      return this.$store.state.downUrl
+    },
+    isSynthetizing() {
+      return this.$store.state.isSynthetizing
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   components: {
@@ -76,11 +95,33 @@ export default {
       this.$emit('play')
     },
     selectMode(mode) {
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       this.$store.dispatch('changeStoreState', { mode: mode })
+      if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
+        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
+      }
     },
     toGenerateAudio() {
-      // TODO
-      Message.error('这里需要根据音高线去生成新的音频，暂时没做，先放着。')
+      // this.$emit('generateAudio')
+      this.$router.push(`/profile`)
+    },
+    toSet() {
+      this.$emit('openDrawer')
+    },
+    toDownload() {
+      const downUrl = this.$store.state.downUrl
+      if (!downUrl) {
+        Message.error('没有音频！')
+        return
+      }
+      window.open(downUrl, '_blank')
     }
   }
 }
@@ -106,6 +147,12 @@ export default {
   margin: 0 5px;
 }
 
+.set {
+  position: absolute;
+  top: 0;
+  right: 10px;
+}
+
 .icon {
   width: 22px;
   height: 22px;
@@ -118,9 +165,10 @@ export default {
 .bpm {
   color: #fff;
   font-size: 13px;
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  text-align: center;
+  // position: absolute;
+  // bottom: -30px;
+  // left: 80px;
 }
 
 .but {
@@ -148,7 +196,6 @@ export default {
 
 .text {
   height: 20px;
-  // border: 1px solid red;
   line-height: 20px;
 }
 </style>

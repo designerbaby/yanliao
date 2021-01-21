@@ -60,7 +60,8 @@
           >
             <template slot-scope="scope">
               <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-download disabled' : 'icon el-icon-download'" @click="downloadButtonClick(scope.row)"></i>
-              <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" @click="editButtonClick(scope.row)"></i>
+              <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-if="scope.row.bus_type === 2" @click="toAudioEditor"></i>
+              <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-else @click="editButtonClick(scope.row)"></i>
               <i class="icon el-icon-delete" @click="deleteButtonClick(scope.row)"></i>
             </template>
           </el-table-column>
@@ -139,6 +140,9 @@ export default {
     this.getList()
   },
   methods: {
+    toAudioEditor() {
+      this.$router.push(`/audioEditor`)
+    },
     stateMap(state) {
       const m = {
         0: '音频合成中',

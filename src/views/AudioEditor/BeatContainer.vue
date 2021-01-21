@@ -43,15 +43,18 @@
                 <div slot="header" class="clearfix">
                   <span>操作列表</span>
                 </div>
+                <Button type="primary" @click.stop="editLyric(index)">编辑歌词</Button>
                 <Button type="danger" @click.stop="toDeletePitch(index)">删除</Button>
               </Card>
             </div>
           </div>
         </template>
         <div :class="$style.sharp" ref="sharp"></div>
-        <PitchLine v-if="this.$store.state.mode === 1"></PitchLine>
+        <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
       </div>
     </div>
+    <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
+    <LyricCorrect ref="LyricCorrect"></LyricCorrect>
   </div>
 </template>
 
@@ -63,6 +66,8 @@ import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
 import Arrow from './Arrow.vue'
 import PitchLine from './PitchLine.vue' // 音高线
+import BeatLyric from './BeatLyric.vue'
+import LyricCorrect from './LyricCorrect.vue'
 
 export default {
   name: "BeatContainer",
@@ -74,7 +79,9 @@ export default {
     BeatStageBg,
     Arrow,
     BeatLine,
-    PitchLine
+    PitchLine,
+    BeatLyric,
+    LyricCorrect
   },
   data() {
     return {
@@ -83,7 +90,6 @@ export default {
       startPos: null,
       endPos: null,
       stageOffset: null,
-      // stagePitches: [],
       movePitchStart: null,
       selectedPitch: -1,
       showList: -1
@@ -132,7 +138,7 @@ export default {
     }
   },
   methods: {
-    checkPitchDuplicated() {
+    checkPitchDuplicated() { // 检查音符块有没重叠
       // log('checkPitchDuplicated pitches:', this.stagePitches)
       const pitches = this.stagePitches
       for(let i = 0; i < pitches.length; i++){
@@ -152,7 +158,7 @@ export default {
               rightPitch = pitch1
             }
             
-            const isRed = leftPitch.left + leftPitch.width > rightPitch.left
+            const isRed = leftPitch.left + leftPitch.width >= rightPitch.left
             if (isRed) {
               pitch1.red = isRed
             }
@@ -338,29 +344,29 @@ export default {
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
-        const hanzi = '啦'
         this.addOnePitch({
           width,
           height: 25,
           left,
-          top,
-          hanzi
+          top
         });
         this.toCheckOverStage(this.endPos.x)
       }
     },
 
-    addOnePitch({ width, height, left, top, hanzi }) {
+    addOnePitch({ width, height, left, top }) {
       if (width > 25) {
-        console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
+        // console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
         this.stagePitches.push({
           width,
           height,
           left,
           top,
-          hanzi,
+          hanzi: '啦',
+          pinyin: 'la',
           red: false
         });
+        console.log('this.stagePitches:', this.stagePitches)
         this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
       }
       this.checkPitchDuplicated()
@@ -399,6 +405,18 @@ export default {
       this.stagePitches.splice(index, 1)
       this.showList = -1 // 删除掉之后顺便把选择的还原
       this.checkPitchDuplicated()
+    },
+    editLyric(index) {
+      const lyric = this.stagePitches.find((item, i) => i === index).hanzi
+      this.$refs.BeatLyric.showLyric(lyric, index)
+      this.showList = -1
+    },
+    showLyric(lyric, index) {
+      console.log('showLyric:', lyric, index)
+      this.$refs.LyricCorrect.showLyric(lyric, index)
+    },
+    toBuildPitchLine() {
+      this.$refs.PitchLine.createPitchLine()
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)

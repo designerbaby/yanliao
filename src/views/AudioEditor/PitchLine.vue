@@ -28,6 +28,7 @@
 import { getF0Data } from '@/api/audio'
 import { Message } from 'element-ui'
 import { pxToTime } from '@/common/utils/helper'
+import { playState } from "@/common/utils/const"
 
 export default {
   name: 'PitchLine',
@@ -61,11 +62,22 @@ export default {
       return this.$store.state.noteHeight
     },
     pitchWidth() {
-      // 10是因为数据的每一项间隔10ms，音高线2个数据之间的px值
-      return (10 * 8 * this.bpm * this.noteWidth) / (60 * 1000)  
+      return this.$store.getters.pitchWidth
+    },
+    stagePitches() {
+      return this.$store.state.stagePitches
+    },
+    isSynthetizing() {
+      return this.$store.state.isSynthetizing
+    },
+    playState() {
+      return this.$store.state.playState
+    },
+    isNeedCreatePitchLine() {
+      return this.$store.state.isNeedCreatePitchLine
     },
     pitchList() {
-      const stagePitches = this.$store.state.stagePitches
+      const stagePitches = this.stagePitches
       console.log('stagePitches:', stagePitches)
       const pitches = []
       stagePitches.forEach(item => {
@@ -75,15 +87,18 @@ export default {
         const pitchItem = {
           duration: duration,
           pitch: pitch,
-          singer: 'luoxiang',
+          singer: this.$store.state.toneName,
           startTime: startTime,
-          pinyin: 'la',
+          pinyin: item.pinyin,
           hanzi: item.hanzi,
-          tone_id: 1
+          tone_id: this.$store.state.toneId
         }
         pitches.push(pitchItem)
       })
       return pitches
+    },
+    changedIndexes() {
+      return this.$store.state.f0IndexSet
     },
     svgData() {
       // console.log(`svgData`)
@@ -94,18 +109,25 @@ export default {
     }
   },
   mounted() {
-    this.getPitchLine()
+    if (this.isNeedCreatePitchLine) { // 音块有更改才去获取新的音高线
+      this.createPitchLine()
+    }
   },
   methods: {
-    async getPitchLine() {
-      const f0Data = await this.toGetPitchLineData()
+    async createPitchLine() {
+      this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: false })
+      const f0Data = (await this.toGetPitchLineData()) || []
 
       this.$store.dispatch("changeStoreState", { f0AI: f0Data })
 
       const draw = this.$store.state.f0Draw
       const f0Draw = [...f0Data]
 
-      draw.forEach((v, index) => f0Draw[index] = v)
+      draw.forEach((v, index) => {
+        if (this.changedIndexes.has(index)) {
+          f0Draw[index] = v
+        }
+      })
 
       this.$store.dispatch("changeStoreState", { f0Draw })
 
@@ -115,7 +137,13 @@ export default {
         Message.error('没有画音块，所以没音高线')
         return
       }
-      Message.success('音高线正在生成中~') // !这里后端没有音高线的进度状态返回
+      for (let i = 0; i < this.stagePitches.length; i += 1) {
+        if (this.stagePitches[i].red) {
+          Message.error('音符存在重叠, 请调整好~')
+          return
+        }
+      }
+      // Message.success('音高线正在生成中~') // !这里后端没有音高线的进度状态返回
       const { data } = await getF0Data({ pitchList: this.pitchList })
       // console.log(`getF0Data: ${data}`)
       if (data.ret_code !== 0) {
@@ -132,19 +160,9 @@ export default {
         const item = f0Data[i]
         finalData.push({
           x: this.pitchWidth * i,
-          y: parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight
+          y: parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 10
         })
-        // if (i % 10 === 0) {
-        //   finalData.push({
-        //     x: this.pitchWidth * i / 10,
-        //     y: parseFloat((this.firstPitch - (item / 100)).toFixed(2)) * this.noteHeight
-        //   })
-        // }
-      }
-      // this.filterF0Data = finalData
-      // console.log('finalData:', finalData)
-      // 转成svg相应的数据
-      
+      } 
       let result = 'M '
       finalData.forEach(item => {
         result += `${item.x} ${item.y},` 
@@ -154,6 +172,14 @@ export default {
     },
     onMouseDown(event) {
       console.log(`onMouseDown event`, event)
+      if (this.isSynthetizing) {
+        Message.error('正在合成音频中,不能修改哦~')
+        return
+      }
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       const rect = this.$refs.svgStage.getBoundingClientRect()
       this.mouseStart = {
         rect
@@ -172,6 +198,8 @@ export default {
           const value = (this.firstPitch - y / this.noteHeight) * 100
           // console.log(`changeF0`, x, index, value)
           this.$store.dispatch('changeF0', { index, value })
+          this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
+          this.changedIndexes.add(index)
 
           // 补帧
           const time = Date.now() - this.lastTime
@@ -182,11 +210,15 @@ export default {
               for (let i = this.lastIndex; i < index ; i+= 1) {
                 // console.log(`move right changeF0 add lost data`, i, value)
                 this.$store.dispatch('changeF0', { index: i, value: value })
+                this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
+                this.changedIndexes.add(i)
               }
             } else if ( diff < 1 && diff > -10){ // 向左移动
               for (let i = index; i < this.lastIndex ; i+= 1) {
                 // console.log(`move left changeF0 add lost data`, i, value)
                 this.$store.dispatch('changeF0', { index: i, value: value })
+                this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
+                this.changedIndexes.add(i)
               }
             }
           }
