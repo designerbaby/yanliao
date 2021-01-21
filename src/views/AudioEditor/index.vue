@@ -154,7 +154,7 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isNeedCreatePitchLine: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
@@ -173,6 +173,7 @@ export default {
         }
         this.playStartTime = startTime
         this.toPlayAudio(url)
+        console.log('this.audio:', this.audio)
         this.audio.currentTime = startTime
         this.audio.play()
       } else {
