@@ -5,11 +5,11 @@
       <div class="header-text" @click="openHomePage">盐料视频 - 百万调音合成工具</div>
       <div class="beta-icon" @click="openHomePage">Beta</div>
     </div>
-    <a href="/activityPage" class="subhead" target="_blank">
-      <div class="subhead-text">爆款视频悬赏活动</div>
+    <a href="/springFestival" class="subhead" target="_blank">
+      <div class="subhead-text">万元悬赏拜年视频！</div>
       <img src="@/assets/icon-act.png" alt="">
     </a>
-    <div class="audio-edit" @click="toAudioEditor">音频编辑器</div>
+    <!-- <div class="audio-edit" @click="toAudioEditor">音频编辑器</div> -->
     <div class="user-info" v-if="mxIsLogin || nickName">
       <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
       <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
@@ -92,7 +92,7 @@ export default {
     'el-dialog': Dialog,
     'el-input': Input,
     'el-form': Form,
-    'el-form-item': FormItem,
+    'el-form-item': FormItem
   },
   data() {
     return {
@@ -139,6 +139,8 @@ export default {
       }
     }
   },
+  computed: {
+  },
   mounted() {
     this.toGetUserInfo()
     this.toShowBindKugou()
@@ -153,6 +155,7 @@ export default {
             sessionStorage.setItem('userInfo', JSON.stringify(data))
             this.nickName = data.nick_name
             this.userLogo = data.user_logo
+            this.$store.dispatch('changeStoreState', { userInfo: JSON.stringify(data) })
           }
         }
       })
@@ -266,7 +269,7 @@ export default {
         if (ret_code === 0) {
           if (data !== null) {
             this.showBind = data.show_bind
-            this.$store.dispatch('updateShowBindKugou', this.showBind)
+            this.$store.dispatch('changeStoreState', { showBindKugou: this.showBind })
           } 
         }
       })

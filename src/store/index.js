@@ -2,6 +2,9 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import profile from './profile'
 import { pitchList, playState } from '@/common/utils/const'
+import { getF0Data } from '@/api/audio'
+import { pxToTime } from '@/common/utils/helper'
+import { Message } from 'element-ui'
 
 Vue.use(Vuex)
 
@@ -16,6 +19,8 @@ const store = new Vuex.Store({
     noteWidth: 20, // 32分音符占据的最小像素单位
     noteHeight: 25, // 32分音符的占据的最小高度
     bpm: 90,       // 音调
+    toneId: 1, // 选择的toneId
+    taskId: 0, // 正在编辑的taskId
     isSynthetizing: false, // 是否在合成音频中
     stageSize: {},
     maxPitchRight: 0, // 音块最右边的位置
@@ -23,12 +28,12 @@ const store = new Vuex.Store({
     playState: playState.StateNone, // 播放状态
     stagePitches: [], // 舞台音块
     isStagePitchesChanged: false, // 舞台音块是否有改变
-    isNeedCreatePitchLine: true, // 是否需要生成音高线
+
+    isPitchLineChanged: true, // 音高线是否有改变
     f0AI: [],
     f0Draw: [],
     f0IndexSet: new Set(),
     downUrl: '', // 下载音频
-    toneId: 1, // 选择的toneId
     toneName: 'luoxiang', // 选择的toneName
     selectRadio: 0
   },
@@ -48,7 +53,29 @@ const store = new Vuex.Store({
     pitchWidth: state => { // 音高线2个数据之间的px值
       // 10是因为数据的每一项间隔10ms
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
-    }
+    },
+    pitchList: (state, getters) =>  {
+      const stagePitches = state.stagePitches
+      // console.log('stagePitches:', stagePitches)
+      const pitches = []
+      stagePitches.forEach(item => {
+        const duration = pxToTime(item.width, state.noteWidth, state.bpm)
+        const pitch = getters.firstPitch - (item.top / item.height)
+        const startTime = pxToTime(item.left, state.noteWidth, state.bpm)
+        const pitchItem = {
+          duration: duration,
+          pitch: pitch,
+          singer: state.toneName,
+          startTime: startTime,
+          endTime: startTime + duration,
+          pinyin: item.pinyin,
+          hanzi: item.hanzi,
+          tone_id: state.toneId
+        }
+        pitches.push(pitchItem)
+      })
+      return pitches
+    },
   },
   mutations: {
     updateBeatForm(state, form) {
@@ -89,11 +116,45 @@ const store = new Vuex.Store({
     changeStoreState({ commit }, props) {
       commit('changeStoreState', props)
     },
-    changeF0({ commit }, { index, value }){
+    changeF0({ commit, state }, { index, value }){
       commit('changeF0', { index, value})
+      commit('changeStoreState', { isPitchLineChanged: true })
+      state.f0IndexSet.add(index)
     },
     changeStagePitches({ commit }, { index, key, value }) {
       commit('changeStagePitches', { index, key, value })
+    },
+    async getPitchLine({ commit, state, getters }) {
+      if (getters.pitchList.length <= 0) {
+        Message.error('没有画音块，所以没音高线')
+        return
+      }
+      for (let i = 0; i < state.stagePitches.length; i += 1) {
+        if (state.stagePitches[i].red) {
+          Message.error('音符存在重叠, 请调整好~')
+          return
+        }
+      }
+
+      const { data } = await getF0Data({ pitchList: getters.pitchList })
+      if (data.ret_code !== 0) {
+        // Message.error(`请求音高线数据错误,错误信息:${data.err_msg}`)
+        return
+      }
+
+      const f0Data = data.data.f0_data
+      commit('changeStoreState', { f0AI: f0Data })
+
+      const draw = state.f0Draw
+      const f0Draw = [...f0Data]
+
+      draw.forEach((v, index) => {
+        if (state.f0IndexSet.has(index)) {
+          f0Draw[index] = v
+        }
+      })
+      
+      commit('changeStoreState', { f0Draw , isPitchLineChanged: false })
     }
   },
   modules: {
@@ -103,8 +164,7 @@ const store = new Vuex.Store({
 
 const updateStageSize = () => {
   const windowWidth = window.innerWidth
-  // TODO 这里如果外框的margin值改变了，93这个值也要改
-  const stageConWidth = windowWidth - 93*2 - 50
+  const stageConWidth = windowWidth - 50
   // console.log('windowWidth:', windowWidth)
   store.state.stageSize = {
     width: stageConWidth

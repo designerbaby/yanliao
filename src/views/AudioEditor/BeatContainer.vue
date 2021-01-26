@@ -39,13 +39,9 @@
             <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
             <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
             <div :class="$style.list" v-if="showList === index">
-              <Card class="box-card">
-                <div slot="header" class="clearfix">
-                  <span>操作列表</span>
-                </div>
-                <Button type="primary" @click.stop="editLyric(index)">编辑歌词</Button>
-                <Button type="danger" @click.stop="toDeletePitch(index)">删除</Button>
-              </Card>
+              <img src="@/assets/audioEditor/arrow-black.png">
+              <div :class="$style.edit" @click.stop="editLyric(index)">编辑歌词</div>
+              <div :class="[$style.edit, $style.delete]" @click.stop="toDeletePitch(index)">删除</div>
             </div>
           </div>
         </template>
@@ -60,7 +56,7 @@
 
 <script>
 import { pitchList, playState } from "@/common/utils/const"
-import { Card, Button, Message } from "element-ui"
+import { Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
@@ -72,8 +68,6 @@ import LyricCorrect from './LyricCorrect.vue'
 export default {
   name: "BeatContainer",
   components: {
-    Card,
-    Button,
     Message,
     BeatPiano,
     BeatStageBg,
@@ -158,7 +152,7 @@ export default {
               rightPitch = pitch1
             }
             
-            const isRed = leftPitch.left + leftPitch.width >= rightPitch.left
+            const isRed = leftPitch.left + leftPitch.width > rightPitch.left
             if (isRed) {
               pitch1.red = isRed
             }
@@ -254,7 +248,15 @@ export default {
         const pitch = this.stagePitches[index]
         
         pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
-        pitch.top = top - (top % 25);
+
+        const mod = (top % 25)
+
+        if (mod < 25/2 ) {
+          pitch.top = top - mod
+        } else {
+          pitch.top = top - mod + 25
+        }
+
 
         target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
         target.dataset.left = pitch.left
@@ -356,7 +358,6 @@ export default {
 
     addOnePitch({ width, height, left, top }) {
       if (width > 25) {
-        // console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: ${hanzi}`)
         this.stagePitches.push({
           width,
           height,
@@ -366,7 +367,7 @@ export default {
           pinyin: 'la',
           red: false
         });
-        console.log('this.stagePitches:', this.stagePitches)
+        console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false`)
         this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
       }
       this.checkPitchDuplicated()
@@ -416,7 +417,9 @@ export default {
       this.$refs.LyricCorrect.showLyric(lyric, index)
     },
     toBuildPitchLine() {
-      this.$refs.PitchLine.createPitchLine()
+      if (this.mode === 1) {
+        this.$refs.PitchLine.createPitchLine()
+      }
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
@@ -514,23 +517,40 @@ export default {
 
 
 .list {
-  width: 100px;
-  // height: 20px;
-  background: rgba(255, 255, 255, 0.5);
+  width: 104px;
+  background: #151517;
+  box-shadow: 0 4px 10px 0 rgba(0,0,0,0.15);
+  border-radius: 8px;
   position: absolute;
-  top: 30px;
-  border-radius: 2px;
-  &::before {
-    content: '';
+  top: 38px;
+  right: -40px;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  img {
+    width: 14px;
+    height: 8px;
     position: absolute;
-    top: -5px;
-    left: 10px;
-    border-right: 5px solid transparent;
-    border-left: 5px solid transparent;
-    border-bottom: 5px solid rgba(255, 255, 255, 0.5);
+    left: 16px;
+    top: -8px;
   }
 }
 
+.edit {
+  height: 44px;
+  line-height: 44px;
+  margin: 8px 0 0 0;
+  &:hover {
+    background: #1C1C1E;
+  }
+  &:active {
+    background: #0E0E0F;
+  }
+}
+
+.delete {
+  margin: 0 0 8px 0;
+}
 .sharp {
   display: none;
   border: 1px solid #ccc;

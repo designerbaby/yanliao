@@ -56,7 +56,7 @@ export default {
       state => state.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
-        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true, isNeedCreatePitchLine: true })
+        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
       },
       {
         deep: true
@@ -91,15 +91,11 @@ export default {
   },
   methods: {
     toOpenDrawer() {
-      this.$refs.BeatSetting.showDrawer()
+      this.$refs.BeatSetting.handleDrawer()
     },
     buildPitchLineHandler() {
       this.$refs.BeatContainer.toBuildPitchLine()
     },
-    // async toGenerateAudio() {
-    //   const { downUrl } = await this.toSynthesize() // 根据音高线去合成音频
-    //   this.$store.dispatch('changeStoreState', { downUrl: downUrl })
-    // },
     changePlayState(stateValue) {
       this.$store.dispatch('changeStoreState', { playState: stateValue })
     },
@@ -109,7 +105,7 @@ export default {
         return true
       }
       // 音高线变化
-      if (this.$store.state.isNeedCreatePitchLine) {
+      if (this.$store.state.isPitchLineChanged) {
         return true
       }
 
@@ -154,7 +150,8 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isNeedCreatePitchLine: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false})
+      this.$store.dispatch('getPitchLine')
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
@@ -216,6 +213,7 @@ export default {
               const restDuration = duration - this.playStartTime
               const msDuration = restDuration * 1000
               
+              // console.log(`开始播放，音频长度为：${audio.duration}, 剩余长度：${restDuration},当前进度：${audio.currentTime}`)
               const length = this.playLine.end - this.playLine.start
               const times = msDuration / 16
               const step = length / times
@@ -287,7 +285,7 @@ export default {
       const excessPitches = []
       let lineStartX = 10000000
       let lineEndX = 0
-      let minStart = 1000000000
+      let minStart = 0
       let maxEnd = 0
 
 
@@ -302,7 +300,7 @@ export default {
           lineEndX = Math.max(lineEndX, right)
         }
         
-        minStart = Math.min(minStart, item.left)
+        // minStart = Math.min(minStart, item.left)
         maxEnd = Math.max(maxEnd, right)
         // const duration = Math.floor((60 * (parseInt(item.width) / this.noteWidth) * 1000) / (8 * this.bpm))
         const duration = pxToTime(item.width, this.noteWidth, this.bpm)
@@ -328,7 +326,7 @@ export default {
         end: lineEndX + full, // full代表sdk补的宽度
         minStart,
         maxEnd: maxEnd + full, // full代表sdk补的宽度
-        duration: totalDuration + 500 // 补了500个数据，一个数据10ms,总共5000ms
+        duration: totalDuration + 500 // 补了50个数据，一个数据10ms,总共500ms
       } 
     },
     toShowBeat() {
@@ -344,7 +342,7 @@ export default {
           f0ai.push(parseFloat(item/ 100).toFixed(2))
         })
         f0Draw.forEach(item => {
-          f0draw.push(Math.floor(item / 100))
+          f0draw.push(parseFloat(item/ 100).toFixed(2))
         })
       }
       return {
@@ -353,7 +351,7 @@ export default {
       }
     },
     async toSynthesize() {
-      
+      console.log('toSynthesize:', this.pitches)
       const finalPitches = await this.toHandlePitches(this.pitches)
       console.log('finalPitches:', finalPitches)
       if (finalPitches === undefined) {
@@ -373,7 +371,7 @@ export default {
         pitchList: finalPitches,
         f0_ai: f0ai,
         f0_draw: f0draw,
-        task_id: 0
+        task_id: this.$store.state.taskId
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -384,7 +382,8 @@ export default {
 
       const paramId = data.data.param_id
       const taskId = data.data.task_id
-    
+
+      this.$store.dispatch('changeStoreState', { taskId: taskId })
       // Message.success('开始合成音频中~')
 
       let url = ''
@@ -425,7 +424,7 @@ export default {
 
 <style module lang="less">
 .audioEditor {
-  margin: 0 93px;
+  // margin: 0 93px;
   background:#373736;
   color: #b8b8b8;
   position: relative;

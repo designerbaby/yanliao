@@ -1,52 +1,44 @@
 <template>
-  <div :class="$style.BeatSetting">
-    <Drawer
-      title="设置面板"
-      :visible.sync="drawer"
-      :append-to-body="true"
-      :custom-class="$style.beatSetting"
-      :modal-append-to-body="false"
-      :modal="false"
-      :show-close="true"
-      size="15%"
-      :with-title="false">
-      <div>
-        <div :class="$style.text">当前音源</div>
-        <div :class="$style.tone">
-          <Select
-            filterable
-            :class="$style.selector" 
-            :placeholder="'选择谁来演唱这首歌'"
-            v-model="toneId"
-            @change="singleToneIdChange"
-            >
-            <Option
-              v-for="item in toneList"
-              :key="item.tone_id"
-              :label="item.display_name"
-              :value="item.tone_id"
-            >
-            </Option>
-          </Select>
-          <img src="@/assets/icon-player.png" @click="playerButtonClick">
-        </div>
+  <div :class="[$style.BeatSetting, showDrawer ? $style.isActive : '']"
+    :style="{ height: `${stageHeight + 25}px`}">
+    <div :class="$style.top">
+      <div :class="$style.title">设置面板</div>
+      <img src="@/assets/audioEditor/close.png" @click.stop="closeDrawer">
+    </div>
+    <div :class="$style.text">当前音源</div>
+    <div :class="$style.setting">
+      <div :class="$style.select">
+        <Select
+          filterable
+          :class="$style.selector" 
+          :placeholder="'选择谁来演唱这首歌'"
+          v-model="toneId"
+          @change="singleToneIdChange"
+          >
+          <Option
+            v-for="item in toneList"
+            :key="item.tone_id"
+            :label="item.display_name"
+            :value="item.tone_id"
+          >
+          </Option>
+        </Select>
       </div>
-      <div>
-        <div :class="$style.text">当前曲速</div>
-        <div :class="$style.tone">
-          <InputNumber :class="$style.bpmInput" v-model="bpm" @input="bpmInputChange" controls-position="right" :min="50" :max="200"/>
-          <div :class="$style.bpmText">(50-200BPM)</div>
-        </div>
+      <div :class="$style.listen">
+        <img src="@/assets/audioEditor/audition.png" @click="playerButtonClick">
+        试听
       </div>
-      <div :class="$style.tone">
-        <Button type="primary" @click.stop="save">保存</Button>
-      </div>
-    </Drawer>
+    </div>
+    <div :class="$style.text">当前曲速</div>
+    <div :class="$style.select">
+      <InputNumber :class="$style.bpmInput" v-model="bpm" @input="bpmInputChange" controls-position="right" :min="50" :max="200"/>
+    </div>
+    <div :class="$style.bpmText">请控制输入范围在50-200BPM</div>
   </div>
 </template>
 
 <script>
-import { Drawer, Select, Option, InputNumber, Button } from "element-ui"
+import { Select, Option, InputNumber } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
 
@@ -54,7 +46,7 @@ export default {
   name: 'BeatSetting',
   data() {
     return {
-      drawer: false,
+      showDrawer: false,
       audio: null,
       toneList: [],
       toneId: this.$store.state.toneId,
@@ -62,18 +54,28 @@ export default {
     }
   },
   components: {
-    Drawer,
     Select,
     Option,
-    InputNumber,
-    Button
+    InputNumber
+  },
+  computed: {
+    stageHeight() {
+      return this.$store.getters.stageHeight
+    }
   },
   mounted() {
     this.getSongOtherDetail()
   },
   methods: {
-    showDrawer() {
-      this.drawer = true
+    handleDrawer() {
+      if (this.showDrawer) {
+        this.showDrawer = false
+      } else {
+        this.showDrawer = true
+      }
+    },
+    closeDrawer() {
+      this.showDrawer = false
     },
     async getSongOtherDetail() {
       const { data } = await songOtherDetail()
@@ -82,9 +84,17 @@ export default {
     singleToneIdChange(value) {
       console.log('singleToneIdChange:', value)
       this.toneId = value
+      this.toneList.forEach(item => {
+        if (this.toneId === item.tone_id) {
+          this.$store.dispatch('changeStoreState', { toneId: item.tone_id, toneName: item.name })
+        }
+      })
+      this.$emit('buildPitchLine')
     },
     bpmInputChange(value) {
       this.bpm = value
+      this.$store.dispatch('changeStoreState', { bpm: this.bpm })
+      this.$emit('buildPitchLine')
     },
     playerButtonClick() {
       let url = ''
@@ -106,49 +116,80 @@ export default {
         }
       })
       this.audio.play()
-    },
-    save() {
-      this.toneList.forEach(item => {
-        if (this.toneId === item.tone_id) {
-          this.$store.dispatch('changeStoreState', { toneId: item.tone_id, toneName: item.name })
-        }
-      })
-      this.$store.dispatch('changeStoreState', { bpm: this.bpm })
-      // 重新生成音高线
-      this.$emit('buildPitchLine')
     }
   }
 }
 </script>
 
 <style lang="less" module>
-.v-modal {
-  background: transparent;
-}
 .BeatSetting{
-  color: #b8b8b8;
+  color: #fff;
+  width: 316px;
+  top: 78px;
+  background: #323232;
+  box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
+  position: absolute;
+  right: -316px;
+  transition: right 0.2s linear;
+  z-index: 2000;
+  &.isActive {
+    right: 0;
+  }
 }
 
-.beatSetting {
-  right: 93px !important;
-  top: 200px !important;
-  background: #2f2f30 !important;
-  border: 1px solid #626263;
+.top {
+  display: flex;
+  height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  img {
+    width: 24px;
+    height: 24px;
+    margin: 0 24px 0 0;
+    cursor: pointer;
+  }
+}
+
+.title {
+  font-size: 16px;
+  margin: 0 0 0 24px;
 }
 
 .text {
-  font-size: 15px;
-  color: #b8b8b8;
-  margin: 2px 16px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.80);
+  margin: 8px 0 10px 24px;
 }
 
-.tone {
-  margin: 0 16px;
+.setting {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center; 
 }
 
+.select {
+  margin: 0 0 0 24px;
+}
+
+.listen {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  font-size: 12px;
+  color: rgba(255,255,255,0.80);
+  margin: 0 50px 0 20px;
+  img {
+    width: 26px;
+    height: 26px;
+    margin: 2px 0;
+    cursor: pointer;
+  }
+}
 
 .bpmText {
-  color: #b8b8b8;
   font-size: 12px;
+  color: rgba(255,255,255,0.60);
+  margin: 5px 0 0 24px;
 }
 </style>

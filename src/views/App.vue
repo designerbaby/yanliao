@@ -1,6 +1,7 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
-    <Header v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
+    <audioHeader v-if="$router.history.current.path === '/audioEditor'"></audioHeader>
+    <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
       ref="header" :currentPath="$router.history.current.path" 
       :loginDialogShow="loginDialogShow" 
       :openLoginDialog="openLoginDialog" 
@@ -12,17 +13,20 @@
 
 <script>
 // @ is an alias to /src
+import audioHeader from '@/common/components/audioHeader.vue'
 import Header from '@/common/components/Header.vue'
 import Footer from '@/common/components/Footer.vue'
 import HomeBg from '@/assets/bg-home.png'
 import normalBg from '@/assets/bg.png'
 import activityBg from '@/assets/activity-bg.jpg'
+import springBg from '@/assets/active/bg.jpg'
 
 export default {
   name: 'App',
   components: {
     Header,
     Footer,
+    audioHeader
   },
   data() {
     return {
@@ -39,8 +43,10 @@ export default {
         this.pageBg = HomeBg
       } else if (data === 1) {
         this.pageBg = normalBg
-      } else {
+      } else if (data === 2) {
         this.pageBg = activityBg
+      } else {
+        this.pageBg = springBg
       }
     },
     openLoginDialog() {

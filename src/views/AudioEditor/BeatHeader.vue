@@ -1,57 +1,30 @@
 <template>
   <div :class="$style.header">
-    <div :class="$style.common">
-      <div :class="$style.but">
-        <div :class="[$style.mode, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
-          <Icon class="el-icon-s-operation"></Icon>
-        </div>
-        <div :class="[$style.mode, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
-          <Icon class="el-icon-sort-up"></Icon>
-        </div>
+    <div :class="$style.linefu">
+      <div :class="[$style.check, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
+        <img src="@/assets/audioEditor/note-normal.png" v-if="mode === 1">
+        <img src="@/assets/audioEditor/note-active.png" v-else>
+        <div :class="$style.text">音符模式</div>
       </div>
-      <div :class="$style.text">音符/音高线模式</div>
+      <div :class="[$style.check, $style.right, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
+        <img src="@/assets/audioEditor/line-normal.png" v-if="mode === 0">
+        <img src="@/assets/audioEditor/line-active.png" v-else>
+        <div :class="$style.text">音高线模式</div>
+      </div>
     </div>
     <div :class="$style.common" @click="toPlay">
-      <div :class="$style.but">
-        <img src="@/assets/icon-pause.png" :class="$style.icon" v-if="isPlaying"/>
-        <img src="@/assets/icon-play.png" :class="$style.icon" v-else/>
-      </div>
+      <img src="@/assets/audioEditor/pause.png" v-if="isPlaying"/>
+      <img src="@/assets/audioEditor/play.png" v-else/>
       <div :class="$style.text">播放控制</div>
     </div>
-    <div :class="$style.common" @click="toGenerateAudio" v-if="mode === 1">
-      <div :class="$style.but">
-        <div :class="$style.mode">
-          <Icon class="el-icon-top-right"></Icon>
-        </div>
-      </div>
+    <div :class="$style.common" @click="toGenerateAudio">
+      <img src="@/assets/audioEditor/export.png"/>
       <div :class="$style.text">生成音频</div>
     </div>
-    <!-- <div :class="$style.common" @click="toDownload" v-if="mode === 1">
-      <div :class="$style.but">
-        <div :class="$style.mode">
-          <Icon class="el-icon-download"></Icon>
-        </div>
-      </div>
-      <div :class="$style.text">下载音频</div>
-    </div> -->
     <div :class="[$style.common, $style.set]" @click="toSet">
-      <div :class="$style.but">
-        <div :class="$style.mode">
-          <Icon class="el-icon-s-tools"></Icon>
-        </div>
-      </div>
+      <img src="@/assets/audioEditor/setting.png"/>
       <div :class="$style.text">更多信息</div>
     </div>
-    <!-- <div :class="$style.common" @click="toClear">
-      <div :class="$style.but">
-        <div :class="$style.mode">
-          <Icon class="el-icon-refresh-left"></Icon>
-        </div>
-      </div>
-      <div :class="$style.text">全部清除</div>
-    </div> -->
-
-    <div :class="$style.bpm">{{bpm}} BPM</div>
   </div>
 </template>
 
@@ -99,10 +72,10 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
-        Message.error('正在播放中, 不能修改哦~')
-        return
-      }
+      // if (this.playState === playState.StatePlaying) {
+      //   Message.error('正在播放中, 不能修改哦~')
+      //   return
+      // }
       this.$store.dispatch('changeStoreState', { mode: mode })
       if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
@@ -114,14 +87,6 @@ export default {
     },
     toSet() {
       this.$emit('openDrawer')
-    },
-    toDownload() {
-      const downUrl = this.$store.state.downUrl
-      if (!downUrl) {
-        Message.error('没有音频！')
-        return
-      }
-      window.open(downUrl, '_blank')
     }
   }
 }
@@ -130,72 +95,73 @@ export default {
 <style lang="less" module>
 .header {
   width: 100%;
-  border-top: 1px solid #505050;
+  border-top: 1px solid #282828;
   position: relative;
   display: flex;
-  height: 60px;
+  align-items: center;
+  height: 78px;
   overflow: hidden;
-  font-size: 15px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.80);
+  img {
+    width: 24px;
+    height: 24px;
+    margin: 2px auto;
+    cursor: pointer;
+  }
 }
 
 .common {
+  height: 54px;
+  line-height: 54px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   position: relative;
-  margin: 0 5px;
+  margin: 0 0 0 40px;
+  // border: 1px solid red;
 }
 
 .set {
   position: absolute;
-  top: 0;
-  right: 10px;
+  right: 30px;
 }
 
-.icon {
-  width: 22px;
-  height: 22px;
-  margin: 2px;
-}
-.refresh {
+.linefu {
   display: flex;
-  width: 100px;
-}
-.bpm {
-  color: #fff;
-  font-size: 13px;
-  text-align: center;
-  // position: absolute;
-  // bottom: -30px;
-  // left: 80px;
+  flex-direction: row;
+  margin: 0 0 0 24px;
 }
 
-.but {
+.check {
+  width: 72px;
+  height: 54px;
+  border-radius: 12px 0px 0px 12px;
+  opacity: 0.3;
   display: flex;
   align-items: center;
-  height: 35px;
-}
-.mode {
-  background: #878687;
-  width: 25px;
-  height: 22px;
-  border-radius: 3px;
-  margin: 0 2px;
-  display: flex;
   justify-content: center;
-  align-items: center;
-  color: #fff;
+  flex-direction: column;
+  background: #1E1E1E;
   &.isActive {
-    background: #00a2fb;
+    opacity: 0.8; 
   }
   &:active {
     opacity: 0.8;
   }
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.right {
+  border-radius: 0px 12px 12px 0px;
 }
 
 .text {
   height: 20px;
   line-height: 20px;
+  opacity: 1;
 }
 </style>

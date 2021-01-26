@@ -20,7 +20,6 @@
       <path :d="svgDataDraw" stroke="white" fill="transparent"/>
      </g>
     </svg>
-    
   </div>
 </template>
 
@@ -40,12 +39,12 @@ export default {
     }
   },
   computed: {
-    noteWidth() {
-      return this.$store.state.noteWidth
-    },
-    bpm() {
-      return this.$store.state.bpm
-    },
+    // noteWidth() {
+    //   return this.$store.state.noteWidth
+    // },
+    // bpm() {
+    //   return this.$store.state.bpm
+    // },
     stageWidth() {
       return this.$store.getters.stageWidth
     },
@@ -55,51 +54,51 @@ export default {
     firstPitch() {
       return this.$store.getters.firstPitch
     },
-    isStagePitchesChanged() {
-      return this.$store.state.isStagePitchesChanged
-    },
+    // isStagePitchesChanged() {
+    //   return this.$store.state.isStagePitchesChanged
+    // },
     noteHeight() {
       return this.$store.state.noteHeight
     },
     pitchWidth() {
       return this.$store.getters.pitchWidth
     },
-    stagePitches() {
-      return this.$store.state.stagePitches
-    },
+    // stagePitches() {
+    //   return this.$store.state.stagePitches
+    // },
     isSynthetizing() {
       return this.$store.state.isSynthetizing
     },
     playState() {
       return this.$store.state.playState
     },
-    isNeedCreatePitchLine() {
-      return this.$store.state.isNeedCreatePitchLine
-    },
-    pitchList() {
-      const stagePitches = this.stagePitches
-      console.log('stagePitches:', stagePitches)
-      const pitches = []
-      stagePitches.forEach(item => {
-        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
-        const pitch = this.firstPitch - (item.top / item.height)
-        const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
-        const pitchItem = {
-          duration: duration,
-          pitch: pitch,
-          singer: this.$store.state.toneName,
-          startTime: startTime,
-          pinyin: item.pinyin,
-          hanzi: item.hanzi,
-          tone_id: this.$store.state.toneId
-        }
-        pitches.push(pitchItem)
-      })
-      return pitches
-    },
-    changedIndexes() {
-      return this.$store.state.f0IndexSet
-    },
+    // isNeedCreatePitchLine() {
+    //   return this.$store.state.isNeedCreatePitchLine
+    // },
+    // pitchList() {
+    //   const stagePitches = this.stagePitches
+    //   console.log('stagePitches:', stagePitches)
+    //   const pitches = []
+    //   stagePitches.forEach(item => {
+    //     const duration = pxToTime(item.width, this.noteWidth, this.bpm)
+    //     const pitch = this.firstPitch - (item.top / item.height)
+    //     const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
+    //     const pitchItem = {
+    //       duration: duration,
+    //       pitch: pitch,
+    //       singer: this.$store.state.toneName,
+    //       startTime: startTime,
+    //       pinyin: item.pinyin,
+    //       hanzi: item.hanzi,
+    //       tone_id: this.$store.state.toneId
+    //     }
+    //     pitches.push(pitchItem)
+    //   })
+    //   return pitches
+    // },
+    // changedIndexes() {
+    //   return this.$store.state.f0IndexSet
+    // },
     svgData() {
       // console.log(`svgData`)
       return this.toHandleF0Data(this.$store.state.f0AI)
@@ -109,49 +108,53 @@ export default {
     }
   },
   mounted() {
-    if (this.isNeedCreatePitchLine) { // 音块有更改才去获取新的音高线
-      this.createPitchLine()
+    if (this.$store.state.isPitchLineChanged
+    || this.$store.state.isStagePitchesChanged) { // 音高线有更改才去获取新的音高线
+      this.$store.dispatch('getPitchLine')
     }
   },
   methods: {
-    async createPitchLine() {
-      this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: false })
-      const f0Data = (await this.toGetPitchLineData()) || []
+    // async createPitchLine() {
+    //   this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: false })
+    //   const f0Data = (await this.toGetPitchLineData()) || []
 
-      this.$store.dispatch("changeStoreState", { f0AI: f0Data })
+    //   this.$store.dispatch("changeStoreState", { f0AI: f0Data })
 
-      const draw = this.$store.state.f0Draw
-      const f0Draw = [...f0Data]
+    //   const draw = this.$store.state.f0Draw
+    //   const f0Draw = [...f0Data]
 
-      draw.forEach((v, index) => {
-        if (this.changedIndexes.has(index)) {
-          f0Draw[index] = v
-        }
-      })
+    //   draw.forEach((v, index) => {
+    //     if (this.changedIndexes.has(index)) {
+    //       f0Draw[index] = v
+    //     }
+    //   })
 
-      this.$store.dispatch("changeStoreState", { f0Draw })
+    //   this.$store.dispatch("changeStoreState", { f0Draw })
 
-    },
-    async toGetPitchLineData() {
-      if (this.pitchList.length <= 0) {
-        Message.error('没有画音块，所以没音高线')
-        return
-      }
-      for (let i = 0; i < this.stagePitches.length; i += 1) {
-        if (this.stagePitches[i].red) {
-          Message.error('音符存在重叠, 请调整好~')
-          return
-        }
-      }
-      // Message.success('音高线正在生成中~') // !这里后端没有音高线的进度状态返回
-      const { data } = await getF0Data({ pitchList: this.pitchList })
-      // console.log(`getF0Data: ${data}`)
-      if (data.ret_code !== 0) {
-        Message.error(`请求音高线数据错误,错误信息:${data.err_msg}`)
-        return
-      }
+    // },
+    // async toGetPitchLineData() {
+    //   if (this.pitchList.length <= 0) {
+    //     Message.error('没有画音块，所以没音高线')
+    //     return
+    //   }
+    //   for (let i = 0; i < this.stagePitches.length; i += 1) {
+    //     if (this.stagePitches[i].red) {
+    //       Message.error('音符存在重叠, 请调整好~')
+    //       return
+    //     }
+    //   }
+    //   // Message.success('音高线正在生成中~') // !这里后端没有音高线的进度状态返回
+    //   const { data } = await getF0Data({ pitchList: this.pitchList })
+    //   // console.log(`getF0Data: ${data}`)
+    //   if (data.ret_code !== 0) {
+    //     Message.error(`请求音高线数据错误,错误信息:${data.err_msg}`)
+    //     return
+    //   }
 
-      return data.data.f0_data
+    //   return data.data.f0_data
+    // },
+    createPitchLine () {
+      console.log('createPitchLine')
     },
     toHandleF0Data (f0Data) {
       const finalData = []
@@ -160,7 +163,7 @@ export default {
         const item = f0Data[i]
         finalData.push({
           x: this.pitchWidth * i,
-          y: parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 10
+          y: parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5
         })
       } 
       let result = 'M '
@@ -189,7 +192,7 @@ export default {
       if (this.mouseStart) {
         const { rect } = this.mouseStart
         const x = event.clientX - rect.left
-        const y = event.clientY- rect.top
+        const y = event.clientY- rect.top - 13
 
         const index = Math.round(x / this.pitchWidth)
         const data = this.$store.state.f0AI
@@ -198,8 +201,8 @@ export default {
           const value = (this.firstPitch - y / this.noteHeight) * 100
           // console.log(`changeF0`, x, index, value)
           this.$store.dispatch('changeF0', { index, value })
-          this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
-          this.changedIndexes.add(index)
+          // this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
+          // this.changedIndexes.add(index)
 
           // 补帧
           const time = Date.now() - this.lastTime
@@ -210,15 +213,15 @@ export default {
               for (let i = this.lastIndex; i < index ; i+= 1) {
                 // console.log(`move right changeF0 add lost data`, i, value)
                 this.$store.dispatch('changeF0', { index: i, value: value })
-                this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
-                this.changedIndexes.add(i)
+                // this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
+                // this.changedIndexes.add(i)
               }
             } else if ( diff < 1 && diff > -10){ // 向左移动
               for (let i = index; i < this.lastIndex ; i+= 1) {
                 // console.log(`move left changeF0 add lost data`, i, value)
                 this.$store.dispatch('changeF0', { index: i, value: value })
-                this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
-                this.changedIndexes.add(i)
+                // this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
+                // this.changedIndexes.add(i)
               }
             }
           }
