@@ -19,10 +19,11 @@ export default {
   },
   computed: {
     userInfo() {
-      return JSON.parse(this.$store.state.userInfo)
+      return JSON.parse(this.$store.state.userInfo) || sessionStorage.getItem('userInfo')
     }
   },
   methods: {
+
     openHomePage() {
       this.$router.push('/')
     },

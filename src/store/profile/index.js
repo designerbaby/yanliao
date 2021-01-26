@@ -4,10 +4,6 @@ const state = {
 }
 
 const mutations = {
-  // updateShowBindKugou(state, showBindKugou) {
-  //   console.log('updateShowBindKugou:', showBindKugou)
-  //   state.showBindKugou = showBindKugou
-  // },
   changeStoreState(state, props) {
     Object.keys(props).forEach(k => {
       console.log(`profile mudule changeStoreState`, k, props[k])
@@ -17,9 +13,6 @@ const mutations = {
 }
 
 const actions = {
-  // updateShowBindKugou(context, showBindKugou) {
-  //   context.commit('updateShowBindKugou', showBindKugou)
-  // },
   changeStoreState({ commit }, props) {
     commit('changeStoreState', props)
   }

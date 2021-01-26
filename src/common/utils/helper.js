@@ -16,6 +16,12 @@ export const getUrlParameters = _ => {
   return {}
 }
 
+// 获取url上各个信息
+export const getParam = (key) => {
+  const result = new RegExp(`${key}=([^&]*)`, 'i').exec(window.location.search)
+  return (result && decodeURI(result[1])) || ''
+}
+
 export const sleep = delay => new Promise(resolve => setTimeout(resolve, delay))
 
 // 获取cookie里面的信息

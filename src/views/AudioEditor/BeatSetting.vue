@@ -90,11 +90,13 @@ export default {
         }
       })
       this.$emit('buildPitchLine')
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     bpmInputChange(value) {
       this.bpm = value
       this.$store.dispatch('changeStoreState', { bpm: this.bpm })
       this.$emit('buildPitchLine')
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     playerButtonClick() {
       let url = ''

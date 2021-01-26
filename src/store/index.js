@@ -21,6 +21,7 @@ const store = new Vuex.Store({
     bpm: 90,       // 音调
     toneId: 1, // 选择的toneId
     taskId: 0, // 正在编辑的taskId
+    toneName: 'luoxiang', // 选择的toneName
     isSynthetizing: false, // 是否在合成音频中
     stageSize: {},
     maxPitchRight: 0, // 音块最右边的位置
@@ -28,14 +29,13 @@ const store = new Vuex.Store({
     playState: playState.StateNone, // 播放状态
     stagePitches: [], // 舞台音块
     isStagePitchesChanged: false, // 舞台音块是否有改变
-
     isPitchLineChanged: true, // 音高线是否有改变
     f0AI: [],
     f0Draw: [],
     f0IndexSet: new Set(),
-    downUrl: '', // 下载音频
-    toneName: 'luoxiang', // 选择的toneName
-    selectRadio: 0
+    selectRadio: 0,
+    onlineUrl: '', // 在线播放的音频
+    downUrl: '' // 下载的音频
   },
   getters: {
     stageWidth: state => {
@@ -70,7 +70,8 @@ const store = new Vuex.Store({
           endTime: startTime + duration,
           pinyin: item.pinyin,
           hanzi: item.hanzi,
-          tone_id: state.toneId
+          tone_id: state.toneId,
+          bpm: state.bpm
         }
         pitches.push(pitchItem)
       })

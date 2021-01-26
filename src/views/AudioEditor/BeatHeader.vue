@@ -82,7 +82,7 @@ export default {
       }
     },
     toGenerateAudio() {
-      // this.$emit('generateAudio')
+      this.$emit('play')
       this.$router.push(`/profile`)
     },
     toSet() {
