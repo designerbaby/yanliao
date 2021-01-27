@@ -23,7 +23,6 @@ export default {
     }
   },
   methods: {
-
     openHomePage() {
       this.$router.push('/')
     },

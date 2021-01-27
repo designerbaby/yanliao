@@ -22,7 +22,7 @@ import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail } from '@/api/audio'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import { sleep, pxToTime, getParam } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
 import BeatSetting from './BeatSetting.vue'
 
@@ -71,6 +71,9 @@ export default {
     noteWidth() {
       return this.$store.state.noteWidth
     },
+    noteHeight() {
+      return this.$store.state.noteHeight
+    },
     bpm() {
       return this.$store.state.bpm
     },
@@ -88,6 +91,9 @@ export default {
     },
     mode() {
       return this.$store.state.mode
+    },
+    firstPitch() {
+      return this.$store.getters.firstPitch
     }
   },
   methods: {
@@ -109,7 +115,21 @@ export default {
         const res = await editorDetail({ task_id: taskId })
         const data = res.data.data
         console.log('editorDetail:', data)
-        this.$store.dispatch('changeStoreState', { taskId: data.task_id, downUrl: data.down_url, onlineUrl: data.online_url, f0AI: data.f0_ai, f0Draw: data.f0_draw })
+        const pitchList = data.pitchList
+        let stagePitches = []
+        pitchList.forEach(item => {
+          stagePitches.push({
+            hanzi: item.hanzi,
+            pinyin: item.pinyin,
+            red: false,
+            height: this.noteHeight,
+            width: timeToPx(item.duration, this.noteWidth, this.bpm),
+            left: timeToPx(item.startTime, this.noteWidth, this.bpm),
+            top: this.noteHeight * (this.firstPitch - item.pitch)
+          })
+        })
+        console.log('stagePitches:', stagePitches)
+        this.$store.dispatch('changeStoreState', { taskId: data.task_id, downUrl: data.down_url, onlineUrl: data.online_url, f0AI: data.f0_ai, f0Draw: data.f0_draw, bpm: pitchList[0].bpm, toneName: pitchList[0].singer, toneId: pitchList[0].tone_id, stagePitches: stagePitches })
       }
     },
     isNeedGenerate() {
@@ -182,7 +202,7 @@ export default {
           end
         }
         this.playStartTime = startTime
-        this.toPlayAudio(url)
+        this.toPlayAudio(onlineUrl)
         console.log('this.audio:', this.audio)
         this.audio.currentTime = startTime
         this.audio.play()
@@ -357,7 +377,7 @@ export default {
             const resp = await editorSynthResult(taskId)
             console.log('editorSynthResult:', data)
             if (resp.data.ret_code === 0 && resp.data.data.state === 2 ) {
-              url = resp.data.data.online_url
+              onlineUrl = resp.data.data.online_url
               downUrl = resp.data.data.down_url
               Message.success('音频合成成功~')
               break

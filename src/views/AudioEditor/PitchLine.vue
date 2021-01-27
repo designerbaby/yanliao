@@ -174,7 +174,7 @@ export default {
       return result
     },
     onMouseDown(event) {
-      console.log(`onMouseDown event`, event)
+      // console.log(`onMouseDown event`, event)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -232,11 +232,11 @@ export default {
       }
     },
     onMouseUp() {
-      console.log(`onMouseUp event`, event)
+      // console.log(`onMouseUp event`, event)
       this.mouseStart = null
     },
     onMouseLeave() {
-      console.log(`onMouseLeave event`, event)
+      // console.log(`onMouseLeave event`, event)
       this.mouseStart = null
     }
   }

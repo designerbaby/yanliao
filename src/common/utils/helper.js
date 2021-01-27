@@ -39,6 +39,10 @@ export const pxToTime = (target, note, bpm) => {
   return Math.floor(((parseInt(target, 10) / note) * 60 * 1000) / (8 * bpm))
 }
 
+// 将时间转换成像素的方法
+export const timeToPx = (time, note, bpm) => {
+  return Math.floor((parseInt(time, 10) * 8 * bpm * note) / (60 * 1000))
+}
 // 验证是不是包含中文字符
 export const isChineseChar = str => {
   return (/^((?![\u3000-\u303F])[\u2E80-\uFE4F]|\·)*(?![\u3000-\u303F])[\u2E80-\uFE4F](\·)*$/.test(str))

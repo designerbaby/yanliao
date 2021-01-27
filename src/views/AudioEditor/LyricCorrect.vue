@@ -2,14 +2,7 @@
   <Dialog
     title="拼音校正"
     :visible.sync="pinyinVisible"
-    width="400px">
-    <!-- <Input type="textarea"
-      placeholder="请输入歌词"
-      v-model="inputPinyin"
-      :rows="5"
-      show-word-limit
-    ></Input> -->
-    
+    width="400px">  
     <div :class="$style.pinyinInput">
       <div :class="$style.list" v-for="(it, index) in pinyinList" :key="index">
         {{ it.hanzi }}
@@ -26,7 +19,7 @@
 </template>
 
 <script>
-import { Dialog, Button, Input, RadioGroup, Radio } from 'element-ui'
+import { Dialog, Button, Radio } from 'element-ui'
 import { Hanzi2Pinyin } from '@/api/audio'
 
 export default {
@@ -43,8 +36,6 @@ export default {
   components: {
     Dialog,
     Button,
-    Input,
-    RadioGroup,
     Radio
   },
   methods: {

@@ -99,6 +99,9 @@ export default {
     noteWidth() {
       return this.$store.state.noteWidth
     },
+    noteHeight() {
+      return this.$store.state.noteHeight
+    },
     isSynthetizing() {
       return this.$store.state.isSynthetizing
     },
@@ -249,12 +252,12 @@ export default {
         
         pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
 
-        const mod = (top % 25)
+        const mod = (top % this.noteHeight)
 
-        if (mod < 25/2 ) {
+        if (mod < this.noteHeight / 2 ) {
           pitch.top = top - mod
         } else {
-          pitch.top = top - mod + 25
+          pitch.top = top - mod + this.noteHeight
         }
 
 
@@ -338,7 +341,7 @@ export default {
         const topPx = Math.min(this.startPos.y, this.endPos.y);
 
         // 取25的倍数，因为每一行是25px
-        const top = topPx - (topPx % 25);
+        const top = topPx - (topPx % this.noteHeight);
         const initLeft = Math.min(this.startPos.x, this.endPos.x);
         // 根据32分音符的最小像素调整左边距
         const left = Math.floor(initLeft / this.noteWidth) * this.noteWidth
@@ -348,7 +351,7 @@ export default {
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
         this.addOnePitch({
           width,
-          height: 25,
+          height: this.noteHeight,
           left,
           top
         });
@@ -357,7 +360,7 @@ export default {
     },
 
     addOnePitch({ width, height, left, top }) {
-      if (width > 25) {
+      if (width > this.noteHeight) {
         this.stagePitches.push({
           width,
           height,
