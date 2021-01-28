@@ -40,6 +40,5 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
     - 获取音高线：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_yan/yan_sdk_client/musicx_yan_sdk_client.proto
 
 ## TODO
-3、 音高线模式下播放进度拖动不流畅
 19、 设置一个生成音频的最长时间，如果点击播放预览后超过这个时间没有合成音频，就退出播放加载模式，并提示”音频合成失败，请稍后再试“。否则用户无法退出播放加载模式，就需要刷新页面，这时之前画的音符都消失了
 

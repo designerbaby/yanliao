@@ -56,3 +56,12 @@ export const timeToPx = (time, note, bpm) => {
 export const isChineseChar = str => {
   return (/^((?![\u3000-\u303F])[\u2E80-\uFE4F]|\·)*(?![\u3000-\u303F])[\u2E80-\uFE4F](\·)*$/.test(str))
 }
+
+export const isDuplicated = (pitches) => { // 检测是否重叠了
+  for (let i = 0; i < pitches.length; i += 1) {
+    if (pitches[i].red) {
+      return true
+    }
+  }
+  return false
+}

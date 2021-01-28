@@ -31,6 +31,7 @@
 <script>
 import { Icon, Button, Message } from 'element-ui'
 import { playState } from "@/common/utils/const"
+import { isDuplicated } from '@/common/utils/helper'
 
 export default {
   name: 'BeatHeader',
@@ -79,6 +80,10 @@ export default {
       }
     },
     toGenerateAudio() {
+      if (isDuplicated(this.$store.state.stagePitches)) {
+        Message.error('音符存在重叠, 请调整好~')
+        return
+      }
       this.$emit('play')
       this.$router.push(`/profile`)
     },
@@ -101,7 +106,7 @@ export default {
   font-size: 12px;
   color: rgba(255,255,255,0.80);
   background: #323232;
-  z-index: 1001; // 头部控制板的层级
+  z-index: 1050; // 头部控制板的层级
   img {
     width: 24px;
     height: 24px;

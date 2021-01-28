@@ -220,13 +220,13 @@ export default {
         const { target } = this.movePitchStart
         let newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
         let newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
-
         if (newTop < 0) {
           newTop = 0
         }
-        if (newLeft < 0) {
-          newLeft = 0
+        if (newLeft < 20) { // sdk那边限制不能从0开始画
+          newLeft = 20
         }
+        // console.log('target:', target)
         target.style.transform = `translate(${newLeft}px, ${newTop}px)`
         target.dataset.left = newLeft
         target.dataset.top = newTop

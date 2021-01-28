@@ -21,7 +21,7 @@ import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail } from '@/api/audio'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
 import BeatSetting from './BeatSetting.vue'
 
@@ -61,8 +61,13 @@ export default {
         deep: true
       }
     )
+    // window.onbeforeunload = (event) => {
+    //   console.log('onbeforeunload')
+
+    // }
   },
   destroyed() {
+    console.log('destroyed')
     this.storeStagePitchesWatcher()
     this.resetStoreState()
   },
@@ -178,7 +183,7 @@ export default {
 
       const finalPitches = this.$store.getters.pitchList
       console.log('finalPitches:', finalPitches)
-      if (this.isDuplicated()) {
+      if (isDuplicated(this.$store.state.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
@@ -319,15 +324,6 @@ export default {
         }
       })
 
-    },
-    isDuplicated () { // 检测是否重叠了，重叠了就标红不给合成播放
-      const pitches = this.$store.state.stagePitches
-      for (let i = 0; i < pitches.length; i += 1) {
-        if (pitches[i].red) {
-          return true
-        }
-      }
-      return false
     },
     getLinePosition() {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块

@@ -2,7 +2,7 @@
   <div 
     :class="$style.PitchLine" 
     ref="PitchLine"
-    :style="{ height: `${stageHeight}px`, width: `${stageWidth}px` }"
+    :style="{ height: `${stageHeight}px`, width: `${stageWidth}px`, 'z-index': `${zIndex}` }"
   >
     <svg 
       xmlns="http://www.w3.org/2000/svg"
@@ -35,7 +35,8 @@ export default {
     return {
       mouseStart: null,
       lastIndex: 0,
-      lastTime: 0
+      lastTime: 0,
+      zIndex: 999
     }
   },
   computed: {
@@ -105,6 +106,7 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
+      this.zIndex = 1001 // 把层级设得比播放线的高
       const rect = this.$refs.svgStage.getBoundingClientRect()
       this.mouseStart = {
         rect
@@ -147,6 +149,7 @@ export default {
     onMouseUp() {
       // console.log(`onMouseUp event`, event)
       this.mouseStart = null
+      this.zIndex = 999 // 把层级设得比播放线的低
     },
     onMouseLeave() {
       // console.log(`onMouseLeave event`, event)
@@ -162,8 +165,6 @@ export default {
   top: 0px;
   left: 0px;
   z-index: 999; // 音高线的层级
-  width: 10px;
-  height: 20px;
   background: transparent;
 }
 </style>

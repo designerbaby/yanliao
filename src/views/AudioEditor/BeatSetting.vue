@@ -1,5 +1,5 @@
 <template>
-  <div :class="[$style.BeatSetting, showDrawer ? $style.isActive : '']"
+  <div :class="[$style.BeatSetting, showDrawer ? $style.isActive : '', isExceedHeader ? $style.isFloat : '']"
     :style="{ height: `${stageHeight + 25}px`}">
     <div :class="$style.top">
       <div :class="$style.title">设置面板</div>
@@ -61,6 +61,9 @@ export default {
   computed: {
     stageHeight() {
       return this.$store.getters.stageHeight
+    },
+    isExceedHeader() {
+      return this.$store.state.isExceedHeader
     }
   },
   mounted() {
@@ -136,6 +139,9 @@ export default {
   z-index: 2000; // 编辑拍号的层级
   &.isActive {
     right: 0;
+  }
+  &.isFloat {
+    position: fixed;
   }
 }
 
