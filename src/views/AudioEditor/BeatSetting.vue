@@ -133,7 +133,7 @@ export default {
   position: absolute;
   right: -316px;
   transition: right 0.2s linear;
-  z-index: 2000;
+  z-index: 2000; // 编辑拍号的层级
   &.isActive {
     right: 0;
   }

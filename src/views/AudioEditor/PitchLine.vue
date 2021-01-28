@@ -161,7 +161,7 @@ export default {
   position: absolute;
   top: 0px;
   left: 0px;
-  z-index: 100;
+  z-index: 999; // 音高线的层级
   width: 10px;
   height: 20px;
   background: transparent;

@@ -52,7 +52,7 @@ export default {
   border-bottom: #5d5e5e;
   border-top-right-radius: 3px;
   border-bottom-right-radius: 3px;
-  z-index: 0;
+  z-index: 0; // 钢琴键盘的层级
   line-height: 60px;
   &:hover {
     background: rgb(4, 219, 51);

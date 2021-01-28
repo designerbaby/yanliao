@@ -21,8 +21,6 @@ export default {
       userInfo: safeParse(sessionStorage.getItem('userInfo'))
     }
   },
-  mounted() {
-  },
   methods: {
     openHomePage() {
       this.$router.push('/')

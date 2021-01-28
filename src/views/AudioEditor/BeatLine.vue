@@ -101,7 +101,7 @@ export default {
   position: absolute;
   top: 0px;
   left: 0px;
-  z-index: 1000;
+  z-index: 1000; // 播放线的层级
   width: 2px;
 
   &:active {

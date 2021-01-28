@@ -486,7 +486,7 @@ export default {
   position: absolute;
   left: 0;
   top: 0px;
-  z-index: 10;
+  z-index: 10; // 绘画舞台的层级
   overflow: hidden;
 }
 .beat {
@@ -506,7 +506,7 @@ export default {
   top: 0;
   font-size: 12px;
   line-height: 25px;
-  z-index: 20;
+  z-index: 20; // 音块的层级
   padding-left: 5px;
   &.isActive {
     background: rgb(20, 155, 49)

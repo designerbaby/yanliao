@@ -97,7 +97,7 @@ const store = new Vuex.Store({
     // 通用改成state方法
     changeStoreState(state, props) {
       Object.keys(props).forEach(k => {
-        console.log(`changeStoreState`, k, props[k])
+        // console.log(`changeStoreState`, k, props[k])
         state[k] = props[k]
       })
     },
@@ -178,7 +178,6 @@ const store = new Vuex.Store({
 const updateStageSize = () => {
   const windowWidth = window.innerWidth
   const stageConWidth = windowWidth - 50
-  // console.log('windowWidth:', windowWidth)
   store.state.stageSize = {
     width: stageConWidth
   }

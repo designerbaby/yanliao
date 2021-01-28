@@ -1,5 +1,5 @@
 <template>
-  <div :class="$style.header">
+  <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
     <div :class="$style.linefu">
       <div :class="[$style.check, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
         <img src="@/assets/audioEditor/note-normal.png" v-if="mode === 1">
@@ -40,20 +40,17 @@ export default {
     }
   },
   computed: {
-    bpm() {
-      return this.$store.state.bpm
-    },
     mode() {
       return this.$store.state.mode
-    },
-    downUrl() {
-      return this.$store.state.downUrl
     },
     isSynthetizing() {
       return this.$store.state.isSynthetizing
     },
     playState() {
       return this.$store.state.playState
+    },
+    isExceedHeader() {
+      return this.$store.state.isExceedHeader
     }
   },
   components: {
@@ -103,11 +100,17 @@ export default {
   overflow: hidden;
   font-size: 12px;
   color: rgba(255,255,255,0.80);
+  background: #323232;
+  z-index: 1001; // 头部控制板的层级
   img {
     width: 24px;
     height: 24px;
     margin: 2px auto;
     cursor: pointer;
+  }
+  &.isFloat {
+    position: fixed;
+    top: 0;
   }
 }
 
