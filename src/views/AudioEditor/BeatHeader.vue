@@ -84,7 +84,7 @@ export default {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
-      this.$emit('play')
+      this.$emit('synthesize')
       this.$router.push(`/profile`)
     },
     toSet() {

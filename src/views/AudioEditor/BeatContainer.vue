@@ -285,6 +285,7 @@ export default {
         x: event.clientX + this.stageOffset.scrollLeft - rect.left,
         y: event.clientY + this.stageOffset.scrollTop - rect.top
       };
+      console.log(`this.startPos, x: ${this.startPos.x}, y: ${this.startPos.y}`)
       // 初始化绿色块
       this.$refs.sharp.style.left = `${this.startPos.x}px`;
       this.$refs.sharp.style.top = `${this.startPos.y}px`;

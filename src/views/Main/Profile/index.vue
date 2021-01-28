@@ -141,6 +141,10 @@ export default {
   },
   methods: {
     toAudioEditor(row) {
+      if (row.state === 0 || row.state === 1) {
+        Message.error('音频合成中，暂不可编辑')
+        return
+      }
       console.log('toAudioEditor row:', row)
       this.$router.push(`/audioEditor?taskId=${row.arrange_id}`)
     },

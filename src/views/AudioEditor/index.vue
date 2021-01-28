@@ -3,6 +3,7 @@
     <BeatHeader 
       :isPlaying="playState == 1" 
       @play="toPlay"
+      @synthesize="toSynthesize"
       @openDrawer="toOpenDrawer"
     ></BeatHeader>
     <BeatContainer 
