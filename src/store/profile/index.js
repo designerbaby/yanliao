@@ -1,10 +1,9 @@
 const state = {
-  showBindKugou: false, // 标志有没绑定酷狗账号，true的话就是绑定，false的话就是没有绑定
-  userInfo: {} // 用户信息
+  showBindKugou: false // 标志有没绑定酷狗账号，true的话就是绑定，false的话就是没有绑定
 }
 
 const mutations = {
-  changeStoreState(state, props) {
+  profileChangeStoreState(state, props) {
     Object.keys(props).forEach(k => {
       console.log(`profile mudule changeStoreState`, k, props[k])
       state[k] = props[k]
@@ -13,8 +12,8 @@ const mutations = {
 }
 
 const actions = {
-  changeStoreState({ commit }, props) {
-    commit('changeStoreState', props)
+  profileChangeStoreState({ commit }, props) {
+    commit('profileChangeStoreState', props)
   }
 }
 

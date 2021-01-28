@@ -31,7 +31,7 @@
     </div>
     <div :class="$style.text">当前曲速</div>
     <div :class="$style.select">
-      <InputNumber :class="$style.bpmInput" v-model="bpm" @input="bpmInputChange" controls-position="right" :min="50" :max="200"/>
+      <InputNumber :class="$style.bpmInput" v-model="bpm" @change="bpmInputChange" controls-position="right" :min="50" :max="200"/>
     </div>
     <div :class="$style.bpmText">请控制输入范围在50-200BPM</div>
   </div>

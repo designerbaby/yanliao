@@ -34,6 +34,15 @@ export const getCookie = name => {
   return ''
 }
 
+// 安全Parse JSON数据
+export const safeParse = (str, def) => {
+  try {
+    return JSON.parse(str)
+  } catch (error) {
+    return def
+  } 
+}
+
 // 将像素转成相应时间的方法
 export const pxToTime = (target, note, bpm) => {
   return Math.floor(((parseInt(target, 10) / note) * 60 * 1000) / (8 * bpm))

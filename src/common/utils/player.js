@@ -32,8 +32,6 @@ export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onE
     onPause(event.target)
   })
 
-  // audio.addEventListener("")
-
   document.body.appendChild(audio)
 
   // audio.play()

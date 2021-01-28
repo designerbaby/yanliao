@@ -7,8 +7,7 @@
     ></BeatHeader>
     <BeatContainer 
       ref="BeatContainer"
-      @showBeat="toShowBeat" 
-      @getPitches="toGetPictData"
+      @showBeat="toShowBeat"
     ></BeatContainer>
     <BeatSetting ref="BeatSetting" @buildPitchLine="buildPitchLineHandler"></BeatSetting>
     <BeatSelector ref="BeatSelector"></BeatSelector>
@@ -37,7 +36,6 @@ export default {
   },
   data() {
     return {
-      pitches: [],
       timerId: 0,
       audio: null,
       linePosition: null, // 播放时，线所在的位置播放
@@ -51,8 +49,8 @@ export default {
       playStartTime: 0 // 从第几秒开始播放
     }
   },
-  mounted() {
-    this.getEditorDetail()
+  async mounted() {
+    await this.getEditorDetail()
     this.storeStagePitchesWatcher = this.$store.watch(
       state => state.stagePitches,
       (newValue, oldValue) => {
@@ -66,6 +64,7 @@ export default {
   },
   destroyed() {
     this.storeStagePitchesWatcher()
+    this.resetStoreState()
   },
   computed: {
     noteWidth() {
@@ -97,6 +96,9 @@ export default {
     }
   },
   methods: {
+    resetStoreState() {
+      this.$store.dispatch('resetState')
+    },
     toOpenDrawer() {
       this.$refs.BeatSetting.handleDrawer()
     },
@@ -129,7 +131,26 @@ export default {
           })
         })
         console.log('stagePitches:', stagePitches)
-        this.$store.dispatch('changeStoreState', { taskId: data.task_id, downUrl: data.down_url, onlineUrl: data.online_url, f0AI: data.f0_ai, f0Draw: data.f0_draw, bpm: pitchList[0].bpm, toneName: pitchList[0].singer, toneId: pitchList[0].tone_id, stagePitches: stagePitches })
+        await this.$store.dispatch('changeStoreState', { 
+          taskId: data.task_id, 
+          downUrl: data.down_url, 
+          onlineUrl: data.online_url, 
+          f0AI: data.f0_ai, 
+          f0Draw: data.f0_draw, 
+          bpm: pitchList[0].bpm, 
+          toneName: pitchList[0].singer, 
+          toneId: pitchList[0].tone_id, 
+          stagePitches: stagePitches 
+        })
+
+        // 比较元数据和AI数据，如果不一样表示是修改过的，下次生成新的时候不能覆盖
+        for (let i = 0; i < data.f0_ai.length; i += 1) {
+          if (data.f0_ai[i] !== data.f0_draw[i]) {
+            // console.log(`this.$store.state`, this.$store.state)
+            this.$store.state.f0IndexSet.add(i)
+          }
+        }
+        
       }
     },
     isNeedGenerate() {
@@ -155,11 +176,33 @@ export default {
         return
       }
 
+      const finalPitches = this.$store.getters.pitchList
+      console.log('finalPitches:', finalPitches)
+      if (this.isDuplicated()) {
+        Message.error('音符存在重叠, 请调整好~')
+        return
+      }
+      if (!finalPitches.length) {
+        Message.error('没有音符！！')
+        return
+      }
+
       console.log(`Click play button, current state: ${this.playState}`)
 
-      // 如果当前是播放中状态，则暂时
+      const taskId = getParam('taskId')
+      // TODO 状态太多，后续要改成状态机
+      // 如果当前是默认状态
       if (this.playState === playState.StateNone) {
-        this.doPlay(true)
+        if (this.isNeedGenerate()) {
+          this.doPlay(true)
+        } else {
+          if (taskId) { // 从编辑进来，url上有taskId
+            this.toPlayAudio(this.$store.state.onlineUrl)
+            this.doPlay(false)
+          } else {
+            this.doPlay(true)
+          }
+        }
         this.changePlayState(playState.StatePlaying)
       } else if (this.playState === playState.StatePlaying) {
         this.audio.pause()
@@ -195,7 +238,12 @@ export default {
       const startTime = percent * duration / 1000
       console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
       if (generator) {
-        const { onlineUrl } = await this.toSynthesize()
+        const { onlineUrl, downUrl } = await this.toSynthesize()
+        // 每次生成新的都存起来
+        this.$store.dispatch('changeStoreState', { 
+          downUrl, 
+          onlineUrl, 
+        })
         this.playLine = {
           current: start,
           start,
@@ -272,17 +320,14 @@ export default {
       })
 
     },
-    toGetPictData(pitches) {
-      this.pitches = pitches
-    },
-    toHandlePitches (pitches) {
-      // 检测是否重叠了，重叠了就标红不给合成播放
+    isDuplicated () { // 检测是否重叠了，重叠了就标红不给合成播放
+      const pitches = this.$store.state.stagePitches
       for (let i = 0; i < pitches.length; i += 1) {
         if (pitches[i].red) {
-          return
+          return true
         }
       }
-      return this.$store.getters.pitchList
+      return false
     },
     getLinePosition() {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
@@ -296,7 +341,7 @@ export default {
       let lastPitchStartTime = 0
       let lastPitchDuration = 0
       const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
-      this.pitches.forEach(item => {
+      this.$store.state.stagePitches.forEach(item => {
         const right = item.left + item.width
         if (item.left >= lineLeft || right >= lineLeft) {
           lineStartX = Math.min(lineStartX, item.left)
@@ -329,25 +374,12 @@ export default {
       } 
     },
     async toSynthesize() {
-      console.log('toSynthesize:', this.pitches)
-      const finalPitches = await this.toHandlePitches(this.pitches)
-      console.log('finalPitches:', finalPitches)
-      if (finalPitches === undefined) {
-        Message.error('音符存在重叠, 请调整好~')
-        this.changePlayState(playState.StateNone)
-        return
-      }
-      if (!finalPitches.length) {
-        Message.error('没有音符！！')
-        return
-      }
-
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
       
       const req = {
-        pitchList: finalPitches,
-        f0_ai: this.mode === 1 ? this.$store.state.f0AI : [],
-        f0_draw: this.mode === 1 ? this.$store.state.f0Draw : [],
+        pitchList: this.$store.getters.pitchList,
+        f0_ai: this.$store.state.f0AI,
+        f0_draw: this.$store.state.f0Draw,
         task_id: this.$store.state.taskId
       }
       const { data } = await editorSynth(req)

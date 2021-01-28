@@ -12,15 +12,16 @@
 </template>
 
 <script>
+import { safeParse } from '@/common/utils/helper'
+
 export default {
   name: 'audioHeader',
   data() {
-    return {}
-  },
-  computed: {
-    userInfo() {
-      return JSON.parse(this.$store.state.userInfo) || sessionStorage.getItem('userInfo')
+    return {
+      userInfo: safeParse(sessionStorage.getItem('userInfo'))
     }
+  },
+  mounted() {
   },
   methods: {
     openHomePage() {

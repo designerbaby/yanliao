@@ -11,6 +11,7 @@
           :maxlength="maxlength"
           :rows="5"
           show-word-limit
+          @change="lyricInputChange"
         ></Input>
       </FormItem>
     </Form>
@@ -41,7 +42,8 @@ export default {
           { required: true, message: '请输入歌词,且必须为中文',
             trigger: 'blur', validator: validateChinese }
         ]
-      }
+      },
+      hasPolyphnic: false // 是否有多音字
     }
   },
   components: {
@@ -77,13 +79,28 @@ export default {
       const hanziList = [this.lyricForm.lyric]
       const res = await Hanzi2Pinyin({hanziList})
       const pinyinList = res.data.data.pinyinList
+      const length = pinyinList[0].pinyin.length
+      console.log('BeatLyric pinyinList length:', length)
+      if (length <= 1) {
+        this.hasPolyphnic = false
+      } else {
+        this.hasPolyphnic = true
+      }
       console.log('this.$store.state.selectRadio:', this.$store.state.selectRadio)
       const pinyin = pinyinList[0].pinyin[this.$store.state.selectRadio]
       console.log('pinyin:', pinyin)
       this.$store.dispatch('changeStagePitches', { index: this.index, key: 'pinyin', value: pinyin })
     },
     toCorrect() {
+      if (!this.hasPolyphnic) {
+        Message.warning('没有多音字，无需校正~')
+        return
+      }
       this.$emit('showLyric', this.lyricForm.lyric, this.index)
+    },
+    lyricInputChange(value) {
+      console.log('lyricInputChange:', value)
+      this.toChangePinyin()
     }
   }
 }

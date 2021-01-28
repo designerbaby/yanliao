@@ -163,8 +163,6 @@ export default {
           }
         }
       }
-      // console.log(`pitches：`, pitches)
-      this.$emit('getPitches', pitches)
     },
     updateStageOffset() {
       // 初始化舞台的位置

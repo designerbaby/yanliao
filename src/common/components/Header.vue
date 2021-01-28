@@ -155,7 +155,6 @@ export default {
             sessionStorage.setItem('userInfo', JSON.stringify(data))
             this.nickName = data.nick_name
             this.userLogo = data.user_logo
-            this.$store.dispatch('changeStoreState', { userInfo: JSON.stringify(data) })
           }
         }
       })
@@ -269,7 +268,7 @@ export default {
         if (ret_code === 0) {
           if (data !== null) {
             this.showBind = data.show_bind
-            this.$store.dispatch('changeStoreState', { showBindKugou: this.showBind })
+            this.$store.dispatch('profileChangeStoreState', { showBindKugou: this.showBind })
           } 
         }
       })

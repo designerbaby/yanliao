@@ -35,8 +35,17 @@ export default {
     }
   },
   mounted() {
+    const app = document.querySelector('#app')
+    app.addEventListener('scroll', (event) => {
+      const scrollTop = app.scrollTop
+      // console.log('scrollTop:', scrollTop)
+      if (scrollTop > 126) {
+        this.$store.dispatch("changeStoreState", { isExceedHeader: true })
+      } else {
+        this.$store.dispatch("changeStoreState", { isExceedHeader: false })
+      }
+    })
   },
-  computed: {},
   methods: {
     changeBg(data) {
       if (data === 0) {
@@ -73,7 +82,9 @@ export default {
   }
   #app {
     height: 100vh;
-    overflow: auto;
+    // overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     background-size: cover;
     font-family: "Source Han Sans CN", Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
