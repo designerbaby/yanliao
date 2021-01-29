@@ -76,9 +76,6 @@ export default {
     }
   },
   methods: {
-    createPitchLine () {
-      this.$store.dispatch('getPitchLine')
-    },
     toHandleF0Data (f0Data) {
       const finalData = []
       // 将拿到的数据转成x轴和y轴

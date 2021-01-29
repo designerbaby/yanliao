@@ -30,7 +30,8 @@
             label="音频作品名称"
           >
             <template slot-scope="scope">
-              <span class="audio-name" @click="audioNameClick(scope.row.arrange_id)">{{scope.row.arrange_name || '填词'}}</span>
+              <span class="audio-name" v-if="scope.row.bus_type === 2" @click="toAudioEditor(scope.row)">{{scope.row.arrange_name || '填词'}}</span>
+              <span class="audio-name" v-else @click="audioNameClick(scope.row.arrange_id)">{{scope.row.arrange_name || '填词'}}</span>
             </template>
           </el-table-column>
           <el-table-column

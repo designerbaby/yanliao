@@ -50,7 +50,7 @@ export const pxToTime = (target, note, bpm) => {
 
 // 将时间转换成像素的方法
 export const timeToPx = (time, note, bpm) => {
-  return Math.floor((parseInt(time, 10) * 8 * bpm * note) / (60 * 1000))
+  return Math.ceil((parseInt(time, 10) * 8 * bpm * note) / (60 * 1000))
 }
 // 验证是不是包含中文字符
 export const isChineseChar = str => {
@@ -64,4 +64,24 @@ export const isDuplicated = (pitches) => { // 检测是否重叠了
     }
   }
   return false
+}
+
+// 修正top值
+export const amendTop = (top, noteHeight) => {
+  const mod = top % noteHeight
+  if (mod < noteHeight / 2) {
+    return top - mod
+  } else {
+    return top - mod + noteHeight
+  }
+}
+
+// 修正left值
+export const amendLeft = (left, noteWidth) => {
+  const mod = left % noteWidth
+  if (mod < noteWidth / 2) {
+    return left - mod
+  } else {
+    return left - mod + noteWidth
+  }
 }

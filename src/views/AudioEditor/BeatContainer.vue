@@ -64,6 +64,7 @@ import Arrow from './Arrow.vue'
 import PitchLine from './PitchLine.vue' // 音高线
 import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
+import { amendTop, amendLeft } from '@/common/utils/helper'
 
 export default {
   name: "BeatContainer",
@@ -187,6 +188,7 @@ export default {
     onPitchMouseDown(event, index){
       // console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
+      this.hideRight()
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -199,7 +201,7 @@ export default {
       target.style.opacity = 0.8
       this.toSelectPitch(index)
       if (event.button === 2) { // 按下了鼠标右键
-        this.toPitchRight(index)
+        this.showRight(index)
       }
       this.movePitchStart = {
         left: Number(target.dataset.left),
@@ -220,11 +222,12 @@ export default {
         const { target } = this.movePitchStart
         let newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
         let newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
+
         if (newTop < 0) {
           newTop = 0
         }
-        if (newLeft < 20) { // sdk那边限制不能从0开始画
-          newLeft = 20
+        if (newLeft < 0) { // sdk那边限制不能从0开始画
+          newLeft = 0
         }
         // console.log('target:', target)
         target.style.transform = `translate(${newLeft}px, ${newTop}px)`
@@ -248,16 +251,9 @@ export default {
         // 松开时修正位置
         const pitch = this.stagePitches[index]
         
-        pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
-
-        const mod = (top % this.noteHeight)
-
-        if (mod < this.noteHeight / 2 ) {
-          pitch.top = top - mod
-        } else {
-          pitch.top = top - mod + this.noteHeight
-        }
-
+        // pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
+        pitch.left = amendLeft(left, this.noteWidth)
+        pitch.top = amendTop(top, this.noteHeight)
 
         target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
         target.dataset.left = pitch.left
@@ -275,8 +271,7 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      this.selectedPitch = -1
-      this.showList = -1
+      this.hideRight()
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
 
       const rect = this.$refs.stage.getBoundingClientRect()
@@ -329,6 +324,7 @@ export default {
           x: event.clientX + this.stageOffset.scrollLeft - rect.left,
           y: event.clientY + this.stageOffset.scrollTop - rect.top
         };
+        console.log(`this.endPos: x${this.endPos.x}, y: ${this.endPos.y}`)
         this.$refs.sharp.style.display = "none";
 
         //
@@ -337,13 +333,20 @@ export default {
         //
 
         // 一个矩形里面，上边和下边的位置，哪个小取哪个，也就是取上边的位置
-        const topPx = Math.min(this.startPos.y, this.endPos.y);
+        const startToEndx = this.endPos.x - this.startPos.x
+        const startToEndy = this.endPos.y - this.startPos.x
 
-        // 取25的倍数，因为每一行是25px
-        const top = topPx - (topPx % this.noteHeight);
+        if (Math.abs(startToEndx) < 10 || Math.abs(startToEndy) < 10) {
+          // Message.error('移动距离小于10,自己')
+          return
+        }
+
+        const topPx = Math.min(this.startPos.y, this.endPos.y);
         const initLeft = Math.min(this.startPos.x, this.endPos.x);
-        // 根据32分音符的最小像素调整左边距
-        const left = Math.floor(initLeft / this.noteWidth) * this.noteWidth
+        // const top = topPx - (topPx % this.noteHeight);
+        const top = amendTop(topPx, this.noteHeight)
+        // const left = Math.floor(initLeft / this.noteWidth) * this.noteWidth
+        const left = amendLeft(initLeft, this.noteWidth)
         
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
@@ -359,19 +362,17 @@ export default {
     },
 
     addOnePitch({ width, height, left, top }) {
-      if (width > this.noteHeight) {
-        this.stagePitches.push({
-          width,
-          height,
-          left,
-          top,
-          hanzi: '啦',
-          pinyin: 'la',
-          red: false
-        });
-        console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false`)
-        this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
-      }
+      this.stagePitches.push({
+        width,
+        height,
+        left,
+        top,
+        hanzi: '啦',
+        pinyin: 'la',
+        red: false
+      });
+      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false`)
+      this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
       this.checkPitchDuplicated()
       this.checkPitchesOverStage()
     },
@@ -400,9 +401,13 @@ export default {
     toSelectPitch(index) {
       this.selectedPitch = index
     },
-    toPitchRight(index) {
+    showRight(index) {
       this.selectedPitch = index
       this.showList = index
+    },
+    hideRight () {
+      this.selectedPitch = -1
+      this.showList = -1
     },
     toDeletePitch(index) {
       this.stagePitches.splice(index, 1)
@@ -417,11 +422,6 @@ export default {
     showLyric(lyric, index) {
       console.log('showLyric:', lyric, index)
       this.$refs.LyricCorrect.showLyric(lyric, index)
-    },
-    toBuildPitchLine() {
-      if (this.mode === 1) {
-        this.$refs.PitchLine.createPitchLine()
-      }
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
@@ -525,7 +525,7 @@ export default {
   border-radius: 8px;
   position: absolute;
   top: 38px;
-  right: -40px;
+  right: -80px;
   color: #fff;
   font-size: 14px;
   text-align: center;
@@ -533,7 +533,7 @@ export default {
     width: 14px;
     height: 8px;
     position: absolute;
-    left: 16px;
+    left: 6px;
     top: -8px;
   }
 }

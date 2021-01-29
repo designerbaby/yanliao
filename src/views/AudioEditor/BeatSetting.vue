@@ -12,7 +12,7 @@
           filterable
           :class="$style.selector" 
           :placeholder="'选择谁来演唱这首歌'"
-          v-model="toneId"
+          v-model="$store.state.toneId"
           @change="singleToneIdChange"
           >
           <Option
@@ -29,28 +29,24 @@
         试听
       </div>
     </div>
-    <div :class="$style.text">当前曲速</div>
+    <div :class="[$style.text, $style.qusu]">当前曲速</div>
     <div :class="$style.select">
-      <InputNumber :class="$style.bpmInput" v-model="bpm" @change="bpmInputChange" controls-position="right" :min="50" :max="200"/>
+      <InputNumber :class="$style.bpmInput" v-model="$store.state.bpm" @change="bpmInputChange" controls-position="right" :min="50" :max="200"/>
     </div>
     <div :class="$style.bpmText">请控制输入范围在50-200BPM</div>
   </div>
 </template>
-
 <script>
 import { Select, Option, InputNumber } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
-
 export default {
   name: 'BeatSetting',
   data() {
     return {
       showDrawer: false,
       audio: null,
-      toneList: [],
-      toneId: this.$store.state.toneId,
-      bpm: this.$store.state.bpm
+      toneList: []
     }
   },
   components: {
@@ -86,28 +82,27 @@ export default {
     },
     singleToneIdChange(value) {
       console.log('singleToneIdChange:', value)
-      this.toneId = value
       this.toneList.forEach(item => {
-        if (this.toneId === item.tone_id) {
-          this.$store.dispatch('changeStoreState', { toneId: item.tone_id, toneName: item.name })
+        if (value === item.tone_id) {
+          this.$store.dispatch('changeStoreState', { toneId: item.tone_id, toneName: item.name, auditUrl: item.audit_url })
         }
       })
-      this.$emit('buildPitchLine')
+      this.$store.dispatch('getPitchLine')
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     bpmInputChange(value) {
-      this.bpm = value
-      this.$store.dispatch('changeStoreState', { bpm: this.bpm })
-      this.$emit('buildPitchLine')
+      this.$store.dispatch('changeStoreState', { bpm: value })
+      this.$store.dispatch('getPitchLine')
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     playerButtonClick() {
-      let url = ''
-      this.toneList.forEach(item => {
-        if (this.toneId === item.tone_id) {
-          url = item.audit_url
-        }
-      })
+      // let url = ''
+      // this.toneList.forEach(item => {
+      //   if (this.toneId === item.tone_id) {
+      //     url = item.audit_url
+      //   }
+      // })
+      const url = this.$store.state.auditUrl
       this.audio = PlayAudio({
         url,
         onPlay: (audio) => {
@@ -132,7 +127,7 @@ export default {
   width: 316px;
   top: 78px;
   background: #323232;
-  box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
+  box-shadow: -8px 8px 4px 0 rgba(0,0,0,0.30);
   position: absolute;
   right: -316px;
   transition: right 0.2s linear;
@@ -166,7 +161,10 @@ export default {
 .text {
   font-size: 14px;
   color: rgba(255,255,255,0.80);
-  margin: 8px 0 10px 24px;
+  margin: 8px 0 8px 24px;
+  &.qusu {
+    margin: 24px 0 8px 24px;
+  }
 }
 
 .setting {
@@ -187,10 +185,11 @@ export default {
   font-size: 12px;
   color: rgba(255,255,255,0.80);
   margin: 0 50px 0 20px;
+  line-height: 14px;
   img {
     width: 26px;
     height: 26px;
-    margin: 2px 0;
+    // margin: 2px 0;
     cursor: pointer;
   }
 }

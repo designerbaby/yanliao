@@ -10,7 +10,7 @@
       ref="BeatContainer"
       @showBeat="toShowBeat"
     ></BeatContainer>
-    <BeatSetting ref="BeatSetting" @buildPitchLine="buildPitchLineHandler"></BeatSetting>
+    <BeatSetting ref="BeatSetting"></BeatSetting>
     <BeatSelector ref="BeatSelector"></BeatSelector>
   </div>
 </template>
@@ -62,10 +62,6 @@ export default {
         deep: true
       }
     )
-    // window.onbeforeunload = (event) => {
-    //   console.log('onbeforeunload')
-
-    // }
   },
   destroyed() {
     console.log('destroyed')
@@ -107,9 +103,6 @@ export default {
     },
     toOpenDrawer() {
       this.$refs.BeatSetting.handleDrawer()
-    },
-    buildPitchLineHandler() {
-      this.$refs.BeatContainer.toBuildPitchLine()
     },
     changePlayState(stateValue) {
       this.$store.dispatch('changeStoreState', { playState: stateValue })
@@ -375,8 +368,8 @@ export default {
       
       const req = {
         pitchList: this.$store.getters.pitchList,
-        f0_ai: this.$store.state.f0AI,
-        f0_draw: this.$store.state.f0Draw,
+        f0_ai: this.mode === 1 ? this.$store.state.f0AI : [],
+        f0_draw: this.mode === 1 ? this.$store.state.f0Draw : [],
         task_id: this.$store.state.taskId
       }
       const { data } = await editorSynth(req)

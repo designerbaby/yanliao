@@ -20,6 +20,7 @@ const defaultState = {
   noteHeight: 25, // 32分音符的占据的最小高度
   bpm: 90,       // 音调
   toneId: 1, // 选择的toneId
+  auditUrl: '', // 选择的播放的url
   taskId: 0, // 正在编辑的taskId
   toneName: 'luoxiang', // 选择的toneName
   isSynthetizing: false, // 是否在合成音频中
@@ -97,7 +98,7 @@ const store = new Vuex.Store({
     // 通用改成state方法
     changeStoreState(state, props) {
       Object.keys(props).forEach(k => {
-        // console.log(`changeStoreState`, k, props[k])
+        console.log(`changeStoreState`, k, props[k])
         state[k] = props[k]
       })
     },

@@ -112,6 +112,7 @@ export default {
     height: 24px;
     margin: 2px auto;
     cursor: pointer;
+    opacity: 1;
   }
   &.isFloat {
     position: fixed;
@@ -153,7 +154,7 @@ export default {
   flex-direction: column;
   background: #1E1E1E;
   &.isActive {
-    opacity: 0.8; 
+    opacity: 1; 
   }
   &:active {
     opacity: 0.8;

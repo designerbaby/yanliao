@@ -7,7 +7,8 @@
       :openLoginDialog="openLoginDialog" 
       :closeLoginDialog="closeLoginDialog" />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
-    <Footer v-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
+    <div v-if="$router.history.current.path === '/audioEditor'" class="footer"></div>
+    <Footer v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
   </div>
 </template>
 
@@ -39,7 +40,7 @@ export default {
     app.addEventListener('scroll', (event) => {
       const scrollTop = app.scrollTop
       // console.log('scrollTop:', scrollTop)
-      if (scrollTop > 126) {
+      if (scrollTop > 48) {
         this.$store.dispatch("changeStoreState", { isExceedHeader: true })
       } else {
         this.$store.dispatch("changeStoreState", { isExceedHeader: false })
@@ -100,5 +101,8 @@ export default {
     .input {
       line-height: normal;
     }
+  }
+  .footer {
+    height: 0px;
   }
 </style>
