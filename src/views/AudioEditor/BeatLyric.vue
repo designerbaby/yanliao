@@ -11,7 +11,6 @@
           :maxlength="maxlength"
           :rows="5"
           show-word-limit
-          @change="lyricInputChange"
         ></Input>
       </FormItem>
     </Form>
@@ -42,8 +41,7 @@ export default {
           { required: true, message: '请输入歌词,且必须为中文',
             trigger: 'blur', validator: validateChinese }
         ]
-      },
-      hasPolyphnic: false // 是否有多音字
+      }
     }
   },
   components: {
@@ -64,7 +62,7 @@ export default {
       this.$refs.lyricForm.validate((valid) => {
         if (valid) {
           this.toChangeHanzi()
-          this.toChangePinyin()
+          this.changePinyin()
           this.lyricVisible = false
         } else {
           Message.error('请全部填写完整并正确再提交')
@@ -75,32 +73,30 @@ export default {
     toChangeHanzi () {
       this.$store.dispatch('changeStagePitches', { index: this.index, key: 'hanzi', value: this.lyricForm.lyric })
     },
-    async toChangePinyin() {
+    async changePinyin() {
       const hanziList = [this.lyricForm.lyric]
-      const res = await Hanzi2Pinyin({hanziList})
+      const res = await Hanzi2Pinyin({ hanziList })
       const pinyinList = res.data.data.pinyinList
       const length = pinyinList[0].pinyin.length
-      console.log('BeatLyric pinyinList length:', length)
-      if (length <= 1) {
-        this.hasPolyphnic = false
-      } else {
-        this.hasPolyphnic = true
+      // console.log('BeatLyric pinyinList length:', length)
+      let hasPolyphnic = false
+      if (length > 1) {
+        hasPolyphnic = true
       }
-      console.log('this.$store.state.selectRadio:', this.$store.state.selectRadio)
       const pinyin = pinyinList[0].pinyin[this.$store.state.selectRadio]
-      console.log('pinyin:', pinyin)
       this.$store.dispatch('changeStagePitches', { index: this.index, key: 'pinyin', value: pinyin })
+      return hasPolyphnic
+      // console.log('this.$store.state.selectRadio:', this.$store.state.selectRadio)
+      // console.log('pinyin:', pinyin)
     },
-    toCorrect() {
-      if (!this.hasPolyphnic) {
+    async toCorrect() {
+      const hasPolyphnic = await this.changePinyin()
+      // console.log(`toCorrect: !this.hasPolyphnic${!this.hasPolyphnic}`)
+      if (!hasPolyphnic) {
         Message.warning('没有多音字，无需校正~')
         return
       }
       this.$emit('showLyric', this.lyricForm.lyric, this.index)
-    },
-    lyricInputChange(value) {
-      console.log('lyricInputChange:', value)
-      this.toChangePinyin()
     }
   }
 }

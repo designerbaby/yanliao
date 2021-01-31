@@ -98,7 +98,7 @@ const store = new Vuex.Store({
     // 通用改成state方法
     changeStoreState(state, props) {
       Object.keys(props).forEach(k => {
-        console.log(`changeStoreState`, k, props[k])
+        // console.log(`changeStoreState`, k, props[k])
         state[k] = props[k]
       })
     },

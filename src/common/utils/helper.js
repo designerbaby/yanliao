@@ -50,6 +50,7 @@ export const pxToTime = (target, note, bpm) => {
 
 // 将时间转换成像素的方法
 export const timeToPx = (time, note, bpm) => {
+  // console.log(`timeToPx: time:${time}, note: ${note}, bpm: ${bpm}: result: ${Math.ceil((parseInt(time, 10) * 8 * bpm * note) / (60 * 1000))}`)
   return Math.ceil((parseInt(time, 10) * 8 * bpm * note) / (60 * 1000))
 }
 // 验证是不是包含中文字符

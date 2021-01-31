@@ -20,11 +20,11 @@ import { Message } from 'element-ui'
 import BeatSelector from './BeatSelector.vue'
 import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
+import BeatSetting from './BeatSetting.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail } from '@/api/audio'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
 import { sleep, pxToTime, getParam, timeToPx, isDuplicated } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
-import BeatSetting from './BeatSetting.vue'
 
 export default {
   name: 'AudioEditor',
@@ -64,7 +64,6 @@ export default {
     )
   },
   destroyed() {
-    console.log('destroyed')
     this.storeStagePitchesWatcher()
     this.resetStoreState()
   },
@@ -124,8 +123,8 @@ export default {
             pinyin: item.pinyin,
             red: false,
             height: this.noteHeight,
-            width: timeToPx(item.duration, this.noteWidth, this.bpm),
-            left: timeToPx(item.startTime, this.noteWidth, this.bpm),
+            width: timeToPx(item.duration, this.noteWidth, pitchList[0].bpm),
+            left: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
             top: this.noteHeight * (this.firstPitch - item.pitch)
           })
         })
