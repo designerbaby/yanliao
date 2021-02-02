@@ -1,20 +1,21 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
-    <audioHeader v-if="$router.history.current.path === '/audioEditor'"></audioHeader>
+    <AudioHeader v-if="$router.history.current.path === '/audioEditor'" :openLoginDialog="openLoginDialog"></AudioHeader>
     <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
       ref="header" :currentPath="$router.history.current.path" 
-      :loginDialogShow="loginDialogShow" 
       :openLoginDialog="openLoginDialog" 
-      :closeLoginDialog="closeLoginDialog" />
+    />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
     <div v-if="$router.history.current.path === '/audioEditor'" class="footer"></div>
     <Footer v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
+    <LoginDialog :loginDialogShow="loginDialogShow" :closeLoginDialog="closeLoginDialog"></LoginDialog>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import audioHeader from '@/common/components/audioHeader.vue'
+import AudioHeader from '@/common/components/AudioHeader.vue'
+import LoginDialog from '@/common/components/LoginDialog.vue'
 import Header from '@/common/components/Header.vue'
 import Footer from '@/common/components/Footer.vue'
 import HomeBg from '@/assets/bg-home.png'
@@ -27,7 +28,8 @@ export default {
   components: {
     Header,
     Footer,
-    audioHeader
+    AudioHeader,
+    LoginDialog
   },
   data() {
     return {

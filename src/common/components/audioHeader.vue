@@ -4,21 +4,29 @@
       <img src="@/assets/logo.png" alt="" :class="$style.logo">
       <div :class="$style.text">百万填词创作工具</div>
     </div>
-    <div :class="$style.right" @click="openProfilePage">
+    <div :class="$style.right" @click="openProfilePage" v-if="mxIsLogin || userInfo">
       <div :class="$style.nick">{{ userInfo.nick_name}}</div>
       <img :src="userInfo.user_logo" :class="$style.avatar">
+    </div>
+    <div :class="$style.right" v-else>
+      <div :class="$style.login" @click.stop="openLogin">登录</div>
     </div>
   </div>
 </template>
 
 <script>
 import { safeParse } from '@/common/utils/helper'
+import { getCookie } from '@/common/utils/helper'
 
 export default {
-  name: 'audioHeader',
+  name: 'AudioHeader',
+  props: {
+    openLoginDialog: Function
+  },
   data() {
     return {
-      userInfo: safeParse(sessionStorage.getItem('userInfo'))
+      userInfo: safeParse(sessionStorage.getItem('userInfo')),
+      mxIsLogin: getCookie('mx_is_login')
     }
   },
   methods: {
@@ -27,6 +35,9 @@ export default {
     },
     openProfilePage() {
       this.$router.push('/profile')
+    },
+    openLogin() {
+      this.openLoginDialog()
     }
   }
 }

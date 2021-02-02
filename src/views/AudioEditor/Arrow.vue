@@ -24,16 +24,13 @@ export default {
     Message
   },
   computed: {
-    isSynthetizing() {
-      return this.$store.state.isSynthetizing
-    },
     playState() {
       return this.$store.state.playState
     }
   },
   methods: {
     onArrowMouseDown(event) { // 鼠标按下事件
-      if (this.isSynthetizing) {
+      if (this.$store.state.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }

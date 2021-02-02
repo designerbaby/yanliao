@@ -23,7 +23,7 @@ import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail } from '@/api/audio'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx, isDuplicated } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
 
 export default {
@@ -51,6 +51,7 @@ export default {
     }
   },
   async mounted() {
+    reportEvent('audioedit-page-exposure', 147622)
     await this.getEditorDetail()
     this.storeStagePitchesWatcher = this.$store.watch(
       state => state.stagePitches,
@@ -364,7 +365,7 @@ export default {
     },
     async toSynthesize() {
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
-      
+      const synthesizeStart = Date.now()
       const req = {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.mode === 1 ? this.$store.state.f0AI : [],
@@ -391,6 +392,13 @@ export default {
         const { data } = await editorSynthStatus(paramId)
         if (data.ret_code !== 0) {
           Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
+          break
+        }
+        const synthesizeEnd = Date.now()
+        console.log('synthesizeEnd - synthesizeStart:', synthesizeEnd - synthesizeStart)
+        if ((synthesizeEnd - synthesizeStart) > 60 * 1000) {
+          Message.error('音频合成失败，请稍后再试~')
+          this.$store.dispatch('changeStoreState', { isSynthetizing: false })
           break
         }
         // 合成成功

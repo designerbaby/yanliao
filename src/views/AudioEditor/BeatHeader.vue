@@ -31,7 +31,7 @@
 <script>
 import { Icon, Button, Message } from 'element-ui'
 import { playState } from "@/common/utils/const"
-import { isDuplicated } from '@/common/utils/helper'
+import { isDuplicated, reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'BeatHeader',
@@ -43,9 +43,6 @@ export default {
   computed: {
     mode() {
       return this.$store.state.mode
-    },
-    isSynthetizing() {
-      return this.$store.state.isSynthetizing
     },
     playState() {
       return this.$store.state.playState
@@ -66,7 +63,12 @@ export default {
       this.$emit('play')
     },
     selectMode(mode) {
-      if (this.isSynthetizing) {
+      if (mode === 0) {
+        reportEvent('note-button-click', 147617)
+      } else {
+        reportEvent('pitch-button-click', 147618)
+      }
+      if (this.$store.state.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
@@ -80,6 +82,7 @@ export default {
       }
     },
     toGenerateAudio() {
+      reportEvent('create-audio-button-click', 147619)
       if (isDuplicated(this.$store.state.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return
@@ -88,6 +91,7 @@ export default {
       this.$router.push(`/profile`)
     },
     toSet() {
+      reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     }
   }

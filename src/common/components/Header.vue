@@ -1,9 +1,9 @@
 <template>
   <div class="header">
-    <div class="main">
-      <img src="@/assets/logo.png" alt="" @click="openHomePage">
-      <div class="header-text" @click="openHomePage">盐料视频 - 百万调音合成工具</div>
-      <div class="beta-icon" @click="openHomePage">Beta</div>
+    <div class="main" @click="openHomePage">
+      <img src="@/assets/logo.png" alt="">
+      <div class="header-text">盐料视频 - 百万调音合成工具</div>
+      <div class="beta-icon">Beta</div>
     </div>
     <a href="/springFestival" class="subhead" target="_blank">
       <div class="subhead-text">万元悬赏拜年视频！</div>
@@ -17,134 +17,39 @@
       <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
     </div>
     <button v-else class="login-button" @click="loginButtonClick">登录</button>
-    
-    <el-dialog
-      :visible.sync="loginDialogShow"
-      width="400px"
-      custom-class="login-dialog"
-      top="15%"
-      @open="loginDialogOpen"
-      :before-close="loginDialogBeforeClose"
-    >
-      <div class="login-dialog-title">账号登录</div>
-      <el-form :model="loginForm" ref="loginForm" :rules="rules">
-        <el-form-item prop="phone">
-          <el-input class="phone-number-input" placeholder="请输入手机号" v-model="loginForm.phone"></el-input>
-        </el-form-item>
-        <el-form-item prop="authCode">
-          <div class="auth-code-input-box">
-            <el-input class="auth-code-input" placeholder="请输入验证码" v-model="loginForm.authCode"></el-input>
-            <div v-if="timeLeft === 60" class="get-auth-code-button" @click="getAuthCode">{{ sendAuthCodeText }}</div>
-            <div v-if="timeLeft <= 59" class="get-auth-code-button">{{sendAuthCodeText}}({{timeLeft}}s)</div>
-            <!-- <div v-if="timeLeft === 60" class="get-auth-code-button" @click="getAuthCode">重新发送</div> -->
-          </div>
-        </el-form-item>
-      </el-form>
-      <button class="login-confirm-button" @click="confirmLoginButtonClick">登录</button>
-      <div class="login-tips">
-        <div>未注册的手机号将帮您注册新账号，登录即代表</div>
-        <div>您同意 <a href="/userAgreement" target="_blank">用户协议</a> 和 <a href="/privacyPolicy" target="_blank">隐私政策</a></div>
-      </div>
-    </el-dialog>
-
-    <el-dialog
-      :visible.sync="logoutDialogShow"
-      width="400px"
-      custom-class="logout-dialog"
-      top="15%"
-    >
-      <div class="logout-dialog-title">确定退出登录吗?</div>
-      <div class="logout-footer">
-        <button class="logout-confirm-button logout-button" @click="confirmLogoutButtonClick">确定</button>
-        <button class="logout-cancel-button logout-button" @click="logoutDialogShow = false">取消</button>
-      </div>
-    </el-dialog>
-    <el-dialog
-      :visible.sync="kugouBindShow"
-      width="400px"
-      custom-class="logout-dialog"
-      top="15%"
-    >
-      <img src="@/assets/icon-complete.png" alt="success-icon" class="success-icon"/>
-      <div class="bind-success__title">绑定成功</div>
-      <div class="bind-success__kugou">您已经绑定酷狗音乐账号</div>
-      <div class="bind-success__nickname">{{ kugouNickName }}</div>
-      <div>绑定有效期为3个月, 超过有效期重新绑定</div>
-      <div class="bind-success__validity">在个人主页发布视频同步到酷狗可获得<a href="/playIncentives" target="_blank" title="播放激励">播放激励</a></div>
-    </el-dialog>
+    <LogoutDialog ref="LogoutDialog"></LogoutDialog>
+    <KugouDialog ref="KugouDialog" @showBindKugou="toShowBindKugou" @getUserInfo="toGetUserInfo"></KugouDialog>
   </div>
 </template>
 
 <script>
-import { Input, Dialog, FormItem, Form, Message } from 'element-ui'
-import { reportEvent, isTestEnv, getUrlParameters, getCookie } from '@/common/utils/helper'
+import { Message } from 'element-ui'
+import { reportEvent, isTestEnv, getParam, getCookie } from '@/common/utils/helper'
 import { fetchAuthCode, login, logout, userInfo } from '@/api/login'
-import { bindKugou, showBindKuGou } from '@/api/bind' 
+import { bindKugou, showBindKuGou } from '@/api/bind'
+import LogoutDialog from '@/common/components/LogoutDialog.vue'
+import KugouDialog from '@/common/components/KugouDialog.vue'
 
 export default {
   props: {
     currentPath: String,
-    loginDialogShow: Boolean,
-    openLoginDialog: Function,
-    closeLoginDialog: Function,
+    openLoginDialog: Function
   },
   components: {
-    'el-dialog': Dialog,
-    'el-input': Input,
-    'el-form': Form,
-    'el-form-item': FormItem
+    LogoutDialog,
+    KugouDialog
   },
   data() {
     return {
-      sendAuthCodeText: '获取验证码',
-      validatePass: '',
       nickName: '',
-      kugouNickName: '',
       userLogo: '',
-      timeLeft: 60,
-      logoutDialogShow: false,
-      loginForm: {
-        phone: '',
-        authCode: '',
-      },
       mxIsLogin: getCookie('mx_is_login'),
-      showBind: 1,
-      kugouBindShow: false,
-      code: getUrlParameters().code,  // 从酷狗登录回调之后拿到的code
-      rules: {
-        phone: [
-          {required: true, message: '请输入正确的手机号码', pattern: /^1[3-9]\d{9}$/, trigger: 'submit'}
-        ],
-        authCode: [
-          {required: true, message: '请输入正确的验证码', pattern: /^\d{4}$/, trigger: 'submit'},
-          {validator: (rule, value, callback) => {
-            const f = {
-              phone: this.loginForm.phone,
-              code: this.loginForm.authCode,
-            }
-            login(f).then((response) => {
-              const { data } = response.data
-              const { code, msg } = data
-              if (code !== 0) {
-                callback('请输入正确的验证码')
-              } else {
-                Message.success('登录成功')
-                setTimeout(() => {
-                  callback()
-                }, 500)
-              }
-            })
-          }, trigger: 'submit'}
-        ],
-      }
+      showBind: 1
     }
-  },
-  computed: {
   },
   mounted() {
     this.toGetUserInfo()
     this.toShowBindKugou()
-    this.toBindKugouAccrossCode()
   },
   methods: {
     toGetUserInfo() {
@@ -162,77 +67,17 @@ export default {
     openHomePage() {
       this.$router.push('/')
     },
-    loginDialogBeforeClose() {
-      this.closeLoginDialog()
-    },
     openProfilePage(origin) {
       const path = this.$router.history.current.path
       reportEvent(`user_${origin}_click`, `user_${origin}_click`, { path })
       this.$router.push(`/profile`)
-    },
-    loginDialogOpen() {
-      reportEvent('login-page-exposure')
     },
     loginButtonClick() {
       this.openLoginDialog()
     },
     logoutButtonClick() {
       reportEvent('logout-button')
-      this.logoutDialogShow = true
-    },
-    getAuthCode() {
-      log('getAuthCode')
-      this.$refs.loginForm.validateField('phone', (s) => {
-        if (s === '') {
-          // 校验通过
-          const phone = this.loginForm.phone
-          fetchAuthCode(phone).then((response) => {
-            log('fetchAuthCode', response)
-            const { data } = response.data
-            const { code, msg } = data
-            if (code === 0) {
-              // 验证码已发送
-              this.sendAuthCodeText = '重新发送'
-              Message.success('验证码发送成功 !')
-              this.timeLeft = 59
-              const countId = setInterval(() => {
-                if (this.timeLeft > 0) {
-                  this.timeLeft--
-                } else {
-                  this.timeLeft = 60
-                  clearInterval(countId)
-                }
-              }, 1000)
-            } else {
-              Message.error(`[${code}]: ${msg}`)
-            }
-          })
-        }
-      })
-    },
-    confirmLoginButtonClick() {
-      this.$refs.loginForm.validate((valid) => {
-        if (valid === true) {
-          location.reload()
-        }
-      })
-    },
-    confirmLogoutButtonClick() {
-      logout().then((response) => {
-        const { data, ret_code } = response.data
-        if (ret_code === 100000) {
-          location.href = location.origin
-          return
-        }
-        const { code, msg } = data
-        if (code === 0) {
-          // 退出登录成功
-          location.href = location.origin
-          // location.reload()
-        } else {
-          Message.error(`[${code}]: ${msg}`)
-        }
-      })
+      this.$refs.LogoutDialog.showLogoutDialog()
     },
     bindKugou() {
       reportEvent('person-page-userconnect_button')
@@ -246,22 +91,6 @@ export default {
       }
       console.log('location.href:', location.href)
     },
-    toBindKugouAccrossCode() {
-      if (this.code) { // url带有code才发起请求
-        this.kugouBindShow = true
-        bindKugou(this.code).then(res => {
-          const { data, ret_code } = res.data
-          console.log('bindKugou:', res)
-          if (ret_code === 0) { // 和酷狗账号绑定成功
-            this.kugouNickName = data.nickname
-            // this.userLogo = data.profile_photo
-            this.toShowBindKugou() // 绑定成功后再去查下不显示绑定的按钮
-          } else { // 绑定不成功的话，就再去请求下账号
-            this.toGetUserInfo()
-          }
-        })
-      }
-    },
     toShowBindKugou() {
       showBindKuGou().then((res) => {
         const { data, ret_code } = res.data
@@ -274,7 +103,12 @@ export default {
       })
     },
     toAudioEditor() {
-      this.$router.push(`/audioEditor`)
+      const userInfo = sessionStorage.getItem('userInfo')
+      if (this.mxIsLogin || userInfo) {
+        this.$router.push(`/audioEditor`)
+      } else {
+        this.openLoginDialog()
+      }
     }
   }
 }
@@ -393,133 +227,6 @@ export default {
   }
   100%{
     transform: translateX(10px);
-  }
-}
-</style>
-
-<style lang="less">
-  .login-dialog {
-    text-align: center;
-    .login-dialog-title {
-      font-size: 24px;
-      color: #000;
-      margin-bottom: 32px;
-    }
-    .phone-number-input {
-      width: 320px;
-      height: 44px;
-      border-radius: 6px;
-      font-size: 16px;
-      .el-input__inner {
-        height: 44px;
-      }
-    }
-    .auth-code-input-box {
-      // margin: 18px 0 32px 0;
-      display: flex;
-      align-items: center;
-      padding-left: 20px;
-      .auth-code-input {
-        font-size: 16px;
-        width: 184px;
-        height: 44px;
-        border-radius: 6px;
-        margin-right: 12px;
-        .el-input__inner {
-          height: 44px;
-        }
-      }
-      .get-auth-code-button {
-        line-height: 44px;
-        display: inline-block;
-        width: 124px;
-        height: 44px;
-        border-radius: 6px;
-        border: solid 1px #2cabff !important;
-        background: #fff;
-        color: #2cabff;
-        cursor: pointer;
-      }
-    }
-    .login-confirm-button {
-      width: 320px;
-      height: 44px;
-      background-image: linear-gradient(90deg, #79d2ff 0%,#44b5ff 100%);
-      border-radius: 25px;
-      color: #fff;
-      font-size: 18px;
-    }
-    .login-tips {
-      font-size: 12px;
-      color: #b2b2b2;
-      margin-top: 24px;
-      a {
-        color: #4fb9ff;
-        text-decoration: none;
-      }
-    }
-    .el-form-item__error {
-      left: 25px;
-    }
-  }
-  .logout-dialog {
-    line-height: 1;
-    text-align: center;
-    .logout-dialog-title {
-      font-size: 22px;
-      color: #000000;
-      margin-bottom: 30px;
-    }
-    .logout-button {
-      width: 150px;
-      height: 40px;
-    }
-    .logout-button + .logout-button {
-      margin-left: 20px;
-    }
-    .logout-confirm-button {
-      border-radius: 31px;
-      border: solid 2px #2cabff;
-      font-size: 18px;
-      color: #2cabff;
-      background: #fff;
-    }
-    .logout-cancel-button {
-      border-radius: 31px;
-      font-size: 18px;
-      color: #fff;
-      background-image: linear-gradient(90deg, #79d2ff 0%, #44b5ff 100%);
-	    border-radius: 31px;
-    }
-  }
-
-.success-icon {
-  width: 100px;
-  height: 100px;
-}
-.bind-success {
-  &__title {
-    font-size: 38px;
-    line-height: 40px;
-    margin: 30px auto;
-    color: #000;
-    font-weight: bold;
-  }
-  &__kugou {
-    color: #000;
-    font-size: 24px;
-  }
-  &__nickname {
-    color: #000;
-    font-size: 28px;
-    margin: 20px auto
-  }
-  &__validity {
-    margin: 80px auto 0 auto;
-    a {
-      color: #2cabff;
-      text-decoration: none;
-    }
   }
 }
 </style>

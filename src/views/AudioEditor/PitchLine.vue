@@ -60,9 +60,6 @@ export default {
     pitchWidth() {
       return this.$store.getters.pitchWidth
     },
-    isSynthetizing() {
-      return this.$store.state.isSynthetizing
-    },
     playState() {
       return this.$store.state.playState
     },
@@ -106,7 +103,7 @@ export default {
     },
     onMouseDown(event) {
       // console.log(`onMouseDown event`, event)
-      if (this.isSynthetizing) {
+      if (this.$store.state.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
