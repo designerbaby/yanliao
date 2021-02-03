@@ -41,7 +41,6 @@ export default {
         if (code === 0) {
           // 退出登录成功
           location.href = location.origin
-          // location.reload()
         } else {
           Message.error(`[${code}]: ${msg}`)
         }

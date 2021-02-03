@@ -21,7 +21,9 @@ router.beforeEach((to, from, next) => {
   getUserInfo()
   const userInfo = sessionStorage.getItem('userInfo')
   if (userInfo === '') {
-    if (to.meta.auth !== 'noLogin') {
+    if (to.path === '/audioEditor') {
+      next()
+    } else if (to.meta.auth !== 'noLogin') {
       next('/')
     } else {
       next()

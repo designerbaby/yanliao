@@ -48,8 +48,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 2、配置gitlab-ci去设置代码发布
 
 2、BPM的改变会改变音高线，期望是不会改变
-9、右键菜单希望盖住音符
-12、未登录跳转编辑器页面，登录成功后应留在该页面
 
 
 ## 难点

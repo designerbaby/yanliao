@@ -60,9 +60,6 @@ export default {
     Button
   },
   methods: {
-    toClear() {
-      location.reload()
-    },
     toPlay() {
       this.$emit('play')
     },

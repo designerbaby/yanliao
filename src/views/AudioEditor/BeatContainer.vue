@@ -38,14 +38,15 @@
             {{ it.hanzi }}
             <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
             <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-            <div :class="$style.list" v-if="showList === index">
-              <img src="@/assets/audioEditor/arrow-black.png">
-              <div :class="[$style.edit, $style.delete]" @click.stop="toDeletePitch(index)">删除</div>
-              <div :class="$style.edit" @click.stop="editLyric(index)">编辑歌词</div>
-              <div :class="[$style.edit, $style.delete]" @click.stop="editLyric(-1)">批量编辑歌词</div>
-            </div>
           </div>
         </template>
+        <BeatList
+          ref="BeatList"
+          :index="index"
+          @deletePitch="toDeletePitch"
+          @editLyric="editLyric"
+          v-if="showList === index"
+        ></BeatList>
         <div :class="$style.sharp" ref="sharp"></div>
         <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
       </div>
@@ -65,6 +66,7 @@ import Arrow from './Arrow.vue'
 import PitchLine from './PitchLine.vue' // 音高线
 import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
+import BeatList from './BeatList.vue'
 import { amendTop, amendLeft } from '@/common/utils/helper'
 
 export default {
@@ -77,7 +79,8 @@ export default {
     BeatLine,
     PitchLine,
     BeatLyric,
-    LyricCorrect
+    LyricCorrect,
+    BeatList
   },
   data() {
     return {
@@ -88,7 +91,8 @@ export default {
       stageOffset: null,
       movePitchStart: null,
       selectedPitch: -1,
-      showList: -1
+      showList: -1,
+      index: 0
     }
   },
   computed: {
@@ -187,7 +191,7 @@ export default {
       this.$emit("showBeat");
     },
     onPitchMouseDown(event, index){
-      // console.log(`onPitchMouseDown`, event, index, event.button)
+      console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
       this.hideRight()
       if (this.isSynthetizing) {
@@ -200,9 +204,13 @@ export default {
       }
       const target = event.target
       target.style.opacity = 0.8
+      this.index = index
       this.toSelectPitch(index)
       if (event.button === 2) { // 按下了鼠标右键
         this.showRight(index)
+        this.$nextTick(() => {
+          this.$refs.BeatList.setPosition(event.layerX, event.layerY + this.noteHeight)
+        })
       }
       this.movePitchStart = {
         left: Number(target.dataset.left),
@@ -338,7 +346,7 @@ export default {
         const startToEndy = this.endPos.y - this.startPos.x
 
         if (Math.abs(startToEndx) < 10 || Math.abs(startToEndy) < 10) {
-          // Message.error('移动距离小于10,自己')
+          // Message.error('移动距离小于10')
           return
         }
 
@@ -525,45 +533,6 @@ export default {
   }
 }
 
-
-.list {
-  width: 104px;
-  background: #151517;
-  box-shadow: -4px 4px 10px 0 rgba(0,0,0, 0.30);
-  border-radius: 8px;
-  position: absolute;
-  top: 38px;
-  right: -80px;
-  color: #fff;
-  font-size: 14px;
-  text-align: center;
-  // z-index: 30; // TODO 这里设置了z-index没有用
-  img {
-    width: 14px;
-    height: 8px;
-    position: absolute;
-    left: 6px;
-    top: -8px;
-  }
-}
-
-.edit {
-  height: 44px;
-  line-height: 44px;
-  margin: 8px 0 0 0;
-  &:hover {
-    background: #1C1C1E;
-    border-radius: 8px;
-  }
-  &:active {
-    background: #0E0E0F;
-    border-radius: 8px;
-  }
-}
-
-.delete {
-  margin: 0 0 8px 0;
-}
 .sharp {
   display: none;
   border: 1px solid #ccc;
