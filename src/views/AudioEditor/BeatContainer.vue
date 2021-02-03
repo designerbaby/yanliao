@@ -42,6 +42,7 @@
               <img src="@/assets/audioEditor/arrow-black.png">
               <div :class="$style.edit" @click.stop="editLyric(index)">编辑歌词</div>
               <div :class="[$style.edit, $style.delete]" @click.stop="toDeletePitch(index)">删除</div>
+              <div :class="[$style.edit, $style.delete]" @click.stop="editLyric(-1)">批量编辑歌词</div>
             </div>
           </div>
         </template>
@@ -50,7 +51,7 @@
       </div>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
-    <LyricCorrect ref="LyricCorrect"></LyricCorrect>
+    <LyricCorrect ref="LyricCorrect" @savePinyin="beatLyricSavePinyin"></LyricCorrect>
   </div>
 </template>
 
@@ -369,10 +370,13 @@ export default {
         top,
         hanzi: '啦',
         pinyin: 'la',
-        red: false
+        red: false,
+        pinyinList: ['la'],
+        select: 0,
       });
-      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false`)
+      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0`)
       this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
+      this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
       this.checkPitchDuplicated()
       this.checkPitchesOverStage()
     },
@@ -415,13 +419,15 @@ export default {
       this.checkPitchDuplicated()
     },
     editLyric(index) {
-      const lyric = this.stagePitches.find((item, i) => i === index).hanzi
-      this.$refs.BeatLyric.showLyric(lyric, index)
+      this.$refs.BeatLyric.showLyric(index)
       this.showList = -1
     },
     showLyric(lyric, index) {
       console.log('showLyric:', lyric, index)
       this.$refs.LyricCorrect.showLyric(lyric, index)
+    },
+    beatLyricSavePinyin() {
+      this.$refs.BeatLyric.savePinyin()
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)

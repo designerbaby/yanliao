@@ -87,6 +87,12 @@ export default {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
+      if (this.$store.state.stagePitches.length === 0 && 
+          this.$store.state.f0AI.length === 0 &&
+          this.$store.state.f0Draw.length === 0) {
+        Message.error('没有音符！！')
+        return
+      }
       this.$emit('synthesize')
       this.$router.push(`/profile`)
     },

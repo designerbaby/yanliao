@@ -2,7 +2,7 @@
   <div :class="[$style.arrow, $style[direction], isActive ? $style.isActive : '']"
     @mouseup.stop="onArrowLeave"
     @mousedown.prevent="onArrowMouseDown">
-      <img src="@/assets/right.png"/>
+      <img src="@/assets/audioEditor/arrow-right.png"/>
   </div>
 </template>
 
@@ -107,12 +107,15 @@ export default {
 .arrow{
   position: absolute;
   height: 25px;
-  width: 30px;
+  width: 7px;
   top: 0;
   opacity: 0;
+  background: #0D7821;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
   img {
-     width: 100%;
-     height: 100%;
+    width: 100%;
+    height: 100%;
   }
   &:hover {
     opacity: 1;
@@ -120,12 +123,12 @@ export default {
 }
 
 .right {
-  right: -27px;
+  right: 0px;
 }
 
 .left {
   transform: scale(-1);
-  left: -27px;
+  left: 0px;
 }
 
 .isActive {

@@ -1,5 +1,5 @@
 <template>
-  <div :class="$style.audioEditor" ref="audioEditor">
+  <div :class="$style.audioEditor" ref="audioEditor" @click="checkLogin">
     <BeatHeader 
       :isPlaying="playState == 1" 
       @play="toPlay"
@@ -98,6 +98,12 @@ export default {
     }
   },
   methods: {
+    checkLogin() {
+      const userInfo = sessionStorage.getItem('userInfo')
+      if (!userInfo) {
+        this.$emit('openLoginDialog')
+      }
+    },
     resetStoreState() {
       this.$store.dispatch('resetState')
     },
@@ -126,19 +132,21 @@ export default {
             height: this.noteHeight,
             width: timeToPx(item.duration, this.noteWidth, pitchList[0].bpm),
             left: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
-            top: this.noteHeight * (this.firstPitch - item.pitch)
+            top: this.noteHeight * (this.firstPitch - item.pitch),
+            pinyinList: item.pinyinList,
+            select: item.select
           })
         })
-        console.log('stagePitches:', stagePitches)
+        console.log('getEditorDetail stagePitches:', stagePitches)
         await this.$store.dispatch('changeStoreState', { 
           taskId: data.task_id, 
           downUrl: data.down_url, 
           onlineUrl: data.online_url, 
           f0AI: data.f0_ai, 
           f0Draw: data.f0_draw, 
-          bpm: pitchList[0].bpm, 
+          bpm: pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
           toneName: pitchList[0].singer, 
-          toneId: pitchList[0].tone_id, 
+          toneId: pitchList[0].toneId, 
           stagePitches: stagePitches 
         })
 
@@ -196,8 +204,13 @@ export default {
           this.doPlay(true)
         } else {
           if (taskId) { // 从编辑进来，url上有taskId
-            this.toPlayAudio(this.$store.state.onlineUrl)
-            this.doPlay(false)
+            if (this.$store.state.onlineUrl) {
+              this.toPlayAudio(this.$store.state.onlineUrl)
+              this.doPlay(false)
+            } else {
+              Message.error('没有音频！！')
+              return
+            }
           } else {
             this.doPlay(true)
           }
@@ -394,13 +407,6 @@ export default {
           Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
           break
         }
-        const synthesizeEnd = Date.now()
-        console.log('synthesizeEnd - synthesizeStart:', synthesizeEnd - synthesizeStart)
-        if ((synthesizeEnd - synthesizeStart) > 60 * 1000) {
-          Message.error('音频合成失败，请稍后再试~')
-          this.$store.dispatch('changeStoreState', { isSynthetizing: false })
-          break
-        }
         // 合成成功
         if (data.data.status === 4) {
             const resp = await editorSynthResult(taskId)
@@ -415,8 +421,16 @@ export default {
           Message.success(`算法努力合成音频中(${processStatus[data.data.status]}%)`)
         }
         await sleep(3000)
+        const synthesizeEnd = Date.now()
+        console.log(`synthesizeEnd - synthesizeStart: ${synthesizeEnd - synthesizeStart}, synthesizeStart: ${synthesizeStart}, synthesizeEnd: ${synthesizeEnd}`, )
+        if ((synthesizeEnd - synthesizeStart) > 30 * 1000) {
+          Message.error('音频合成失败，请稍后再试~')
+          // this.changePlayState(playState.StateNone)
+          this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+          break
+        }
       }
-
+      
       this.$store.dispatch('changeStoreState', { isSynthetizing: false })
 
       return {

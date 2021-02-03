@@ -24,9 +24,7 @@
 </template>
 
 <script>
-import { getF0Data } from '@/api/audio'
 import { Message } from 'element-ui'
-import { pxToTime } from '@/common/utils/helper'
 import { playState } from "@/common/utils/const"
 // import { drawSvgPath } from '@/common/utils/draw'
 
@@ -140,32 +138,6 @@ export default {
         const y = event.clientY- rect.top - 13
 
         this.changeF0Value(x, y)
-
-        // const index = Math.round(x / this.pitchWidth)
-        // const data = this.$store.state.f0AI
-        // if (data) {
-          // const item = data[index]
-          // const value = (this.firstPitch - y / this.noteHeight) * 100
-          // this.$store.dispatch('changeF0', { index, value })
-
-          // 补帧
-          // const time = Date.now() - this.lastTime
-          // console.log(`time`, time, x)
-          // if (time < 20) {
-          //   const diff = index - this.lastIndex
-          //   // 向右移动
-          //   if (diff > 1) {
-          //     for (let i = this.lastIndex; i < index ; i+= 1) {
-          //       this.$store.dispatch('changeF0', { index: i, value: value })
-          //     }
-          //   } else if ( diff < -1){ // 向左移动
-          //     for (let i = index; i < this.lastIndex ; i+= 1) {
-          //       this.$store.dispatch('changeF0', { index: i, value: value })
-          //     }
-          //   }
-          // }
-        // }
-
         if (this.lastTime) {
           this.patchValue(this.lastX, this.lastY, x, y)
         }
@@ -194,9 +166,11 @@ export default {
       if (data) {
         const item = data[index]
         const value = (this.firstPitch - y / this.noteHeight) * 100
-        // this.$store.dispatch('changeF0', { index, value })
+        // const pos = Math.round(index * this.pitchWidth)
+        // this.$store.dispatch('changeF0', { index, value, x: pos })
 
         this.cache.set(index, value)
+        console.log('this.cache:', this.cache)
       }
     },
     patchValue(startX, startY, endX, endY) {

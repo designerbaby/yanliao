@@ -84,4 +84,18 @@ export default {
   border-radius: 50%;
   margin: 0 20px 0 8px;
 }
+
+.login {
+  width: 56px;
+  height: 24px;
+  background: #179B30;
+  border-radius: 12px;
+  margin: 0 24px 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  &:hover, &:active {
+    opacity: 0.8;
+  }
+}
 </style>

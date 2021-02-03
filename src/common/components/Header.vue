@@ -9,14 +9,18 @@
       <div class="subhead-text">万元悬赏拜年视频！</div>
       <img src="@/assets/icon-act.png" alt="">
     </a>
-    <div class="audio-edit" @click="toAudioEditor">音频编辑器</div>
-    <div class="user-info" v-if="mxIsLogin || nickName">
-      <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
-      <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
-      <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button>
-      <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
+    <div class="user-info">
+      <div class="audio-edit" @click="toAudioEditor">
+        <img src="@/assets/audioEditor/music.png" alt="">音频编辑器
+      </div>
+      <template v-if="mxIsLogin || nickName">
+        <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
+        <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
+        <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button>
+        <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
+      </template>
     </div>
-    <button v-else class="login-button" @click="loginButtonClick">登录</button>
+    <button v-if="!mxIsLogin" class="login-button" @click="loginButtonClick">登录</button>
     <LogoutDialog ref="LogoutDialog"></LogoutDialog>
     <KugouDialog ref="KugouDialog" @showBindKugou="toShowBindKugou" @getUserInfo="toGetUserInfo"></KugouDialog>
   </div>
@@ -178,7 +182,6 @@ export default {
     border-radius: 31px;
     color: #fff;
     font-size: 18px;
-    margin-left: auto;
   }
 
   .user-info {
@@ -210,14 +213,22 @@ export default {
   }
 
   .audio-edit {
-    border-right: 2px solid #2cabff;
-    color: #000;
-    // font-size: 30px;
-    font-weight: bold;
-    text-decoration: underline;
+    height: 33px;
+    border-right: 1px solid #CCC;
     display: flex;
     align-items: center;
     margin-left: auto;
+    font-size: 18px;
+    color: #2CACFF;
+    text-align: center;
+    line-height: 24px;
+    padding: 0 30px 0 0;
+    margin: 0 30px 0 0;
+    img {
+      width: 20px;
+      height: 20px;
+      margin: 0 6px;
+    }
   }
 }
 

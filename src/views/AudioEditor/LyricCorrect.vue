@@ -6,9 +6,11 @@
     <div :class="$style.pinyinInput">
       <div :class="$style.list" v-for="(it, index) in pinyinList" :key="index">
         {{ it.hanzi }}
-        [
-          <Radio v-for="(item, itemIndex) in it.pinyin" :key="itemIndex" :label="itemIndex" v-model="radio">{{ item }}</Radio>
-        ]
+        <template v-if="it.pinyin.length > 1">
+          [
+            <Radio v-for="(item, itemIndex) in it.pinyin" :key="itemIndex" :label="itemIndex" v-model="it.select">{{ item }}</Radio>
+          ]
+        </template>
       </div>
     </div>
     <span slot="footer" class="dialog-footer">
@@ -20,17 +22,14 @@
 
 <script>
 import { Dialog, Button, Radio } from 'element-ui'
-import { Hanzi2Pinyin } from '@/api/audio'
 
 export default {
   name: 'LyricCorrect',
   data() {
     return {
       pinyinVisible: false,
-      pinyin: '',
-      index: 0,
-      radio: 0,
-      pinyinList: []
+      index: -1,
+      lyric: ''
     }
   },
   components: {
@@ -38,34 +37,27 @@ export default {
     Button,
     Radio
   },
+  computed: {
+    pinyinList() {
+      return this.$store.state.pinyinList
+    },
+    stagePitches() {
+      return this.$store.state.stagePitches
+    }
+  },
   methods: {
     showLyric(lyric, index) {
       this.pinyinVisible = true
       this.index = index
-      this.toHanzi2Pinyin(lyric)
+      this.lyric = lyric
     },
     submit() {
-      const pinyinList = this.pinyinList
-      pinyinList.forEach(item => {
-        item.pinyin.forEach((it, index) => {
-          if (index === this.radio) {
-            this.pinyin = it
-          }
-        })
-      })
-      console.log('this.pinyin:', this.pinyin)
-      this.$store.dispatch('changeStagePitches', { index: this.index, key: 'pinyin', value: this.pinyin })
-      this.$store.dispatch('changeStoreState', { selectRadio: this.radio })
+      this.$emit('savePinyin')
+      this.$store.dispatch('changeStoreState', { pinyinList: this.pinyinList })
       this.pinyinVisible = false
     },
     toBack() {
       this.pinyinVisible = false
-    },
-    async toHanzi2Pinyin(lyric) {
-      const hanziList = [lyric]
-      const res = await Hanzi2Pinyin({hanziList})
-      this.pinyinList = res.data.data.pinyinList
-      console.log('this.pinyinList:', this.pinyinList) 
     }
   }
 }
@@ -90,5 +82,6 @@ export default {
 }
 .list {
   color: #606266;
+  display: inline-block;
 }
 </style>

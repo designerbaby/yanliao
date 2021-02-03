@@ -33,7 +33,7 @@ const defaultState = {
   isPitchLineChanged: false, // 音高线是否有改变
   f0AI: [],
   f0Draw: [],
-  selectRadio: 0,
+  pinyinList: [],
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
   isExceedHeader: false // 滚动是否超过头部
@@ -60,6 +60,16 @@ const store = new Vuex.Store({
     pitchWidth: state => { // 音高线2个数据之间的px值
       // 10是因为数据的每一项间隔10ms
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
+
+      // const pre = (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
+
+      // const bmpPerTenMS = (state.bpm / 1000) * 10
+      // const widthPerBmp = state.noteWidth * 8
+
+      // const value = widthPerBmp * bmpPerTenMS
+
+      // console.log(`value:`, value, pre)
+      // return pre
     },
     pitchList: (state, getters) =>  {
       const stagePitches = state.stagePitches
@@ -77,8 +87,10 @@ const store = new Vuex.Store({
           endTime: startTime + duration,
           pinyin: item.pinyin,
           hanzi: item.hanzi,
-          tone_id: state.toneId,
-          bpm: state.bpm
+          toneId: state.toneId,
+          bpm: state.bpm,
+          pinyinList: item.pinyinList,
+          select: item.select
         }
         pitches.push(pitchItem)
       })
@@ -108,6 +120,7 @@ const store = new Vuex.Store({
       state.f0Draw = [...f0]
     },
     changeStagePitches(state, { index, key, value }) {
+      // console.log(`changeStagePitches, index: ${index}, k: ${key}, value: ${value}`,)
       const stagePitches = state.stagePitches
       stagePitches[index][key] = value
       state.stagePitches = [...stagePitches]
@@ -167,6 +180,14 @@ const store = new Vuex.Store({
           f0Draw[index] = v
         }
       })
+
+      // for( const x of state.f0IndexSet.values()) {
+      //   const index = Math.round(x / getters.pitchWidth)
+      //   if (index < f0Draw.length) {
+      //     console.log(`x index`, x, index)
+      //     f0Draw[index] = draw[index]
+      //   }
+      // }
       
       commit('changeStoreState', { f0Draw , isPitchLineChanged: false })
     }
