@@ -224,6 +224,7 @@ export default {
     line-height: 24px;
     padding: 0 30px 0 0;
     margin: 0 30px 0 0;
+    cursor: pointer;
     img {
       width: 20px;
       height: 20px;

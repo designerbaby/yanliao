@@ -1,31 +1,35 @@
 <template>
-  <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
-    <div :class="$style.linefu">
-      <div :class="[$style.check, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
-        <img src="@/assets/audioEditor/note-normal.png" v-if="mode === 1">
-        <img src="@/assets/audioEditor/note-active.png" v-else>
-        <div :class="$style.text">音符模式</div>
+  <div :class="$style.wrap">
+    <div :class="$style.blank" v-if="isExceedHeader"></div>
+    <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
+      <div :class="$style.linefu">
+        <div :class="[$style.check, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
+          <img src="@/assets/audioEditor/note-normal.png" v-if="mode === 1">
+          <img src="@/assets/audioEditor/note-active.png" v-else>
+          <div :class="$style.text">音符模式</div>
+        </div>
+        <div :class="[$style.check, $style.right, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
+          <img src="@/assets/audioEditor/line-normal.png" v-if="mode === 0">
+          <img src="@/assets/audioEditor/line-active.png" v-else>
+          <div :class="$style.text">音高线模式</div>
+        </div>
       </div>
-      <div :class="[$style.check, $style.right, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
-        <img src="@/assets/audioEditor/line-normal.png" v-if="mode === 0">
-        <img src="@/assets/audioEditor/line-active.png" v-else>
-        <div :class="$style.text">音高线模式</div>
+      <div :class="$style.common" @click="toPlay">
+        <img src="@/assets/audioEditor/pause.png" v-if="isPlaying"/>
+        <img src="@/assets/audioEditor/play.png" v-else/>
+        <div :class="$style.text">播放控制</div>
       </div>
-    </div>
-    <div :class="$style.common" @click="toPlay">
-      <img src="@/assets/audioEditor/pause.png" v-if="isPlaying"/>
-      <img src="@/assets/audioEditor/play.png" v-else/>
-      <div :class="$style.text">播放控制</div>
-    </div>
-    <div :class="$style.common" @click="toGenerateAudio">
-      <img src="@/assets/audioEditor/export.png"/>
-      <div :class="$style.text">生成音频</div>
-    </div>
-    <div :class="[$style.common, $style.set]" @click="toSet">
-      <img src="@/assets/audioEditor/setting.png"/>
-      <div :class="$style.text">更多信息</div>
+      <div :class="$style.common" @click="toGenerateAudio">
+        <img src="@/assets/audioEditor/export.png"/>
+        <div :class="$style.text">生成音频</div>
+      </div>
+      <div :class="[$style.common, $style.set]" @click="toSet">
+        <img src="@/assets/audioEditor/setting.png"/>
+        <div :class="$style.text">更多信息</div>
+      </div>
     </div>
   </div>
+  
 </template>
 
 <script>
@@ -105,9 +109,15 @@ export default {
 </script>
 
 <style lang="less" module>
+.wrap {
+  border-top: 1px solid #282828;
+}
+.blank {
+  width: 100%;
+  height: 78px;
+}
 .header {
   width: 100%;
-  border-top: 1px solid #282828;
   position: relative;
   display: flex;
   align-items: center;

@@ -90,7 +90,6 @@ export default {
     },
     async saveStagePitches () {
       const pinyinList = await this.getPinyin()
-      console.log('saveStagePitches:', pinyinList)
       this.saveHanzi()
       this.savePinyin()
       this.savePinyinList()
@@ -98,9 +97,13 @@ export default {
     async getPinyin() {
       const res = await Hanzi2Pinyin({ hanziList: this.lyricArray })
       const pinyinList = res.data.data.pinyinList
-      console.log('Hanzi2Pinyin:', pinyinList)
       pinyinList.forEach(item => {
-        this.$set(item, 'select', 0) // 先将选择的初始为响应式
+        let select = 0
+        const it = this.stagePitches.find(it => it.hanzi === item.hanzi)
+        if (it) {
+          select = it.select
+        }
+        this.$set(item, 'select', select) // 先将选择的初始为响应式
       })
       this.$store.dispatch('changeStoreState', { pinyinList })
       return pinyinList
@@ -109,8 +112,10 @@ export default {
       const pinyinList = this.$store.state.pinyinList
       if (this.index === -1) {
         for(let i = 0; i < this.maxlength; i += 1) {
-          this.$store.dispatch('changeStagePitches', { index: i, key: 'pinyinList', value: pinyinList[i].pinyin })
-          this.$store.dispatch('changeStagePitches', { index: i, key: 'select', value: pinyinList[i].select })
+          const yinpin = pinyinList[i] ? pinyinList[i].pinyin : ['la']
+          const select = pinyinList[i] ? pinyinList[i].select: 0
+          this.$store.dispatch('changeStagePitches', { index: i, key: 'pinyinList', value: yinpin })
+          this.$store.dispatch('changeStagePitches', { index: i, key: 'select', value: select })
         }
       } else {
         this.$store.dispatch('changeStagePitches', { index: this.index, key: 'pinyinList', value: pinyinList[0].pinyin })
@@ -120,7 +125,7 @@ export default {
     saveHanzi () {
       if (this.index === -1) {
         for (let i = 0; i < this.maxlength; i += 1) {
-          this.$store.dispatch('changeStagePitches', { index: i, key: 'hanzi', value: this.lyricArray[i] })
+          this.$store.dispatch('changeStagePitches', { index: i, key: 'hanzi', value: this.lyricArray[i] || '啦' })
         }
       } else {
         this.$store.dispatch('changeStagePitches', { index: this.index, key: 'hanzi', value: this.lyricForm.lyric })
@@ -130,8 +135,9 @@ export default {
       const pinyinList = this.$store.state.pinyinList
       if (this.index === -1) {
         for (let i = 0; i < this.maxlength; i += 1) {
-          const select = pinyinList[i].select
-          this.$store.dispatch('changeStagePitches', { index: i, key: 'pinyin', value: pinyinList[i].pinyin[select] })
+          const select = pinyinList[i] ? pinyinList[i].select : 0
+          const value = pinyinList[i] ? pinyinList[i].pinyin[select] : 'la'
+          this.$store.dispatch('changeStagePitches', { index: i, key: 'pinyin', value: value })
         }
       } else {
         const pinyin = pinyinList[0].pinyin[pinyinList[0].select]

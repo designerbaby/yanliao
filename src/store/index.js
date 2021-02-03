@@ -20,7 +20,7 @@ const defaultState = {
   noteHeight: 25, // 32分音符的占据的最小高度
   bpm: 90,       // 音调
   toneId: 1, // 选择的toneId
-  auditUrl: '', // 选择的播放的url
+  auditUrl: 'https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/kuwa-wav/cc3868febcca4ac5a87c4e56a92bd999.wav', // 选择的播放的url
   taskId: 0, // 正在编辑的taskId
   toneName: 'luoxiang', // 选择的toneName
   isSynthetizing: false, // 是否在合成音频中

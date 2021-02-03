@@ -52,7 +52,7 @@ export default {
       this.lyric = lyric
     },
     submit() {
-      this.$emit('savePinyin')
+      this.$emit('saveAllPinyin')
       this.$store.dispatch('changeStoreState', { pinyinList: this.pinyinList })
       this.pinyinVisible = false
     },

@@ -96,12 +96,6 @@ export default {
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     playerButtonClick() {
-      // let url = ''
-      // this.toneList.forEach(item => {
-      //   if (this.toneId === item.tone_id) {
-      //     url = item.audit_url
-      //   }
-      // })
       const url = this.$store.state.auditUrl
       this.audio = PlayAudio({
         url,

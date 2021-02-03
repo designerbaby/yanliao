@@ -40,8 +40,8 @@
             <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
             <div :class="$style.list" v-if="showList === index">
               <img src="@/assets/audioEditor/arrow-black.png">
-              <div :class="$style.edit" @click.stop="editLyric(index)">编辑歌词</div>
               <div :class="[$style.edit, $style.delete]" @click.stop="toDeletePitch(index)">删除</div>
+              <div :class="$style.edit" @click.stop="editLyric(index)">编辑歌词</div>
               <div :class="[$style.edit, $style.delete]" @click.stop="editLyric(-1)">批量编辑歌词</div>
             </div>
           </div>
@@ -51,7 +51,7 @@
       </div>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
-    <LyricCorrect ref="LyricCorrect" @savePinyin="beatLyricSavePinyin"></LyricCorrect>
+    <LyricCorrect ref="LyricCorrect" @saveAllPinyin="beatLyricSaveAllPinyin"></LyricCorrect>
   </div>
 </template>
 
@@ -281,7 +281,7 @@ export default {
         x: event.clientX + this.stageOffset.scrollLeft - rect.left,
         y: event.clientY + this.stageOffset.scrollTop - rect.top
       };
-      console.log(`this.startPos, x: ${this.startPos.x}, y: ${this.startPos.y}`)
+      // console.log(`this.startPos, x: ${this.startPos.x}, y: ${this.startPos.y}`)
       // 初始化绿色块
       this.$refs.sharp.style.left = `${this.startPos.x}px`;
       this.$refs.sharp.style.top = `${this.startPos.y}px`;
@@ -325,7 +325,7 @@ export default {
           x: event.clientX + this.stageOffset.scrollLeft - rect.left,
           y: event.clientY + this.stageOffset.scrollTop - rect.top
         };
-        console.log(`this.endPos: x${this.endPos.x}, y: ${this.endPos.y}`)
+        // console.log(`this.endPos: x${this.endPos.x}, y: ${this.endPos.y}`)
         this.$refs.sharp.style.display = "none";
 
         //
@@ -426,8 +426,10 @@ export default {
       console.log('showLyric:', lyric, index)
       this.$refs.LyricCorrect.showLyric(lyric, index)
     },
-    beatLyricSavePinyin() {
+    beatLyricSaveAllPinyin() {
       this.$refs.BeatLyric.savePinyin()
+      this.$refs.BeatLyric.savePinyinList()
+      this.$refs.BeatLyric.saveHanzi()
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
@@ -513,7 +515,7 @@ export default {
   top: 0;
   font-size: 12px;
   line-height: 25px;
-  z-index: 20; // 音块的层级
+  z-index: 10; // 音块的层级
   padding-left: 5px;
   &.isActive {
     background: rgb(20, 155, 49)
@@ -527,7 +529,7 @@ export default {
 .list {
   width: 104px;
   background: #151517;
-  box-shadow: 0 4px 10px 0 rgba(0,0,0,0.15);
+  box-shadow: -4px 4px 10px 0 rgba(0,0,0, 0.30);
   border-radius: 8px;
   position: absolute;
   top: 38px;
@@ -535,6 +537,7 @@ export default {
   color: #fff;
   font-size: 14px;
   text-align: center;
+  // z-index: 30; // TODO 这里设置了z-index没有用
   img {
     width: 14px;
     height: 8px;
@@ -550,9 +553,11 @@ export default {
   margin: 8px 0 0 0;
   &:hover {
     background: #1C1C1E;
+    border-radius: 8px;
   }
   &:active {
     background: #0E0E0F;
+    border-radius: 8px;
   }
 }
 
