@@ -1,5 +1,6 @@
 <template>
-  <div :class="$style.audioEditor" ref="audioEditor" @click="checkLogin">
+  <div :class="$style.audioEditor" ref="audioEditor">
+    <div :class="$style.panel" v-if="!userInfo" @click="checkLogin"></div>
     <BeatHeader 
       :isPlaying="playState == 1" 
       @play="toPlay"
@@ -37,6 +38,7 @@ export default {
   },
   data() {
     return {
+      userInfo: sessionStorage.getItem('userInfo'),
       timerId: 0,
       audio: null,
       linePosition: null, // 播放时，线所在的位置播放
@@ -99,10 +101,7 @@ export default {
   },
   methods: {
     checkLogin() {
-      const userInfo = sessionStorage.getItem('userInfo')
-      if (!userInfo) {
-        this.$emit('openLoginDialog')
-      }
+      this.$emit('openLoginDialog')
     },
     resetStoreState() {
       this.$store.dispatch('resetState')
@@ -157,7 +156,7 @@ export default {
             const value = data.f0_draw[i]
             const x = Math.round(pitchWidth * i)
             const xEnd = Math.round(pitchWidth * (i + 1))
-            console.log(`有改变的数据：pitchWidth:${pitchWidth}, index:${i}, value:${value}, x:${x}, xEnd:${xEnd}`)
+            // console.log(`有改变的数据：pitchWidth:${pitchWidth}, index:${i}, value:${value}, x:${x}, xEnd:${xEnd}`)
             for (let j = x; j <= xEnd; j +=1) {
               changed[j] = value
             }
@@ -464,5 +463,15 @@ export default {
   width: 0;
   height: 0;
   display: none;
+}
+
+.panel {
+  position: fixed;
+  top: 48px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: 2000;
 }
 </style>
