@@ -78,9 +78,9 @@ export default {
       //   return
       // }
       this.$store.dispatch('changeStoreState', { mode: mode })
-      if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
-        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
-      }
+      // if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
+      //   this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
+      // }
     },
     toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)

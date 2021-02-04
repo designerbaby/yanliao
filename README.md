@@ -48,6 +48,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 2、配置gitlab-ci去设置代码发布
 
 2、BPM的改变会改变音高线，期望是不会改变
+画线的时候，音符画出的位置和画线位置不一致
 
 
 ## 难点

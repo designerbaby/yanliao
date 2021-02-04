@@ -36,12 +36,12 @@ const defaultState = {
   pinyinList: [],
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
-  isExceedHeader: false // 滚动是否超过头部
+  isExceedHeader: false, // 滚动是否超过头部
+  changedLineMap: {}
 }
 
 const store = new Vuex.Store({
   state: {
-    f0IndexSet: new Set(),
     ...deepAssign({}, defaultState)
   },
   getters: {
@@ -129,9 +129,7 @@ const store = new Vuex.Store({
   actions: {
     resetState({ commit }) {
       const state = deepAssign({}, defaultState)
-      commit('changeStoreState', state, {
-        f0IndexSet: new Set()
-      })
+      commit('changeStoreState', state)
     },
     updateBeatForm (context, form) {
       context.commit('updateBeatForm', form)
@@ -143,10 +141,15 @@ const store = new Vuex.Store({
     changeStoreState({ commit }, props) {
       commit('changeStoreState', props)
     },
-    changeF0({ commit, state }, { index, value }){
-      commit('changeF0', { index, value})
-      commit('changeStoreState', { isPitchLineChanged: true })
-      state.f0IndexSet.add(index)
+    changeF0({ commit, state, getters }, { values }){
+      const changedLineMap = { ...state.changedLineMap }
+      const f0Draw = [...state.f0Draw]
+      for(const [x, v] of values) {
+        const index = Math.round(x / getters.pitchWidth)
+        changedLineMap[x] = v
+        f0Draw[index] = v
+      }
+      commit('changeStoreState', { f0Draw, changedLineMap, isPitchLineChanged: true })
     },
     changeStagePitches({ commit }, { index, key, value }) {
       commit('changeStagePitches', { index, key, value })
@@ -172,14 +175,23 @@ const store = new Vuex.Store({
       const f0Data = data.data.f0_data
       commit('changeStoreState', { f0AI: f0Data })
 
-      const draw = state.f0Draw
-      const f0Draw = [...f0Data]
+      const f0Draw = []
+      const changed = state.changedLineMap
 
-      draw.forEach((v, index) => {
-        if (state.f0IndexSet.has(index)) {
-          f0Draw[index] = v
+      for (const [index, value] of f0Data.entries()) {      
+        const x = Math.round(getters.pitchWidth * index)
+        if (x in changed) {
+          f0Draw[index] = changed[x]
+        } else {
+          f0Draw[index] = value
         }
-      })
+      }
+
+      // draw.forEach((v, index) => {
+      //   if (state.f0IndexSet.has(index)) {
+      //     f0Draw[index] = v
+      //   }
+      // })
 
       // for( const x of state.f0IndexSet.values()) {
       //   const index = Math.round(x / getters.pitchWidth)
@@ -189,7 +201,7 @@ const store = new Vuex.Store({
       //   }
       // }
       
-      commit('changeStoreState', { f0Draw , isPitchLineChanged: false })
+      commit('changeStoreState', { f0Draw, isPitchLineChanged: false })
     }
   },
   modules: {

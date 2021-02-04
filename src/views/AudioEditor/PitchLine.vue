@@ -82,7 +82,7 @@ export default {
       // 将拿到的数据转成x轴和y轴
       for (let i = 0; i < f0Data.length; i += 1) {
         const item = f0Data[i]
-        const x = this.pitchWidth * i
+        const x = Math.round(this.pitchWidth * i)
         const y = parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5
 
         // points.push([x, y])
@@ -122,9 +122,10 @@ export default {
         if (this.cache.size > 0) {
           const values = this.cache.entries()
           // console.log(`update values:`, values)
-          for(const [k, v] of values) {
-            this.$store.dispatch('changeF0', { index: k, value: v })
-          }
+          // for(const [k, v] of values) {
+          //   this.$store.dispatch('changeF0', { x: k, value: v })
+          // }
+          this.$store.dispatch('changeF0', { values })
           this.cache.clear()
         }
       }
@@ -169,8 +170,8 @@ export default {
         // const pos = Math.round(index * this.pitchWidth)
         // this.$store.dispatch('changeF0', { index, value, x: pos })
 
-        this.cache.set(index, value)
-        console.log('this.cache:', this.cache)
+        this.cache.set(x, value)
+        // console.log('this.cache:', this.cache)
       }
     },
     patchValue(startX, startY, endX, endY) {

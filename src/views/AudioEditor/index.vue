@@ -149,14 +149,23 @@ export default {
           toneId: pitchList[0].toneId, 
           stagePitches: stagePitches 
         })
-
+        const changed = {}
+        const pitchWidth = this.$store.getters.pitchWidth
         // 比较元数据和AI数据，如果不一样表示是修改过的，下次生成新的时候不能覆盖
         for (let i = 0; i < data.f0_ai.length; i += 1) {
           if (data.f0_ai[i] !== data.f0_draw[i]) {
+            const value = data.f0_draw[i]
+            const x = Math.round(pitchWidth * i)
+            const xEnd = Math.round(pitchWidth * (i + 1))
+            console.log(`有改变的数据：pitchWidth:${pitchWidth}, index:${i}, value:${value}, x:${x}, xEnd:${xEnd}`)
+            for (let j = x; j <= xEnd; j +=1) {
+              changed[j] = value
+            }
             // console.log(`this.$store.state`, this.$store.state)
-            this.$store.state.f0IndexSet.add(i)
           }
         }
+
+        this.$store.state.changedLineMap = changed
         
       }
     },
@@ -292,6 +301,7 @@ export default {
       clearInterval(this.timerId)
       const ticker = (timestamp) => {
         if (this.playState === playState.StatePlaying){
+          this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
           window.requestAnimationFrame(ticker);
         }
       }
@@ -313,7 +323,7 @@ export default {
               // console.log(audio, `duration`, duration, `times`, times, `step`, step)
 
               this.playLine.current += step
-              this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
+              // this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
               // console.log('this.playLine.current:', this.playLine.current)
             }
           }, 16)
