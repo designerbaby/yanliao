@@ -1,63 +1,41 @@
 <template>
-  <div :class="$style.header">
-    <div :class="$style.common">
-      <div :class="$style.but">
-        <div :class="[$style.mode, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
-          <Icon class="el-icon-s-operation"></Icon>
+  <div :class="$style.wrap">
+    <div :class="$style.blank" v-if="isExceedHeader"></div>
+    <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
+      <div :class="$style.linefu">
+        <div :class="[$style.check, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
+          <img src="@/assets/audioEditor/note-normal.png" v-if="mode === 1">
+          <img src="@/assets/audioEditor/note-active.png" v-else>
+          <div :class="$style.text">音符模式</div>
         </div>
-        <div :class="[$style.mode, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
-          <Icon class="el-icon-sort-up"></Icon>
+        <div :class="[$style.check, $style.right, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
+          <img src="@/assets/audioEditor/line-normal.png" v-if="mode === 0">
+          <img src="@/assets/audioEditor/line-active.png" v-else>
+          <div :class="$style.text">音高线模式</div>
         </div>
       </div>
-      <div :class="$style.text">音符/音高线模式</div>
+      <div :class="$style.common" @click="toPlay">
+        <img src="@/assets/audioEditor/pause.png" v-if="isPlaying"/>
+        <img src="@/assets/audioEditor/play.png" v-else/>
+        <div :class="$style.text">播放控制</div>
+      </div>
+      <div :class="$style.common" @click="toGenerateAudio">
+        <img src="@/assets/audioEditor/export.png"/>
+        <div :class="$style.text">生成音频</div>
+      </div>
+      <div :class="[$style.common, $style.set]" @click="toSet">
+        <img src="@/assets/audioEditor/setting.png"/>
+        <div :class="$style.text">更多信息</div>
+      </div>
     </div>
-    <div :class="$style.common" @click="toPlay">
-      <div :class="$style.but">
-        <img src="@/assets/icon-pause.png" :class="$style.icon" v-if="isPlaying"/>
-        <img src="@/assets/icon-play.png" :class="$style.icon" v-else/>
-      </div>
-      <div :class="$style.text">播放控制</div>
-    </div>
-    <div :class="$style.common" @click="toGenerateAudio" v-if="mode === 1">
-      <div :class="$style.but">
-        <div :class="$style.mode">
-          <Icon class="el-icon-top-right"></Icon>
-        </div>
-      </div>
-      <div :class="$style.text">生成音频</div>
-    </div>
-    <!-- <div :class="$style.common" @click="toDownload" v-if="mode === 1">
-      <div :class="$style.but">
-        <div :class="$style.mode">
-          <Icon class="el-icon-download"></Icon>
-        </div>
-      </div>
-      <div :class="$style.text">下载音频</div>
-    </div> -->
-    <div :class="[$style.common, $style.set]" @click="toSet">
-      <div :class="$style.but">
-        <div :class="$style.mode">
-          <Icon class="el-icon-s-tools"></Icon>
-        </div>
-      </div>
-      <div :class="$style.text">更多信息</div>
-    </div>
-    <!-- <div :class="$style.common" @click="toClear">
-      <div :class="$style.but">
-        <div :class="$style.mode">
-          <Icon class="el-icon-refresh-left"></Icon>
-        </div>
-      </div>
-      <div :class="$style.text">全部清除</div>
-    </div> -->
-
-    <div :class="$style.bpm">{{bpm}} BPM</div>
   </div>
+  
 </template>
 
 <script>
 import { Icon, Button, Message } from 'element-ui'
 import { playState } from "@/common/utils/const"
+import { isDuplicated, reportEvent } from '@/common/utils/helper'
 
 export default {
   name: 'BeatHeader',
@@ -67,20 +45,14 @@ export default {
     }
   },
   computed: {
-    bpm() {
-      return this.$store.state.bpm
-    },
     mode() {
       return this.$store.state.mode
     },
-    downUrl() {
-      return this.$store.state.downUrl
-    },
-    isSynthetizing() {
-      return this.$store.state.isSynthetizing
-    },
     playState() {
       return this.$store.state.playState
+    },
+    isExceedHeader() {
+      return this.$store.state.isExceedHeader
     }
   },
   components: {
@@ -88,114 +60,134 @@ export default {
     Button
   },
   methods: {
-    toClear() {
-      location.reload()
-    },
     toPlay() {
       this.$emit('play')
     },
     selectMode(mode) {
-      if (this.isSynthetizing) {
+      if (mode === 0) {
+        reportEvent('note-button-click', 147617)
+      } else {
+        reportEvent('pitch-button-click', 147618)
+      }
+      if (this.$store.state.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
-        Message.error('正在播放中, 不能修改哦~')
-        return
-      }
+      // if (this.playState === playState.StatePlaying) {
+      //   Message.error('正在播放中, 不能修改哦~')
+      //   return
+      // }
       this.$store.dispatch('changeStoreState', { mode: mode })
-      if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
-        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
-      }
+      // if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
+      //   this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
+      // }
     },
     toGenerateAudio() {
-      // this.$emit('generateAudio')
+      reportEvent('create-audio-button-click', 147619)
+      if (isDuplicated(this.$store.state.stagePitches)) {
+        Message.error('音符存在重叠, 请调整好~')
+        return
+      }
+      if (this.$store.state.stagePitches.length === 0 && 
+          this.$store.state.f0AI.length === 0 &&
+          this.$store.state.f0Draw.length === 0) {
+        Message.error('没有音符！！')
+        return
+      }
+      this.$emit('synthesize')
       this.$router.push(`/profile`)
     },
     toSet() {
+      reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
-    },
-    toDownload() {
-      const downUrl = this.$store.state.downUrl
-      if (!downUrl) {
-        Message.error('没有音频！')
-        return
-      }
-      window.open(downUrl, '_blank')
     }
   }
 }
 </script>
 
 <style lang="less" module>
+.wrap {
+  border-top: 1px solid #282828;
+}
+.blank {
+  width: 100%;
+  height: 78px;
+}
 .header {
   width: 100%;
-  border-top: 1px solid #505050;
   position: relative;
   display: flex;
-  height: 60px;
+  align-items: center;
+  height: 78px;
   overflow: hidden;
-  font-size: 15px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.80);
+  background: #323232;
+  z-index: 1050; // 头部控制板的层级
+  img {
+    width: 24px;
+    height: 24px;
+    margin: 2px auto;
+    cursor: pointer;
+    opacity: 1;
+  }
+  &.isFloat {
+    position: fixed;
+    top: 0;
+  }
 }
 
 .common {
+  height: 54px;
+  line-height: 54px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   position: relative;
-  margin: 0 5px;
+  margin: 0 0 0 40px;
+  // border: 1px solid red;
 }
 
 .set {
   position: absolute;
-  top: 0;
-  right: 10px;
+  right: 30px;
 }
 
-.icon {
-  width: 22px;
-  height: 22px;
-  margin: 2px;
-}
-.refresh {
+.linefu {
   display: flex;
-  width: 100px;
-}
-.bpm {
-  color: #fff;
-  font-size: 13px;
-  text-align: center;
-  // position: absolute;
-  // bottom: -30px;
-  // left: 80px;
+  flex-direction: row;
+  margin: 0 0 0 24px;
 }
 
-.but {
+.check {
+  width: 72px;
+  height: 54px;
+  border-radius: 12px 0px 0px 12px;
+  opacity: 0.3;
   display: flex;
   align-items: center;
-  height: 35px;
-}
-.mode {
-  background: #878687;
-  width: 25px;
-  height: 22px;
-  border-radius: 3px;
-  margin: 0 2px;
-  display: flex;
   justify-content: center;
-  align-items: center;
-  color: #fff;
+  flex-direction: column;
+  background: #1E1E1E;
   &.isActive {
-    background: #00a2fb;
+    opacity: 1; 
   }
   &:active {
     opacity: 0.8;
   }
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.right {
+  border-radius: 0px 12px 12px 0px;
 }
 
 .text {
   height: 20px;
   line-height: 20px;
+  opacity: 1;
 }
 </style>

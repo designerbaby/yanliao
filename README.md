@@ -39,26 +39,21 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
     - 编辑器：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_kuwa/kuwa_music_synth/musicx_kuwa_music_synth.proto
     - 获取音高线：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_yan/yan_sdk_client/musicx_yan_sdk_client.proto
 
-### 代码提交规范
-
-遵循 https://www.conventionalcommits.org/zh/v1.0.0-beta.3/
-```
-feat: 新功能（feature）
-fix: 修补bug
-docs: 文档（documentation）
-style: 格式（不影响代码运行的变动）
-refactor: 重构（即不是新增功能，也不是修改bug的代码变动）
-test: 增加测试
-chore: 构建过程或辅助工具的变动
-
-（注意：冒号为英文半角冒号，后带空格，再接信息）
-```
-刚开始可使用辅助工具，https://github.com/commitizen/cz-cli
-```
-npm install -g commitizen
-```
+### 数据上报地址：
+- https://growth.tencent.com/kh37dyui2j/data_management/Source_Event/4889/user_event
 
 ### TODO
 
-- 2、video标签要支持avi、wmv、mpeg、m4v、mov、asf、flv、f4v格式的文件
-- m4v: 浏览器不支持m4v格式文件，这些格式需要播放器支持。这些文件直接无法在浏览器中运行。 像chrome，firefox，ie ......等。
+- 1、要把doPlay的判断改成状态机
+- 2、配置gitlab-ci去设置代码发布
+
+2、BPM的改变会改变音高线，期望是不会改变
+画线的时候，音符画出的位置和画线位置不一致
+
+
+## 难点
+- 1、画音高线的时候锯齿
+- 2、数据处理规划
+- 3、播放进度不流畅
+- 4、播放的状态机
+- 5、播放线移动的位置

@@ -2,7 +2,7 @@
   <div 
     :class="$style.PitchLine" 
     ref="PitchLine"
-    :style="{ height: `${stageHeight}px`, width: `${stageWidth}px` }"
+    :style="{ height: `${stageHeight}px`, width: `${stageWidth}px`, 'z-index': `${zIndex}` }"
   >
     <svg 
       xmlns="http://www.w3.org/2000/svg"
@@ -11,24 +11,22 @@
       :width="`${stageWidth}px`" 
       :height="`${stageHeight}px`" 
       @mousedown.stop="onMouseDown"
-      @mousemove.stop="onMouseMove"
+      @mousemove="onMouseMove"
       @mouseup.stop="onMouseUp"
-      @mouseleave.stop="onMouseLeave"
+      @mouseleave="onMouseUp"
       >
      <g>
       <path :d="svgData" stroke="white" fill="transparent" stroke-dasharray="5,5"/>
-      <path :d="svgDataDraw" stroke="white" fill="transparent"/>
+      <path :d="svgDataDraw" stroke="white" fill="transparent" stroke-linejoin="round" />
      </g>
     </svg>
-    
   </div>
 </template>
 
 <script>
-import { getF0Data } from '@/api/audio'
 import { Message } from 'element-ui'
-import { pxToTime } from '@/common/utils/helper'
 import { playState } from "@/common/utils/const"
+// import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
   name: 'PitchLine',
@@ -36,16 +34,15 @@ export default {
     return {
       mouseStart: null,
       lastIndex: 0,
-      lastTime: 0
+      lastValue: 0,
+      lastTime: 0,
+      lastX: 0,
+      lastY: 0,
+      zIndex: 999,
+      cache: new Map()
     }
   },
   computed: {
-    noteWidth() {
-      return this.$store.state.noteWidth
-    },
-    bpm() {
-      return this.$store.state.bpm
-    },
     stageWidth() {
       return this.$store.getters.stageWidth
     },
@@ -55,50 +52,14 @@ export default {
     firstPitch() {
       return this.$store.getters.firstPitch
     },
-    isStagePitchesChanged() {
-      return this.$store.state.isStagePitchesChanged
-    },
     noteHeight() {
       return this.$store.state.noteHeight
     },
     pitchWidth() {
       return this.$store.getters.pitchWidth
     },
-    stagePitches() {
-      return this.$store.state.stagePitches
-    },
-    isSynthetizing() {
-      return this.$store.state.isSynthetizing
-    },
     playState() {
       return this.$store.state.playState
-    },
-    isNeedCreatePitchLine() {
-      return this.$store.state.isNeedCreatePitchLine
-    },
-    pitchList() {
-      const stagePitches = this.stagePitches
-      console.log('stagePitches:', stagePitches)
-      const pitches = []
-      stagePitches.forEach(item => {
-        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
-        const pitch = this.firstPitch - (item.top / item.height)
-        const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
-        const pitchItem = {
-          duration: duration,
-          pitch: pitch,
-          singer: this.$store.state.toneName,
-          startTime: startTime,
-          pinyin: item.pinyin,
-          hanzi: item.hanzi,
-          tone_id: this.$store.state.toneId
-        }
-        pitches.push(pitchItem)
-      })
-      return pitches
-    },
-    changedIndexes() {
-      return this.$store.state.f0IndexSet
     },
     svgData() {
       // console.log(`svgData`)
@@ -109,70 +70,38 @@ export default {
     }
   },
   mounted() {
-    if (this.isNeedCreatePitchLine) { // 音块有更改才去获取新的音高线
-      this.createPitchLine()
+    if (this.$store.state.isPitchLineChanged
+    || this.$store.state.isStagePitchesChanged || this.$store.state.mode === 1) { // 音高线有更改才去获取新的音高线
+      this.$store.dispatch('getPitchLine')
     }
   },
   methods: {
-    async createPitchLine() {
-      this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: false })
-      const f0Data = (await this.toGetPitchLineData()) || []
-
-      this.$store.dispatch("changeStoreState", { f0AI: f0Data })
-
-      const draw = this.$store.state.f0Draw
-      const f0Draw = [...f0Data]
-
-      draw.forEach((v, index) => {
-        if (this.changedIndexes.has(index)) {
-          f0Draw[index] = v
-        }
-      })
-
-      this.$store.dispatch("changeStoreState", { f0Draw })
-
-    },
-    async toGetPitchLineData() {
-      if (this.pitchList.length <= 0) {
-        Message.error('没有画音块，所以没音高线')
-        return
-      }
-      for (let i = 0; i < this.stagePitches.length; i += 1) {
-        if (this.stagePitches[i].red) {
-          Message.error('音符存在重叠, 请调整好~')
-          return
-        }
-      }
-      // Message.success('音高线正在生成中~') // !这里后端没有音高线的进度状态返回
-      const { data } = await getF0Data({ pitchList: this.pitchList })
-      // console.log(`getF0Data: ${data}`)
-      if (data.ret_code !== 0) {
-        Message.error(`请求音高线数据错误,错误信息:${data.err_msg}`)
-        return
-      }
-
-      return data.data.f0_data
-    },
     toHandleF0Data (f0Data) {
-      const finalData = []
+      let result = 'M '
+      // const points = []
       // 将拿到的数据转成x轴和y轴
       for (let i = 0; i < f0Data.length; i += 1) {
         const item = f0Data[i]
-        finalData.push({
-          x: this.pitchWidth * i,
-          y: parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 10
-        })
+        const x = Math.round(this.pitchWidth * i)
+        const y = parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5
+
+        // points.push([x, y])
+        if (i == 1) {
+          // result += "L "
+        }
+
+        if ((i + 1) % 3 ==0) {
+          result += "C "
+        }
+        result += `${x},${y} `
       } 
-      let result = 'M '
-      finalData.forEach(item => {
-        result += `${item.x} ${item.y},` 
-      })
-      // console.log('result:', result)
       return result
+
+      // return drawSvgPath(points)
     },
     onMouseDown(event) {
-      console.log(`onMouseDown event`, event)
-      if (this.isSynthetizing) {
+      // console.log(`onMouseDown event`, event)
+      if (this.$store.state.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
@@ -180,61 +109,86 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
+      this.zIndex = 1001 // 把层级设得比播放线的高
       const rect = this.$refs.svgStage.getBoundingClientRect()
       this.mouseStart = {
         rect
       }
+
+      const update = () => {
+        if (this.mouseStart) {
+          requestAnimationFrame(update)
+        }
+        if (this.cache.size > 0) {
+          const values = this.cache.entries()
+          // console.log(`update values:`, values)
+          // for(const [k, v] of values) {
+          //   this.$store.dispatch('changeF0', { x: k, value: v })
+          // }
+          this.$store.dispatch('changeF0', { values })
+          this.cache.clear()
+        }
+      }
+      update()
     },
     onMouseMove(event) {
       if (this.mouseStart) {
+
         const { rect } = this.mouseStart
         const x = event.clientX - rect.left
-        const y = event.clientY- rect.top
+        const y = event.clientY- rect.top - 13
 
-        const index = Math.round(x / this.pitchWidth)
-        const data = this.$store.state.f0AI
-        if (data) {
-          const item = data[index]
-          const value = (this.firstPitch - y / this.noteHeight) * 100
-          // console.log(`changeF0`, x, index, value)
-          this.$store.dispatch('changeF0', { index, value })
-          this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
-          this.changedIndexes.add(index)
-
-          // 补帧
-          const time = Date.now() - this.lastTime
-          if (time < 20) {
-            const diff = index - this.lastIndex
-            // 向右移动
-            if (diff > 1 && diff < 10) {
-              for (let i = this.lastIndex; i < index ; i+= 1) {
-                // console.log(`move right changeF0 add lost data`, i, value)
-                this.$store.dispatch('changeF0', { index: i, value: value })
-                this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
-                this.changedIndexes.add(i)
-              }
-            } else if ( diff < 1 && diff > -10){ // 向左移动
-              for (let i = index; i < this.lastIndex ; i+= 1) {
-                // console.log(`move left changeF0 add lost data`, i, value)
-                this.$store.dispatch('changeF0', { index: i, value: value })
-                this.$store.dispatch("changeStoreState", { isNeedCreatePitchLine: true })
-                this.changedIndexes.add(i)
-              }
-            }
-          }
-
-          this.lastIndex = index
-          this.lastTime = Date.now()
+        this.changeF0Value(x, y)
+        if (this.lastTime) {
+          this.patchValue(this.lastX, this.lastY, x, y)
         }
+
+
+        this.lastTime = Date.now()
+        this.lastX = x
+        this.lastY = y
       }
     },
     onMouseUp() {
-      console.log(`onMouseUp event`, event)
+      // console.log(`onMouseUp event`, event)
       this.mouseStart = null
+      this.zIndex = 999 // 把层级设得比播放线的低
+      this.lastX = 0
+      this.lastY = 0
+      this.lastTime = 0
     },
     onMouseLeave() {
-      console.log(`onMouseLeave event`, event)
-      this.mouseStart = null
+      // console.log(`onMouseLeave event`, event)
+      // this.mouseStart = null
+    },
+    changeF0Value(x, y) {
+      const index = Math.round(x / this.pitchWidth)
+      const data = this.$store.state.f0AI
+      if (data) {
+        const item = data[index]
+        const value = (this.firstPitch - y / this.noteHeight) * 100
+        // const pos = Math.round(index * this.pitchWidth)
+        // this.$store.dispatch('changeF0', { index, value, x: pos })
+
+        this.cache.set(x, value)
+        // console.log('this.cache:', this.cache)
+      }
+    },
+    patchValue(startX, startY, endX, endY) {
+      const dx = endX - startX
+      const dy = endY - startY
+      const step = dy / Math.abs(dx)
+      if (dx > 1) {
+        // console.log(`patchValue dx>1:`, startX, startY, endX, endY, `dx:${dx},dy:${dy},step:${step}`)
+        for (let i = startX; i < endX ; i+= 1) {
+          this.changeF0Value(i, startY + step)
+        }
+      } else if( dx < -1) {
+        // console.log(`patchValue dx<-1:`, startX, startY, endX, endY, step, `dx:${dx},dy:${dy}`)
+        for (let i = endX; i < startX ; i+= 1) {
+          this.changeF0Value(i, startY + step)
+        }
+      }
     }
   }
 }
@@ -245,9 +199,7 @@ export default {
   position: absolute;
   top: 0px;
   left: 0px;
-  z-index: 100;
-  width: 10px;
-  height: 20px;
+  z-index: 999; // 音高线的层级
   background: transparent;
 }
 </style>

@@ -28,13 +28,9 @@ export default {
       startLeft: 0,
       startX: 0,
       eventListener: null
-    };
+    }
   },
-  mounted() {},
   computed: {
-    isSynthetizing() {
-      return this.$store.state.isSynthetizing;
-    },
     stageHeight() {
       return this.$store.getters.stageHeight;
     },
@@ -48,7 +44,7 @@ export default {
   methods: {
     onLineMouseDown(event) {
       console.log(`onLineMouseDown`);
-      if (this.isSynthetizing) {
+      if (this.$store.state.isSynthetizing) {
         Message.error("正在合成音频中,不能修改哦~")
         return
       }
@@ -101,7 +97,7 @@ export default {
   position: absolute;
   top: 0px;
   left: 0px;
-  z-index: 1000;
+  z-index: 1000; // 播放线的层级
   width: 2px;
 
   &:active {

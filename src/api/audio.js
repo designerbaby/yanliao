@@ -51,10 +51,20 @@ const Hanzi2Pinyin = (data) => {
   })
 }
 
+// 拉取编辑器详情接口
+const editorDetail = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/synth/editor_detail',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
   editorSynthResult,
   getF0Data,
-  Hanzi2Pinyin
+  Hanzi2Pinyin,
+  editorDetail
 }

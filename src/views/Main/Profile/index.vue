@@ -30,7 +30,8 @@
             label="音频作品名称"
           >
             <template slot-scope="scope">
-              <span class="audio-name" @click="audioNameClick(scope.row.arrange_id)">{{scope.row.arrange_name || '填词'}}</span>
+              <span class="audio-name" v-if="scope.row.bus_type === 2" @click="toAudioEditor(scope.row)">{{scope.row.arrange_name || '填词'}}</span>
+              <span class="audio-name" v-else @click="audioNameClick(scope.row.arrange_id)">{{scope.row.arrange_name || '填词'}}</span>
             </template>
           </el-table-column>
           <el-table-column
@@ -60,7 +61,7 @@
           >
             <template slot-scope="scope">
               <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-download disabled' : 'icon el-icon-download'" @click="downloadButtonClick(scope.row)"></i>
-              <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-if="scope.row.bus_type === 2" @click="toAudioEditor"></i>
+              <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-if="scope.row.bus_type === 2" @click.stop="toAudioEditor(scope.row)"></i>
               <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-else @click="editButtonClick(scope.row)"></i>
               <i class="icon el-icon-delete" @click="deleteButtonClick(scope.row)"></i>
             </template>
@@ -140,8 +141,13 @@ export default {
     this.getList()
   },
   methods: {
-    toAudioEditor() {
-      this.$router.push(`/audioEditor`)
+    toAudioEditor(row) {
+      if (row.state === 0 || row.state === 1) {
+        Message.error('音频合成中，暂不可编辑')
+        return
+      }
+      console.log('toAudioEditor row:', row)
+      this.$router.push(`/audioEditor?taskId=${row.arrange_id}`)
     },
     stateMap(state) {
       const m = {

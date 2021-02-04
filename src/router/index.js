@@ -84,6 +84,14 @@ const routes = [
     component: () => import('../views/Activity/activityPage.vue')
   },
   {
+    path: '/springFestival',
+    name: 'SpringFestival',
+    meta: {
+      auth: 'noLogin',
+    },
+    component: () => import('../views/Activity/springFestival.vue')
+  },
+  {
     path: '/privacyPolicy',
     name: 'PrivacyPolicy',
     meta: {
