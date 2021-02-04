@@ -24,6 +24,7 @@ const defaultState = {
   taskId: 0, // 正在编辑的taskId
   toneName: 'luoxiang', // 选择的toneName
   isSynthetizing: false, // 是否在合成音频中
+  isGetF0Data: false, // 正在获取f0中
   stageSize: {},
   maxPitchRight: 0, // 音块最右边的位置
   mode: 0, // 0 代表音符模式, 1代表音高线模式
@@ -165,13 +166,12 @@ const store = new Vuex.Store({
           return
         }
       }
-
+      commit('changeStoreState', { isGetF0Data: true })
       const { data } = await getF0Data({ pitchList: getters.pitchList })
       if (data.ret_code !== 0) {
         // Message.error(`请求音高线数据错误,错误信息:${data.err_msg}`)
         return
       }
-
       const f0Data = data.data.f0_data
       commit('changeStoreState', { f0AI: f0Data })
 
@@ -200,8 +200,7 @@ const store = new Vuex.Store({
       //     f0Draw[index] = draw[index]
       //   }
       // }
-      
-      commit('changeStoreState', { f0Draw, isPitchLineChanged: false })
+      commit('changeStoreState', { f0Draw, isPitchLineChanged: false, isGetF0Data: false })
     }
   },
   modules: {

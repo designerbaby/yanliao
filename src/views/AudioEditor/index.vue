@@ -201,7 +201,6 @@ export default {
         Message.error('没有音符！！')
         return
       }
-
       console.log(`Click play button, current state: ${this.playState}`)
 
       const taskId = getParam('taskId')
@@ -386,8 +385,26 @@ export default {
       } 
     },
     async toSynthesize() {
+
+      const getF0DataStart = Date.now()
+      for (let i = 0; i < 10; i += 1) {
+        if (!this.$store.state.isGetF0Data) {
+          console.log('获取F0数据成功~')
+          break
+        }
+        const getF0DataEnd = Date.now()
+        if ((getF0DataEnd - getF0DataStart) > 10 * 1000) {
+          Message.error('音频合成失败，请稍后再试~')
+          break
+        }
+        console.log(`获取音频中:`, getF0DataEnd - getF0DataStart)
+        Message.success(`算法努力合成音频中(0%)`)
+        await sleep(1000)
+      }
+
+
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
-      const synthesizeStart = Date.now()
+      const synthesizeStart = Date.now()  
       const req = {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.mode === 1 ? this.$store.state.f0AI : [],
