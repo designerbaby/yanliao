@@ -143,6 +143,7 @@ export default {
   methods: {
     checkPitchDuplicated() { // 检查音符块有没重叠
       // log('checkPitchDuplicated pitches:', this.stagePitches)
+      this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
       const pitches = this.stagePitches
       for(let i = 0; i < pitches.length; i++){
         const pitch1 = pitches[i]
@@ -384,7 +385,6 @@ export default {
       });
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0`)
       this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
-      this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
       this.checkPitchDuplicated()
       this.checkPitchesOverStage()
     },

@@ -60,6 +60,7 @@ export default {
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
+        // this.$store.dispatch('sortStagePitches')
       },
       {
         deep: true
@@ -192,7 +193,6 @@ export default {
       }
 
       const finalPitches = this.$store.getters.pitchList
-      console.log('finalPitches:', finalPitches)
       if (isDuplicated(this.$store.state.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return
@@ -246,7 +246,6 @@ export default {
         this.changePlayState(playState.StatePlaying)
       }
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false})
-      this.$store.dispatch('getPitchLine')
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
@@ -274,6 +273,7 @@ export default {
         this.audio.currentTime = startTime
         this.audio.play()
       } else {
+        // console.log(`isContinue: ${isContinue}, percent:${percent}, duration:${duration}, startTime:${startTime}`)
         if (isContinue) {
           console.log(`play continue with start: ${this.playStartTime}`)
           // this.audio.currentTime = this.playStartTime
@@ -287,7 +287,6 @@ export default {
           // const duration = this.audio.duration
           // 百分比不能为负数，最小为0
           // const startTime = percent * duration
-          // console.log(`percent:${percent}, duration:$${duration}, startTime:$${startTime}`)
           this.playStartTime = startTime
           this.audio.currentTime = startTime
           this.audio.play()
@@ -299,11 +298,10 @@ export default {
       clearInterval(this.timerId)
       const ticker = (timestamp) => {
         if (this.playState === playState.StatePlaying){
-          this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
+          // this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current })
           window.requestAnimationFrame(ticker);
         }
       }
-    
       this.audio = PlayAudio({
         url,
         onPlay: (audio) => {
@@ -321,11 +319,9 @@ export default {
               // console.log(audio, `duration`, duration, `times`, times, `step`, step)
 
               this.playLine.current += step
-              // this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
-              // console.log('this.playLine.current:', this.playLine.current)
+              this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
             }
           }, 16)
-
           window.requestAnimationFrame(ticker);
         },
         onPause: (dom) => {
@@ -372,7 +368,6 @@ export default {
           lastPitchStartTime = startTime
           lastPitchDuration = duration
         }
-        // console.log(`lineStartX: ${lineStartX}, lineEndX: ${lineEndX}`)
       })
 
       const totalDuration = lastPitchStartTime - firstPitchStartTime + lastPitchDuration
@@ -384,8 +379,9 @@ export default {
         duration: totalDuration + 500 // 补了50个数据，一个数据10ms,总共500ms
       } 
     },
-    async toSynthesize() {
-
+    async toSynthesize(callback) {
+      this.$store.dispatch('changeStoreState', { isSynthetizing: true })
+      this.$store.dispatch('getPitchLine')
       const getF0DataStart = Date.now()
       for (let i = 0; i < 10; i += 1) {
         if (!this.$store.state.isGetF0Data) {
@@ -402,8 +398,6 @@ export default {
         await sleep(1000)
       }
 
-
-      this.$store.dispatch('changeStoreState', { isSynthetizing: true })
       const synthesizeStart = Date.now()  
       const req = {
         pitchList: this.$store.getters.pitchList,
@@ -458,7 +452,9 @@ export default {
       }
       
       this.$store.dispatch('changeStoreState', { isSynthetizing: false })
-
+      if (callback) {
+        callback()
+      }
       return {
         onlineUrl,
         downUrl
