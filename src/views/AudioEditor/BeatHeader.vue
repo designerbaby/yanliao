@@ -36,6 +36,7 @@
 import { Icon, Button, Message } from 'element-ui'
 import { playState } from "@/common/utils/const"
 import { isDuplicated, reportEvent } from '@/common/utils/helper'
+// import { sleep } from '@/common/utils/helper'
 
 export default {
   name: 'BeatHeader',
@@ -82,7 +83,7 @@ export default {
       //   this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
       // }
     },
-    toGenerateAudio() {
+    async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
       if (isDuplicated(this.$store.state.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
@@ -94,8 +95,9 @@ export default {
         Message.error('没有音符！！')
         return
       }
-      this.$emit('synthesize')
-      this.$router.push(`/profile`)
+      this.$emit('synthesize', () => {
+        this.$router.push(`/profile`)
+      })    
     },
     toSet() {
       reportEvent('more-information-button-click', 147620)
