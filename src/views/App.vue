@@ -6,7 +6,7 @@
       :openLoginDialog="openLoginDialog" 
     />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
-    <template v-if="$router.history.current.path === '/audioEditor'" class="footer"></template>
+    <template v-if="$router.history.current.path === '/audioEditor'" class="audioFooter"></template>
     <Footer v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
     <LoginDialog :loginDialogShow="loginDialogShow" :closeLoginDialog="closeLoginDialog"></LoginDialog>
   </div>
@@ -104,7 +104,7 @@ export default {
       line-height: normal;
     }
   }
-  .footer {
+  .audioFooter {
     height: 0px;
     width: 0px
   }

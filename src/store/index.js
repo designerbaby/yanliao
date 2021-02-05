@@ -28,6 +28,7 @@ const defaultState = {
   stageSize: {},
   maxPitchRight: 0, // 音块最右边的位置
   mode: 0, // 0 代表音符模式, 1代表音高线模式
+  typeMode: 0, // 附加模式类型: 0 代表响度, 1 代表张力
   playState: playState.StateNone, // 播放状态
   stagePitches: [], // 舞台音块
   isStagePitchesChanged: false, // 舞台音块是否有改变
