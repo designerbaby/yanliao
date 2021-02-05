@@ -1,6 +1,6 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
-    <AudioHeader v-if="$router.history.current.path === '/audioEditor'" :openLoginDialog="openLoginDialog"></AudioHeader>
+    <EditAudioHeader v-if="$router.history.current.path === '/audioEditor'" :openLoginDialog="openLoginDialog"></EditAudioHeader>
     <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
       ref="header" :currentPath="$router.history.current.path" 
       :openLoginDialog="openLoginDialog" 
@@ -14,7 +14,7 @@
 
 <script>
 // @ is an alias to /src
-import AudioHeader from '@/common/components/AudioHeader.vue'
+import EditAudioHeader from '@/common/components/EditAudioHeader.vue'
 import LoginDialog from '@/common/components/LoginDialog.vue'
 import Header from '@/common/components/Header.vue'
 import Footer from '@/common/components/Footer.vue'
@@ -28,7 +28,7 @@ export default {
   components: {
     Header,
     Footer,
-    AudioHeader,
+    EditAudioHeader,
     LoginDialog
   },
   data() {
