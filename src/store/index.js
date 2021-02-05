@@ -97,7 +97,7 @@ const store = new Vuex.Store({
         pitches.push(pitchItem)
       })
       return pitches
-    },
+    }
   },
   mutations: {
     updateBeatForm(state, form) {
