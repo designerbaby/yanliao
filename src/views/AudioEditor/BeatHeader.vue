@@ -19,6 +19,18 @@
         <img src="@/assets/audioEditor/play.png" v-else/>
         <div :class="$style.text">播放控制</div>
       </div>
+      <!-- <div :class="$style.linefu">
+        <div :class="[$style.check, typeMode === 0 ? $style.isActive : '']" @click="selectTypeMode(0)">
+          <img src="@/assets/audioEditor/note-normal.png" v-if="typeMode === 1">
+          <img src="@/assets/audioEditor/note-active.png" v-else>
+          <div :class="$style.text">响度</div>
+        </div>
+        <div :class="[$style.check, $style.right, typeMode === 1 ? $style.isActive : '']" @click="selectTypeMode(1)">
+          <img src="@/assets/audioEditor/line-normal.png" v-if="typeMode === 0">
+          <img src="@/assets/audioEditor/line-active.png" v-else>
+          <div :class="$style.text">张力</div>
+        </div>
+      </div> -->
       <div :class="$style.common" @click="toGenerateAudio">
         <img src="@/assets/audioEditor/export.png"/>
         <div :class="$style.text">生成音频</div>
@@ -48,6 +60,9 @@ export default {
   computed: {
     mode() {
       return this.$store.state.mode
+    },
+    typeMode() {
+      return this.$store.state.typeMode
     },
     playState() {
       return this.$store.state.playState
@@ -82,6 +97,10 @@ export default {
       // if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
       //   this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
       // }
+    },
+    selectTypeMode(typeMode) {
+      console.log('typeMode:', typeMode)
+      this.$store.dispatch('changeStoreState', { typeMode: typeMode })
     },
     async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
