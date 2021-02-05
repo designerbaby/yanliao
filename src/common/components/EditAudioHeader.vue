@@ -1,5 +1,5 @@
 <template>
-  <div :class="$style.audioHeader">
+  <div :class="$style.EditAudioHeader">
     <div :class="$style.left" @click="openHomePage">
       <img src="@/assets/logo.png" alt="" :class="$style.logo">
       <div :class="$style.text">百万填词创作工具</div>
@@ -19,7 +19,7 @@ import { safeParse } from '@/common/utils/helper'
 import { getCookie } from '@/common/utils/helper'
 
 export default {
-  name: 'AudioHeader',
+  name: 'EditAudioHeader',
   props: {
     openLoginDialog: Function
   },
@@ -46,7 +46,7 @@ export default {
 </script>
 
 <style lang="less" module>
-.audioHeader{
+.EditAudioHeader{
   height: 48px;
   background: #373736;
   display: flex;
