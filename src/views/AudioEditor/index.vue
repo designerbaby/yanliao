@@ -407,8 +407,8 @@ export default {
       const synthesizeStart = Date.now()  
       const req = {
         pitchList: this.$store.getters.pitchList,
-        f0_ai: this.mode === 1 ? this.$store.state.f0AI : [],
-        f0_draw: this.mode === 1 ? this.$store.state.f0Draw : [],
+        f0_ai: this.$store.state.f0AI,
+        f0_draw: this.$store.state.f0Draw,
         task_id: this.$store.state.taskId
       }
       const { data } = await editorSynth(req)
