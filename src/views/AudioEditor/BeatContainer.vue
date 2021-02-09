@@ -1,11 +1,18 @@
 <template>
   <div ref="container" :class="$style.container">
-    <div :class="$style.beat" @click="toShowBeat">
+    <!-- <div :class="[$style.beat,  { [$style.fixed]: isExceedHeader }]" @click="toShowBeat">
+      {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
+    </div> -->
+    <div :class="[$style.beat]" @click="toShowBeat">
       {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
     </div>
     <BeatPiano></BeatPiano>
-    <div :class="$style.right">
-      <div :class="$style.top">
+    <div :class="$style.right" ref="rightArea">
+      <div :class="$style.top" v-if="isExceedHeader"></div>
+      <!-- <div :class="[$style.top, { [$style.fixed]: isExceedHeader }]" @click="changeLine">
+        <div :class="$style.matter" v-for="n in matter" :key="n" :style="{width: `${beatWidth}px`}">{{ n }}</div>
+      </div> -->
+      <div :class="[$style.top]" @click="changeLine">
         <div :class="$style.matter" v-for="n in matter" :key="n" :style="{width: `${beatWidth}px`}">{{ n }}</div>
       </div>
       <div ref="stage" :class="$style.stage" id="audioStage">
@@ -50,6 +57,7 @@
         <div :class="$style.sharp" ref="sharp"></div>
         <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
       </div>
+      <Parameters ref="Parameters" v-if="$store.state.typeMode !== -1"></Parameters>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
     <LyricCorrect ref="LyricCorrect" @saveAllPinyin="beatLyricSaveAllPinyin"></LyricCorrect>
@@ -67,6 +75,7 @@ import PitchLine from './PitchLine.vue' // 音高线
 import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
 import BeatList from './BeatList.vue'
+import Parameters from './Parameters.vue'
 import { amendTop, amendLeft } from '@/common/utils/helper'
 
 export default {
@@ -80,7 +89,8 @@ export default {
     PitchLine,
     BeatLyric,
     LyricCorrect,
-    BeatList
+    BeatList,
+    Parameters
   },
   data() {
     return {
@@ -88,7 +98,7 @@ export default {
       isMouseDown: false,
       startPos: null,
       endPos: null,
-      stageOffset: null,
+      // stageOffset: null,
       movePitchStart: null,
       selectedPitch: -1,
       showList: -1,
@@ -125,6 +135,9 @@ export default {
     },
     playState() {
       return this.$store.state.playState
+    },
+    isExceedHeader() {
+      return this.$store.state.isExceedHeader
     }
   },
   mounted() {
@@ -132,7 +145,7 @@ export default {
     // window.addEventListener('resize', () => {
     //   this.updateStageOffset()
     // })
-    this.$refs.stage.addEventListener('scroll', () => {
+    this.$refs.rightArea.addEventListener('scroll', () => {
       this.updateStageOffset()
     })
     document.getElementById('audioStage').oncontextmenu = (e) => { 
@@ -171,14 +184,25 @@ export default {
         }
       }
     },
+    scrollTo(left) {
+      this.$refs.rightArea.scrollLeft = left
+    },
     updateStageOffset() {
       // 初始化舞台的位置
-      const scrollLeft = this.$refs.stage.scrollLeft
-      const scrollTop = this.$refs.stage.scrollTop
-      this.stageOffset = {
-        scrollLeft,
-        scrollTop
-      }
+      const scrollLeft = this.$refs.rightArea.scrollLeft
+      const scrollTop = this.$refs.rightArea.scrollTop
+      // this.stageOffset = {
+      //   scrollLeft,
+      //   scrollTop
+      // }
+
+      this.$store.dispatch("changeStoreState", {
+        stage: {
+          ...this.$store.state.stage,
+          scrollLeft,
+          scrollTop
+        } 
+      })
     },
     toShowBeat() {
       if (this.isSynthetizing) {
@@ -287,8 +311,8 @@ export default {
       const rect = this.$refs.stage.getBoundingClientRect()
 
       this.startPos = {
-        x: event.clientX + this.stageOffset.scrollLeft - rect.left,
-        y: event.clientY + this.stageOffset.scrollTop - rect.top
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
       };
       // console.log(`this.startPos, x: ${this.startPos.x}, y: ${this.startPos.y}`)
       // 初始化绿色块
@@ -302,10 +326,10 @@ export default {
       if (this.isMouseDown) {
         const rect = this.$refs.stage.getBoundingClientRect()
         const pos = {
-          x: event.clientX + this.stageOffset.scrollLeft - rect.left,
-          y: event.clientY + this.stageOffset.scrollTop - rect.top
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
         };
-        
+
         const width = pos.x - this.startPos.x;
         const height = pos.y - this.startPos.y;
 
@@ -331,8 +355,8 @@ export default {
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
-          x: event.clientX + this.stageOffset.scrollLeft - rect.left,
-          y: event.clientY + this.stageOffset.scrollTop - rect.top
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
         };
         // console.log(`this.endPos: x${this.endPos.x}, y: ${this.endPos.y}`)
         this.$refs.sharp.style.display = "none";
@@ -451,8 +475,13 @@ export default {
       this.stagePitches.forEach((item) => {
         const right = item.left + item.width
         maxPitchRight = Math.max(maxPitchRight, right)
-        this.$store.dispatch('changeStoreState', { maxPitchRight: maxPitchRight})
+        this.$store.dispatch('changeStoreState', { maxPitchRight })
       })
+    },
+    changeLine() {
+      const rect = this.$refs.stage.getBoundingClientRect()
+      const left = event.clientX - rect.left
+      this.$store.dispatch("changeStoreState", { lineLeft: left })
     }
   }
 };
@@ -510,8 +539,16 @@ export default {
   position: absolute;
   color: #fff;
   font-size: 13px;
-  top: 3px;
-  left: 15px;
+  width: 50px;
+  height: 25px;
+  line-height: 25px;
+  text-align: center;
+}
+.fixed {
+ position: fixed; 
+ z-index: 100;
+ top: 78px;
+ background-color: #373736;
 }
 .pitch {
   height: 0;

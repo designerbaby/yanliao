@@ -17,7 +17,7 @@
             </div>
             <div class="detail">
               <span v-if="scope.row.music" class="music-info">所用歌曲: {{scope.row.music}}</span>
-              <span class="upload-time">{{scope.row.publish_time}}</span>
+              <span class="upload-time">{{scope.row.public_unix_time | formatDate}}</span>
               <span class="video-state">{{scope.row.state_detail.state_pub_desc || ''}}</span>
               <!-- <span v-if="scope.row.state === 3" class="video-state">发布中</span>
               <span v-if="scope.row.state === 1 || scope.row.state === 0" class="video-state video-state-success">发布成功</span>
@@ -28,12 +28,12 @@
               <span class="data-item">
                 <!-- <span class="el-icon-view"></span> -->
                 <img class="icon-view" src="@/assets/icon-view.png" alt="">
-                <span>{{scope.row.play_times}}</span>
+                <span>{{scope.row.stats.play_times}}</span>
               </span>
               <span class="data-item">
                 <!-- <span class="el-icon-star-off"></span> -->
                 <img class="icon-like" src="@/assets/icon-like.png" alt="">
-                <span>{{scope.row.likes}}</span>
+                <span>{{scope.row.stats.likes}}</span>
               </span>
             </div>
             <div class="delete-button" @click="deleteButtonClick(scope.row)">
@@ -159,13 +159,14 @@ export default {
       video.pause()
     },
     coverClick(row) {
+      console.log('coverClick row:', row)
       reportEvent('person-page-videocover-click')
       if (row.control.ban_play) {
         Message.error(row.control.ban_play_msg)
         return
       }
       this.videoDialogShow = true
-      this.currentVideoUrl = row.play_url
+      this.currentVideoUrl = row.play_info[0].url
       this.$nextTick(() => {
         this.$refs.dialogVideo.play()
       })

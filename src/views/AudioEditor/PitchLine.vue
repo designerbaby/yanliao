@@ -157,10 +157,6 @@ export default {
       this.lastY = 0
       this.lastTime = 0
     },
-    onMouseLeave() {
-      // console.log(`onMouseLeave event`, event)
-      // this.mouseStart = null
-    },
     changeF0Value(x, y) {
       const index = Math.round(x / this.pitchWidth)
       const data = this.$store.state.f0AI

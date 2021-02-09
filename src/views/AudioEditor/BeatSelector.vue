@@ -68,7 +68,7 @@ export default {
       })
     },
     toUpdateStage() { // 根据内外舞台的框进行比较
-      const stageConWidth = this.$store.state.stageSize.width
+      const stageConWidth = this.$store.state.stage.width
       const maxPitchRight = this.$store.state.maxPitchRight
       if (stageConWidth > this.stageWidth) { // 外框比里框更大
         this.$store.dispatch('updateMatter', 15)

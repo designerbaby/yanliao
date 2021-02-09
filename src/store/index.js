@@ -25,10 +25,15 @@ const defaultState = {
   toneName: 'luoxiang', // 选择的toneName
   isSynthetizing: false, // 是否在合成音频中
   isGetF0Data: false, // 正在获取f0中
-  stageSize: {},
+  stage: {
+    width: 0, // 舞台容器宽度
+    height: 0, // 舞台容器高度
+    scrollLeft: 0, // 水平滚动条位置
+    scrollTop: 0 // 垂直滚动条位置
+  },
   maxPitchRight: 0, // 音块最右边的位置
   mode: 0, // 0 代表音符模式, 1代表音高线模式
-  typeMode: 0, // 附加模式类型: 0 代表响度, 1 代表张力
+  typeMode: -1, // 附加模式类型: 0 代表响度, 1 代表张力
   playState: playState.StateNone, // 播放状态
   stagePitches: [], // 舞台音块
   isStagePitchesChanged: false, // 舞台音块是否有改变
@@ -127,13 +132,6 @@ const store = new Vuex.Store({
       stagePitches[index][key] = value
       state.stagePitches = [...stagePitches]
     }
-    // sortStagePitches(state) {
-    //   const stagePitches = state.stagePitches
-    //   stagePitches.sort((a, b) => a.left - b.left)
-    //   console.log('stagePitches:', stagePitches)
-    //   state.stagePitches = [...stagePitches]
-    //   console.log('state.stagePitches:', state.stagePitches)
-    // }
   },
   actions: {
     resetState({ commit }) {
@@ -150,9 +148,6 @@ const store = new Vuex.Store({
     changeStoreState({ commit }, props) {
       commit('changeStoreState', props)
     },
-    // sortStagePitches({ commit }) {
-    //   commit('sortStagePitches')
-    // },
     changeF0({ commit, state, getters }, { values }){
       const changedLineMap = { ...state.changedLineMap }
       const f0Draw = [...state.f0Draw]
@@ -222,9 +217,7 @@ const store = new Vuex.Store({
 const updateStageSize = () => {
   const windowWidth = window.innerWidth
   const stageConWidth = windowWidth - 50
-  store.state.stageSize = {
-    width: stageConWidth
-  }
+  store.state.stage.width = stageConWidth
 }
 updateStageSize()
 window.addEventListener('resize', () => {

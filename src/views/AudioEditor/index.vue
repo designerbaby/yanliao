@@ -319,7 +319,7 @@ export default {
               // console.log(audio, `duration`, duration, `times`, times, `step`, step)
 
               this.playLine.current += step
-              this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current})
+              this.changeLinePosition(this.playLine.current, true)
             }
           }, 16)
           window.requestAnimationFrame(ticker);
@@ -330,11 +330,24 @@ export default {
         onEnd: () => {
           clearInterval(this.timerId)
           this.changePlayState(playState.StateEnded)
-          this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.start })
+          this.changeLinePosition(this.playLine.start)
           this.playLine.current = this.playLine.start
         }
       })
 
+    },
+    changeLinePosition(left, autoScroll = false) {
+      if (autoScroll) {
+        const { width, scrollLeft } = this.$store.state.stage
+        const max = scrollLeft + width // 滚动滚动的大小加上容器的大小就是容器最右边的位置
+        if (left > max) {
+          this.$refs.BeatContainer.scrollTo(max)
+        } else if  (left < scrollLeft) { // 线的位置小于滚动条的滚动位置说明线在左边看不到
+          this.$refs.BeatContainer.scrollTo(left)
+        }
+      }
+
+      this.$store.dispatch('changeStoreState', { lineLeft: left })
     },
     getLinePosition() {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块

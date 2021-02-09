@@ -5,6 +5,7 @@ import store from './store'
 import moment from 'moment'
 import smoothscroll from 'smoothscroll-polyfill'
 import '@/common/utils/permission'
+import '@/common/utils/filter'
 
 smoothscroll.polyfill()
 Vue.prototype.$moment = moment
