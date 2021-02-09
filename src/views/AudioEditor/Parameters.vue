@@ -9,10 +9,12 @@
     <span :class="[$style.text, $style.leftBottom]">{{ typeParas.minus }}</span>
     <span :class="[$style.text, $style.rightBottom]" :style="{left: `${clientWidth - 105}px`}">{{ typeParas.minus }}</span>
     <canvas 
-      ref="canvas"
+      ref="Canvas"
       :class="$style.canvas" 
       :style="stageStyle" 
-      id="canvas" @click.stop="initLine"
+      id="Canvas"
+      :width="`${stageWidth}`"
+      height="328"
       @mousedown.stop="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup.stop="onMouseUp"
@@ -72,7 +74,8 @@ export default {
     stageStyle() {
       return { 
         width: `${this.stageWidth}px`,
-        left: `-${this.$store.state.stage.scrollLeft}px`
+        left: `-${this.$store.state.stage.scrollLeft}px`,
+        height: '328px'
       }
     }
   },
@@ -80,31 +83,31 @@ export default {
     return {
       mouseStart: null,
       startPos: null,
-      endPos: null,
-      stageOffset: null
+      ctx: null
     }
   },
   mounted() {
-    
+    this.initLine()
   },
   methods: {
     closeParameter() {
       this.$store.dispatch('changeStoreState', { typeMode: -1 })
     },
     initLine () {
-      const canvas = document.getElementById('canvas')
-      const context = canvas.getContext('2d')
-      context.beginPath()
-      context.moveTo(164, 0)
-      context.lineTo(164, 200)
-      context.lineWidth = 1
-      context.strokeStyle = '#fff'
-      context.stroke()
-      context.closePath()
+      const canvas = this.$refs.Canvas
+      const ctx = canvas.getContext('2d')
+
+      ctx.strokeStyle = 'white'
+      ctx.lineWidth = 1
+      ctx.moveTo(0, 164)
+      ctx.lineTo(this.stageWidth, 164)
+      ctx.stroke()
+
+      this.ctx = ctx
     },
     onMouseDown (event) {
       console.log(`onMouseDown event`, event)
-      const rect = this.$refs.canvas.getBoundingClientRect()
+      const rect = this.$refs.Canvas.getBoundingClientRect()
       this.mouseStart = {
         rect
       }
@@ -112,7 +115,18 @@ export default {
     onMouseMove (event) {
       // console.log(`onMouseMove event`, event)
       if (this.mouseStart) {
-        
+        const rect = this.$refs.Canvas.getBoundingClientRect()
+        const pos = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
+        }
+        console.log(`pos.x: ${pos.x}, pos.y:${pos.y}`)
+        // this.ctx.bezierCurveTo(25,50,75,50,300,200)
+         // ctx.globalCompositeOperation = "source-over"
+        // this.ctx.beginPath()
+        // this.ctx.lineTo(pos.x, pos.y)
+        this.ctx.quadraticCurveTo(0, 0, pos.x, pos.y);
+        this.ctx.stroke()
       }
     },
     onMouseUp (event) {
@@ -185,7 +199,6 @@ export default {
 
 .canvas {
   background: transparent;
-  height: 328px;
   position: absolute;
   bottom: 0px;
 }

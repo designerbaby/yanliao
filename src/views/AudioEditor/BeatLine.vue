@@ -8,8 +8,8 @@
     @mousedown.stop="onLineMouseDown"
     @mouseup.stop="onLineMouseUp"
   >
-    <div :class="$style.line">
-      <span :class="[$style.innerSpan, { [$style.fixed]: $store.state.isExceedHeader }]"></span>
+    <div :class="[$style.line, { [$style.fixed]: $store.state.isExceedHeader }]">
+      <span :class="[$style.innerSpan]"></span>
       <div :class="$style.inner"></div>
     </div>
   </div>

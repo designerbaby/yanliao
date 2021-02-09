@@ -330,7 +330,7 @@ export default {
         onEnd: () => {
           clearInterval(this.timerId)
           this.changePlayState(playState.StateEnded)
-          this.changeLinePosition(this.playLine.start)
+          this.changeLinePosition(this.playLine.start, true)
           this.playLine.current = this.playLine.start
         }
       })
@@ -458,7 +458,6 @@ export default {
         console.log(`synthesizeEnd - synthesizeStart: ${synthesizeEnd - synthesizeStart}, synthesizeStart: ${synthesizeStart}, synthesizeEnd: ${synthesizeEnd}`, )
         if ((synthesizeEnd - synthesizeStart) > 30 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
-          // this.changePlayState(playState.StateNone)
           this.$store.dispatch('changeStoreState', { isSynthetizing: false })
           break
         }
