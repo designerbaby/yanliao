@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="$style.container"
+    :class="[$style.container]"
     :style="{
       transform: `translateX(${lineLeft}px)`,
       height: `${stageHeight}px`
@@ -9,7 +9,7 @@
     @mouseup.stop="onLineMouseUp"
   >
     <div :class="$style.line">
-      <span :class="$style.innerSpan"></span>
+      <span :class="[$style.innerSpan, { [$style.fixed]: $store.state.isExceedHeader }]"></span>
       <div :class="$style.inner"></div>
     </div>
   </div>
@@ -108,7 +108,6 @@ export default {
     transition: left 0.3s linear;
   }
 }
-
 .line {
   width: 16px;
   position: absolute;
@@ -127,6 +126,10 @@ export default {
   transform: translateX(-50%);
   z-index: 2;
 }
+.fixed {
+  z-index: 2;
+}
+
 .inner {
   width: 3px;
   height: 100%;

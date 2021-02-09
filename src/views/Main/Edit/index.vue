@@ -544,7 +544,9 @@ export default {
     // 删除草稿
     deleteDraft() {
       const draftId = sessionStorage.getItem('draftId')
-      deleteDraft(draftId)
+      if (draftId) {
+        deleteDraft(draftId)
+      }
       sessionStorage.setItem('draftId', '')
     },
     // 确认按钮点击

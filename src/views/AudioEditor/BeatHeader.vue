@@ -14,23 +14,23 @@
           <div :class="$style.text">音高线模式</div>
         </div>
       </div>
+      <div :class="$style.linefu">
+        <div :class="[$style.check, typeMode === 0 ? $style.isActive : '']" @click="selectTypeMode(0)">
+          <img src="@/assets/audioEditor/loud-normal.png" v-if="typeMode === 1">
+          <img src="@/assets/audioEditor/loud-active.png" v-else>
+          <div :class="$style.text">响度</div>
+        </div>
+        <div :class="[$style.check, $style.right, typeMode === 1 ? $style.isActive : '']" @click="selectTypeMode(1)">
+          <img src="@/assets/audioEditor/tension-normal.png" v-if="typeMode === 0">
+          <img src="@/assets/audioEditor/tension-active.png" v-else>
+          <div :class="$style.text">张力</div>
+        </div>
+      </div>
       <div :class="$style.common" @click="toPlay">
         <img src="@/assets/audioEditor/pause.png" v-if="isPlaying"/>
         <img src="@/assets/audioEditor/play.png" v-else/>
         <div :class="$style.text">播放控制</div>
       </div>
-      <!-- <div :class="$style.linefu">
-        <div :class="[$style.check, typeMode === 0 ? $style.isActive : '']" @click="selectTypeMode(0)">
-          <img src="@/assets/audioEditor/note-normal.png" v-if="typeMode === 1">
-          <img src="@/assets/audioEditor/note-active.png" v-else>
-          <div :class="$style.text">响度</div>
-        </div>
-        <div :class="[$style.check, $style.right, typeMode === 1 ? $style.isActive : '']" @click="selectTypeMode(1)">
-          <img src="@/assets/audioEditor/line-normal.png" v-if="typeMode === 0">
-          <img src="@/assets/audioEditor/line-active.png" v-else>
-          <div :class="$style.text">张力</div>
-        </div>
-      </div> -->
       <div :class="$style.common" @click="toGenerateAudio">
         <img src="@/assets/audioEditor/export.png"/>
         <div :class="$style.text">生成音频</div>
@@ -48,7 +48,6 @@
 import { Icon, Button, Message } from 'element-ui'
 import { playState } from "@/common/utils/const"
 import { isDuplicated, reportEvent } from '@/common/utils/helper'
-// import { sleep } from '@/common/utils/helper'
 
 export default {
   name: 'BeatHeader',
@@ -89,18 +88,14 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      // if (this.playState === playState.StatePlaying) {
-      //   Message.error('正在播放中, 不能修改哦~')
-      //   return
-      // }
-      this.$store.dispatch('changeStoreState', { mode: mode })
-      // if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
-      //   this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
-      // }
+      this.$store.dispatch('changeStoreState', { mode })
     },
     selectTypeMode(typeMode) {
-      console.log('typeMode:', typeMode)
-      this.$store.dispatch('changeStoreState', { typeMode: typeMode })
+      if (typeMode === this.typeMode && this.typeMode !== -1) {
+        this.$store.dispatch('changeStoreState', { typeMode: -1 })
+      } else {
+        this.$store.dispatch('changeStoreState', { typeMode })
+      }
     },
     async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
