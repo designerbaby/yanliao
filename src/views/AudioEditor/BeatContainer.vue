@@ -1,10 +1,8 @@
 <template>
   <div ref="container" :class="$style.container">
-    <!-- <Beat @showBeat="toShowBeat"></Beat> -->
     <div :class="$style.main">
       <BeatPiano></BeatPiano>
       <div :class="$style.right" ref="rightArea">
-        <!-- <BeatTop @changeLine="changeLine"></BeatTop> -->
         <div ref="stage" :class="$style.stage" id="audioStage">
           <BeatStageBg></BeatStageBg>
           <BeatLine></BeatLine>
@@ -58,7 +56,6 @@
 <script>
 import { pitchList, playState } from "@/common/utils/const"
 import { Message } from "element-ui"
-// import Beat from './Beat.vue'
 import BeatTop from './BeatTop.vue'
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
@@ -75,7 +72,6 @@ import { amendTop, amendLeft } from '@/common/utils/helper'
 export default {
   name: "BeatContainer",
   components: {
-    // Beat,
     BeatTop,
     Message,
     BeatPiano,
@@ -192,17 +188,6 @@ export default {
         } 
       })
     },
-    // toShowBeat() {
-    //   if (this.isSynthetizing) {
-    //     Message.error('正在合成音频中,不能修改哦~')
-    //     return
-    //   }
-    //   if (this.playState === playState.StatePlaying) {
-    //     Message.error('正在播放中, 不能修改哦~')
-    //     return
-    //   }
-    //   this.$emit("showBeat");
-    // },
     onPitchMouseDown(event, index){
       console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
@@ -466,15 +451,6 @@ export default {
         this.$store.dispatch('changeStoreState', { maxPitchRight })
       })
     }
-    // changeLine() {
-    //   if (this.playState === playState.StatePlaying) {
-    //     Message.error('正在播放中, 不能修改哦~')
-    //     return
-    //   }
-    //   const rect = this.$refs.stage.getBoundingClientRect()
-    //   const left = event.clientX - rect.left
-    //   this.$store.dispatch("changeStoreState", { lineLeft: left })
-    // }
   }
 };
 </script>

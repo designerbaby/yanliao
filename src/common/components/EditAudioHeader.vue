@@ -4,7 +4,7 @@
       <img src="@/assets/logo.png" alt="" :class="$style.logo">
       <div :class="$style.text">百万填词创作工具</div>
     </div>
-    <div :class="$style.right" @click="openProfilePage" v-if="mxIsLogin || userInfo">
+    <div :class="$style.right" @click="openProfilePage" v-if="userInfo">
       <div :class="$style.nick">{{ userInfo.nick_name || `用户${uid}` }}</div>
       <img :src="userInfo.user_logo || defaultAvatar" :class="$style.avatar">
     </div>
@@ -27,8 +27,7 @@ export default {
     return {
       defaultAvatar: 'https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/image/profile_default.png',
       userInfo: safeParse(sessionStorage.getItem('userInfo')),
-      uid: getCookie('mx_uid'),
-      mxIsLogin: getCookie('mx_is_login')
+      uid: getCookie('mx_uid')
     }
   },
   methods: {

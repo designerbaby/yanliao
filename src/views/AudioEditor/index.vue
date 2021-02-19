@@ -12,13 +12,11 @@
       ref="BeatContainer"
     ></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
-    <!-- <BeatSelector ref="BeatSelector"></BeatSelector> -->
   </div>
 </template>
 
 <script>
 import { Message } from 'element-ui'
-// import BeatSelector from './BeatSelector.vue'
 import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
@@ -32,7 +30,6 @@ export default {
   name: 'AudioEditor',
   components: {
     Message,
-    // BeatSelector,
     BeatContainer,
     BeatHeader,
     BeatSetting,
@@ -115,9 +112,6 @@ export default {
     changePlayState(stateValue) {
       this.$store.dispatch('changeStoreState', { playState: stateValue })
     },
-    // toShowBeat() {
-    //   this.$refs.BeatSelector.showBeatDialog()
-    // },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       if (taskId) {
@@ -181,11 +175,16 @@ export default {
         return true
       }
 
-      // 线的开始位置如果比上一次播放的位置还靠前，则要重新生成
-      // let { start, end } = this.getLinePosition()
-      // if (start < this.playLine.start) {
-      //   return true
-      // }
+      // 响度改变了
+      if (this.$store.state.isVolumeChanged) {
+        return true
+      }
+
+      // 张力改变了
+      if (this.$store.state.isTensionChanged) {
+        return true
+      }
+
       return false
     },
     async toPlay() {
@@ -418,7 +417,9 @@ export default {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.$store.state.f0AI,
         f0_draw: this.$store.state.f0Draw,
-        task_id: this.$store.state.taskId
+        task_id: this.$store.state.taskId,
+        volume_data: this.$store.state.f0Volume,
+        tension_data: this.$store.state.tensionData
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)

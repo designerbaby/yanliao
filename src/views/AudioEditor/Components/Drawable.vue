@@ -81,11 +81,11 @@ export default {
       const dy = endY - startY
       const step = dy / Math.abs(dx)
       if (dx > 1) {
-        for (let i = startX; i < endX ; i+= 1) {
+        for (let i = startX; i < endX ; i += 1) {
           this.changeValue(i, startY + step)
         }
-      } else if( dx < -1) {
-        for (let i = endX; i < startX ; i+= 1) {
+      } else if(dx < -1) {
+        for (let i = endX; i < startX ; i += 1) {
           this.changeValue(i, startY + step)
         }
       }

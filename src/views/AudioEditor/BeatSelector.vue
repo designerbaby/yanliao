@@ -2,6 +2,7 @@
   <Dialog
     title="编辑拍号"
     :visible.sync="dialogVisible"
+    :custom-class="$style.beatSelector"
     width="400px">
     <Form label-position="top" :rules="rules" ref="ruleForm" label-width="80px" :model="beatForm">
       <FormItem label="分子" prop="fenzi">
@@ -86,6 +87,8 @@ export default {
   }
 }
 </script>
-<style lang="less">
-
+<style lang="less" module>
+.beatSelector {
+  text-align: left;
+}
 </style>

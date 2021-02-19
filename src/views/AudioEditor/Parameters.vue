@@ -10,19 +10,6 @@
       <span :class="[$style.text, $style.leftBottom]">{{ typeParas.minus }}</span>
       <span :class="[$style.text, $style.rightBottom]" :style="{left: `${clientWidth - 105}px`}">{{ typeParas.minus }}</span>
     </div>
-    <!-- <canvas 
-      ref="Canvas"
-      :class="$style.canvas" 
-      :style="stageStyle" 
-      id="Canvas"
-      :width="`${stageWidth}`"
-      height="328"
-      @mousedown.stop="onMouseDown"
-      @mousemove="onMouseMove"
-      @mouseup.stop="onMouseUp"
-      @mouseleave="onMouseUp">
-      您的浏览器不支持canvs，请更换浏览器重试~
-    </canvas> -->
     <div :class="$style.drawStage">
       <Drawable 
         :className="$style.draw"
@@ -36,8 +23,9 @@
           :class="$style.svg"
           >
           <g>
-            <path :d="svgData" stroke="white" fill="transparent" stroke-linejoin="round"/>
-            <!-- <path :d="svgDataDraw" stroke="white" fill="transparent" stroke-linejoin="round" /> -->
+            <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
+            <path :d="f0Volume" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 0"/>
+            <path :d="f0Tension" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 1"/>
           </g>
         </svg>
       </Drawable>
@@ -47,6 +35,7 @@
 
 <script>
 import Drawable from './Components/Drawable.vue'
+
 export default {
   name: 'Parameters',
   components: { Drawable },
@@ -59,6 +48,12 @@ export default {
     },
     typeMode() {
       return this.$store.state.typeMode
+    },
+    pitchWidth() {
+      return this.$store.getters.pitchWidth
+    },
+    firstPitch() {
+      return this.$store.getters.firstPitch
     },
     typeName() {
       const typeMode = this.typeMode
@@ -94,45 +89,65 @@ export default {
           break
       }
     },
+    typeHeight() {
+      const typeMode = this.typeMode
+      switch (typeMode) {
+        case 0:
+          return 24 / 250
+          break
+        case 1:
+          return 2 / 250
+          break
+        default:
+          return 1
+          break
+      }
+    },
     stageStyle() {
       return { 
         width: `${this.stageWidth}px`,
         left: `-${this.$store.state.stage.scrollLeft}px`,
-        height: '328px'
+        height: '250px' // !328
       }
     },
-    pitchWidth() {
-      return this.$store.getters.pitchWidth
+    f0Init() {
+      let result = `M 0,125 L ${this.stageWidth},125 `
+      return result
     },
-    firstPitch() {
-      return this.$store.getters.firstPitch
+    f0Volume() {
+      const d = this.$store.state.f0Volume
+      return this.formatSvgPath(d)
     },
-    svgData() {
-      const d = this.$store.state.f0Db
+    f0Tension() {
+      const d = this.$store.state.f0Tension
       return this.formatSvgPath(d)
     }
   },
   data() {
-    return {}
+    return {
+    }
   },
   mounted() {},
   methods: {
     onDraw(values) {
-      console.log(`onDraw values:`, values)
-
-      this.$store.dispatch('changeF0Db', { values })
+      // console.log(`onDraw values:`, values)
+      if (this.typeMode === 0) {
+        this.$store.dispatch('changeF0Volume', { values })
+      } else {
+        this.$store.dispatch('changeF0Tension', { values })
+      }
     },
     getPositionY(value) {
-      let y = 0
+      let y = 125
       if (value > 0) {
-        y = 328 - value
+        y = 250 - value // !328
       } else if (value < 0) { 
-        y = 328 + Math.abs(value)
+        y = 250 + Math.abs(value) // !328
       }
       return y
     },
     formatSvgPath (data) {
-      let result = 'M 0,164 '
+      let result = 'M 0,125 ' // !164
 
       // 将拿到的数据转成x轴和y轴
       for (let i = 0; i < data.length; i += 1) {
@@ -147,17 +162,17 @@ export default {
       } 
 
       if (data.length > 0) {
-        result += `L ${this.getPositionY(data[data.length - 1])},164 `
+        result += `L ${this.getPositionY(data[data.length - 1])},125 ` // !164
       }
 
-      result += `L ${this.stageWidth},164 `
-
+      result += `L ${this.stageWidth},125 ` // !164
+      // console.log('result:', result)
       return result
 
       // return drawSvgPath(points)
     },
     valueHandler(x, y) {
-      return 328 - y
+      return 250 - y // !328
     },
     closeParameter() {
       this.$store.dispatch('changeStoreState', { typeMode: -1 })
@@ -173,7 +188,7 @@ export default {
   bottom: 0;
   background: rgba(#323232, 0.8);
   border-radius: 1px;
-  height: 360px;
+  height: 282px;
   width: calc(100% - 50px);
 }
 
@@ -200,12 +215,12 @@ export default {
 }
 
 .mark {
-  height: 328px;
+  height: 250px; // !328
 }
 .drawStage {
   position: absolute;
   width: 100%;
-  height: 328px;
+  height: 250px; // !328
   left: 0;
   bottom: 0;
 }
@@ -215,7 +230,7 @@ export default {
 }
 
 .panel {
-  height: 328px;
+  height: 250px; // !328
   position: absolute;
   bottom: 0;
 }

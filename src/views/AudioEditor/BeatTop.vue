@@ -36,7 +36,6 @@ export default {
       // 依赖这个元素的ID
       const stage = document.querySelector('#audioStage')
       const rect = stage.getBoundingClientRect()
-      // console.log(`event.clientX`, event.clientX, rect.left)
       const left = event.clientX - rect.left
       this.$store.dispatch("changeStoreState", { lineLeft: left })
     }

@@ -20,7 +20,7 @@ const defaultState = {
   noteHeight: 25, // 32分音符的占据的最小高度
   bpm: 90,       // 音调
   toneId: 1, // 选择的toneId
-  auditUrl: 'https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/kuwa-wav/cc3868febcca4ac5a87c4e56a92bd999.wav', // 选择的播放的url
+  auditUrl: '', // 选择的播放的url
   taskId: 0, // 正在编辑的taskId
   toneName: 'luoxiang', // 选择的toneName
   isSynthetizing: false, // 是否在合成音频中
@@ -38,15 +38,19 @@ const defaultState = {
   stagePitches: [], // 舞台音块
   isStagePitchesChanged: false, // 舞台音块是否有改变
   isPitchLineChanged: false, // 音高线是否有改变
-  f0AI: [],
-  f0Draw: [],
-  f0Db: [],
+  isVolumeChanged: false, // 响度是否有改变
+  isTensionChanged: false, // 张力是否有改变
+  f0AI: [], // 音高线虚线部分
+  f0Draw: [], // 音高线实线部分
+  f0Volume: [], // 响度数据
+  f0Tension: [], // 张力数据
+  changedLineMap: {},
+  changedVolumeMap: {},
+  changedTensionMap: {},
   pinyinList: [],
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
-  changedLineMap: {},
-  changedDbMap: {},
   appScrollTop: 0 // 页面垂直滚动条的位置
 }
 
@@ -161,15 +165,25 @@ const store = new Vuex.Store({
       }
       commit('changeStoreState', { f0Draw, changedLineMap, isPitchLineChanged: true })
     },
-    changeF0Db({ commit, state, getters }, { values }){
-      const changedDbMap = { ...state.changedDbMap }
-      const f0Db = [...state.f0Db]
+    changeF0Volume({ commit, state, getters }, { values }){
+      const changedVolumeMap = { ...state.changedVolumeMap }
+      const f0Volume = [...state.f0Volume]
       for(const [x, v] of values) {
         const index = Math.round(x / getters.pitchWidth)
-        changedDbMap[x] = v
-        f0Db[index] = v
+        changedVolumeMap[x] = v
+        f0Volume[index] = v
       }
-      commit('changeStoreState', { f0Db, changedDbMap })
+      commit('changeStoreState', { f0Volume, changedVolumeMap, isTensionChanged: true })
+    },
+    changeF0Tension({ commit, state, getters }, { values }) {
+      const changedTensionMap = { ...state.changedTensionMap }
+      const f0Tension = [...state.f0Tension]
+      for (const [x, v] of values) {
+        const index = Math.round(x / getters.pitchWidth)
+        changedTensionMap[x] = v
+        f0Tension[index] = v
+      }
+      commit('changeStoreState', { f0Tension, changedTensionMap, isVolumeChanged: true })
     },
     changeStagePitches({ commit }, { index, key, value }) {
       commit('changeStagePitches', { index, key, value })

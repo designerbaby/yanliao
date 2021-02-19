@@ -37,7 +37,6 @@ export default {
         return
       }
       this.$refs.BeatSelector.showBeatDialog()
-      // this.$emit('showBeat')
     }
   }
 }
