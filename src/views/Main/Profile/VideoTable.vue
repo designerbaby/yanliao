@@ -1,13 +1,13 @@
 <template>
   <div class="video-table-box">
-    <el-table
+    <Table
       ref="table"
       :data="list"
       class="table-box"
       :show-header="false"
       v-if="this.list.length !== 0"
     >
-      <el-table-column>
+      <TableColumn>
         <template slot-scope="scope">
           <img class="cover" :src="scope.row.cover_url" alt="暂无封面" @click="coverClick(scope.row)">
           <div class="info">
@@ -42,9 +42,9 @@
             </div>
           </div>
         </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
+      </TableColumn>
+    </Table>
+    <Pagination
       v-if="this.list.length !== 0"
       class="pagination"
       @current-change="currentPageChange"
@@ -53,9 +53,9 @@
       layout="prev, pager, next, jumper"
       :total="total"
     >
-    </el-pagination>
+    </Pagination>
     <CommonDialog :show="dialogShow" titleText="确定删除该视频吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
-    <el-dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
+    <Dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
       <div class="video-container">
         <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo">
           您的浏览器不支持 video 标签。
@@ -70,7 +70,7 @@
         </video> -->
         <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
       </div>
-    </el-dialog>
+    </Dialog>
     <div class="empty-box" v-if="this.list.length === 0 && this.dataReady === true">
       <img class="empty-img" src="@/assets/empty.png" alt="" />
       <div class="empty-text">还没有上传视频哦~</div>
@@ -99,10 +99,10 @@ import {
 export default {
   name: 'VideoTable',
   components: {
-    'el-dialog': Dialog,
-    'el-table': Table,
-    'el-table-column': TableColumn,
-    'el-pagination': Pagination,
+    Dialog,
+    Table,
+    TableColumn,
+    Pagination,
     CommonDialog,
   },
   data() {
