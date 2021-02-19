@@ -1,14 +1,16 @@
 <template>
-  <div :class="$style.Parameters">
+  <div :class="$style.container">
     <div :class="$style.top">
       <span :class="$style.left">{{ typeName }}</span>
       <img src="@/assets/audioEditor/close.png" @click.stop="closeParameter" :style="{left: `${clientWidth - 86}px`}">
     </div>
-    <span :class="[$style.text, $style.leftTop]">{{ typeParas.plus }}</span>
-    <span :class="[$style.text, $style.rightTop]" :style="{left: `${clientWidth - 105}px`}">{{ typeParas.plus }}</span>
-    <span :class="[$style.text, $style.leftBottom]">{{ typeParas.minus }}</span>
-    <span :class="[$style.text, $style.rightBottom]" :style="{left: `${clientWidth - 105}px`}">{{ typeParas.minus }}</span>
-    <canvas 
+    <div :class="$style.mark">
+      <span :class="[$style.text, $style.leftTop]">{{ typeParas.plus }}</span>
+      <span :class="[$style.text, $style.rightTop]" :style="{left: `${clientWidth - 105}px`}">{{ typeParas.plus }}</span>
+      <span :class="[$style.text, $style.leftBottom]">{{ typeParas.minus }}</span>
+      <span :class="[$style.text, $style.rightBottom]" :style="{left: `${clientWidth - 105}px`}">{{ typeParas.minus }}</span>
+    </div>
+    <!-- <canvas 
       ref="Canvas"
       :class="$style.canvas" 
       :style="stageStyle" 
@@ -20,13 +22,34 @@
       @mouseup.stop="onMouseUp"
       @mouseleave="onMouseUp">
       您的浏览器不支持canvs，请更换浏览器重试~
-    </canvas>
+    </canvas> -->
+    <div :class="$style.drawStage">
+      <Drawable 
+        :className="$style.draw"
+        :styles="stageStyle"
+        :valueHandler="valueHandler"
+        @on-draw="onDraw"
+        >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg"
+          version="1.1" 
+          :class="$style.svg"
+          >
+          <g>
+            <path :d="svgData" stroke="white" fill="transparent" stroke-linejoin="round"/>
+            <!-- <path :d="svgDataDraw" stroke="white" fill="transparent" stroke-linejoin="round" /> -->
+          </g>
+        </svg>
+      </Drawable>
+    </div>
   </div>
 </template>
 
 <script>
+import Drawable from './Components/Drawable.vue'
 export default {
   name: 'Parameters',
+  components: { Drawable },
   computed: {
     clientWidth() {
       return document.documentElement.clientWidth
@@ -77,88 +100,97 @@ export default {
         left: `-${this.$store.state.stage.scrollLeft}px`,
         height: '328px'
       }
+    },
+    pitchWidth() {
+      return this.$store.getters.pitchWidth
+    },
+    firstPitch() {
+      return this.$store.getters.firstPitch
+    },
+    svgData() {
+      const d = this.$store.state.f0Db
+      return this.formatSvgPath(d)
     }
   },
   data() {
-    return {
-      mouseStart: null,
-      startPos: null,
-      ctx: null
-    }
+    return {}
   },
-  mounted() {
-    this.initLine()
-  },
+  mounted() {},
   methods: {
+    onDraw(values) {
+      console.log(`onDraw values:`, values)
+
+      this.$store.dispatch('changeF0Db', { values })
+    },
+    getPositionY(value) {
+      let y = 0
+      if (value > 0) {
+        y = 328 - value
+      } else if (value < 0) { 
+        y = 328 + Math.abs(value)
+      }
+      return y
+    },
+    formatSvgPath (data) {
+      let result = 'M 0,164 '
+
+      // 将拿到的数据转成x轴和y轴
+      for (let i = 0; i < data.length; i += 1) {
+        const value = data[i]
+        const x = Math.round(this.pitchWidth * i)
+        let y = this.getPositionY(value)
+
+        if ((i) % 3 ==0) {
+          result += "C "
+        }
+        result += `${x},${y} `
+      } 
+
+      if (data.length > 0) {
+        result += `L ${this.getPositionY(data[data.length - 1])},164 `
+      }
+
+      result += `L ${this.stageWidth},164 `
+
+      return result
+
+      // return drawSvgPath(points)
+    },
+    valueHandler(x, y) {
+      return 328 - y
+    },
     closeParameter() {
       this.$store.dispatch('changeStoreState', { typeMode: -1 })
-    },
-    initLine () {
-      const canvas = this.$refs.Canvas
-      const ctx = canvas.getContext('2d')
-
-      ctx.strokeStyle = 'white'
-      ctx.lineWidth = 1
-      ctx.moveTo(0, 164)
-      ctx.lineTo(this.stageWidth, 164)
-      ctx.stroke()
-
-      this.ctx = ctx
-    },
-    onMouseDown (event) {
-      console.log(`onMouseDown event`, event)
-      const rect = this.$refs.Canvas.getBoundingClientRect()
-      this.mouseStart = {
-        rect
-      }
-    },
-    onMouseMove (event) {
-      // console.log(`onMouseMove event`, event)
-      if (this.mouseStart) {
-        const rect = this.$refs.Canvas.getBoundingClientRect()
-        const pos = {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top
-        }
-        console.log(`pos.x: ${pos.x}, pos.y:${pos.y}`)
-        // this.ctx.bezierCurveTo(25,50,75,50,300,200)
-         // ctx.globalCompositeOperation = "source-over"
-        // this.ctx.beginPath()
-        // this.ctx.lineTo(pos.x, pos.y)
-        this.ctx.quadraticCurveTo(0, 0, pos.x, pos.y);
-        this.ctx.stroke()
-      }
-    },
-    onMouseUp (event) {
-      console.log(`onMouseUp event`, event)
-      this.mouseStart = null
     }
   }
 }
 </script>
 
 <style lang="less" module>
-.Parameters{
+.container{
   z-index: 1000;
   position: fixed;
   bottom: 0;
   background: rgba(#323232, 0.8);
   border-radius: 1px;
   height: 360px;
-  width: 100%;
+  width: calc(100% - 50px);
 }
 
+.svg {
+  width: 100%;
+  height: 100%;
+}
 .top {
+  width: 100%;
   height: 32px;
   display: flex;
   align-items: center;
   background: #30302f;
-  position: fixed;
-  bottom: 328px;
   font-size: 12px;
   color: rgba(255,255,255,0.80);
   border-bottom: 1px solid #2a2a2a;
-  width: 100%;
+  position: relative;
   img {
     position: absolute;
     left: 20px;
@@ -167,6 +199,16 @@ export default {
   }
 }
 
+.mark {
+  height: 328px;
+}
+.drawStage {
+  position: absolute;
+  width: 100%;
+  height: 328px;
+  left: 0;
+  bottom: 0;
+}
 .left {
   left: 9px;
   position: absolute;
@@ -199,7 +241,7 @@ export default {
 
 .canvas {
   background: transparent;
-  position: absolute;
-  bottom: 0px;
+  width: 100%;
+  height: 100%;
 }
 </style>

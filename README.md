@@ -46,7 +46,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 - 1、要把doPlay的判断改成状态机
 - 2、配置gitlab-ci去设置代码发布
-- 3、向上滚的时候，top的位移没变
 
 ## 难点
 - 1、画音高线的时候锯齿
@@ -54,3 +53,4 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 3、播放进度不流畅
 - 4、播放的状态机
 - 5、播放线移动的位置
+- 6、组件的规划

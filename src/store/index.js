@@ -40,11 +40,14 @@ const defaultState = {
   isPitchLineChanged: false, // 音高线是否有改变
   f0AI: [],
   f0Draw: [],
+  f0Db: [],
   pinyinList: [],
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
-  changedLineMap: {}
+  changedLineMap: {},
+  changedDbMap: {},
+  appScrollTop: 0 // 页面垂直滚动条的位置
 }
 
 const store = new Vuex.Store({
@@ -157,6 +160,16 @@ const store = new Vuex.Store({
         f0Draw[index] = v
       }
       commit('changeStoreState', { f0Draw, changedLineMap, isPitchLineChanged: true })
+    },
+    changeF0Db({ commit, state, getters }, { values }){
+      const changedDbMap = { ...state.changedDbMap }
+      const f0Db = [...state.f0Db]
+      for(const [x, v] of values) {
+        const index = Math.round(x / getters.pitchWidth)
+        changedDbMap[x] = v
+        f0Db[index] = v
+      }
+      commit('changeStoreState', { f0Db, changedDbMap })
     },
     changeStagePitches({ commit }, { index, key, value }) {
       commit('changeStagePitches', { index, key, value })

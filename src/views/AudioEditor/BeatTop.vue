@@ -1,29 +1,26 @@
 <template>
-  <div>
-    <div :class="$style.top" v-if="isExceedHeader"></div>
-    <div :class="[$style.top, { [$style.fixed]: isExceedHeader }]" @click="changeLine">
+  <div :class="$style.container">
+    <div :class="[$style.top]" :style="style" @click="changeLine">
       <div :class="$style.matter" v-for="n in matter" :key="n" :style="{width: `${beatWidth}px`}">{{ n }}</div>
     </div>
   </div>
 </template>
 
 <script>
+import { Message } from "element-ui"
+import { playState } from "@/common/utils/const"
 export default {
   name: 'BeatTop',
   computed: {
-    isExceedHeader() {
-      return this.$store.state.isExceedHeader
-    },
     matter() {
       return this.$store.state.matter
     },
     beatWidth() {
       return this.$store.getters.beatWidth
     },
-    stageStyle() {
+    style() {
       return { 
-        width: `${this.$store.getters.stageWidth}px`,
-        left: `${-this.$store.state.stage.scrollLeft + 50}px`
+        left: `${-this.$store.state.stage.scrollLeft}px`
       }
     }
   },
@@ -31,24 +28,32 @@ export default {
     return {}
   },
   methods: {
-    changeLine() {
-      this.$emit('changeLine')
+    changeLine(event) {
+      if (this.$store.state.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
+      // 依赖这个元素的ID
+      const stage = document.querySelector('#audioStage')
+      const rect = stage.getBoundingClientRect()
+      // console.log(`event.clientX`, event.clientX, rect.left)
+      const left = event.clientX - rect.left
+      this.$store.dispatch("changeStoreState", { lineLeft: left })
     }
   }
 }
 </script>
 
 <style lang="less" module>
+.container {
+  flex: 1;
+  overflow: hidden;
+}
 .top {
   height: 25px;
   position: relative;
-  display: flex;
-}
-.fixed {
- position: fixed; 
- z-index: 100;
- top: 78px;
- background-color: #373736;
+  display: inline-flex;
+  background-color: #373736;
 }
 .matter {
   height: 25px;
@@ -61,5 +66,4 @@ export default {
   line-height: 25px;
   flex-shrink: 0;
 }
-
 </style>

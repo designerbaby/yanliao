@@ -40,13 +40,12 @@ export default {
   mounted() {
     const app = document.querySelector('#app')
     app.addEventListener('scroll', (event) => {
-      const scrollTop = app.scrollTop
-      // console.log('scrollTop:', scrollTop)
-      if (scrollTop > 48) {
-        this.$store.dispatch("changeStoreState", { isExceedHeader: true })
-      } else {
-        this.$store.dispatch("changeStoreState", { isExceedHeader: false })
-      }
+      const appScrollTop = app.scrollTop
+      const isExceedHeader = appScrollTop > 48
+      this.$store.dispatch("changeStoreState", {
+        appScrollTop,
+        isExceedHeader 
+      })
     })
   },
   methods: {

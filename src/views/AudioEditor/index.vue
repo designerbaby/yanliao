@@ -7,21 +7,22 @@
       @synthesize="toSynthesize"
       @openDrawer="toOpenDrawer"
     ></BeatHeader>
+    <StatusBar></StatusBar>
     <BeatContainer 
       ref="BeatContainer"
-      @showBeat="toShowBeat"
     ></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
-    <BeatSelector ref="BeatSelector"></BeatSelector>
+    <!-- <BeatSelector ref="BeatSelector"></BeatSelector> -->
   </div>
 </template>
 
 <script>
 import { Message } from 'element-ui'
-import BeatSelector from './BeatSelector.vue'
+// import BeatSelector from './BeatSelector.vue'
 import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
+import StatusBar from './StatusBar.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail } from '@/api/audio'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
 import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
@@ -31,10 +32,11 @@ export default {
   name: 'AudioEditor',
   components: {
     Message,
-    BeatSelector,
+    // BeatSelector,
     BeatContainer,
     BeatHeader,
-    BeatSetting
+    BeatSetting,
+    StatusBar
   },
   data() {
     return {
@@ -113,9 +115,9 @@ export default {
     changePlayState(stateValue) {
       this.$store.dispatch('changeStoreState', { playState: stateValue })
     },
-    toShowBeat() {
-      this.$refs.BeatSelector.showBeatDialog()
-    },
+    // toShowBeat() {
+    //   this.$refs.BeatSelector.showBeatDialog()
+    // },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       if (taskId) {

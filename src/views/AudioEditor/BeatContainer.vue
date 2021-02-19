@@ -1,52 +1,54 @@
 <template>
   <div ref="container" :class="$style.container">
-    <Beat @showBeat="toShowBeat"></Beat>
-    <BeatPiano></BeatPiano>
-    <div :class="$style.right" ref="rightArea">
-      <BeatTop @changeLine="changeLine"></BeatTop>
-      <div ref="stage" :class="$style.stage" id="audioStage">
-        <BeatStageBg></BeatStageBg>
-        <BeatLine></BeatLine>
-        <div 
-          ref="drawStage"
-          @mousedown="onMouseDown"
-          @mousemove="onMouseMove"
-          @mouseup="onMouseUp"
-          @mouseleave="onMouseUp"
-          :class="$style.drawStage" 
-          :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
-        ></div>
-        <template v-for="(it, index) in stagePitches">
-          <div
-            :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
-            :style="{
-              width: `${it.width}px`,
-              height: `${it.height}px`,
-              transform: `translate(${it.left}px, ${it.top}px)`
-            }"
-            :key="index"
-            :data-left="it.left"
-            :data-top="it.top"
-            @mousedown.self="onPitchMouseDown($event, index)"
-            @mouseup.self="onPitchMouseUp"
-            slot="reference"
-          >
-            {{ it.hanzi }}
-            <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-            <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-          </div>
-        </template>
-        <BeatList
-          ref="BeatList"
-          :index="index"
-          @deletePitch="toDeletePitch"
-          @editLyric="editLyric"
-          v-if="showList === index"
-        ></BeatList>
-        <div :class="$style.sharp" ref="sharp"></div>
-        <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
+    <!-- <Beat @showBeat="toShowBeat"></Beat> -->
+    <div :class="$style.main">
+      <BeatPiano></BeatPiano>
+      <div :class="$style.right" ref="rightArea">
+        <!-- <BeatTop @changeLine="changeLine"></BeatTop> -->
+        <div ref="stage" :class="$style.stage" id="audioStage">
+          <BeatStageBg></BeatStageBg>
+          <BeatLine></BeatLine>
+          <div 
+            ref="drawStage"
+            @mousedown="onMouseDown"
+            @mousemove="onMouseMove"
+            @mouseup="onMouseUp"
+            @mouseleave="onMouseUp"
+            :class="$style.drawStage" 
+            :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
+          ></div>
+          <template v-for="(it, index) in stagePitches">
+            <div
+              :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
+              :style="{
+                width: `${it.width}px`,
+                height: `${it.height}px`,
+                transform: `translate(${it.left}px, ${it.top}px)`
+              }"
+              :key="index"
+              :data-left="it.left"
+              :data-top="it.top"
+              @mousedown.self="onPitchMouseDown($event, index)"
+              @mouseup.self="onPitchMouseUp"
+              slot="reference"
+            >
+              {{ it.hanzi }}
+              <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+              <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+            </div>
+          </template>
+          <BeatList
+            ref="BeatList"
+            :index="index"
+            @deletePitch="toDeletePitch"
+            @editLyric="editLyric"
+            v-if="showList === index"
+          ></BeatList>
+          <div :class="$style.sharp" ref="sharp"></div>
+          <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
+        </div>
+        <Parameters ref="Parameters" v-if="$store.state.typeMode !== -1"></Parameters>
       </div>
-      <Parameters ref="Parameters" v-if="$store.state.typeMode !== -1"></Parameters>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
     <LyricCorrect ref="LyricCorrect" @saveAllPinyin="beatLyricSaveAllPinyin"></LyricCorrect>
@@ -56,7 +58,7 @@
 <script>
 import { pitchList, playState } from "@/common/utils/const"
 import { Message } from "element-ui"
-import Beat from './Beat.vue'
+// import Beat from './Beat.vue'
 import BeatTop from './BeatTop.vue'
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
@@ -67,12 +69,13 @@ import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
 import BeatList from './BeatList.vue'
 import Parameters from './Parameters.vue'
+import StatusBar from './StatusBar.vue'
 import { amendTop, amendLeft } from '@/common/utils/helper'
 
 export default {
   name: "BeatContainer",
   components: {
-    Beat,
+    // Beat,
     BeatTop,
     Message,
     BeatPiano,
@@ -83,7 +86,8 @@ export default {
     BeatLyric,
     LyricCorrect,
     BeatList,
-    Parameters
+    Parameters,
+    StatusBar
   },
   data() {
     return {
@@ -188,17 +192,17 @@ export default {
         } 
       })
     },
-    toShowBeat() {
-      if (this.isSynthetizing) {
-        Message.error('正在合成音频中,不能修改哦~')
-        return
-      }
-      if (this.playState === playState.StatePlaying) {
-        Message.error('正在播放中, 不能修改哦~')
-        return
-      }
-      this.$emit("showBeat");
-    },
+    // toShowBeat() {
+    //   if (this.isSynthetizing) {
+    //     Message.error('正在合成音频中,不能修改哦~')
+    //     return
+    //   }
+    //   if (this.playState === playState.StatePlaying) {
+    //     Message.error('正在播放中, 不能修改哦~')
+    //     return
+    //   }
+    //   this.$emit("showBeat");
+    // },
     onPitchMouseDown(event, index){
       console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
@@ -461,16 +465,16 @@ export default {
         maxPitchRight = Math.max(maxPitchRight, right)
         this.$store.dispatch('changeStoreState', { maxPitchRight })
       })
-    },
-    changeLine() {
-      if (this.playState === playState.StatePlaying) {
-        Message.error('正在播放中, 不能修改哦~')
-        return
-      }
-      const rect = this.$refs.stage.getBoundingClientRect()
-      const left = event.clientX - rect.left
-      this.$store.dispatch("changeStoreState", { lineLeft: left })
     }
+    // changeLine() {
+    //   if (this.playState === playState.StatePlaying) {
+    //     Message.error('正在播放中, 不能修改哦~')
+    //     return
+    //   }
+    //   const rect = this.$refs.stage.getBoundingClientRect()
+    //   const left = event.clientX - rect.left
+    //   this.$store.dispatch("changeStoreState", { lineLeft: left })
+    // }
   }
 };
 </script>
