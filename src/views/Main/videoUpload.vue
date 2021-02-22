@@ -4,9 +4,9 @@
       <span>发布视频</span>
       <span class="tips"> (发布的视频会同步在盐料视频 app) </span>
     </div>
-    <el-form ref="videoForm" label-width="100px" :model="form" class="form" :rules="rules">
-      <el-form-item label="上传视频" prop="file">
-        <el-upload
+    <Form ref="videoForm" label-width="100px" :model="form" class="form" :rules="rules">
+      <FormItem label="上传视频" prop="file">
+        <Upload
           ref="upload"
           :accept="'video/*'"
           :on-change="uploadChange"
@@ -20,10 +20,10 @@
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将视频文件拖到此处，或<em>点击上传</em></div>
           <div class="el-upload__tip" slot="tip">只能上传avi、wmv、mpeg、mp4、m4v、mov、asf、flv、f4v文件，且不超过2GB</div>
-        </el-upload>
-      </el-form-item>
-      <el-form-item label="视频描述" prop="desc">
-        <el-input
+        </Upload>
+      </FormItem>
+      <FormItem label="视频描述" prop="desc">
+        <Input
           type="textarea"
           :autosize="{ minRows: 4, maxRows: 6}"
           placeholder="请输入视频描述内容"
@@ -31,25 +31,25 @@
           maxlength="50"
           show-word-limit
         >
-        </el-input>
-      </el-form-item>
-      <el-form-item label="关联歌曲" class="song-info">
-        <el-form-item prop="songName">
-          <el-input placeholder="输入视频所使用的歌曲名称" v-model="form.songName"></el-input>
-        </el-form-item>
+        </Input>
+      </FormItem>
+      <FormItem label="关联歌曲" class="song-info">
+        <FormItem prop="songName">
+          <Input placeholder="输入视频所使用的歌曲名称" v-model="form.songName"></Input>
+        </FormItem>
         <span> - </span>
-        <el-form-item prop="singerName">
-          <el-input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName"></el-input>
-        </el-form-item>
-      </el-form-item>
-      <el-form-item v-if="this.$store.state.profile.showBindKugou">
-        <el-checkbox v-model="form.synKuGou">
+        <FormItem prop="singerName">
+          <Input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName"></Input>
+        </FormItem>
+      </FormItem>
+      <FormItem v-if="this.$store.state.profile.showBindKugou">
+        <Checkbox v-model="form.synKuGou">
           同步视频到酷狗音乐App获得
           <a href="/playIncentives" target="_blank" title="播放激励" class="validity">播放激励</a>
-        </el-checkbox>
-      </el-form-item>
-    </el-form>
-    <el-button :loading="loading" @click="uploadButtonClick">发布</el-button>
+        </Checkbox>
+      </FormItem>
+    </Form>
+    <Button :loading="loading" @click="uploadButtonClick">发布</Button>
   </div>
 </template>
 
@@ -57,7 +57,6 @@
 // @ is an alias to /src
 import TcVod from 'vod-js-sdk-v6'
 import { reportEvent } from '@/common/utils/helper'
-import Header from '@/common/components/Header'
 import {
   Input,
   Form,
@@ -67,20 +66,17 @@ import {
   Button,
   Checkbox
 } from 'element-ui'
-import {
-  fetchSign,
-} from '@/api/video'
+import { fetchSign } from '@/api/video'
 
 export default {
   name: 'Home',
   components: {
-    Header,
-    'el-input': Input,
-    'el-form': Form,
-    'el-form-item': FormItem,
-    'el-upload': Upload,
-    'el-button': Button,
-    'el-checkbox': Checkbox
+    Input,
+    Form,
+    FormItem,
+    Upload,
+    Button,
+    Checkbox
   },
   data() {
     return {

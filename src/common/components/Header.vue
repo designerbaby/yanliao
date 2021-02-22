@@ -19,8 +19,8 @@
         <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button>
         <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
       </template>
+      <button v-else class="login-button" @click="loginButtonClick">登录</button>
     </div>
-    <button v-if="!nickName" class="login-button" @click="loginButtonClick">登录</button>
     <LogoutDialog ref="LogoutDialog"></LogoutDialog>
     <KugouDialog ref="KugouDialog" @showBindKugou="toShowBindKugou" @getUserInfo="toGetUserInfo"></KugouDialog>
   </div>

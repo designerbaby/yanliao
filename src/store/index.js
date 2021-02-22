@@ -51,7 +51,8 @@ const defaultState = {
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
-  appScrollTop: 0 // 页面垂直滚动条的位置
+  appScrollTop: 0, // 页面垂直滚动条的位置
+  typeContainerHeight: 250
 }
 
 const store = new Vuex.Store({
@@ -109,6 +110,22 @@ const store = new Vuex.Store({
         pitches.push(pitchItem)
       })
       return pitches
+    },
+    audioDuration: (state, getters) => {
+      let startTime = -1
+      let endTime = -1
+      for (const pitch of getters.pitchList) {
+        if (startTime < 0 || pitch.startTime < startTime) {
+          startTime = pitch.startTime
+        }
+        if (endTime < 0 || pitch.endTime > endTime) {
+          endTime = pitch.endTime
+        }
+      }
+
+      const duration = endTime - startTime
+      // SDK还补了500
+      return duration > 0 ? duration + 500 : 0
     }
   },
   mutations: {
@@ -173,7 +190,7 @@ const store = new Vuex.Store({
         changedVolumeMap[x] = v
         f0Volume[index] = v
       }
-      commit('changeStoreState', { f0Volume, changedVolumeMap, isTensionChanged: true })
+      commit('changeStoreState', { f0Volume, changedVolumeMap, isVolumeChanged: true })
     },
     changeF0Tension({ commit, state, getters }, { values }) {
       const changedTensionMap = { ...state.changedTensionMap }
@@ -183,7 +200,7 @@ const store = new Vuex.Store({
         changedTensionMap[x] = v
         f0Tension[index] = v
       }
-      commit('changeStoreState', { f0Tension, changedTensionMap, isVolumeChanged: true })
+      commit('changeStoreState', { f0Tension, changedTensionMap, isTensionChanged: true })
     },
     changeStagePitches({ commit }, { index, key, value }) {
       commit('changeStagePitches', { index, key, value })

@@ -143,7 +143,9 @@ export default {
           bpm: pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
           toneName: pitchList[0].singer, 
           toneId: pitchList[0].toneId, 
-          stagePitches: stagePitches 
+          stagePitches: stagePitches,
+          f0Volume: data.volume_data || [],
+          f0Tension: data.tension_data || []
         })
         const changed = {}
         const pitchWidth = this.$store.getters.pitchWidth
@@ -246,7 +248,7 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false})
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
@@ -405,6 +407,8 @@ export default {
         const getF0DataEnd = Date.now()
         if ((getF0DataEnd - getF0DataStart) > 10 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
+          this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+          this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
           break
         }
         console.log(`获取音频中:`, getF0DataEnd - getF0DataStart)
@@ -418,8 +422,8 @@ export default {
         f0_ai: this.$store.state.f0AI,
         f0_draw: this.$store.state.f0Draw,
         task_id: this.$store.state.taskId,
-        volume_data: this.$store.state.f0Volume,
-        tension_data: this.$store.state.tensionData
+        volume_data: this.$store.state.f0Volume.map(v => Math.round(v) || 0),
+        tension_data: this.$store.state.f0Tension.map(v => Math.round(v) || 0)
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -462,6 +466,7 @@ export default {
         if ((synthesizeEnd - synthesizeStart) > 30 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
           this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+          this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
           break
         }
       }

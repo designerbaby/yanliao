@@ -25,7 +25,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
   - Web1.2：草稿箱 https://docs.qq.com/doc/DVW9veVRqUENvR053
   - web1.3：视频发布及账号绑定 https://docs.qq.com/doc/DVWNrQVVYbVNIdE1V
   - web1.4: 编辑器：https://docs.qq.com/doc/DVWVNTHpWanZWT0Rw 
-  - web1.5: 自定义音源：
+  - web1.5: 自定义音源制作说明：https://docs.qq.com/doc/DVU5YY0R5eWt3c3Bs
   - 。。。等等
 
 ### 接口文档：

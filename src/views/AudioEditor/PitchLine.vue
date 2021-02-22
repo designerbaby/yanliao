@@ -77,24 +77,38 @@ export default {
   },
   methods: {
     toHandleF0Data (f0Data) {
-      let result = 'M '
+      let result = ''
       // const points = []
       // 将拿到的数据转成x轴和y轴
+      let lastX = 0
+      let lastY = 0
       for (let i = 0; i < f0Data.length; i += 1) {
         const item = f0Data[i]
         const x = Math.round(this.pitchWidth * i)
         const y = parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5
 
+        lastX = x
+        lastY = y
+
         // points.push([x, y])
-        if (i == 1) {
-          // result += "L "
+        if (i === 0) {
+          result += "M "
         }
 
-        if ((i + 1) % 3 ==0) {
+        if ((i - 1) % 3 ==0) {
           result += "C "
         }
         result += `${x},${y} `
       } 
+
+      if (f0Data.length > 0) {
+        const mod = (f0Data.length - 1) % 3
+        const size = mod === 0 ? 0 : 3 - mod
+
+        for (let j = 0; j < size ; j += 1) {
+          result += `${lastX},${lastY} `
+        }
+      }
       return result
 
       // return drawSvgPath(points)
@@ -162,11 +176,13 @@ export default {
       const data = this.$store.state.f0AI
       if (data) {
         const item = data[index]
-        const value = (this.firstPitch - y / this.noteHeight) * 100
+        if (item) {
+          const value = (this.firstPitch - y / this.noteHeight) * 100
         // const pos = Math.round(index * this.pitchWidth)
         // this.$store.dispatch('changeF0', { index, value, x: pos })
 
-        this.cache.set(x, value)
+          this.cache.set(x, value)
+        }
         // console.log('this.cache:', this.cache)
       }
     },

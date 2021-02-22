@@ -55,18 +55,18 @@ export default {
     firstPitch() {
       return this.$store.getters.firstPitch
     },
+    typeContainerHeight() {
+      return this.$store.state.typeContainerHeight
+    },
     typeName() {
       const typeMode = this.typeMode
       switch (typeMode) {
         case 0:
           return '响度'
-          break
         case 1:
           return '张力'
-          break
         default:
           return ''
-          break
       }
     },
     typeParas() {
@@ -77,37 +77,28 @@ export default {
             plus: '+12 dB',
             minus: '-12 dB'
           }
-          break
         case 1: 
           return {
             plus: '紧张',
             minus: '放松'
           }
-          break
         default: 
           return {}
-          break
       }
     },
-    typeHeight() {
+    typeRange() {
       const typeMode = this.typeMode
       switch (typeMode) {
-        case 0:
-          return 24 / 250
-          break
-        case 1:
-          return 2 / 250
-          break
-        default:
-          return 1
-          break
+        case 0: return 2400
+        case 1: return 200
+        default: return 100
       }
     },
     stageStyle() {
       return { 
         width: `${this.stageWidth}px`,
         left: `-${this.$store.state.stage.scrollLeft}px`,
-        height: '250px' // !328
+        height: `${this.typeContainerHeight}px` // !328
       }
     },
     f0Init() {
@@ -137,42 +128,67 @@ export default {
         this.$store.dispatch('changeF0Tension', { values })
       }
     },
-    getPositionY(value) {
-      let y = 125
-      if (value > 0) {
-        y = 250 - value // !328
-      } else if (value < 0) { 
-        y = 250 + Math.abs(value) // !328
+    positionY2Db(y) {
+      const dbPerPx = this.typeRange / this.typeContainerHeight
+      if (y > (this.typeContainerHeight / 2)) {
+        return -(dbPerPx * (y - (this.typeContainerHeight / 2)))
+      } else if (y < (this.typeContainerHeight / 2)) { // 下半部分
+        return (this.typeRange / 2) - dbPerPx * y // 从下往上是逐渐增大
+      }
+      return 0
+    },
+    db2PositionY(db) {
+      const pxPerDb = this.typeContainerHeight / this.typeRange
+      let y = this.typeContainerHeight / 2
+      if (db > 0) { // 上半部分
+        y = (this.typeContainerHeight / 2) - pxPerDb * db
+      } else if (db < 0) { 
+        y = Math.abs(pxPerDb * db) + (this.typeContainerHeight / 2)
       }
       return y
     },
     formatSvgPath (data) {
-      let result = 'M 0,125 ' // !164
-
+      // let result = 'M 0,125 ' // !164
+      let result = ''
       // 将拿到的数据转成x轴和y轴
       for (let i = 0; i < data.length; i += 1) {
         const value = data[i]
         const x = Math.round(this.pitchWidth * i)
-        let y = this.getPositionY(value)
+        let y = this.db2PositionY(value)
+        if (i === 0) {
+          result += "M "
+        }
 
-        if ((i) % 3 ==0) {
+
+        if ((i - 1) % 3 === 0) {
           result += "C "
         }
         result += `${x},${y} `
       } 
 
       if (data.length > 0) {
-        result += `L ${this.getPositionY(data[data.length - 1])},125 ` // !164
-      }
+        const lastX = Math.round(this.pitchWidth * (data.length - 1))
 
-      result += `L ${this.stageWidth},125 ` // !164
-      // console.log('result:', result)
-      return result
+        const mod = (data.length - 1) % 3
+
+        const size = mod === 0 ? 0 : 3 - mod
+
+        for (let j = 0; j < size ; j += 1) {
+          result += `${lastX},125 `
+        }
+
+
+        result += `L ${lastX},125 ${this.stageWidth},125 `
+      }
+    
+
+
+      return result.trimRight()
 
       // return drawSvgPath(points)
     },
     valueHandler(x, y) {
-      return 250 - y // !328
+      return this.positionY2Db(y)
     },
     closeParameter() {
       this.$store.dispatch('changeStoreState', { typeMode: -1 })
