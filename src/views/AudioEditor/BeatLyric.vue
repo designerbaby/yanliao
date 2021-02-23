@@ -13,6 +13,7 @@
           show-word-limit
         ></Input>
       </FormItem>
+      <span>注：输入“-”号，即表示延续之前的字的尾音</span>
     </Form>
     <span slot="footer" class="dialog-footer">
       <Button @click="toCorrect">拼音校正</Button>
@@ -24,7 +25,7 @@
 <script>
 import { Dialog, Form, FormItem, Button, Input, Message } from 'element-ui'
 import { Hanzi2Pinyin } from '@/api/audio'
-import { validateChinese } from '@/common/utils/validate'
+import { validateChinese, isChineseChar } from '@/common/utils/validate'
 
 export default {
   name: 'BeatLyric',
@@ -39,7 +40,7 @@ export default {
       rule: {
         lyric: [
           { required: true, message: '请输入歌词,且必须为中文',
-            trigger: 'blur', validator: validateChinese }
+            trigger: 'blur' }
         ]
       }
     }
@@ -78,15 +79,40 @@ export default {
       this.lyricForm.lyric = lyric
       this.maxlength = this.lyricArray.length
     },
+    
     submit() {
       this.$refs.lyricForm.validate((valid) => {
         if (valid) {
-          this.saveStagePitches()
-          this.lyricVisible = false
+          if (this.checkPitch()) {
+            this.saveStagePitches()
+            this.lyricVisible = false
+          } else {
+            Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
+          }
         } else {
           Message.error('请全部填写完整并正确再提交')
         }
       })
+    },
+    checkPitch() {
+      let check = true
+      const lyricArray = this.lyricArray
+      console.log('lyricArray:', lyricArray)
+      if (lyricArray.indexOf('-') !== -1) {
+        lyricArray.findIndex((value, index, arr) => {
+          console.log('this.index:', this.index)
+          const idx = this.index !== -1 ? this.index : index
+          if (value === '-' && (idx - 1) >= 0) {
+            const before = this.stagePitches.find((item, i) => i === idx - 1)
+            const current = this.stagePitches.find((item, i) => i === idx)
+            console.log('this.stagePitches:', this.stagePitches)
+            if (before.left + before.width !== current.left) {
+              check = false
+            }
+          }
+        })
+      }
+      return check
     },
     async saveStagePitches () {
       const pinyinList = await this.getPinyin()

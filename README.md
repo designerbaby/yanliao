@@ -25,6 +25,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
   - Web1.2：草稿箱 https://docs.qq.com/doc/DVW9veVRqUENvR053
   - web1.3：视频发布及账号绑定 https://docs.qq.com/doc/DVWNrQVVYbVNIdE1V
   - web1.4: 编辑器：https://docs.qq.com/doc/DVWVNTHpWanZWT0Rw 
+  - web1.5: 自定义音源制作说明：https://docs.qq.com/doc/DVU5YY0R5eWt3c3Bs
   - 。。。等等
 
 ### 接口文档：
@@ -38,6 +39,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
     - 绑定酷狗账号：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_yan/yan_kugou_bus/musicx_yan_kugou_bus.proto
     - 编辑器：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_kuwa/kuwa_music_synth/musicx_kuwa_music_synth.proto
     - 获取音高线：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_yan/yan_sdk_client/musicx_yan_sdk_client.proto
+    - 自定义音源：https://git.code.tencent.com/musicx_backend/mundo_proto/blob/master/musicx_yan/yan_audio_src/musicx_yan_audio_src.proto
 
 ### 数据上报地址：
 - https://growth.tencent.com/kh37dyui2j/data_management/Source_Event/4889/user_event
@@ -49,7 +51,8 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ## 难点
 - 1、画音高线的时候锯齿
-- 2、数据处理规划
+- 2、整体数据规划
 - 3、播放进度不流畅
 - 4、播放的状态机
 - 5、播放线移动的位置
+- 6、组件的规划

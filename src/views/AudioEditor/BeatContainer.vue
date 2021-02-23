@@ -1,63 +1,52 @@
 <template>
   <div ref="container" :class="$style.container">
-    <!-- <div :class="[$style.beat,  { [$style.fixed]: isExceedHeader }]" @click="toShowBeat">
-      {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
-    </div> -->
-    <div :class="[$style.beat]" @click="toShowBeat">
-      {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
-    </div>
-    <BeatPiano></BeatPiano>
-    <div :class="$style.right" ref="rightArea">
-      <div :class="$style.top" v-if="isExceedHeader"></div>
-      <!-- <div :class="[$style.top, { [$style.fixed]: isExceedHeader }]" @click="changeLine">
-        <div :class="$style.matter" v-for="n in matter" :key="n" :style="{width: `${beatWidth}px`}">{{ n }}</div>
-      </div> -->
-      <div :class="[$style.top]" @click="changeLine">
-        <div :class="$style.matter" v-for="n in matter" :key="n" :style="{width: `${beatWidth}px`}">{{ n }}</div>
+    <div :class="$style.main">
+      <BeatPiano></BeatPiano>
+      <div :class="$style.right" ref="rightArea">
+        <div ref="stage" :class="$style.stage" id="audioStage">
+          <BeatStageBg></BeatStageBg>
+          <BeatLine></BeatLine>
+          <div 
+            ref="drawStage"
+            @mousedown="onMouseDown"
+            @mousemove="onMouseMove"
+            @mouseup="onMouseUp"
+            @mouseleave="onMouseUp"
+            :class="$style.drawStage" 
+            :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
+          ></div>
+          <template v-for="(it, index) in stagePitches">
+            <div
+              :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
+              :style="{
+                width: `${it.width}px`,
+                height: `${it.height}px`,
+                transform: `translate(${it.left}px, ${it.top}px)`
+              }"
+              :key="index"
+              :data-left="it.left"
+              :data-top="it.top"
+              @mousedown.self="onPitchMouseDown($event, index)"
+              @mouseup.self="onPitchMouseUp"
+              slot="reference"
+            >
+              {{ it.hanzi }}
+              <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+              <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+            </div>
+          </template>
+          <BeatList
+            ref="BeatList"
+            :index="index"
+            @deletePitch="toDeletePitch"
+            @editLyric="editLyric"
+            v-if="showList === index"
+          ></BeatList>
+          <div :class="$style.sharp" ref="sharp"></div>
+          <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
+        </div>
+        <Parameters ref="Parameters" v-if="$store.state.typeMode !== -1"></Parameters>
       </div>
-      <div ref="stage" :class="$style.stage" id="audioStage">
-        <BeatStageBg></BeatStageBg>
-        <BeatLine></BeatLine>
-        <div 
-          ref="drawStage"
-          @mousedown="onMouseDown"
-          @mousemove="onMouseMove"
-          @mouseup="onMouseUp"
-          @mouseleave="onMouseUp"
-          :class="$style.drawStage" 
-          :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
-        ></div>
-        <template v-for="(it, index) in stagePitches">
-          <div
-            :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
-            :style="{
-              width: `${it.width}px`,
-              height: `${it.height}px`,
-              transform: `translate(${it.left}px, ${it.top}px)`
-            }"
-            :key="index"
-            :data-left="it.left"
-            :data-top="it.top"
-            @mousedown.self="onPitchMouseDown($event, index)"
-            @mouseup.self="onPitchMouseUp"
-            slot="reference"
-          >
-            {{ it.hanzi }}
-            <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-            <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-          </div>
-        </template>
-        <BeatList
-          ref="BeatList"
-          :index="index"
-          @deletePitch="toDeletePitch"
-          @editLyric="editLyric"
-          v-if="showList === index"
-        ></BeatList>
-        <div :class="$style.sharp" ref="sharp"></div>
-        <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
-      </div>
-      <Parameters ref="Parameters" v-if="$store.state.typeMode !== -1"></Parameters>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
     <LyricCorrect ref="LyricCorrect" @saveAllPinyin="beatLyricSaveAllPinyin"></LyricCorrect>
@@ -67,6 +56,7 @@
 <script>
 import { pitchList, playState } from "@/common/utils/const"
 import { Message } from "element-ui"
+import BeatTop from './BeatTop.vue'
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
@@ -76,11 +66,13 @@ import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
 import BeatList from './BeatList.vue'
 import Parameters from './Parameters.vue'
+import StatusBar from './StatusBar.vue'
 import { amendTop, amendLeft } from '@/common/utils/helper'
 
 export default {
   name: "BeatContainer",
   components: {
+    BeatTop,
     Message,
     BeatPiano,
     BeatStageBg,
@@ -90,7 +82,8 @@ export default {
     BeatLyric,
     LyricCorrect,
     BeatList,
-    Parameters
+    Parameters,
+    StatusBar
   },
   data() {
     return {
@@ -109,9 +102,6 @@ export default {
     stagePitches() {
       return this.$store.state.stagePitches
     },
-    beatForm() {
-      return this.$store.state.beatForm
-    },
     noteWidth() {
       return this.$store.state.noteWidth
     },
@@ -124,14 +114,8 @@ export default {
     stageWidth() {
       return this.$store.getters.stageWidth
     },
-    matter() {
-      return this.$store.state.matter
-    },
     stageHeight() {
       return this.$store.getters.stageHeight
-    },
-    beatWidth() {
-      return this.$store.getters.beatWidth
     },
     playState() {
       return this.$store.state.playState
@@ -203,17 +187,6 @@ export default {
           scrollTop
         } 
       })
-    },
-    toShowBeat() {
-      if (this.isSynthetizing) {
-        Message.error('正在合成音频中,不能修改哦~')
-        return
-      }
-      if (this.playState === playState.StatePlaying) {
-        Message.error('正在播放中, 不能修改哦~')
-        return
-      }
-      this.$emit("showBeat");
     },
     onPitchMouseDown(event, index){
       console.log(`onPitchMouseDown`, event, index, event.button)
@@ -477,11 +450,6 @@ export default {
         maxPitchRight = Math.max(maxPitchRight, right)
         this.$store.dispatch('changeStoreState', { maxPitchRight })
       })
-    },
-    changeLine() {
-      const rect = this.$refs.stage.getBoundingClientRect()
-      const left = event.clientX - rect.left
-      this.$store.dispatch("changeStoreState", { lineLeft: left })
     }
   }
 };
@@ -505,50 +473,17 @@ export default {
   overflow-x: scroll;
 }
 
-.top {
-  height: 25px;
-  position: relative;
-  display: flex;
-}
-
 .stage {
   position: relative;
   // width: calc(100% - 50px);
   user-select: none;
 }
-.matter {
-  height: 25px;
-  color: #fff;
-  font-size: 13px;
-  border-left: 1px solid #626263;
-  text-align: left;
-  position: relative;
-  padding-left: 5px;
-  line-height: 25px;
-  flex-shrink: 0;
-}
-
 .drawStage {
   position: absolute;
   left: 0;
   top: 0px;
   z-index: 10; // 绘画舞台的层级
   overflow: hidden;
-}
-.beat {
-  position: absolute;
-  color: #fff;
-  font-size: 13px;
-  width: 50px;
-  height: 25px;
-  line-height: 25px;
-  text-align: center;
-}
-.fixed {
- position: fixed; 
- z-index: 100;
- top: 78px;
- background-color: #373736;
 }
 .pitch {
   height: 0;

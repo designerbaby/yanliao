@@ -7,21 +7,20 @@
       @synthesize="toSynthesize"
       @openDrawer="toOpenDrawer"
     ></BeatHeader>
+    <StatusBar></StatusBar>
     <BeatContainer 
       ref="BeatContainer"
-      @showBeat="toShowBeat"
     ></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
-    <BeatSelector ref="BeatSelector"></BeatSelector>
   </div>
 </template>
 
 <script>
 import { Message } from 'element-ui'
-import BeatSelector from './BeatSelector.vue'
 import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
+import StatusBar from './StatusBar.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail } from '@/api/audio'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
 import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
@@ -31,10 +30,10 @@ export default {
   name: 'AudioEditor',
   components: {
     Message,
-    BeatSelector,
     BeatContainer,
     BeatHeader,
-    BeatSetting
+    BeatSetting,
+    StatusBar
   },
   data() {
     return {
@@ -66,6 +65,7 @@ export default {
         deep: true
       }
     )
+    this.$store.dispatch('updateStageSize')
   },
   destroyed() {
     this.storeStagePitchesWatcher()
@@ -113,9 +113,6 @@ export default {
     changePlayState(stateValue) {
       this.$store.dispatch('changeStoreState', { playState: stateValue })
     },
-    toShowBeat() {
-      this.$refs.BeatSelector.showBeatDialog()
-    },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       if (taskId) {
@@ -147,7 +144,9 @@ export default {
           bpm: pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
           toneName: pitchList[0].singer, 
           toneId: pitchList[0].toneId, 
-          stagePitches: stagePitches 
+          stagePitches: stagePitches,
+          f0Volume: data.volume_data || [],
+          f0Tension: data.tension_data || []
         })
         const changed = {}
         const pitchWidth = this.$store.getters.pitchWidth
@@ -179,11 +178,21 @@ export default {
         return true
       }
 
-      // 线的开始位置如果比上一次播放的位置还靠前，则要重新生成
-      // let { start, end } = this.getLinePosition()
-      // if (start < this.playLine.start) {
-      //   return true
-      // }
+      // 响度改变了
+      if (this.$store.state.isVolumeChanged) {
+        return true
+      }
+
+      // 张力改变了
+      if (this.$store.state.isTensionChanged) {
+        return true
+      }
+
+      // 没有可播放的url
+      if (!this.$store.state.onlineUrl) {
+        return true
+      }
+
       return false
     },
     async toPlay() {
@@ -245,7 +254,7 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false})
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
@@ -330,7 +339,7 @@ export default {
         onEnd: () => {
           clearInterval(this.timerId)
           this.changePlayState(playState.StateEnded)
-          this.changeLinePosition(this.playLine.start)
+          this.changeLinePosition(this.playLine.start, true)
           this.playLine.current = this.playLine.start
         }
       })
@@ -340,6 +349,7 @@ export default {
       if (autoScroll) {
         const { width, scrollLeft } = this.$store.state.stage
         const max = scrollLeft + width // 滚动滚动的大小加上容器的大小就是容器最右边的位置
+        // console.log(`width: ${width}, scrollLeft: ${scrollLeft}, max: ${max}`)
         if (left > max) {
           this.$refs.BeatContainer.scrollTo(max)
         } else if  (left < scrollLeft) { // 线的位置小于滚动条的滚动位置说明线在左边看不到
@@ -404,6 +414,8 @@ export default {
         const getF0DataEnd = Date.now()
         if ((getF0DataEnd - getF0DataStart) > 10 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
+          this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+          this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
           break
         }
         console.log(`获取音频中:`, getF0DataEnd - getF0DataStart)
@@ -416,7 +428,9 @@ export default {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.$store.state.f0AI,
         f0_draw: this.$store.state.f0Draw,
-        task_id: this.$store.state.taskId
+        task_id: this.$store.state.taskId,
+        volume_data: this.$store.state.f0Volume.map(v => Math.round(v) || 0),
+        tension_data: this.$store.state.f0Tension.map(v => Math.round(v) || 0)
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -458,8 +472,8 @@ export default {
         console.log(`synthesizeEnd - synthesizeStart: ${synthesizeEnd - synthesizeStart}, synthesizeStart: ${synthesizeStart}, synthesizeEnd: ${synthesizeEnd}`, )
         if ((synthesizeEnd - synthesizeStart) > 30 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
-          // this.changePlayState(playState.StateNone)
           this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+          this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
           break
         }
       }

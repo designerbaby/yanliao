@@ -1,24 +1,24 @@
 <template>
   <div class="draft-table-box">
-    <el-table
+    <Table
       ref="draftTable"
       :data="list"
       class="table-box"
     >
-      <el-table-column label="音频作品名称" width="780">
+      <TableColumn label="音频作品名称" width="780">
         <template slot-scope="scope">
           <span class="highlight" @click="jumpToEditPage(scope.row, 'drawdetail')">{{scope.row.name || '填词'}}</span>
         </template>
-      </el-table-column>
+      </TableColumn>
 
-      <el-table-column
+      <TableColumn
         label="更新时间"
       >
         <template slot-scope="scope">
           <span>{{$moment(scope.row.update_time * 1000).format('YYYY/MM/DD HH:mm')}}</span>
         </template>
-      </el-table-column>
-      <el-table-column
+      </TableColumn>
+      <TableColumn
         label="音频作品操作"
         width="110"
       >
@@ -26,9 +26,9 @@
           <i class="icon el-icon-edit" @click="jumpToEditPage(scope.row, 'drawedit')"></i>
           <i class="icon el-icon-delete" @click="deleteButtonClick(scope.row)"></i>
         </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
+      </TableColumn>
+    </Table>
+    <Pagination
       class="pagination"
       @current-change="currentPageChange"
       :current-page.sync="currentPage"
@@ -36,7 +36,7 @@
       layout="prev, pager, next, jumper"
       :total="total"
     >
-    </el-pagination>
+    </Pagination>
     <CommonDialog :show="dialogShow" titleText="确定删除该草稿吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
   </div>
 </template>
@@ -61,9 +61,9 @@ import {
 export default {
   name: 'Home',
   components: {
-    'el-table': Table,
-    'el-table-column': TableColumn,
-    'el-pagination': Pagination,
+    Table,
+    TableColumn,
+    Pagination,
     CommonDialog,
   },
   data() {

@@ -4,9 +4,9 @@
       <span>发布视频</span>
       <span class="tips"> (发布的视频会同步在盐料视频 app) </span>
     </div>
-    <el-form ref="videoForm" label-width="100px" :model="form" class="form" :rules="rules">
-      <el-form-item label="上传视频" prop="file">
-        <el-upload
+    <Form ref="videoForm" label-width="100px" :model="form" class="form" :rules="rules">
+      <FormItem label="上传视频" prop="file">
+        <Upload
           ref="upload"
           :accept="'video/*'"
           :on-change="uploadChange"
@@ -20,10 +20,10 @@
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将视频文件拖到此处，或<em>点击上传</em></div>
           <div class="el-upload__tip" slot="tip">只能上传avi、wmv、mpeg、mp4、m4v、mov、asf、flv、f4v文件，且不超过2GB</div>
-        </el-upload>
-      </el-form-item>
-      <el-form-item label="视频描述" prop="desc">
-        <el-input
+        </Upload>
+      </FormItem>
+      <FormItem label="视频描述" prop="desc">
+        <Input
           type="textarea"
           :autosize="{ minRows: 4, maxRows: 6}"
           placeholder="请输入视频描述内容"
@@ -31,25 +31,25 @@
           maxlength="50"
           show-word-limit
         >
-        </el-input>
-      </el-form-item>
-      <el-form-item label="关联歌曲" class="song-info">
-        <el-form-item prop="songName">
-          <el-input placeholder="输入视频所使用的歌曲名称" v-model="form.songName"></el-input>
-        </el-form-item>
+        </Input>
+      </FormItem>
+      <FormItem label="关联歌曲" class="song-info">
+        <FormItem prop="songName">
+          <Input placeholder="输入视频所使用的歌曲名称" v-model="form.songName"></Input>
+        </FormItem>
         <span> - </span>
-        <el-form-item prop="singerName">
-          <el-input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName"></el-input>
-        </el-form-item>
-      </el-form-item>
-      <el-form-item v-if="this.$store.state.profile.showBindKugou">
-        <el-checkbox v-model="form.synKuGou">
+        <FormItem prop="singerName">
+          <Input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName"></Input>
+        </FormItem>
+      </FormItem>
+      <FormItem v-if="this.$store.state.profile.showBindKugou">
+        <Checkbox v-model="form.synKuGou">
           同步视频到酷狗音乐App获得
           <a href="/playIncentives" target="_blank" title="播放激励" class="validity">播放激励</a>
-        </el-checkbox>
-      </el-form-item>
-    </el-form>
-    <el-button :loading="loading" @click="uploadButtonClick">发布</el-button>
+        </Checkbox>
+      </FormItem>
+    </Form>
+    <Button :loading="loading" @click="uploadButtonClick">发布</Button>
   </div>
 </template>
 
@@ -57,7 +57,6 @@
 // @ is an alias to /src
 import TcVod from 'vod-js-sdk-v6'
 import { reportEvent } from '@/common/utils/helper'
-import Header from '@/common/components/Header'
 import {
   Input,
   Form,
@@ -67,20 +66,18 @@ import {
   Button,
   Checkbox
 } from 'element-ui'
-import {
-  fetchSign,
-} from '@/api/video'
+import { fetchSign } from '@/api/video'
+import { search } from '@/api/api'
 
 export default {
   name: 'Home',
   components: {
-    Header,
-    'el-input': Input,
-    'el-form': Form,
-    'el-form-item': FormItem,
-    'el-upload': Upload,
-    'el-button': Button,
-    'el-checkbox': Checkbox
+    Input,
+    Form,
+    FormItem,
+    Upload,
+    Button,
+    Checkbox
   },
   data() {
     return {
@@ -92,6 +89,7 @@ export default {
         singerName: '',
         synKuGou: false
       },
+      musicId: 0,
       rules: {
         file: [
           { required: true, message: '请上传', trigger: 'change' },
@@ -128,7 +126,8 @@ export default {
         desc: this.form.desc,
         music: this.form.songName ? `${this.form.songName}-${this.form.singerName}` : '',
         syn_ku_gou: this.form.synKuGou,
-        source: 0
+        source: 0,
+        music_id: this.musicId
       }
       return fetchSign(f).then((response) => {
         return response.data.data.sign
@@ -146,8 +145,29 @@ export default {
     uploadExcced(files, fileList) {
       Message.error('请勿重复上传')
     },
-    uploadButtonClick() {
+    async checkSongIn() {
+      let inSong = false
+      const rep = {
+        word: this.form.songName,
+        start: 0,
+        count: 10
+      }
+      const { data } = await search(rep)
+      const musicList = data.data.music_list
+      if (musicList.length > 0 && this.form.songName === musicList[0].name && this.form.singerName === musicList[0].singer) {
+        this.musicId = data.data.music_list[0].music_id
+        inSong = true
+      }
+      return inSong
+    },
+    async uploadButtonClick() {
       reportEvent('upvideo-page-up-button')
+      if (this.form.songName) {
+        if (!await this.checkSongIn()) {
+          Message.error('请关联在盐料视频中可以使用的歌曲')
+          return
+        }
+      }
       this.$refs['videoForm'].validate((result) => {
         if (result === true) {
           const tcVod = new TcVod({

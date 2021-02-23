@@ -248,3 +248,12 @@ export const playState = {
   StateEnded: 3 // 播放完成
 }
 
+// 我的音源的音源状态
+export const audioStatusMap = {
+  1: '审核中',
+  2: '审核不通过',
+  3: '审核通过',
+  4: '音源合成失败',
+  5: '已上线',
+  6: '已下线'
+}

@@ -20,7 +20,7 @@ const defaultState = {
   noteHeight: 25, // 32分音符的占据的最小高度
   bpm: 90,       // 音调
   toneId: 1, // 选择的toneId
-  auditUrl: 'https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/kuwa-wav/cc3868febcca4ac5a87c4e56a92bd999.wav', // 选择的播放的url
+  auditUrl: '', // 选择的播放的url
   taskId: 0, // 正在编辑的taskId
   toneName: 'luoxiang', // 选择的toneName
   isSynthetizing: false, // 是否在合成音频中
@@ -38,13 +38,21 @@ const defaultState = {
   stagePitches: [], // 舞台音块
   isStagePitchesChanged: false, // 舞台音块是否有改变
   isPitchLineChanged: false, // 音高线是否有改变
-  f0AI: [],
-  f0Draw: [],
+  isVolumeChanged: false, // 响度是否有改变
+  isTensionChanged: false, // 张力是否有改变
+  f0AI: [], // 音高线虚线部分
+  f0Draw: [], // 音高线实线部分
+  f0Volume: [], // 响度数据
+  f0Tension: [], // 张力数据
+  changedLineMap: {},
+  changedVolumeMap: {},
+  changedTensionMap: {},
   pinyinList: [],
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
-  changedLineMap: {}
+  appScrollTop: 0, // 页面垂直滚动条的位置
+  typeContainerHeight: 250
 }
 
 const store = new Vuex.Store({
@@ -102,6 +110,22 @@ const store = new Vuex.Store({
         pitches.push(pitchItem)
       })
       return pitches
+    },
+    audioDuration: (state, getters) => {
+      let startTime = -1
+      let endTime = -1
+      for (const pitch of getters.pitchList) {
+        if (startTime < 0 || pitch.startTime < startTime) {
+          startTime = pitch.startTime
+        }
+        if (endTime < 0 || pitch.endTime > endTime) {
+          endTime = pitch.endTime
+        }
+      }
+
+      const duration = endTime - startTime
+      // SDK还补了500
+      return duration > 0 ? duration + 500 : 0
     }
   },
   mutations: {
@@ -158,6 +182,30 @@ const store = new Vuex.Store({
       }
       commit('changeStoreState', { f0Draw, changedLineMap, isPitchLineChanged: true })
     },
+    changeF0Volume({ commit, state, getters }, { values }){
+      const changedVolumeMap = { ...state.changedVolumeMap }
+      const f0Volume = [...state.f0Volume]
+      for(const [x, v] of values) {
+        // const index = Math.round(x / getters.pitchWidth)
+        const width = (10 * 8 * 90 * 20) / (60 * 1000)
+        const index = Math.round(x / width)
+        changedVolumeMap[x] = v
+        f0Volume[index] = v
+      }
+      commit('changeStoreState', { f0Volume, changedVolumeMap, isVolumeChanged: true })
+    },
+    changeF0Tension({ commit, state, getters }, { values }) {
+      const changedTensionMap = { ...state.changedTensionMap }
+      const f0Tension = [...state.f0Tension]
+      for (const [x, v] of values) {
+        const width = (10 * 8 * 90 * 20) / (60 * 1000)
+        // const index = Math.round(x / getters.pitchWidth)
+        const index = Math.round(x / width)
+        changedTensionMap[x] = v
+        f0Tension[index] = v
+      }
+      commit('changeStoreState', { f0Tension, changedTensionMap, isTensionChanged: true })
+    },
     changeStagePitches({ commit }, { index, key, value }) {
       commit('changeStagePitches', { index, key, value })
     },
@@ -207,6 +255,17 @@ const store = new Vuex.Store({
       //   }
       // }
       commit('changeStoreState', { f0Draw, isPitchLineChanged: false, isGetF0Data: false })
+    },
+    updateStageSize({ commit, state }) {
+      const windowWidth = window.innerWidth
+      // console.log('windowWidth:', windowWidth)
+      const width = windowWidth - 50
+      commit('changeStoreState', {
+        stage: {
+          ...state.stage,
+          width
+        } 
+      })
     }
   },
   modules: {
@@ -214,13 +273,8 @@ const store = new Vuex.Store({
   }
 })
 
-const updateStageSize = () => {
-  const windowWidth = window.innerWidth
-  const stageConWidth = windowWidth - 50
-  store.state.stage.width = stageConWidth
-}
-updateStageSize()
+store.dispatch('updateStageSize')
 window.addEventListener('resize', () => {
-  updateStageSize()
+  store.dispatch('updateStageSize')
 })
 export default store

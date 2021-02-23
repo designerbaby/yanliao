@@ -27,7 +27,7 @@
             <div class="text">{{ item.name }} - {{ item.singer }}</div>
           </div>
         </div>
-        <el-pagination
+        <Pagination
           class="pagination"
           @current-change="currentChange"
           :current-page.sync="currentPage"
@@ -35,7 +35,7 @@
           layout="prev, pager, next, jumper"
           :total="total"
         >
-        </el-pagination>
+        </Pagination>
         <button class="confirm-button" @click="confirmButtonClick">确定</button>
       </div>
       <div class="no-result" v-if="list.length === 0 && unsearched === false">
@@ -43,34 +43,29 @@
         <span class="return-all" @click="resetList">返回全部歌曲</span>
       </div>
     </div>
-    <el-dialog
+    <Dialog
       :visible.sync="dialogVisible"
       width="400px"
       custom-class="dialog"
     >
       <div class="dialog-main">请先选择歌曲在进行下一步</div>
       <div class="dialog-confirm-button" @click="dialogVisible = false">确定</div>
-    </el-dialog>
+    </Dialog>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import { 
-  Pagination,
-  Dialog,
-} from "element-ui"
-import {
-  search,
-} from "@/api/api"
+import { Pagination, Dialog } from "element-ui"
+import { search } from "@/api/api"
 import Header from '@/common/components/Header.vue'
 import { reportEvent } from '@/common/utils/helper'
 
 export default {
   name: "Home",
   components: {
-    "el-pagination": Pagination,
-    "el-dialog": Dialog,
+    Pagination,
+    Dialog,
     Header,
   },
   data() {

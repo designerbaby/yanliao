@@ -8,8 +8,8 @@
     @mousedown.stop="onLineMouseDown"
     @mouseup.stop="onLineMouseUp"
   >
-    <div :class="$style.line">
-      <span :class="[$style.innerSpan, { [$style.fixed]: $store.state.isExceedHeader }]"></span>
+    <div :class="[$style.line, { [$style.fixed]: $store.state.isExceedHeader }]">
+      <span :class="[$style.innerSpan]" :style="{ top: `${arrowTop}px`}"></span>
       <div :class="$style.inner"></div>
     </div>
   </div>
@@ -39,6 +39,13 @@ export default {
     },
     playState() {
       return this.$store.state.playState
+    },
+    arrowTop() {
+      if (this.$store.state.isExceedHeader) {
+        // 48为头部的高度, 2为修正高度
+        return this.$store.state.appScrollTop - 48 - 2
+      }
+      return 0
     }
   },
   methods: {
