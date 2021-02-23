@@ -16,7 +16,7 @@
               <span class="text">{{scope.row.desc}}</span>
             </div>
             <div class="detail">
-              <span v-if="scope.row.music" class="music-info">所用歌曲: {{scope.row.music}}</span>
+              <span v-if="scope.row.music_info" class="music-info">所用歌曲: {{scope.row.music_info.name}} - {{scope.row.music_info.singer}}</span>
               <span class="upload-time">{{scope.row.public_unix_time | formatDate}}</span>
               <span class="video-state">{{scope.row.state_detail.state_pub_desc || ''}}</span>
               <!-- <span v-if="scope.row.state === 3" class="video-state">发布中</span>

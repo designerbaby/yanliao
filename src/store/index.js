@@ -258,7 +258,7 @@ const store = new Vuex.Store({
     },
     updateStageSize({ commit, state }) {
       const windowWidth = window.innerWidth
-      console.log('windowWidth:', windowWidth)
+      // console.log('windowWidth:', windowWidth)
       const width = windowWidth - 50
       commit('changeStoreState', {
         stage: {

@@ -6,7 +6,7 @@
           <MenuItem index="1">我的作品</MenuItem>
           <MenuItem index="2">我的草稿</MenuItem>
           <MenuItem index="3">我的视频</MenuItem>
-          <MenuItem index="4">我的音源</MenuItem>
+          <!-- <MenuItem index="4"></MenuItem> -->
         </Menu>
         <div class="control">
           <button class="add-button" @click="uploadVideoButtonClick">

@@ -89,6 +89,7 @@ export default {
         singerName: '',
         synKuGou: false
       },
+      musicId: 0,
       rules: {
         file: [
           { required: true, message: '请上传', trigger: 'change' },
@@ -125,7 +126,8 @@ export default {
         desc: this.form.desc,
         music: this.form.songName ? `${this.form.songName}-${this.form.singerName}` : '',
         syn_ku_gou: this.form.synKuGou,
-        source: 0
+        source: 0,
+        music_id: this.musicId
       }
       return fetchSign(f).then((response) => {
         return response.data.data.sign
@@ -153,6 +155,7 @@ export default {
       const { data } = await search(rep)
       const musicList = data.data.music_list
       if (musicList.length > 0 && this.form.songName === musicList[0].name && this.form.singerName === musicList[0].singer) {
+        this.musicId = data.data.music_list[0].music_id
         inSong = true
       }
       return inSong
