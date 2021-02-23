@@ -99,6 +99,10 @@ export default {
     },
     async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       if (isDuplicated(this.$store.state.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return

@@ -67,6 +67,7 @@ import {
   Checkbox
 } from 'element-ui'
 import { fetchSign } from '@/api/video'
+import { search } from '@/api/api'
 
 export default {
   name: 'Home',
@@ -142,8 +143,28 @@ export default {
     uploadExcced(files, fileList) {
       Message.error('请勿重复上传')
     },
-    uploadButtonClick() {
+    async checkSongIn() {
+      let inSong = false
+      const rep = {
+        word: this.form.songName,
+        start: 0,
+        count: 10
+      }
+      const { data } = await search(rep)
+      const musicList = data.data.music_list
+      if (musicList.length > 0 && this.form.songName === musicList[0].name && this.form.singerName === musicList[0].singer) {
+        inSong = true
+      }
+      return inSong
+    },
+    async uploadButtonClick() {
       reportEvent('upvideo-page-up-button')
+      if (this.form.songName) {
+        if (!await this.checkSongIn()) {
+          Message.error('请关联在盐料视频中可以使用的歌曲')
+          return
+        }
+      }
       this.$refs['videoForm'].validate((result) => {
         if (result === true) {
           const tcVod = new TcVod({

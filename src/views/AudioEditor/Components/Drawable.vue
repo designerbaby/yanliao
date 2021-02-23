@@ -11,6 +11,9 @@
 </template>
 
 <script>
+import { playState } from "@/common/utils/const"
+import { Message } from "element-ui"
+
 export default {
   name: 'Drawable',
   props: ['className', 'styles', 'beforeDraw', 'valueHandler'],
@@ -23,8 +26,17 @@ export default {
       lastTime: 0
     }
   },
+  computed: {
+    playState() {
+      return this.$store.state.playState
+    },
+  },
   methods: {
     onMouseDown(event) {
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       if (this.beforeDraw && this.beforeDraw() === false){
         return
       }
@@ -49,7 +61,11 @@ export default {
       if (this.mouseStart) {
         const { rect } = this.mouseStart
         const x = event.clientX - rect.left
-        const y = event.clientY- rect.top
+        let y = event.clientY- rect.top
+        
+        if (y < 0) { // 不要越界
+          y = 0
+        }
 
         this.changeValue(x, y)
         if (this.lastTime) {

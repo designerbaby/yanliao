@@ -106,12 +106,13 @@ export default {
       return result
     },
     f0Volume() {
-      const d = this.$store.state.f0Volume
-      return this.formatSvgPath(d)
+      const { f0Volume, changedVolumeMap } = this.$store.state
+      // console.log('f0Volume', f0Volume, changedVolumeMap)
+      return this.formatSvgPath(f0Volume, changedVolumeMap)
     },
     f0Tension() {
-      const d = this.$store.state.f0Tension
-      return this.formatSvgPath(d)
+      const { f0Tension, changedTensionMap }= this.$store.state
+      return this.formatSvgPath(f0Tension, changedTensionMap)
     }
   },
   data() {
@@ -147,13 +148,20 @@ export default {
       }
       return y
     },
-    formatSvgPath (data) {
+    formatSvgPath (data, changed) {
       // let result = 'M 0,125 ' // !164
       let result = ''
+      const width = (10 * 8 * 90 * 20) / (60 * 1000)
       // 将拿到的数据转成x轴和y轴
       for (let i = 0; i < data.length; i += 1) {
-        const value = data[i]
-        const x = Math.round(this.pitchWidth * i)
+
+        // const x = Math.round(this.pitchWidth * i)
+        const x = Math.round(width * i)
+        let value = data[i]
+        if (x in changed) {
+          // console.log(`changed`, x, changed[x], changed)
+          value = changed[x]
+        }
         let y = this.db2PositionY(value)
         if (i === 0) {
           result += "M "
@@ -167,7 +175,8 @@ export default {
       } 
 
       if (data.length > 0) {
-        const lastX = Math.round(this.pitchWidth * (data.length - 1))
+        // const lastX = Math.round(this.pitchWidth * (data.length - 1))
+        const lastX = Math.round(width * (data.length - 1))
 
         const mod = (data.length - 1) % 3
 

@@ -97,11 +97,15 @@ export default {
     checkPitch() {
       let check = true
       const lyricArray = this.lyricArray
-      if (lyricArray.indexOf('-')) {
+      console.log('lyricArray:', lyricArray)
+      if (lyricArray.indexOf('-') !== -1) {
         lyricArray.findIndex((value, index, arr) => {
-          if (value === '-' && (index - 1) >= 0) {
-            const before = this.stagePitches.find((item, i) => i === index - 1)
-            const current = this.stagePitches.find((item, i) => i === index)
+          console.log('this.index:', this.index)
+          const idx = this.index !== -1 ? this.index : index
+          if (value === '-' && (idx - 1) >= 0) {
+            const before = this.stagePitches.find((item, i) => i === idx - 1)
+            const current = this.stagePitches.find((item, i) => i === idx)
+            console.log('this.stagePitches:', this.stagePitches)
             if (before.left + before.width !== current.left) {
               check = false
             }

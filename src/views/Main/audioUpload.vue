@@ -5,7 +5,7 @@
       <FormItem label="上传音源" prop="file">
         <Upload
           ref="upload"
-          :accept="'video/*'"
+          :accept="'zip/*'"
           :on-change="uploadChange"
           :on-exceed="uploadExcced"
           :auto-upload="false"
@@ -15,8 +15,8 @@
           :multiple="false"
         >
           <i class="el-icon-upload"></i>
-          <div class="el-upload__text">将rar文件拖到此处，或<em>点击上传</em></div>
-          <div class="el-upload__tip" slot="tip">只能上传rar格式的文件</div>
+          <div class="el-upload__text">将zip文件拖到此处，或<em>点击上传</em></div>
+          <div class="el-upload__tip" slot="tip">只能上传zip格式的文件</div>
         </Upload>
       </FormItem>
       <FormItem label="音源名称" prop="audioSourceName">
@@ -39,6 +39,7 @@
 </template>
 
 <script>
+import TcVod from 'vod-js-sdk-v6'
 import {
   Input,
   Form,
@@ -48,6 +49,8 @@ import {
   Button,
   Checkbox
 } from 'element-ui'
+import { addAudioSource } from '@/api/audioSource'
+import { fetchSign } from '@/api/video'
 
 export default {
   name: 'audioUpload',
@@ -55,17 +58,17 @@ export default {
     return {
       loading: false,
       form: {
-        file: '',
+        file: null,
         audio_source_name: '',
         read: false
       },
       rules: {
         audioSourceUrl: [{
           required: true, message: '请上传', trigger: 'change'
-        }],
-        audioSourceName: [{
-          required: true, message: '请输入音源名称', trigger: 'blur'
         }]
+        // audioSourceName: [{
+        //   required: true, message: '请输入音源名称', trigger: 'blur'
+        // }]
       }
     }
   },
@@ -90,8 +93,44 @@ export default {
     uploadExcced(files, fileList) {
       Message.error('请勿重复上传')
     },
+    getSignature() {
+      const req = {
+        filesize: this.form.file.size,
+        desc: 'rar文件',
+        music: this.form.audio_source_name,
+        syn_ku_gou: false,
+        source: 0
+      }
+      return fetchSign(req).then(res => {
+        return res.data.data.sign
+      })
+    },
     uploadAudio() {
-
+      console.log('this.form.audio_source_name:', this.form.audio_source_name)
+      this.$refs['audioForm'].validate((valid) => {
+        if (valid) {
+          const tcVod = new TcVod({
+            getSignature: this.getSignature,
+          })
+          const uploader = tcVod.upload({
+            mediaFile: this.form.file,
+          })
+          this.loading = true
+          Message.success('上传中')
+          uploader.on('media_progress', (info) => {
+          })
+          uploader.done().then((doneResult) => {
+            setTimeout(() => {
+              this.loading = false
+              Message.success('上传成功')
+              this.$router.push('/profile?index=3')
+            }, 3000)
+          }).catch((error) => {
+            this.loading = false
+            Message.error('上传失败, 请重试')
+          })
+        }
+      })
     }
   }
 }

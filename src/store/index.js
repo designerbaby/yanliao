@@ -186,7 +186,9 @@ const store = new Vuex.Store({
       const changedVolumeMap = { ...state.changedVolumeMap }
       const f0Volume = [...state.f0Volume]
       for(const [x, v] of values) {
-        const index = Math.round(x / getters.pitchWidth)
+        // const index = Math.round(x / getters.pitchWidth)
+        const width = (10 * 8 * 90 * 20) / (60 * 1000)
+        const index = Math.round(x / width)
         changedVolumeMap[x] = v
         f0Volume[index] = v
       }
@@ -196,7 +198,9 @@ const store = new Vuex.Store({
       const changedTensionMap = { ...state.changedTensionMap }
       const f0Tension = [...state.f0Tension]
       for (const [x, v] of values) {
-        const index = Math.round(x / getters.pitchWidth)
+        const width = (10 * 8 * 90 * 20) / (60 * 1000)
+        // const index = Math.round(x / getters.pitchWidth)
+        const index = Math.round(x / width)
         changedTensionMap[x] = v
         f0Tension[index] = v
       }
@@ -251,6 +255,17 @@ const store = new Vuex.Store({
       //   }
       // }
       commit('changeStoreState', { f0Draw, isPitchLineChanged: false, isGetF0Data: false })
+    },
+    updateStageSize({ commit, state }) {
+      const windowWidth = window.innerWidth
+      console.log('windowWidth:', windowWidth)
+      const width = windowWidth - 50
+      commit('changeStoreState', {
+        stage: {
+          ...state.stage,
+          width
+        } 
+      })
     }
   },
   modules: {
@@ -258,13 +273,8 @@ const store = new Vuex.Store({
   }
 })
 
-const updateStageSize = () => {
-  const windowWidth = window.innerWidth
-  const stageConWidth = windowWidth - 50
-  store.state.stage.width = stageConWidth
-}
-updateStageSize()
+store.dispatch('updateStageSize')
 window.addEventListener('resize', () => {
-  updateStageSize()
+  store.dispatch('updateStageSize')
 })
 export default store

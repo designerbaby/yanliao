@@ -65,6 +65,7 @@ export default {
         deep: true
       }
     )
+    this.$store.dispatch('updateStageSize')
   },
   destroyed() {
     this.storeStagePitchesWatcher()
@@ -184,6 +185,11 @@ export default {
 
       // 张力改变了
       if (this.$store.state.isTensionChanged) {
+        return true
+      }
+
+      // 没有可播放的url
+      if (!this.$store.state.onlineUrl) {
         return true
       }
 
@@ -343,6 +349,7 @@ export default {
       if (autoScroll) {
         const { width, scrollLeft } = this.$store.state.stage
         const max = scrollLeft + width // 滚动滚动的大小加上容器的大小就是容器最右边的位置
+        // console.log(`width: ${width}, scrollLeft: ${scrollLeft}, max: ${max}`)
         if (left > max) {
           this.$refs.BeatContainer.scrollTo(max)
         } else if  (left < scrollLeft) { // 线的位置小于滚动条的滚动位置说明线在左边看不到

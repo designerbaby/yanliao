@@ -22,20 +22,25 @@
       :total="total"
     >
     </Pagination>
+    <Dialog :visible.sync="dialogVisible" width="400px" height="400px" custom-class="dialog">
+      <div class="dialog-text">如果对于审核结果有疑问,请联系QQ291243638</div>
+    </Dialog>
   </div>
 </template>
 
 <script>
 import { getAudioSourceList } from '@/api/audioSource'
-import { Table, TableColumn, Pagination, Alert } from 'element-ui'
+import { Table, TableColumn, Pagination } from 'element-ui'
 import { audioStatusMap } from '@/common/utils/const'
+import { Dialog } from 'element-ui'
 
 export default {
   name: 'AudioSourceTable',
   components: {
     Table,
     TableColumn,
-    Pagination
+    Pagination,
+    Dialog
   },
   mounted() {
     this.getAudioSourceList()
@@ -45,7 +50,8 @@ export default {
       currentPage: 1,
       total: 0,
       toneInfoList: [],
-      audioStatusMap: audioStatusMap
+      audioStatusMap: audioStatusMap,
+      dialogVisible: false
     }
   },
   methods: {
@@ -63,17 +69,11 @@ export default {
       this.getAudioSourceList()
     },
     showTips() {
-      console.log('111')
-      Alert('如果对于审核结果有疑问，请联系QQ291243638', '', {
-        // confirmButtonText: '确定',
-        // callback: action => {
-
-        //   // this.$message({
-        //   //   type: 'info',
-        //   //   message: `action: ${ action }`
-        //   // });
-        // }
-      });
+      console.log('showTips')
+      const table = document.getElementsByClassName('el-table__header-wrapper')
+      // const table = document.getElementsByName('音源状态')
+      console.log('table:', table)
+      this.dialogVisible = true
     }
   }
 }
