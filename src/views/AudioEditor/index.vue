@@ -163,9 +163,15 @@ export default {
             // console.log(`this.$store.state`, this.$store.state)
           }
         }
-
         this.$store.state.changedLineMap = changed
-        
+
+        // const f0VolumePoints = []
+        // for (let j = 0; j < data.volume_data.length; j += 1) {
+        //   const x = Math.round(pitchWidth * j)
+        //   const v = data.volume_data[j]
+        //   f0VolumePoints[x] = v
+        // }
+        // this.$store.state.f0Volume = f0VolumePoints
       }
     },
     isNeedGenerate() {
@@ -220,13 +226,8 @@ export default {
           this.doPlay(true)
         } else {
           if (taskId) { // 从编辑进来，url上有taskId
-            if (this.$store.state.onlineUrl) {
-              this.toPlayAudio(this.$store.state.onlineUrl)
-              this.doPlay(false)
-            } else {
-              Message.error('没有音频！！')
-              return
-            }
+            this.toPlayAudio(this.$store.state.onlineUrl)
+            this.doPlay(false)
           } else {
             this.doPlay(true)
           }
@@ -278,7 +279,7 @@ export default {
         }
         this.playStartTime = startTime
         this.toPlayAudio(onlineUrl)
-        console.log('this.audio:', this.audio)
+        // console.log('this.audio:', this.audio)
         this.audio.currentTime = startTime
         this.audio.play()
       } else {
@@ -349,7 +350,6 @@ export default {
       if (autoScroll) {
         const { width, scrollLeft } = this.$store.state.stage
         const max = scrollLeft + width // 滚动滚动的大小加上容器的大小就是容器最右边的位置
-        // console.log(`width: ${width}, scrollLeft: ${scrollLeft}, max: ${max}`)
         if (left > max) {
           this.$refs.BeatContainer.scrollTo(max)
         } else if  (left < scrollLeft) { // 线的位置小于滚动条的滚动位置说明线在左边看不到
@@ -424,13 +424,14 @@ export default {
       }
 
       const synthesizeStart = Date.now()  
+
       const req = {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.$store.state.f0AI,
         f0_draw: this.$store.state.f0Draw,
         task_id: this.$store.state.taskId,
-        volume_data: this.$store.state.f0Volume.map(v => Math.round(v) || 0),
-        tension_data: this.$store.state.f0Tension.map(v => Math.round(v) || 0)
+        volume_data: this.$store.state.f0Volume,
+        tension_data: this.$store.state.f0Tension
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -449,7 +450,7 @@ export default {
       let downUrl = ''
 
       for (let i = 0; i < 10 ;i ++) {
-        const { data } = await editorSynthStatus(paramId)
+        const { data } = await editorSynthStatus(paramId, taskId)
         if (data.ret_code !== 0) {
           Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
           break

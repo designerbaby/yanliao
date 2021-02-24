@@ -20,7 +20,16 @@ const getAudioSourceList = (data) => {
   })
 }
 
+// 获取临时密钥
+const getUserCredential = () => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/user/get_user_credential',
+  })
+}
+
 export {
   addAudioSource,
-  getAudioSourceList
+  getAudioSourceList,
+  getUserCredential
 }

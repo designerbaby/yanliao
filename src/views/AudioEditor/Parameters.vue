@@ -50,6 +50,7 @@ export default {
       return this.$store.state.typeMode
     },
     pitchWidth() {
+      // 10是因为数据的每一项间隔10ms
       return this.$store.getters.pitchWidth
     },
     firstPitch() {
@@ -98,7 +99,7 @@ export default {
       return { 
         width: `${this.stageWidth}px`,
         left: `-${this.$store.state.stage.scrollLeft}px`,
-        height: `${this.typeContainerHeight}px` // !328
+        height: `${this.typeContainerHeight}px`
       }
     },
     f0Init() {
@@ -118,6 +119,9 @@ export default {
   data() {
     return {
     }
+  },
+  created() {
+    // this.bpm = this.$store.state.bpm
   },
   mounted() {},
   methods: {
@@ -148,21 +152,72 @@ export default {
       }
       return y
     },
-    formatSvgPath (data, changed) {
-      // let result = 'M 0,125 ' // !164
-      let result = ''
-      const width = (10 * 8 * 90 * 20) / (60 * 1000)
-      // 将拿到的数据转成x轴和y轴
-      for (let i = 0; i < data.length; i += 1) {
+    // formatSvgPathNew(data) {
+    //   let result = ''
+    //   // console.log(`data`, data)
+    //   for (let i = 0; i < data.length; i += 1) {
+    //     const x = Math.round(this.pitchWidth * i)
+    //     let value = data[i]
 
-        // const x = Math.round(this.pitchWidth * i)
-        const x = Math.round(width * i)
+    //     if (value === null || value === undefined) {
+    //       value = 0
+    //     }
+
+    //     let y = this.db2PositionY(value)
+    //     if (i === 0) {
+    //       result += "M "
+    //     }
+
+    //     if ((i - 1) % 3 === 0) {
+    //       result += "C "
+    //     }
+    //     result += `${x},${y} `
+
+    //   } 
+
+    //   const realSize = data.length
+
+    //   if (data.length > 0) {
+    //     const lastX = Math.round(this.pitchWidth * (data.length - 1))
+    //     const mod = (realSize - 1) % 3
+
+    //     const size = mod === 0 ? 0 : 3 - mod
+
+    //     for (let j = 0; j < size ; j += 1) {
+    //       result += `${lastX},125 `
+    //     }
+
+    //     result += `L ${lastX},125 ${this.stageWidth},125 `
+    //   }
+    
+    //   return result.trimRight()
+    // },
+    formatSvgPath (data, changed) {
+      let resultArr = []
+      console.log('formatSvgPath:', data)
+      for (let i = 0; i < data.length; i += 1) {
+        const x = Math.round(this.pitchWidth * i)
         let value = data[i]
+        if (value === null || value === undefined) {
+          value = 0
+        }
         if (x in changed) {
           // console.log(`changed`, x, changed[x], changed)
           value = changed[x]
         }
         let y = this.db2PositionY(value)
+        resultArr.push({
+          x,
+          y
+        })
+      }
+      return this.drawFormatData(resultArr)
+    },
+    drawFormatData (resultArr) {
+      let result = ''
+      for (let i = 0; i < resultArr.length; i += 1) {
+        const x = resultArr[i].x
+        const y = resultArr[i].y
         if (i === 0) {
           result += "M "
         }
@@ -172,13 +227,13 @@ export default {
           result += "C "
         }
         result += `${x},${y} `
-      } 
+      }
+      
 
-      if (data.length > 0) {
-        // const lastX = Math.round(this.pitchWidth * (data.length - 1))
-        const lastX = Math.round(width * (data.length - 1))
+      if (resultArr.length > 0) {
+        const lastX = Math.round(this.pitchWidth * (resultArr.length - 1))
 
-        const mod = (data.length - 1) % 3
+        const mod = (resultArr.length - 1) % 3
 
         const size = mod === 0 ? 0 : 3 - mod
 
@@ -186,15 +241,10 @@ export default {
           result += `${lastX},125 `
         }
 
-
         result += `L ${lastX},125 ${this.stageWidth},125 `
       }
     
-
-
       return result.trimRight()
-
-      // return drawSvgPath(points)
     },
     valueHandler(x, y) {
       return this.positionY2Db(y)
@@ -240,12 +290,12 @@ export default {
 }
 
 .mark {
-  height: 250px; // !328
+  height: 250px;
 }
 .drawStage {
   position: absolute;
   width: 100%;
-  height: 250px; // !328
+  height: 250px;
   left: 0;
   bottom: 0;
 }
@@ -255,7 +305,7 @@ export default {
 }
 
 .panel {
-  height: 250px; // !328
+  height: 250px;
   position: absolute;
   bottom: 0;
 }

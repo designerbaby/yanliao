@@ -63,7 +63,7 @@
                 </el-option>
               </el-select>
               <img v-if="singleToneId !== null" src="@/assets/icon-player.png" alt="" @click="playerButtonClick($event, singleToneId)">
-              <!-- <a href="/audioUpload" class="upload-audio">上传其他音源 ></a> -->
+              <a href="/audioUpload" class="upload-audio">上传其他音源 ></a>
             </div>
 
             <div v-if="toneType === 1" :class="validateResult.tone[index] === false ? 'tone-selector check-failed' : 'tone-selector'">
@@ -83,7 +83,7 @@
                 v-if="(newLyricList.findIndex((item) => { return item.toneId === newLyricList[index].toneId }) === index) && newLyricList[index].toneId !== null" 
                 src="@/assets/icon-player.png" alt="" @click="playerButtonClick($event, newLyricList[index].toneId)"
                 >
-              <!-- <a href="/audioUpload" class="upload-audio">上传其他音源 ></a> -->
+              <a href="/audioUpload" class="upload-audio" v-if="index === 0">上传其他音源 ></a>
             </div>
 
           </div>

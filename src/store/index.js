@@ -75,16 +75,6 @@ const store = new Vuex.Store({
     pitchWidth: state => { // 音高线2个数据之间的px值
       // 10是因为数据的每一项间隔10ms
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
-
-      // const pre = (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
-
-      // const bmpPerTenMS = (state.bpm / 1000) * 10
-      // const widthPerBmp = state.noteWidth * 8
-
-      // const value = widthPerBmp * bmpPerTenMS
-
-      // console.log(`value:`, value, pre)
-      // return pre
     },
     pitchList: (state, getters) =>  {
       const stagePitches = state.stagePitches
@@ -186,9 +176,8 @@ const store = new Vuex.Store({
       const changedVolumeMap = { ...state.changedVolumeMap }
       const f0Volume = [...state.f0Volume]
       for(const [x, v] of values) {
-        // const index = Math.round(x / getters.pitchWidth)
-        const width = (10 * 8 * 90 * 20) / (60 * 1000)
-        const index = Math.round(x / width)
+        const index = Math.round(x / getters.pitchWidth)
+        // const index = Math.round(x / 2)
         changedVolumeMap[x] = v
         f0Volume[index] = v
       }
@@ -198,9 +187,7 @@ const store = new Vuex.Store({
       const changedTensionMap = { ...state.changedTensionMap }
       const f0Tension = [...state.f0Tension]
       for (const [x, v] of values) {
-        const width = (10 * 8 * 90 * 20) / (60 * 1000)
-        // const index = Math.round(x / getters.pitchWidth)
-        const index = Math.round(x / width)
+        const index = Math.round(x / getters.pitchWidth)
         changedTensionMap[x] = v
         f0Tension[index] = v
       }
@@ -231,7 +218,6 @@ const store = new Vuex.Store({
 
       const f0Draw = []
       const changed = state.changedLineMap
-
       for (const [index, value] of f0Data.entries()) {      
         const x = Math.round(getters.pitchWidth * index)
         if (x in changed) {
@@ -240,20 +226,6 @@ const store = new Vuex.Store({
           f0Draw[index] = value
         }
       }
-
-      // draw.forEach((v, index) => {
-      //   if (state.f0IndexSet.has(index)) {
-      //     f0Draw[index] = v
-      //   }
-      // })
-
-      // for( const x of state.f0IndexSet.values()) {
-      //   const index = Math.round(x / getters.pitchWidth)
-      //   if (index < f0Draw.length) {
-      //     console.log(`x index`, x, index)
-      //     f0Draw[index] = draw[index]
-      //   }
-      // }
       commit('changeStoreState', { f0Draw, isPitchLineChanged: false, isGetF0Data: false })
     },
     updateStageSize({ commit, state }) {

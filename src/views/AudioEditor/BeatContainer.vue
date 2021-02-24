@@ -43,7 +43,7 @@
             v-if="showList === index"
           ></BeatList>
           <div :class="$style.sharp" ref="sharp"></div>
-          <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
+          <PitchLine v-if="$store.state.mode === 1" ref="PitchLine"></PitchLine>
         </div>
         <Parameters ref="Parameters" v-if="$store.state.typeMode !== -1"></Parameters>
       </div>

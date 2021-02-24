@@ -83,21 +83,36 @@ export default {
     submit() {
       this.$refs.lyricForm.validate((valid) => {
         if (valid) {
-          if (this.checkPitch()) {
+          if (!this.checkPitch()) {
+            Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
+          } else if (!this.checkFisrtPitch()) {
+            Message.error('第一个音符不可以输入“-”')
+          } else {
             this.saveStagePitches()
             this.lyricVisible = false
-          } else {
-            Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
           }
         } else {
           Message.error('请全部填写完整并正确再提交')
         }
       })
     },
+    checkFisrtPitch() {
+      let check = true
+      if (this.index !== -1) {
+        if (this. index === 0) {
+          check = false
+        }
+      } else {
+        if (this.lyricArray[0] === '-') {
+          check = false
+        }
+      }
+      return check
+    },
     checkPitch() {
       let check = true
       const lyricArray = this.lyricArray
-      console.log('lyricArray:', lyricArray)
+      // console.log('lyricArray:', lyricArray)
       if (lyricArray.indexOf('-') !== -1) {
         lyricArray.findIndex((value, index, arr) => {
           console.log('this.index:', this.index)
@@ -105,7 +120,7 @@ export default {
           if (value === '-' && (idx - 1) >= 0) {
             const before = this.stagePitches.find((item, i) => i === idx - 1)
             const current = this.stagePitches.find((item, i) => i === idx)
-            console.log('this.stagePitches:', this.stagePitches)
+            // console.log('this.stagePitches:', this.stagePitches)
             if (before.left + before.width !== current.left) {
               check = false
             }
