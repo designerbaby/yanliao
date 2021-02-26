@@ -13,11 +13,11 @@
           <img src="@/assets/audioEditor/line-normal.png" v-else>
           <div :class="$style.text">音高线模式</div>
         </div>
-        <div :class="[$style.check, $style.right, mode === 2 ? $style.isActive : '']" @click="selectMode(2)">
+        <!-- <div :class="[$style.check, $style.right, mode === 2 ? $style.isActive : '']" @click="selectMode(2)">
           <img src="@/assets/audioEditor/yinsu-active.png" v-if="mode === 2">
           <img src="@/assets/audioEditor/yinsu-normal.png" v-else>
           <div :class="$style.text">音素模式</div>
-        </div>
+        </div> -->
       </div>
       <div :class="$style.linefu">
         <div :class="[$style.check, typeMode === 0 ? $style.isActive : '']" @click="selectTypeMode(0)">

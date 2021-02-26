@@ -42,11 +42,9 @@ const defaultState = {
   isTensionChanged: false, // 张力是否有改变
   f0AI: [], // 音高线虚线部分
   f0Draw: [], // 音高线实线部分
-  f0Volume: [], // 响度数据
-  f0Tension: [], // 张力数据
+  volumeMap: [], // 响度原始map数据
+  tensionMap: [], // 张力原始map数据
   changedLineMap: {},
-  changedVolumeMap: {},
-  changedTensionMap: {},
   pinyinList: [],
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
@@ -172,33 +170,27 @@ const store = new Vuex.Store({
       }
       commit('changeStoreState', { f0Draw, changedLineMap, isPitchLineChanged: true })
     },
-    changeF0Volume({ commit, state, getters }, { values }){
-      const changedVolumeMap = { ...state.changedVolumeMap }
-      const f0Volume = [...state.f0Volume]
-      for(const [x, v] of values) {
-        const index = Math.round(x / getters.pitchWidth)
-        // const index = Math.round(x / 2)
-        changedVolumeMap[x] = v
-        f0Volume[index] = v
-      }
-      commit('changeStoreState', { f0Volume, changedVolumeMap, isVolumeChanged: true })
-    },
-    changeF0Tension({ commit, state, getters }, { values }) {
-      const changedTensionMap = { ...state.changedTensionMap }
-      const f0Tension = [...state.f0Tension]
+    changeVolumeMap({ commit, state }, { values }) {
+      const volumeMap = [...state.volumeMap]
       for (const [x, v] of values) {
-        const index = Math.round(x / getters.pitchWidth)
-        changedTensionMap[x] = v
-        f0Tension[index] = v
+        volumeMap[x] = v
       }
-      commit('changeStoreState', { f0Tension, changedTensionMap, isTensionChanged: true })
+      // console.log('volumeMap:', volumeMap)
+      commit('changeStoreState', { volumeMap, isVolumeChanged: true })
+    },
+    changeTensionMap({ commit, state }, { values }) {
+      const tensionMap = [...state.tensionMap]
+      for (const [x, v] of values) {
+        tensionMap[x] = v
+      }
+      commit('changeStoreState', { tensionMap, isTensionChanged: true })
     },
     changeStagePitches({ commit }, { index, key, value }) {
       commit('changeStagePitches', { index, key, value })
     },
     async getPitchLine({ commit, state, getters }) {
       if (getters.pitchList.length <= 0) {
-        Message.error('没有画音块，所以没音高线')
+        // Message.error('没有画音块，所以没音高线')
         return
       }
       for (let i = 0; i < state.stagePitches.length; i += 1) {

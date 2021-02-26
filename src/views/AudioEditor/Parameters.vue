@@ -24,8 +24,8 @@
           >
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
-            <path :d="f0Volume" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 0"/>
-            <path :d="f0Tension" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 1"/>
+            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 0"/>
+            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 1"/>
           </g>
         </svg>
       </Drawable>
@@ -52,9 +52,6 @@ export default {
     pitchWidth() {
       // 10是因为数据的每一项间隔10ms
       return this.$store.getters.pitchWidth
-    },
-    firstPitch() {
-      return this.$store.getters.firstPitch
     },
     typeContainerHeight() {
       return this.$store.state.typeContainerHeight
@@ -106,31 +103,20 @@ export default {
       let result = `M 0,125 L ${this.stageWidth},125 `
       return result
     },
-    f0Volume() {
-      const { f0Volume, changedVolumeMap } = this.$store.state
-      // console.log('f0Volume', f0Volume, changedVolumeMap)
-      return this.formatSvgPath(f0Volume, changedVolumeMap)
+    volumeMap() {
+      return this.formatSvgPath(this.$store.state.volumeMap)
     },
-    f0Tension() {
-      const { f0Tension, changedTensionMap }= this.$store.state
-      return this.formatSvgPath(f0Tension, changedTensionMap)
+    tensionMap() {
+      return this.formatSvgPath(this.$store.state.tensionMap)
     }
   },
-  data() {
-    return {
-    }
-  },
-  created() {
-    // this.bpm = this.$store.state.bpm
-  },
-  mounted() {},
   methods: {
     onDraw(values) {
       // console.log(`onDraw values:`, values)
       if (this.typeMode === 0) {
-        this.$store.dispatch('changeF0Volume', { values })
+        this.$store.dispatch('changeVolumeMap', { values })
       } else {
-        this.$store.dispatch('changeF0Tension', { values })
+        this.$store.dispatch('changeTensionMap', { values })
       }
     },
     positionY2Db(y) {
@@ -152,58 +138,13 @@ export default {
       }
       return y
     },
-    // formatSvgPathNew(data) {
-    //   let result = ''
-    //   // console.log(`data`, data)
-    //   for (let i = 0; i < data.length; i += 1) {
-    //     const x = Math.round(this.pitchWidth * i)
-    //     let value = data[i]
-
-    //     if (value === null || value === undefined) {
-    //       value = 0
-    //     }
-
-    //     let y = this.db2PositionY(value)
-    //     if (i === 0) {
-    //       result += "M "
-    //     }
-
-    //     if ((i - 1) % 3 === 0) {
-    //       result += "C "
-    //     }
-    //     result += `${x},${y} `
-
-    //   } 
-
-    //   const realSize = data.length
-
-    //   if (data.length > 0) {
-    //     const lastX = Math.round(this.pitchWidth * (data.length - 1))
-    //     const mod = (realSize - 1) % 3
-
-    //     const size = mod === 0 ? 0 : 3 - mod
-
-    //     for (let j = 0; j < size ; j += 1) {
-    //       result += `${lastX},125 `
-    //     }
-
-    //     result += `L ${lastX},125 ${this.stageWidth},125 `
-    //   }
-    
-    //   return result.trimRight()
-    // },
-    formatSvgPath (data, changed) {
+    formatSvgPath (data) {
       let resultArr = []
-      console.log('formatSvgPath:', data)
       for (let i = 0; i < data.length; i += 1) {
         const x = Math.round(this.pitchWidth * i)
-        let value = data[i]
+        let value = data[x]
         if (value === null || value === undefined) {
           value = 0
-        }
-        if (x in changed) {
-          // console.log(`changed`, x, changed[x], changed)
-          value = changed[x]
         }
         let y = this.db2PositionY(value)
         resultArr.push({
@@ -211,6 +152,7 @@ export default {
           y
         })
       }
+      // console.log('resultArr:', resultArr)
       return this.drawFormatData(resultArr)
     },
     drawFormatData (resultArr) {
@@ -219,9 +161,8 @@ export default {
         const x = resultArr[i].x
         const y = resultArr[i].y
         if (i === 0) {
-          result += "M "
+          result += `M `
         }
-
 
         if ((i - 1) % 3 === 0) {
           result += "C "
@@ -229,9 +170,8 @@ export default {
         result += `${x},${y} `
       }
       
-
       if (resultArr.length > 0) {
-        const lastX = Math.round(this.pitchWidth * (resultArr.length - 1))
+        const lastX = Math.round(resultArr[resultArr.length - 1].x)
 
         const mod = (resultArr.length - 1) % 3
 

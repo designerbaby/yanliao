@@ -113,6 +113,13 @@ export default {
     changePlayState(stateValue) {
       this.$store.dispatch('changeStoreState', { playState: stateValue })
     },
+    convertXyMap(items) {
+      const xyMap = []
+      for (const it of items) {
+        xyMap[it.x] = it.y
+      }
+      return xyMap
+    },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       if (taskId) {
@@ -145,8 +152,8 @@ export default {
           toneName: pitchList[0].singer, 
           toneId: pitchList[0].toneId, 
           stagePitches: stagePitches,
-          f0Volume: data.volume_data || [],
-          f0Tension: data.tension_data || []
+          volumeMap: this.convertXyMap(data.volume_xy),
+          tensionMap: this.convertXyMap(data.tension_xy)
         })
         const changed = {}
         const pitchWidth = this.$store.getters.pitchWidth
@@ -164,14 +171,6 @@ export default {
           }
         }
         this.$store.state.changedLineMap = changed
-
-        // const f0VolumePoints = []
-        // for (let j = 0; j < data.volume_data.length; j += 1) {
-        //   const x = Math.round(pitchWidth * j)
-        //   const v = data.volume_data[j]
-        //   f0VolumePoints[x] = v
-        // }
-        // this.$store.state.f0Volume = f0VolumePoints
       }
     },
     isNeedGenerate() {
@@ -402,6 +401,39 @@ export default {
         duration: totalDuration + 500 // 补了50个数据，一个数据10ms,总共500ms
       } 
     },
+    handleVolumeTension() {
+      const pitchWidth = this.$store.getters.pitchWidth
+      const volumeMap = this.$store.state.volumeMap
+      const tensionMap = this.$store.state.tensionMap
+      let volumeXy = []
+      let tensionXy = []
+      let f0Volume = []
+      let f0Tension = []
+      for (let i = 0; i < volumeMap.length; i += 1) {
+        volumeXy.push({
+          x: i,
+          y: volumeMap[i] || 0
+        })
+      }
+      for (let i = 0; i < tensionMap.length; i += 1) {
+        tensionXy.push({
+          x: i,
+          y: tensionMap[i] || 0
+        })
+      }
+      for (let i = 0; i < volumeXy.length; i += pitchWidth) {
+        f0Volume.push(parseInt(volumeXy[Math.round(i)].y, 10))
+      }
+      for (let i = 0; i < tensionXy.length; i += pitchWidth) {
+        f0Tension.push(parseInt(tensionXy[Math.round(i)].y, 10))
+      }
+      return {
+        volumeXy: volumeXy,
+        tensionXy: tensionXy,
+        f0Volume: f0Volume,
+        f0Tension: f0Tension
+      }
+    },
     async toSynthesize(callback) {
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
       this.$store.dispatch('getPitchLine')
@@ -424,14 +456,16 @@ export default {
       }
 
       const synthesizeStart = Date.now()  
-
+      const handleData = this.handleVolumeTension()
       const req = {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.$store.state.f0AI,
         f0_draw: this.$store.state.f0Draw,
         task_id: this.$store.state.taskId,
-        volume_data: this.$store.state.f0Volume,
-        tension_data: this.$store.state.f0Tension
+        volume_data: handleData.f0Volume,
+        tension_data: handleData.f0Tension,
+        volume_xy: handleData.volumeXy,
+        tension_xy: handleData.tensionXy
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)

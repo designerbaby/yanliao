@@ -1,15 +1,13 @@
 <template>
   <div class="audioUpload">
     <div class="title">上传音源</div>
-    <Form ref="audioForm" label-width="100px" :model="form" class="form" :rules="rules">
-      <FormItem label="上传音源" prop="file">
+    <Form ref="audioForm" label-width="100px" :model="form" class="form">
+      <FormItem label="上传音源" required>
         <Upload
           ref="upload"
-          :accept="'*/*'"
+          accept=".zip, .rar"
           :on-change="uploadChange"
           :on-exceed="uploadExcced"
-          :on-succes="uploadSuccess"
-          :before-remove="beforeUpload"
           :auto-upload="false"
           :limit="1"
           :drag="true"
@@ -24,12 +22,12 @@
           <input id="x-cos-security-token" name="x-cos-security-token" type="hidden" value="">
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-          <!-- <div class="el-upload__tip" slot="tip">只能上传zip格式的文件</div> -->
+          <div class="el-upload__tip" slot="tip">只能上传zip或rar格式的文件</div>
         </Upload>
         <div v-if="fileDownloadUrl">文件链接: {{ fileDownloadUrl }}</div>
         <a href="https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/file/100080/%E7%BD%97%E7%BF%94%E4%BC%98%E5%8C%96%E6%A0%A1%E5%87%86.zip" class="policy" target="_blank">下载示例文件</a>
       </FormItem>
-      <FormItem label="音源名称" prop="audioSourceName">
+      <FormItem label="音源名称" required>
         <Input
           placeholder="请输入音源名称" 
           v-model="form.audio_source_name"
@@ -37,7 +35,7 @@
           show-word-limit>
         </Input>
       </FormItem>
-      <FormItem>
+      <FormItem prop="read" required label=" ">
         <Checkbox v-model="form.read">
           我已阅读
           <a href="https://docs.qq.com/doc/DVU5YY0R5eWt3c3Bs?_t=1613810464004" target="_blank" title="上传音源须知" class="policy">上传音源须知</a>
@@ -45,6 +43,7 @@
       </FormItem>
     </Form>
     <Button :loading="loading" @click="uploadAudio">上传</Button>
+    <Progress :percentage="percentage" class="progress" v-if="percentage > 0" text-inside :show-text="false"></Progress>
   </div>
 </template>
 
@@ -57,7 +56,8 @@ import {
   Upload,
   Message,
   Button,
-  Checkbox
+  Checkbox,
+  Progress
 } from 'element-ui'
 import { addAudioSource, getUserCredential } from '@/api/audioSource'
 import { getCookie, camSafeUrlEncode } from '@/common/utils/helper'
@@ -67,6 +67,7 @@ export default {
   name: 'audioUpload',
   data() {
     return {
+      percentage: 0,
       loading: false,
       form: {
         file: null,
@@ -79,20 +80,6 @@ export default {
         'x-cos-security-token': ''
       },
       action: 'https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/',
-      rules: {
-        file: [{
-          required: true, message: '请上传', trigger: 'change'
-        }],
-        audioSourceName: [
-          {validator: (rule, value, callback) => {
-            if (value === '' && this.form.audio_source_name !== '') {
-              callback('请输入')
-            } else {
-              callback()
-            }
-          }, trigger: 'blur'}
-        ]
-      }
     }
   },
   components: {
@@ -101,9 +88,10 @@ export default {
     FormItem,
     Upload,
     Button,
-    Checkbox 
+    Checkbox,
+    Progress
   },
-  computed: {
+  destroyed() {
   },
   methods: {
     uploadChange(file) {
@@ -114,16 +102,9 @@ export default {
         return
       }
       this.form.file = file.raw
-      // console.log('this.form.file:', this.form.file)
     },
     uploadExcced(files, fileList) {
       Message.error('请勿重复上传')
-    },
-    uploadSuccess(success, file) {
-      console.log(`上传成功: success: ${success}, file: ${file}`)
-    },
-    beforeUpload(file, fileList) {
-      console.log(`beforeUpload: file: ${file}, fileList: ${fileList}`)
     },
     async getUserCredential() {
       const res = await getUserCredential()
@@ -134,16 +115,31 @@ export default {
         Message.error('未选择上传文件')
         return
       }
+      const fileFormatArr = this.form.file.name.split('.')
+      const fileFormat = fileFormatArr[fileFormatArr.length - 1]
+      const allowFormat = ['zip', 'rar']
+      if (allowFormat.indexOf(fileFormat) === -1) {
+        Message.error('请上传zip或rar格式的文件')
+        return
+      }
+      if (!this.form.audio_source_name) {
+        Message.error('未填入音源名称')
+        return
+      }
+      if (!this.form.read) {
+        Message.error('未勾选已阅读上传音源须知')
+        return
+      }
       const method = 'PUT'
       const mxUid = getCookie('mx_uid')
       Message.success('上传中')
+      this.loading = true
       const key = `file/${mxUid}/${this.form.file.name}` 
       const { data } = await this.getUserCredential()
       const info = await this.getAuthorization(method, key, data)
       const Authorization = info.Authorization   // 得到的签名
       const XCosSecurityToken = info.XCosSecurityToken // 得到的sessionToken
       this.uploadFile(method, key, Authorization, XCosSecurityToken, (err, data) => {
-        // console.log(err || data);
         if (err) {
           Message.error(err)
         } else {
@@ -159,10 +155,13 @@ export default {
       xhr.open(method, url, true);
       xhr.setRequestHeader('Authorization', Authorization);
       XCosSecurityToken && xhr.setRequestHeader('x-cos-security-token', XCosSecurityToken)
-      xhr.upload.onprogress = function (e) {
-        Message.success(`上传进度${(Math.round(e.loaded / e.total * 10000) / 100)}%`)
+      xhr.upload.onprogress = (e) => {
+        const percentage = parseFloat(Math.round(e.loaded / e.total * 10000) / 100)
+        this.percentage = percentage
+        console.log(`上传进度: ${this.percentage}%`)
+        // Message.success(`上传进度${progress}%`)
       };
-      xhr.onload = function () {
+      xhr.onload = () => {
         if (/^2\d\d$/.test('' + xhr.status)) {
           var ETag = xhr.getResponseHeader('etag')
           callback(null, {url: url, ETag: ETag})
@@ -170,7 +169,7 @@ export default {
           callback(`文件${key}上传失败，状态码：${xhr.status}`)
         }
       };
-      xhr.onerror = function () {
+      xhr.onerror = () => {
         callback(`文件${key}上传失败，请检查是否没配置 CORS 跨域规则`)
       };
       xhr.send(this.form.file);
@@ -192,7 +191,6 @@ export default {
         Message.error('请填入音源名称～')
         return
       }
-      this.loading = true
       const req = {
         audio_source_name: this.form.audio_source_name,
         audio_source_url: url
@@ -248,6 +246,10 @@ export default {
     .el-input {
       width: 240px;
     }
+  }
+  .progress {
+    width: 50%;
+    margin: 5px auto;
   }
 }
 
