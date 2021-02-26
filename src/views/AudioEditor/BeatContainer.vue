@@ -44,6 +44,7 @@
           ></BeatList>
           <div :class="$style.sharp" ref="sharp"></div>
           <PitchLine v-if="$store.state.mode === 1" ref="PitchLine"></PitchLine>
+          <PitchElement v-if="$store.state.mode === 2" ref="PitchElement"></PitchElement>
         </div>
         <Parameters ref="Parameters" v-if="$store.state.typeMode !== -1"></Parameters>
       </div>
@@ -62,6 +63,7 @@ import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
 import Arrow from './Arrow.vue'
 import PitchLine from './PitchLine.vue' // 音高线
+import PitchElement from './PitchElement.vue' // 音素
 import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
 import BeatList from './BeatList.vue'
@@ -83,7 +85,8 @@ export default {
     LyricCorrect,
     BeatList,
     Parameters,
-    StatusBar
+    StatusBar,
+    PitchElement
   },
   data() {
     return {

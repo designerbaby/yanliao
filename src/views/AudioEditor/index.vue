@@ -58,8 +58,8 @@ export default {
       state => state.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
+        console.log('changeStoreState isStagePitchesChanged true')
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
-        // this.$store.dispatch('sortStagePitches')
       },
       {
         deep: true
@@ -98,6 +98,9 @@ export default {
     },
     firstPitch() {
       return this.$store.getters.firstPitch
+    },
+    stagePitches() {
+      return this.$store.state.stagePitches
     }
   },
   methods: {
@@ -174,6 +177,7 @@ export default {
       }
     },
     isNeedGenerate() {
+      // console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged}, this.$store.state.isPitchLineChanged: ${this.$store.state.isPitchLineChanged}, this.$store.state.isVolumeChanged: ${this.$store.state.isVolumeChanged}, this.$store.state.isTensionChanged: ${this.$store.state.isTensionChanged}, !this.$store.state.onlineUrl: ${!this.$store.state.onlineUrl}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true
@@ -206,13 +210,20 @@ export default {
         return
       }
 
-      const finalPitches = this.$store.getters.pitchList
-      if (isDuplicated(this.$store.state.stagePitches)) {
+      if (isDuplicated(this.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
-      if (!finalPitches.length) {
+      if (!this.$store.getters.pitchList.length) {
         Message.error('没有音符！！')
+        return
+      }
+      const lastStagePitches = this.stagePitches[this.stagePitches.length - 1]
+      const maxRight = lastStagePitches.left + lastStagePitches.width
+      if (this.$store.state.lineLeft > maxRight && this.playState !== playState.StatePlaying) {
+        Message.error('播放线后没有音符！！')
+        // this.changeLinePosition(this.playLine.start, true)
+        // this.playLine.current = this.playLine.start
         return
       }
       console.log(`Click play button, current state: ${this.playState}`)
@@ -370,8 +381,9 @@ export default {
       let lastPitchStartTime = 0
       let lastPitchDuration = 0
       const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
-      this.$store.state.stagePitches.forEach(item => {
+      this.stagePitches.forEach(item => {
         const right = item.left + item.width
+        // console.log(`${item.left}: item.left, right: ${right}, lineLeft: ${lineLeft}`)
         if (item.left >= lineLeft || right >= lineLeft) {
           lineStartX = Math.min(lineStartX, item.left)
           lineEndX = Math.max(lineEndX, right)

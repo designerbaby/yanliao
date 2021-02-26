@@ -39,8 +39,8 @@ export default {
       index: -1, // -1 代表批量更新歌词, 其他代表歌词的某一项
       rule: {
         lyric: [
-          { required: true, message: '请输入歌词,且必须为中文',
-            trigger: 'blur' }
+          { required: true, message: '请输入歌词,且必须为中文或者“-”',
+            trigger: 'blur', validator: validateChinese }
         ]
       }
     }
@@ -97,9 +97,10 @@ export default {
       })
     },
     checkFisrtPitch() {
+      // console.log('this.lyricArray:', this.lyricArray)
       let check = true
       if (this.index !== -1) {
-        if (this. index === 0) {
+        if (this.lyricArray[0] === '-' && this.index === 0) {
           check = false
         }
       } else {
