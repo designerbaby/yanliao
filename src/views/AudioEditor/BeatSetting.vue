@@ -21,6 +21,8 @@
             :label="item.display_name"
             :value="item.tone_id"
           >
+            <span style="float: left">{{ item.display_name }}</span>
+            <span style="float: right; color:#8492a6; font-size: 13px;">by {{ item.nickname }}</span>
           </Option>
         </Select>
       </div>

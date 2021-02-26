@@ -58,8 +58,8 @@ export default {
       state => state.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
+        console.log('changeStoreState isStagePitchesChanged true')
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
-        // this.$store.dispatch('sortStagePitches')
       },
       {
         deep: true
@@ -98,6 +98,9 @@ export default {
     },
     firstPitch() {
       return this.$store.getters.firstPitch
+    },
+    stagePitches() {
+      return this.$store.state.stagePitches
     }
   },
   methods: {
@@ -112,6 +115,13 @@ export default {
     },
     changePlayState(stateValue) {
       this.$store.dispatch('changeStoreState', { playState: stateValue })
+    },
+    convertXyMap(items) {
+      const xyMap = []
+      for (const it of items) {
+        xyMap[it.x] = it.y
+      }
+      return xyMap
     },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
@@ -145,8 +155,8 @@ export default {
           toneName: pitchList[0].singer, 
           toneId: pitchList[0].toneId, 
           stagePitches: stagePitches,
-          f0Volume: data.volume_data || [],
-          f0Tension: data.tension_data || []
+          volumeMap: this.convertXyMap(data.volume_xy),
+          tensionMap: this.convertXyMap(data.tension_xy)
         })
         const changed = {}
         const pitchWidth = this.$store.getters.pitchWidth
@@ -163,12 +173,11 @@ export default {
             // console.log(`this.$store.state`, this.$store.state)
           }
         }
-
         this.$store.state.changedLineMap = changed
-        
       }
     },
     isNeedGenerate() {
+      // console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged}, this.$store.state.isPitchLineChanged: ${this.$store.state.isPitchLineChanged}, this.$store.state.isVolumeChanged: ${this.$store.state.isVolumeChanged}, this.$store.state.isTensionChanged: ${this.$store.state.isTensionChanged}, !this.$store.state.onlineUrl: ${!this.$store.state.onlineUrl}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true
@@ -201,13 +210,20 @@ export default {
         return
       }
 
-      const finalPitches = this.$store.getters.pitchList
-      if (isDuplicated(this.$store.state.stagePitches)) {
+      if (isDuplicated(this.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
-      if (!finalPitches.length) {
+      if (!this.$store.getters.pitchList.length) {
         Message.error('没有音符！！')
+        return
+      }
+      const lastStagePitches = this.stagePitches[this.stagePitches.length - 1]
+      const maxRight = lastStagePitches.left + lastStagePitches.width
+      if (this.$store.state.lineLeft > maxRight && this.playState !== playState.StatePlaying) {
+        Message.error('播放线后没有音符！！')
+        // this.changeLinePosition(this.playLine.start, true)
+        // this.playLine.current = this.playLine.start
         return
       }
       console.log(`Click play button, current state: ${this.playState}`)
@@ -220,13 +236,8 @@ export default {
           this.doPlay(true)
         } else {
           if (taskId) { // 从编辑进来，url上有taskId
-            if (this.$store.state.onlineUrl) {
-              this.toPlayAudio(this.$store.state.onlineUrl)
-              this.doPlay(false)
-            } else {
-              Message.error('没有音频！！')
-              return
-            }
+            this.toPlayAudio(this.$store.state.onlineUrl)
+            this.doPlay(false)
           } else {
             this.doPlay(true)
           }
@@ -278,7 +289,7 @@ export default {
         }
         this.playStartTime = startTime
         this.toPlayAudio(onlineUrl)
-        console.log('this.audio:', this.audio)
+        // console.log('this.audio:', this.audio)
         this.audio.currentTime = startTime
         this.audio.play()
       } else {
@@ -349,7 +360,6 @@ export default {
       if (autoScroll) {
         const { width, scrollLeft } = this.$store.state.stage
         const max = scrollLeft + width // 滚动滚动的大小加上容器的大小就是容器最右边的位置
-        // console.log(`width: ${width}, scrollLeft: ${scrollLeft}, max: ${max}`)
         if (left > max) {
           this.$refs.BeatContainer.scrollTo(max)
         } else if  (left < scrollLeft) { // 线的位置小于滚动条的滚动位置说明线在左边看不到
@@ -371,8 +381,9 @@ export default {
       let lastPitchStartTime = 0
       let lastPitchDuration = 0
       const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
-      this.$store.state.stagePitches.forEach(item => {
+      this.stagePitches.forEach(item => {
         const right = item.left + item.width
+        // console.log(`${item.left}: item.left, right: ${right}, lineLeft: ${lineLeft}`)
         if (item.left >= lineLeft || right >= lineLeft) {
           lineStartX = Math.min(lineStartX, item.left)
           lineEndX = Math.max(lineEndX, right)
@@ -402,6 +413,45 @@ export default {
         duration: totalDuration + 500 // 补了50个数据，一个数据10ms,总共500ms
       } 
     },
+    handleVolumeTension() {
+      const pitchWidth = this.$store.getters.pitchWidth
+      const volumeMap = this.$store.state.volumeMap
+      const tensionMap = this.$store.state.tensionMap
+      let volumeXy = []
+      let tensionXy = []
+      let f0Volume = []
+      let f0Tension = []
+      for (let i = 0; i < volumeMap.length; i += 1) {
+        volumeXy.push({
+          x: i,
+          y: volumeMap[i] || 0
+        })
+      }
+      for (let i = 0; i < tensionMap.length; i += 1) {
+        tensionXy.push({
+          x: i,
+          y: tensionMap[i] || 0
+        })
+      }
+      for (let i = 0; i < volumeXy.length; i += pitchWidth) {
+        // console.log('volumeXy[Math.round(i)]', volumeXy[Math.round(i)])
+        if (volumeXy[Math.round(i)]) {
+          f0Volume.push(parseInt(volumeXy[Math.round(i)].y, 10))
+        }
+      }
+      for (let i = 0; i < tensionXy.length; i += pitchWidth) {
+        // console.log('tensionXy[Math.round(i)]', tensionXy[Math.round(i)])
+        if (tensionXy[Math.round(i)]) {
+          f0Tension.push(parseInt(tensionXy[Math.round(i)].y, 10))
+        }
+      }
+      return {
+        volumeXy: volumeXy,
+        tensionXy: tensionXy,
+        f0Volume: f0Volume,
+        f0Tension: f0Tension
+      }
+    },
     async toSynthesize(callback) {
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
       this.$store.dispatch('getPitchLine')
@@ -424,13 +474,16 @@ export default {
       }
 
       const synthesizeStart = Date.now()  
+      const handleData = this.handleVolumeTension()
       const req = {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.$store.state.f0AI,
         f0_draw: this.$store.state.f0Draw,
         task_id: this.$store.state.taskId,
-        volume_data: this.$store.state.f0Volume.map(v => Math.round(v) || 0),
-        tension_data: this.$store.state.f0Tension.map(v => Math.round(v) || 0)
+        volume_data: handleData.f0Volume,
+        tension_data: handleData.f0Tension,
+        volume_xy: handleData.volumeXy,
+        tension_xy: handleData.tensionXy
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -449,7 +502,7 @@ export default {
       let downUrl = ''
 
       for (let i = 0; i < 10 ;i ++) {
-        const { data } = await editorSynthStatus(paramId)
+        const { data } = await editorSynthStatus(paramId, taskId)
         if (data.ret_code !== 0) {
           Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
           break

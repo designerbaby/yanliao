@@ -211,7 +211,7 @@ export default {
   position: absolute;
   top: 0px;
   left: 0px;
-  z-index: 999; // 音高线的层级
+  z-index: 998; // 音高线的层级
   background: transparent;
 }
 </style>

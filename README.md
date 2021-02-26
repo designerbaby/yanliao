@@ -25,9 +25,14 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
   - Web1.2：草稿箱 https://docs.qq.com/doc/DVW9veVRqUENvR053
   - web1.3：视频发布及账号绑定 https://docs.qq.com/doc/DVWNrQVVYbVNIdE1V
   - web1.4: 编辑器：https://docs.qq.com/doc/DVWVNTHpWanZWT0Rw 
-  - web1.5: 自定义音源制作说明：https://docs.qq.com/doc/DVU5YY0R5eWt3c3Bs
+  - 编辑器3-4月份规划出版：https://docs.qq.com/doc/DVWFMRHJIUUlLc3Z3
   - 。。。等等
 
+## 辅助文档
+  - 自定义音源制作说明：https://docs.qq.com/doc/DVU5YY0R5eWt3c3Bs
+  - 拼音音素对照表：https://docs.qq.com/doc/DVU9rVXNsUWl4R0dR
+  - 音名音高对照表：https://docs.qq.com/sheet/DVXNTS2VjanZ1cmJm?tab=BB08J2
+  
 ### 接口文档：
   后台接口文档：
   - 后台统一接口文档：http://git.tmeoa.com/simonygzhao/RESTfulAPI

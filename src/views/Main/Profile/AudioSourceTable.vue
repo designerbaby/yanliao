@@ -1,6 +1,6 @@
 <template>
   <div :class="$style.AudioSourceTable">
-    <Table ref="audioSourceTable" @click="showTips">
+    <Table ref="audioSourceTable" :data="toneInfoList">
       <TableColumn label="音源名称" prop="name"></TableColumn>
       <TableColumn label="上传时间">
         <template slot-scope="scope">
@@ -10,6 +10,9 @@
       <TableColumn label="音源状态">
         <template slot-scope="scope">
           <span>{{ audioStatusMap[scope.row.status] }}</span>
+        </template>
+        <template slot="header">
+          <div :class="$style.source" @click="showTips">音源状态<img src="@/assets/question.png"></div>
         </template>
       </TableColumn>
     </Table>
@@ -60,19 +63,16 @@ export default {
         start: (this.currentPage - 1) * 10,
         count: 10
       })
-      console.log('getAudioSourceList:', res)
+      console.log('getAudioSourceList:', res.data.data)
       const { data } = res.data
-      this.toneInfoList = data.toneInfoList
+      this.toneInfoList = data.tone_info_list
+      console.log('this.toneInfoList:', this.toneInfoList)
       this.total = data.total
     },
     currentPageChange() {
       this.getAudioSourceList()
     },
     showTips() {
-      console.log('showTips')
-      const table = document.getElementsByClassName('el-table__header-wrapper')
-      // const table = document.getElementsByName('音源状态')
-      console.log('table:', table)
       this.dialogVisible = true
     }
   }
@@ -82,5 +82,14 @@ export default {
 <style lang="less" module>
 .AudioSourceTable{
   text-align: center;
+}
+.source {
+  display: flex;
+  align-items: center;
+  img {
+    width: 14px;
+    height: 14px;
+    margin: 0 2px;
+  }
 }
 </style>

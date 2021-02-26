@@ -28,7 +28,7 @@
 
 <script>
 import { Message } from 'element-ui'
-import { reportEvent, isTestEnv, getParam, getCookie } from '@/common/utils/helper'
+import { reportEvent, isTestEnv, getParam } from '@/common/utils/helper'
 import { fetchAuthCode, login, logout, userInfo } from '@/api/login'
 import { bindKugou, showBindKuGou } from '@/api/bind'
 import LogoutDialog from '@/common/components/LogoutDialog.vue'

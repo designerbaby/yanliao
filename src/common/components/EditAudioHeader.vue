@@ -15,8 +15,7 @@
 </template>
 
 <script>
-import { safeParse } from '@/common/utils/helper'
-import { getCookie } from '@/common/utils/helper'
+import { safeParse, getCookie } from '@/common/utils/helper'
 
 export default {
   name: 'EditAudioHeader',
@@ -29,6 +28,9 @@ export default {
       userInfo: safeParse(sessionStorage.getItem('userInfo')),
       uid: getCookie('mx_uid')
     }
+  },
+  mounted() {
+    // console.log('mx_uid:', this.uid)
   },
   methods: {
     openHomePage() {

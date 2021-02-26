@@ -24,8 +24,8 @@
           >
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
-            <path :d="f0Volume" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 0"/>
-            <path :d="f0Tension" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 1"/>
+            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 0"/>
+            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 1"/>
           </g>
         </svg>
       </Drawable>
@@ -50,10 +50,8 @@ export default {
       return this.$store.state.typeMode
     },
     pitchWidth() {
+      // 10是因为数据的每一项间隔10ms
       return this.$store.getters.pitchWidth
-    },
-    firstPitch() {
-      return this.$store.getters.firstPitch
     },
     typeContainerHeight() {
       return this.$store.state.typeContainerHeight
@@ -98,35 +96,27 @@ export default {
       return { 
         width: `${this.stageWidth}px`,
         left: `-${this.$store.state.stage.scrollLeft}px`,
-        height: `${this.typeContainerHeight}px` // !328
+        height: `${this.typeContainerHeight}px`
       }
     },
     f0Init() {
       let result = `M 0,125 L ${this.stageWidth},125 `
       return result
     },
-    f0Volume() {
-      const { f0Volume, changedVolumeMap } = this.$store.state
-      // console.log('f0Volume', f0Volume, changedVolumeMap)
-      return this.formatSvgPath(f0Volume, changedVolumeMap)
+    volumeMap() {
+      return this.formatSvgPath(this.$store.state.volumeMap)
     },
-    f0Tension() {
-      const { f0Tension, changedTensionMap }= this.$store.state
-      return this.formatSvgPath(f0Tension, changedTensionMap)
+    tensionMap() {
+      return this.formatSvgPath(this.$store.state.tensionMap)
     }
   },
-  data() {
-    return {
-    }
-  },
-  mounted() {},
   methods: {
     onDraw(values) {
       // console.log(`onDraw values:`, values)
       if (this.typeMode === 0) {
-        this.$store.dispatch('changeF0Volume', { values })
+        this.$store.dispatch('changeVolumeMap', { values })
       } else {
-        this.$store.dispatch('changeF0Tension', { values })
+        this.$store.dispatch('changeTensionMap', { values })
       }
     },
     positionY2Db(y) {
@@ -148,37 +138,42 @@ export default {
       }
       return y
     },
-    formatSvgPath (data, changed) {
-      // let result = 'M 0,125 ' // !164
-      let result = ''
-      const width = (10 * 8 * 90 * 20) / (60 * 1000)
-      // 将拿到的数据转成x轴和y轴
+    formatSvgPath (data) {
+      let resultArr = []
       for (let i = 0; i < data.length; i += 1) {
-
-        // const x = Math.round(this.pitchWidth * i)
-        const x = Math.round(width * i)
-        let value = data[i]
-        if (x in changed) {
-          // console.log(`changed`, x, changed[x], changed)
-          value = changed[x]
+        const x = Math.round(this.pitchWidth * i)
+        let value = data[x]
+        if (value === null || value === undefined) {
+          value = 0
         }
         let y = this.db2PositionY(value)
+        resultArr.push({
+          x,
+          y
+        })
+      }
+      // console.log('resultArr:', resultArr)
+      return this.drawFormatData(resultArr)
+    },
+    drawFormatData (resultArr) {
+      let result = ''
+      for (let i = 0; i < resultArr.length; i += 1) {
+        const x = resultArr[i].x
+        const y = resultArr[i].y
         if (i === 0) {
-          result += "M "
+          result += `M `
         }
-
 
         if ((i - 1) % 3 === 0) {
           result += "C "
         }
         result += `${x},${y} `
-      } 
+      }
+      
+      if (resultArr.length > 0) {
+        const lastX = Math.round(resultArr[resultArr.length - 1].x)
 
-      if (data.length > 0) {
-        // const lastX = Math.round(this.pitchWidth * (data.length - 1))
-        const lastX = Math.round(width * (data.length - 1))
-
-        const mod = (data.length - 1) % 3
+        const mod = (resultArr.length - 1) % 3
 
         const size = mod === 0 ? 0 : 3 - mod
 
@@ -186,15 +181,10 @@ export default {
           result += `${lastX},125 `
         }
 
-
         result += `L ${lastX},125 ${this.stageWidth},125 `
       }
     
-
-
       return result.trimRight()
-
-      // return drawSvgPath(points)
     },
     valueHandler(x, y) {
       return this.positionY2Db(y)
@@ -240,12 +230,12 @@ export default {
 }
 
 .mark {
-  height: 250px; // !328
+  height: 250px;
 }
 .drawStage {
   position: absolute;
   width: 100%;
-  height: 250px; // !328
+  height: 250px;
   left: 0;
   bottom: 0;
 }
@@ -255,7 +245,7 @@ export default {
 }
 
 .panel {
-  height: 250px; // !328
+  height: 250px;
   position: absolute;
   bottom: 0;
 }

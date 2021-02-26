@@ -12,12 +12,13 @@ const editorSynth = (data) => {
 }
 
 // 合成状态查询接口
-const editorSynthStatus = (paramId) => {
+const editorSynthStatus = (paramId, taskId) => {
   return axios({
     method: 'post',
     url: '/cgi-bin/v1/yan/synth/editor_synth_status',
     data: {
-      param_id: paramId
+      param_id: paramId,
+      task_id: taskId
     }
   })
 }

@@ -86,3 +86,13 @@ export const amendLeft = (left, noteWidth) => {
     return left - mod + noteWidth
   }
 }
+
+// 对更多字符编码的 url encode 格式
+export const camSafeUrlEncode = (str) => {
+  return encodeURIComponent(str)
+    .replace(/!/g, '%21')
+    .replace(/'/g, '%27')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29')
+    .replace(/\*/g, '%2A')
+}

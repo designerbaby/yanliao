@@ -71,7 +71,8 @@ export default {
     toUpdateStage() { // 根据内外舞台的框进行比较
       const stageConWidth = this.$store.state.stage.width
       const maxPitchRight = this.$store.state.maxPitchRight
-      if (stageConWidth > this.stageWidth) { // 外框比里框更大
+      console.log(`maxPitchRight: ${maxPitchRight}, stageConWidth: ${stageConWidth}, this.stageWidth: ${this.stageWidth}`)
+      while (stageConWidth > this.stageWidth) { // 外框比里框更大
         this.$store.dispatch('updateMatter', 15)
       }
       while (maxPitchRight > this.stageWidth) {
