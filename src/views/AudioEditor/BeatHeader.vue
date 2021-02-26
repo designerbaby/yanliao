@@ -8,7 +8,7 @@
           <img src="@/assets/audioEditor/note-normal.png" v-else>
           <div :class="$style.text">音符模式</div>
         </div>
-        <div :class="[$style.check, $style.middle, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
+        <div :class="[$style.check, $style.right, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
           <img src="@/assets/audioEditor/line-active.png" v-if="mode === 1">
           <img src="@/assets/audioEditor/line-normal.png" v-else>
           <div :class="$style.text">音高线模式</div>

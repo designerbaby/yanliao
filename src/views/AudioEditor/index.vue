@@ -422,10 +422,16 @@ export default {
         })
       }
       for (let i = 0; i < volumeXy.length; i += pitchWidth) {
-        f0Volume.push(parseInt(volumeXy[Math.round(i)].y, 10))
+        // console.log('volumeXy[Math.round(i)]', volumeXy[Math.round(i)])
+        if (volumeXy[Math.round(i)]) {
+          f0Volume.push(parseInt(volumeXy[Math.round(i)].y, 10))
+        }
       }
       for (let i = 0; i < tensionXy.length; i += pitchWidth) {
-        f0Tension.push(parseInt(tensionXy[Math.round(i)].y, 10))
+        // console.log('tensionXy[Math.round(i)]', tensionXy[Math.round(i)])
+        if (tensionXy[Math.round(i)]) {
+          f0Tension.push(parseInt(tensionXy[Math.round(i)].y, 10))
+        }
       }
       return {
         volumeXy: volumeXy,
