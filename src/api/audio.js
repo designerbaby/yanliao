@@ -61,11 +61,21 @@ const editorDetail = (data) => {
   })
 }
 
+// 获取元辅音的接口
+const getYinsu = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/synth/yinsu',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
   editorSynthResult,
   getF0Data,
   Hanzi2Pinyin,
-  editorDetail
+  editorDetail,
+  getYinsu
 }

@@ -100,10 +100,6 @@ export default {
 </script>
 
 <style lang="less" module>
-.container{
-  position: relative;
-}
-
 .arrow{
   position: absolute;
   height: 25px;

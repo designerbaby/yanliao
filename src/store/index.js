@@ -36,10 +36,13 @@ const defaultState = {
   typeMode: -1, // 附加模式类型: 0 代表响度, 1 代表张力
   playState: playState.StateNone, // 播放状态
   stagePitches: [], // 舞台音块
+  // stagePitchElements: [], // 舞台音块+元辅音
+  // pitchListElement: [], 
   isStagePitchesChanged: false, // 舞台音块是否有改变
   isPitchLineChanged: false, // 音高线是否有改变
   isVolumeChanged: false, // 响度是否有改变
   isTensionChanged: false, // 张力是否有改变
+  // isStagePitchElementChanged: false, // 舞台音块+元辅音是否有改变
   f0AI: [], // 音高线虚线部分
   f0Draw: [], // 音高线实线部分
   volumeMap: [], // 响度原始map数据
@@ -74,6 +77,9 @@ const store = new Vuex.Store({
       // 10是因为数据的每一项间隔10ms
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
     },
+    // stagePitches: state => {
+    //   return this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
+    // },
     pitchList: (state, getters) =>  {
       const stagePitches = state.stagePitches
       // console.log('stagePitches:', stagePitches)
@@ -210,10 +216,22 @@ const store = new Vuex.Store({
 
       const f0Draw = []
       const changed = state.changedLineMap
+      // 修正音高线
       for (const [index, value] of f0Data.entries()) {      
         const x = Math.round(getters.pitchWidth * index)
-        if (x in changed) {
-          f0Draw[index] = changed[x]
+        // const preX = Math.round(getters.pitchWidth * (index - 1))
+        const nextX = Math.round(getters.pitchWidth * (index + 1))
+        const changedValue = null
+        for (let j = x; j <= nextX; j +=1) {
+          if (j in changed) {
+            changedValue = changed[j]
+            // console.log(`${j} in changed, value:${changedValue}`)
+            break
+          }
+        }
+
+        if (changedValue) {
+          f0Draw[index] = changedValue
         } else {
           f0Draw[index] = value
         }
@@ -222,7 +240,6 @@ const store = new Vuex.Store({
     },
     updateStageSize({ commit, state }) {
       const windowWidth = window.innerWidth
-      // console.log('windowWidth:', windowWidth)
       const width = windowWidth - 50
       commit('changeStoreState', {
         stage: {

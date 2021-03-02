@@ -31,8 +31,8 @@
               slot="reference"
             >
               {{ it.hanzi }}
-              <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-              <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+              <Arrow :pitch="it" direction="left" @move-end="onArrowMoveEnd($event, index)"/>
+              <Arrow :pitch="it" direction="right" @move-end="onArrowMoveEnd($event, index)"/>
             </div>
           </template>
           <BeatList
@@ -192,7 +192,6 @@ export default {
       })
     },
     onPitchMouseDown(event, index){
-      console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
       this.hideRight()
       if (this.isSynthetizing) {
@@ -208,6 +207,7 @@ export default {
       this.index = index
       this.toSelectPitch(index)
       if (event.button === 2) { // 按下了鼠标右键
+        console.log(`onPitchMouseDown`, event, index, event.button)
         this.showRight(index)
         this.$nextTick(() => {
           this.$refs.BeatList.setPosition(event.layerX, event.layerY + this.noteHeight)
@@ -228,6 +228,7 @@ export default {
     },
     onPitchMouseMove(event){
       // 绿色块鼠标移动事件
+      // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
         const { target } = this.movePitchStart
         let newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
@@ -239,14 +240,13 @@ export default {
         if (newLeft < 0) { // sdk那边限制不能从0开始画
           newLeft = 0
         }
-        // console.log('target:', target)
+        
         target.style.transform = `translate(${newLeft}px, ${newTop}px)`
         target.dataset.left = newLeft
         target.dataset.top = newTop
       }
     },
     onPitchMouseUp(event) {
-      console.log(`onPitchMouseUp`)
       if (this.movePitchStart) {
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
@@ -260,15 +260,20 @@ export default {
 
         // 松开时修正位置
         const pitch = this.stagePitches[index]
-        
         // pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
-        pitch.left = amendLeft(left, this.noteWidth)
-        pitch.top = amendTop(top, this.noteHeight)
+        const newLeft = amendLeft(left, this.noteWidth)
+        const newTop = amendTop(top, this.noteHeight)
+        const isPositionChanged = pitch.left !== newLeft || pitch.top !== newTop
+        pitch.left = newLeft
+        pitch.top = newTop
 
         target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
         target.dataset.left = pitch.left
         target.dataset.top = pitch.top
-        this.checkPitchDuplicated()
+        
+        if (isPositionChanged) {
+          this.checkPitchDuplicated()
+        }
       }
     },
     onMouseDown(event) {
