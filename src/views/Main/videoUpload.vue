@@ -162,12 +162,12 @@ export default {
     },
     async uploadButtonClick() {
       reportEvent('upvideo-page-up-button')
-      if (this.form.songName) {
-        if (!await this.checkSongIn()) {
-          Message.error('请关联在盐料视频中可以使用的歌曲')
-          return
-        }
-      }
+      // if (this.form.songName) { // 注释原因：产品不需要做这个关联使用的歌曲的限制了。
+      //   if (!await this.checkSongIn()) {
+      //     Message.error('请关联在盐料视频中可以使用的歌曲')
+      //     return
+      //   }
+      // }
       this.$refs['videoForm'].validate((result) => {
         if (result === true) {
           const tcVod = new TcVod({

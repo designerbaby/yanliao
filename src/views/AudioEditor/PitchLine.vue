@@ -38,7 +38,7 @@ export default {
       lastTime: 0,
       lastX: 0,
       lastY: 0,
-      zIndex: 999,
+      zIndex: 998,
       cache: new Map()
     }
   },
@@ -166,7 +166,7 @@ export default {
     onMouseUp() {
       // console.log(`onMouseUp event`, event)
       this.mouseStart = null
-      this.zIndex = 999 // 把层级设得比播放线的低
+      this.zIndex = 998 // 把层级设得比播放线的低
       this.lastX = 0
       this.lastY = 0
       this.lastTime = 0
