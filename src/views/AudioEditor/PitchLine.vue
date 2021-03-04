@@ -1,15 +1,15 @@
 <template>
-  <div 
-    :class="$style.PitchLine" 
+  <div
+    :class="$style.PitchLine"
     ref="PitchLine"
     :style="{ height: `${stageHeight}px`, width: `${stageWidth}px`, 'z-index': `${zIndex}` }"
   >
-    <svg 
+    <svg
       xmlns="http://www.w3.org/2000/svg"
-      version="1.1" 
-      ref="svgStage" 
-      :width="`${stageWidth}px`" 
-      :height="`${stageHeight}px`" 
+      version="1.1"
+      ref="svgStage"
+      :width="`${stageWidth}px`"
+      :height="`${stageHeight}px`"
       @mousedown.stop="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup.stop="onMouseUp"
@@ -25,7 +25,7 @@
 
 <script>
 import { Message } from 'element-ui'
-import { playState } from "@/common/utils/const"
+import { playState, modeState } from "@/common/utils/const"
 // import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
@@ -71,7 +71,7 @@ export default {
   },
   mounted() {
     if (this.$store.state.isPitchLineChanged
-    || this.$store.state.isStagePitchesChanged || this.$store.state.mode === 1) { // 音高线有更改才去获取新的音高线
+    || this.$store.state.isStagePitchesChanged || this.$store.state.mode === modeState.StateLine) { // 音高线有更改才去获取新的音高线
       this.$store.dispatch('getPitchLine')
     }
   },
@@ -99,7 +99,7 @@ export default {
           result += "C "
         }
         result += `${x},${y} `
-      } 
+      }
 
       if (f0Data.length > 0) {
         const mod = (f0Data.length - 1) % 3

@@ -25,9 +25,4 @@ export const validateChinese = (rule, value, callback) => {
     callback(new Error('必须为中文或者“-”'))
     return
   }
-  // if (!r.test(value)) {
-    
-  //   return
-  // }
-  // callback()
 }

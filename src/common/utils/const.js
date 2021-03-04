@@ -248,6 +248,12 @@ export const playState = {
   StateEnded: 3 // 播放完成
 }
 
+export const modeState = {
+  StatePitch: 0, // 音符模式
+  StateLine: 1,  // 音高线模式
+  StateElement: 2 // 音素模式
+}
+
 // 我的音源的音源状态
 export const audioStatusMap = {
   1: '审核中',

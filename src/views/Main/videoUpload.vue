@@ -30,16 +30,15 @@
           v-model="form.desc"
           maxlength="50"
           show-word-limit
-        >
-        </Input>
+        />
       </FormItem>
       <FormItem label="关联歌曲" class="song-info">
         <FormItem prop="songName">
-          <Input placeholder="输入视频所使用的歌曲名称" v-model="form.songName"></Input>
+          <Input placeholder="输入视频所使用的歌曲名称" v-model="form.songName" />
         </FormItem>
         <span> - </span>
         <FormItem prop="singerName">
-          <Input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName"></Input>
+          <Input placeholder="输入使用歌曲的原唱歌手" v-model="form.singerName" />
         </FormItem>
       </FormItem>
       <FormItem v-if="this.$store.state.profile.showBindKugou">

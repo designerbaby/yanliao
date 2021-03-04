@@ -10,10 +10,11 @@
 <script>
 import { Message } from 'element-ui'
 import { playState } from '@/common/utils/const'
+import { pxToTime, timeToPx } from '@/common/utils/helper'
 
 export default {
   name: 'ArrowElement',
-  props: ['pitch'],
+  props: ['pitch', 'index'],
   data() {
     return {
       isActive: false,
@@ -24,6 +25,9 @@ export default {
   computed: {
     playState() {
       return this.$store.state.playState
+    },
+    stagePitches() {
+      return this.$store.state.stagePitches
     }
   },
   methods: {
@@ -40,32 +44,49 @@ export default {
       document.addEventListener('mouseleave', this.onArrowEleLeave)
       const target = event.target
       this.isActive = true
+      console.log('onArrowEleMouseDown this.pitch:', this.pitch)
+      const preTime = this.pitch.preTime
       this.moveArrowEleStart = {
-        width: this.pitch.fuwidth,   // 辅音宽度
-        left: this.pitch.fuleft, // 辅音left
+        preTime,
         clientX: event.clientX
       }
       console.log('moveArrowEleStart:', JSON.stringify(this.moveArrowEleStart))
     },
     onArrowEleMouseMove(event) {
       if (this.moveArrowEleStart) {
-        const parentNode = this.$el.parentNode
+        // const parentNode = this.$el.parentNode
+        const startX = this.moveArrowEleStart.clientX
+        const endX = event.clientX
+        const movePx = startX - endX
 
-        const movePx = event.clientX - this.moveArrowEleStart.clientX
-        let newLeft = newLeft = this.moveArrowEleStart.left + movePx
-        let newWidth = this.moveArrowEleStart.width - movePx
-        
-        if (newLeft < 0) {
-          newLeft = 0
+        const moveTime = pxToTime(movePx, this.$store.state.noteWidth, this.$store.state.bpm)
+        const newPreTime = this.moveArrowEleStart.preTime + moveTime
+
+        const before = this.index - 1 > -1 ? this.stagePitches[this.index - 1] : {}
+        let newLeft = this.pitch.left - movePx
+        console.log(`movePx: ${movePx}, preTime: ${this.moveArrowEleStart.preTime}, moveTime: ${moveTime}, newPreTime: ${newPreTime}, newLeft:${newLeft}`)
+        if (this.index === 0) { // 第一个只能拉到最左边
+          if (newLeft < 10) {
+            newLeft = 10
+          }
         }
-
-        parentNode.style.width = `${newWidth}px`
-        parentNode.style.transform = `translate(${newLeft}px)`
+        // if (before.yuanEnd < this.moveArrowEleStart.left) { // 上一个的元音结尾比当前的辅音开头小，说明两个有空格
+        //   if (newLeft < before.yuanEnd) { // 如果移动到的新的left比上一个元音的前面，那就只能是上一个元音的结尾
+        //     newLeft = before.yuanEnd
+        //   }
+        // } else { // 当前辅音在上一个元音之间
+        //   if (newLeft < (before.yuanLeft + this.$store.state.noteWidth)) { // 只能移动到上一个元音的最左边+1个32分音符的单位
+        //     newLeft = before.yuanLeft + this.$store.state.noteWidth
+        //   }
+        //   newYuanEnd = newLeft
+        // }
         this.moveArrowEleEnd = {
-          width: newWidth,
-          left: newLeft,
-          target: parentNode
+          preTime: newPreTime
         }
+
+        this.$emit('move', {
+          ...this.moveArrowEleEnd
+        })
       }
     },
     onArrowEleLeave(event) {
@@ -100,6 +121,7 @@ export default {
     width: 100%;
     height: 100%;
     transform: scale(-1);
+    pointer-events: none;
   }
   &:hover {
     opacity: 1;

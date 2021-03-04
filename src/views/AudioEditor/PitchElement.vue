@@ -2,35 +2,24 @@
   <div :class="$style.PitchElement"
     ref="PitchElement"
     :style="{ height: `${stageHeight}px`, width: `${stageWidth}px` }">
-    <template v-for="(it, index) in yinsuStagePitches">
-      <div 
+    <template v-for="(it, index) in stagePitches">
+      <div
         :key="index"
-        slot="reference" 
-        :class="$style.container" 
-        :data-left="it.left"
-        :data-top="it.top"
-        :style="{
-          width: `${it.width}px`,
-          height: `${it.height}px`,
-          transform: `translate(${it.left}px, ${it.top}px)`
-        }"
+        slot="reference"
+        :class="$style.container"
       >
-        <div 
+        <div
           :class="$style.fu"
-          :style="{
-            width: `${it.width}px`,
-            transform: `translate(-10px)`
-          }"
+          data-ele-type="fu"
+          :style="getFuStyles(it)"
         >
           {{ it.fu }}
-          <ArrowElement :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+          <ArrowElement :pitch="it" :index="index" @move="onArrowMove($event, index)" @move-end="onArrowMoveEnd($event, index)"/>
         </div>
-        <div 
+        <div
           :class="$style.yuan"
-          :style="{
-            width: `${it.width}px`,
-            height: `${it.height}px`
-          }"
+          data-ele-type="yuan"
+          :style="getYuanStyles(it)"
         >{{ it.yuan }}</div>
       </div>
     </template>
@@ -40,6 +29,9 @@
 <script>
 import ArrowElement from './ArrowElement.vue'
 import { getYinsu } from '@/api/audio'
+import { Message } from 'element-ui'
+import { timeToPx } from '@/common/utils/helper'
+import { modeState } from '@/common/utils/const'
 
 export default {
   name: 'PitchElement',
@@ -48,11 +40,13 @@ export default {
     }
   },
   mounted() {
-    // if (this.$store.state.isStagePitchElementChanged
-    //   || this.$store.state.isStagePitchesChanged
-    //   || this.$store.state.mode === 2) { // 元辅音变化或者音块变化或者切换模式，都要重新去获取元辅音的内容
-    //     this.$store.dispatch('getPitchLine')
-    // }
+    console.log(`PitchElement mounted`)
+    this.handleSatgePitches()
+    if (this.$store.state.isStagePitchesChanged ||
+      this.$store.state.isPitchLineChanged ||
+      this.$store.state.mode === modeState.StateElement) {
+        this.$store.dispatch('getPitchLine')
+      }
   },
   computed: {
     stageWidth() {
@@ -61,33 +55,71 @@ export default {
     stageHeight() {
       return this.$store.getters.stageHeight
     },
-    yinsuStagePitches() {
-      return this.handleSatgePitches(this.$store.state.stagePitches)
+    stagePitches() {
+      return this.$store.state.stagePitches
     }
   },
-  mounted() {},
   methods: {
-    onArrowMoveEnd({ width, left, target }, index) {
-      const pitch = this.stagePitches[index]
-
-      console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, target: ${target}`)
-      console.log('pitch:', pitch)
+    getStyles(it, width, left) {
+      return {
+        width: `${width}px`,
+        height: `${it.height}px`,
+        left: `${left}px`,
+        top: `${it.top}px`
+      }
     },
-    async handleSatgePitches(stagePitches) {
+    getFuStyles(it) {
+      const { noteWidth, bpm } = this.$store.state
+      const width = timeToPx(it.preTime, noteWidth, bpm)
+      const left = it.left - width
+      return this.getStyles(it, width, left)
+    },
+    getYuanStyles(it) {
+      return this.getStyles(it, it.width, it.left)
+    },
+    onArrowMove({ preTime }, index) {
+      const pitch = this.stagePitches[index]
+      const it = {...pitch, preTime }
+      const fuStyles = this.getFuStyles(it)
+      const yuanStyles = this.getYuanStyles(it)
+
+      const eleItem = this.$el.childNodes[index]
+      const eleFu = eleItem.querySelector(`[data-ele-type="fu"]`)
+      const eleYuan = eleItem.querySelector(`[data-ele-type="yuan"]`)
+
+      Object.keys(fuStyles).forEach(k => {
+        eleFu.style[k] = fuStyles[k]
+      })
+
+      Object.keys(yuanStyles).forEach(k => {
+        eleYuan.style[k] = yuanStyles[k]
+      })
+
+    },
+    onArrowMoveEnd({ preTime }, index) {
+      console.log(`onArrowMoveEnd, preTime:${preTime}`, index)
+      const pitch = this.stagePitches[index]
+      pitch.preTime = preTime
+      this.$store.dispatch('changeStoreState', { isStagePitchElementChanged: true })
+    },
+    async handleSatgePitches() {
+      const stagePitches = this.$store.state.stagePitches
+      if (stagePitches.length <= 0) {
+        // Message.error('没有画音块，所以不去获取音符')
+        return
+      }
       let pinyin = []
       stagePitches.forEach(item => {
         pinyin.push(item.pinyin)
       })
       const res = await getYinsu({pin_yin: pinyin})
-      console.log('getYinsu:', res)
       const yinsu = res.data.data.yin_su
       for (let i = 0; i < stagePitches.length; i += 1) {
         const item = stagePitches[i]
-        item.fu = yinsu[item.pinyin].f
-        item.yuan = yinsu[item.pinyin].y
+        this.$set(item, 'fu', yinsu[item.pinyin].f)
+        this.$set(item, 'yuan', yinsu[item.pinyin].y)
       }
-      return stagePitches
-    },
+    }
   },
   components: {
     ArrowElement
@@ -106,10 +138,11 @@ export default {
 .container {
   clear: both;
   border-radius: 3px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 25px;
   padding-left: 5px;
   position: relative;
+  color: #fff;
 }
 
 .fu {
@@ -118,14 +151,16 @@ export default {
   left: 0;
   background: #1F9C7C;
   border-radius: 4px 0px 0px 4px;
+  padding: 0 0 0 5px;
 }
 
 .yuan {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   background: #016F53;
   border-radius: 0px 4px 4px 0px;
+  padding: 0 0 0 5px;
 }
 
 </style>

@@ -1,14 +1,14 @@
 <template>
   <div :class="$style.audioEditor" ref="audioEditor">
     <div :class="$style.panel" v-if="!userInfo" @click="checkLogin"></div>
-    <BeatHeader 
-      :isPlaying="playState == 1" 
+    <BeatHeader
+      :isPlaying="playState == 1"
       @play="toPlay"
       @synthesize="toSynthesize"
       @openDrawer="toOpenDrawer"
     ></BeatHeader>
     <StatusBar></StatusBar>
-    <BeatContainer 
+    <BeatContainer
       ref="BeatContainer"
     ></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
@@ -93,9 +93,9 @@ export default {
     isStagePitchesChanged() {
       return this.$store.state.isStagePitchesChanged
     },
-    mode() {
-      return this.$store.state.mode
-    },
+    // mode() {
+    //   return this.$store.state.mode
+    // },
     firstPitch() {
       return this.$store.getters.firstPitch
     },
@@ -141,22 +141,30 @@ export default {
             left: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
             top: this.noteHeight * (this.firstPitch - item.pitch),
             pinyinList: item.pinyinList,
-            select: item.select
+            select: item.select,
+            preTime: item.preTime,
+            fu: item.fu,
+            yuan: item.yuan
+            // fuEnd: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
+            // fuLeft: timeToPx(item.startTime - item.preTime, this.noteWidth, pitchList[0].bpm),
+            // yuanEnd: timeToPx(item.yuanEndTime, this.noteWidth, pitchList[0].bpm),
+            // yuanLeft: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm)
           })
         })
         console.log('getEditorDetail stagePitches:', stagePitches)
-        await this.$store.dispatch('changeStoreState', { 
-          taskId: data.task_id, 
-          downUrl: data.down_url, 
-          onlineUrl: data.online_url, 
-          f0AI: data.f0_ai, 
-          f0Draw: data.f0_draw, 
+        await this.$store.dispatch('changeStoreState', {
+          taskId: data.task_id,
+          downUrl: data.down_url,
+          onlineUrl: data.online_url,
+          f0AI: data.f0_ai,
+          f0Draw: data.f0_draw,
           bpm: pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
-          toneName: pitchList[0].singer, 
-          toneId: pitchList[0].toneId, 
+          toneName: pitchList[0].singer,
+          toneId: pitchList[0].toneId,
           stagePitches: stagePitches,
           volumeMap: this.convertXyMap(data.volume_xy),
-          tensionMap: this.convertXyMap(data.tension_xy)
+          tensionMap: this.convertXyMap(data.tension_xy),
+          f0Xy: data.f0_xy
         })
         const changed = {}
         const pitchWidth = this.$store.getters.pitchWidth
@@ -170,14 +178,12 @@ export default {
             for (let j = x; j <= xEnd; j +=1) {
               changed[j] = value
             }
-            // console.log(`this.$store.state`, this.$store.state)
           }
         }
         this.$store.state.changedLineMap = changed
       }
     },
     isNeedGenerate() {
-      // console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged}, this.$store.state.isPitchLineChanged: ${this.$store.state.isPitchLineChanged}, this.$store.state.isVolumeChanged: ${this.$store.state.isVolumeChanged}, this.$store.state.isTensionChanged: ${this.$store.state.isTensionChanged}, !this.$store.state.onlineUrl: ${!this.$store.state.onlineUrl}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true
@@ -194,6 +200,11 @@ export default {
 
       // 张力改变了
       if (this.$store.state.isTensionChanged) {
+        return true
+      }
+
+      // 元辅音改变了
+      if (this.$store.state.isStagePitchElementChanged) {
         return true
       }
 
@@ -222,8 +233,6 @@ export default {
       const maxRight = lastStagePitches.left + lastStagePitches.width
       if (this.$store.state.lineLeft > maxRight && this.playState !== playState.StatePlaying) {
         Message.error('播放线后没有音符！！')
-        // this.changeLinePosition(this.playLine.start, true)
-        // this.playLine.current = this.playLine.start
         return
       }
       console.log(`Click play button, current state: ${this.playState}`)
@@ -265,12 +274,12 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
       console.log(`doPlay generator:${generator}, isContinue:${isContinue}, start: ${start}, end: ${end}, minStart:${minStart}, maxEnd: ${maxEnd}, duration:${duration}`)
-      
+
       // 百分比不能为负数，最小为0
       const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
       const startTime = percent * duration / 1000
@@ -278,9 +287,9 @@ export default {
       if (generator) {
         const { onlineUrl, downUrl } = await this.toSynthesize()
         // 每次生成新的都存起来
-        this.$store.dispatch('changeStoreState', { 
-          downUrl, 
-          onlineUrl, 
+        this.$store.dispatch('changeStoreState', {
+          downUrl,
+          onlineUrl,
         })
         this.playLine = {
           current: start,
@@ -289,11 +298,9 @@ export default {
         }
         this.playStartTime = startTime
         this.toPlayAudio(onlineUrl)
-        // console.log('this.audio:', this.audio)
         this.audio.currentTime = startTime
         this.audio.play()
       } else {
-        // console.log(`isContinue: ${isContinue}, percent:${percent}, duration:${duration}, startTime:${startTime}`)
         if (isContinue) {
           console.log(`play continue with start: ${this.playStartTime}`)
           // this.audio.currentTime = this.playStartTime
@@ -311,7 +318,7 @@ export default {
           this.audio.currentTime = startTime
           this.audio.play()
         }
-        
+
       }
     },
     toPlayAudio(url) {
@@ -331,7 +338,7 @@ export default {
               const duration = audio.duration // 音频总长度
               const restDuration = duration - this.playStartTime
               const msDuration = restDuration * 1000
-              
+
               // console.log(`开始播放，音频长度为：${audio.duration}, 剩余长度：${restDuration},当前进度：${audio.currentTime}`)
               const length = this.playLine.end - this.playLine.start
               const times = msDuration / 16
@@ -388,12 +395,11 @@ export default {
           lineStartX = Math.min(lineStartX, item.left)
           lineEndX = Math.max(lineEndX, right)
         }
-        
-        // minStart = Math.min(minStart, item.left)
+
         maxEnd = Math.max(maxEnd, right)
         const duration = pxToTime(item.width, this.noteWidth, this.bpm)
         const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
-        
+
         if (startTime < firstPitchStartTime) {
           firstPitchStartTime = startTime
         }
@@ -411,7 +417,7 @@ export default {
         minStart,
         maxEnd: maxEnd + full, // full代表sdk补的宽度
         duration: totalDuration + 500 // 补了50个数据，一个数据10ms,总共500ms
-      } 
+      }
     },
     handleVolumeTension() {
       const pitchWidth = this.$store.getters.pitchWidth
@@ -454,26 +460,26 @@ export default {
     },
     async toSynthesize(callback) {
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
-      this.$store.dispatch('getPitchLine')
-      const getF0DataStart = Date.now()
-      for (let i = 0; i < 10; i += 1) {
-        if (!this.$store.state.isGetF0Data) {
-          console.log('获取F0数据成功~')
-          break
-        }
-        const getF0DataEnd = Date.now()
-        if ((getF0DataEnd - getF0DataStart) > 10 * 1000) {
-          Message.error('音频合成失败，请稍后再试~')
-          this.$store.dispatch('changeStoreState', { isSynthetizing: false })
-          this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
-          break
-        }
-        console.log(`获取音频中:`, getF0DataEnd - getF0DataStart)
-        Message.success(`算法努力合成音频中(0%)`)
-        await sleep(1000)
-      }
+      // this.$store.dispatch('getPitchLine')
+      // const getF0DataStart = Date.now()
+      // for (let i = 0; i < 10; i += 1) {
+      //   if (!this.$store.state.isGetF0Data) {
+      //     console.log('获取F0数据成功~')
+      //     break
+      //   }
+      //   const getF0DataEnd = Date.now()
+      //   if ((getF0DataEnd - getF0DataStart) > 10 * 1000) {
+      //     Message.error('音频合成失败，请稍后再试~')
+      //     this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+      //     this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
+      //     break
+      //   }
+      //   console.log(`获取音频中:`, getF0DataEnd - getF0DataStart)
+      //   Message.success(`算法努力合成音频中(0%)`)
+      //   await sleep(1000)
+      // }
 
-      const synthesizeStart = Date.now()  
+      const synthesizeStart = Date.now()
       const handleData = this.handleVolumeTension()
       const req = {
         pitchList: this.$store.getters.pitchList,
@@ -483,14 +489,15 @@ export default {
         volume_data: handleData.f0Volume,
         tension_data: handleData.f0Tension,
         volume_xy: handleData.volumeXy,
-        tension_xy: handleData.tensionXy
+        tension_xy: handleData.tensionXy,
+        f0_xy: this.$store.state.f0Xy
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
       if (data.ret_code !== 0) {
         Message.error(`合成失败, 错误信息:${data.err_msg}, 请重试~`)
         return
-      } 
+      }
 
       const paramId = data.data.param_id
       const taskId = data.data.task_id
@@ -530,7 +537,7 @@ export default {
           break
         }
       }
-      
+
       this.$store.dispatch('changeStoreState', { isSynthetizing: false })
       if (callback) {
         callback()
