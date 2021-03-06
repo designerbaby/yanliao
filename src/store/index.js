@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import profile from './profile'
-import { pitchList, playState, modeState } from '@/common/utils/const'
+import { pitchList, playState, modeState, typeModeState } from '@/common/utils/const'
 import { getF0Data } from '@/api/audio'
 import { pxToTime } from '@/common/utils/helper'
 import { Message } from 'element-ui'
@@ -33,7 +33,7 @@ const defaultState = {
   },
   maxPitchRight: 0, // 音块最右边的位置
   mode: modeState.StatePitch, // 模式
-  typeMode: -1, // 附加模式类型: 0 代表响度, 1 代表张力
+  typeMode: typeModeState.StateNone, // 附加模式类型
   playState: playState.StateNone, // 播放状态
   stagePitches: [], // 舞台音块
   isStagePitchesChanged: false, // 舞台音块是否有改变
@@ -52,7 +52,8 @@ const defaultState = {
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
-  typeContainerHeight: 250
+  typeContainerHeight: 250,
+  pitchChanged: false // 音块的长度/歌曲/曲速是否改动了
 }
 
 const store = new Vuex.Store({
@@ -76,20 +77,14 @@ const store = new Vuex.Store({
       // 10是因为数据的每一项间隔10ms
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
     },
-    // stagePitches: state => {
-    //   return this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
-    // },
     pitchList: (state, getters) =>  {
-      // console.log(`pitchList: getters`)
+      console.log(`pitchList: getters, state.pitchChanged: ${state.pitchChanged}`)
       const stagePitches = state.stagePitches
       const pitches = []
       stagePitches.forEach(item => {
         const duration = pxToTime(item.width, state.noteWidth, state.bpm)
         const pitch = getters.firstPitch - (item.top / item.height)
         const startTime = pxToTime(item.left, state.noteWidth, state.bpm)
-        // const preTime = pxToTime(item.left - item.fuLeft, state.noteWidth, state.bpm)
-        // const yuanEndTime = pxToTime(item.yuanEnd, state.noteWidth, state.bpm)
-        //  console.log('getters pitchList stagePitches item.preTime:', item.preTime)
         const pitchItem = {
           duration: duration,
           pitch: pitch,
@@ -104,8 +99,8 @@ const store = new Vuex.Store({
           select: item.select,
           fu: item.fu,
           yuan: item.yuan,
-          preTime: item.preTime,
-          yuanEndTime: startTime + duration
+          preTime: state.pitchChanged ? 0 : item.preTime,
+          yuanEndTime: item.yuanEndTime
         }
         pitches.push(pitchItem)
       })
@@ -245,16 +240,19 @@ const store = new Vuex.Store({
       const pitchList = data.data.pitchList
       const stagePitches = [ ...state.stagePitches]
       // 合并数据
+      console.log('state.pitchChanged:', state.pitchChanged)
       for (let i = 0; i < pitchList.length; i += 1) {
         const item = stagePitches[i]
         // 如果有这个属性，表示是手动修改过，或者是点编辑进来的情况
-        if (item.hasOwnProperty('preTime')) {
-          continue
+        // if (item.hasOwnProperty('preTime')) {
+        //   continue
+        // }
+        const isExist = item.hasOwnProperty('preTime')
+        if (state.pitchChanged || !isExist) {
+          Vue.set(item, 'preTime', pitchList[i].preTime)
         }
-        // item.preTime = pitchList[i].preTime
-        Vue.set(item, 'preTime', pitchList[i].preTime)
       }
-      commit('changeStoreState', { f0Draw, stagePitches, isPitchLineChanged: false, isGetF0Data: false })
+      commit('changeStoreState', { f0Draw, stagePitches, isPitchLineChanged: false, isGetF0Data: false, pitchChanged: false })
     },
     updateStageSize({ commit, state }) {
       const windowWidth = window.innerWidth

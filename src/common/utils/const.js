@@ -254,6 +254,12 @@ export const modeState = {
   StateElement: 2 // 音素模式
 }
 
+export const typeModeState = {
+  StateNone: -1, // 初识状态
+  StateVolume: 0, // 响度模式
+  StateTension: 1 // 张力模式
+}
+
 // 我的音源的音源状态
 export const audioStatusMap = {
   1: '审核中',

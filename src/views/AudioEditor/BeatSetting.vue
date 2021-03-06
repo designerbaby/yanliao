@@ -10,7 +10,7 @@
       <div :class="$style.select">
         <Select
           filterable
-          :class="$style.selector" 
+          :class="$style.selector"
           :placeholder="'选择谁来演唱这首歌'"
           v-model="$store.state.toneId"
           @change="singleToneIdChange"
@@ -94,6 +94,7 @@ export default {
     },
     bpmInputChange(value) {
       this.$store.dispatch('changeStoreState', { bpm: value })
+      this.$store.dispatch('changeStoreState', { pitchChanged: true })
       this.$store.dispatch('getPitchLine')
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
@@ -172,7 +173,7 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;
 }
 
 .select {

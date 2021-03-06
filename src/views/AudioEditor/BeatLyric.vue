@@ -79,7 +79,7 @@ export default {
       this.lyricForm.lyric = lyric
       this.maxlength = this.lyricArray.length
     },
-    
+
     submit() {
       this.$refs.lyricForm.validate((valid) => {
         if (valid) {
@@ -90,6 +90,7 @@ export default {
           } else {
             this.saveStagePitches()
             this.lyricVisible = false
+            this.$store.dispatch('changeStoreState', { pitchChanged: true })
           }
         } else {
           Message.error('请全部填写完整并正确再提交')

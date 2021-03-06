@@ -14,12 +14,12 @@
           :style="getFuStyles(it)"
         >
           {{ it.fu }}
-          <ArrowElement :pitch="it" :index="index" @move="onArrowMove($event, index)" @move-end="onArrowMoveEnd($event, index)"/>
+          <ArrowElement :pitch="it" :index="index" @move="onArrowMove($event, index)" @move-end="onArrowMoveEnd($event, index)" :canMove="canMove"/>
         </div>
         <div
           :class="$style.yuan"
           data-ele-type="yuan"
-          :style="getYuanStyles(it)"
+          :style="getYuanStyles(index)"
         >{{ it.yuan }}</div>
       </div>
     </template>
@@ -40,13 +40,14 @@ export default {
     }
   },
   mounted() {
-    console.log(`PitchElement mounted`)
+    // console.log(`PitchElement mounted`)
     this.handleSatgePitches()
     if (this.$store.state.isStagePitchesChanged ||
-      this.$store.state.isPitchLineChanged ||
-      this.$store.state.mode === modeState.StateElement) {
-        this.$store.dispatch('getPitchLine')
-      }
+    this.$store.state.isPitchLineChanged ||
+    this.$store.state.mode === modeState.StateElement) {
+      // this.$store.dispatch('getPitchLine', { forcePreTime: false })
+      this.$store.dispatch('getPitchLine')
+    }
   },
   computed: {
     stageWidth() {
@@ -60,6 +61,11 @@ export default {
     }
   },
   methods: {
+    timeToPx(time) {
+      const { noteWidth, bpm } = this.$store.state
+      const px = timeToPx(time, noteWidth, bpm)
+      return px
+    },
     getStyles(it, width, left) {
       return {
         width: `${width}px`,
@@ -71,17 +77,36 @@ export default {
     getFuStyles(it) {
       const { noteWidth, bpm } = this.$store.state
       const width = timeToPx(it.preTime, noteWidth, bpm)
-      const left = it.left - width
+      let left = it.left - width
+      if (left <= 0) { // 最小不能为0
+        left = 0
+      }
       return this.getStyles(it, width, left)
     },
-    getYuanStyles(it) {
-      return this.getStyles(it, it.width, it.left)
+    getYuanStyles(index) {
+      const it = this.stagePitches[index]
+      const next = this.stagePitches[index + 1]
+
+      let width = it.width
+      const end = it.width + it.left // The end position of current pitch
+
+      if (next) {
+        const startPxOfNext = next.left
+        if (end === startPxOfNext) {
+          width = width - this.timeToPx(next.preTime)
+        }
+      }
+
+      console.log(`getYuanStyles:`, it.width, width)
+      return this.getStyles(it, width, it.left)
     },
-    onArrowMove({ preTime }, index) {
+    onArrowMove({ startPreTime, preTime }, index) {
+      // console.log(`preTime: ${preTime}, startPreTime: ${startPreTime}`)
       const pitch = this.stagePitches[index]
+
       const it = {...pitch, preTime }
       const fuStyles = this.getFuStyles(it)
-      const yuanStyles = this.getYuanStyles(it)
+      const yuanStyles = this.getYuanStyles(index)
 
       const eleItem = this.$el.childNodes[index]
       const eleFu = eleItem.querySelector(`[data-ele-type="fu"]`)
@@ -94,7 +119,53 @@ export default {
       Object.keys(yuanStyles).forEach(k => {
         eleYuan.style[k] = yuanStyles[k]
       })
-
+      // this.moveBeforeYuan(startPreTime, preTime, index)
+    },
+    moveBeforeYuan(startPreTime, preTime, index) {
+      // 当前在移动的时候，当前元素的辅音占据了上一个元音的位置，需要把上一个元音的位置改了
+      const { noteWidth, bpm } = this.$store.state
+      const pitch = this.stagePitches[index]
+      const beforePitch = this.stagePitches[index - 1]
+      const beforePitchEnd = beforePitch.left + beforePitch.width
+      const fuWidth = timeToPx(startPreTime, noteWidth, bpm)
+      const fuLeft = pitch.left - fuWidth
+      const newFuWidth = timeToPx(preTime, noteWidth, bpm)
+      const newFuLeft = pitch.left - newFuWidth
+      if (beforePitchEnd > fuLeft) {
+        const beforeYuanStyles = this.getYuanStyles(beforePitch, beforePitch.width - newFuWidth) // 这里要修改上一个元音的宽度
+        const BeforeEleItem = this.$el.childNodes[index - 1]
+        const beforeEleYuan = BeforeEleItem.querySelector(`[data-ele-type="yuan"]`)
+        Object.keys(beforeYuanStyles).forEach(k => {
+          beforeEleYuan.style[k] = beforeYuanStyles[k]
+          // this.stagePitches[index - 1].yuanEndTime = px
+        })
+      }
+    },
+    canMove(startPreTime, newPreTime, index) {
+      if (newPreTime <= 30) { // 最小只能移动到30
+        return false
+      }
+      if (index <= 0) {
+        return true
+      }
+      const { noteWidth, bpm } = this.$store.state
+      const current = this.stagePitches[index]
+      const before = this.stagePitches[index - 1]
+      const beforeEnd = before.left + before.width
+      const width = timeToPx(startPreTime, noteWidth, bpm)
+      const left = current.left - width
+      const newLeft = current.left - timeToPx(newPreTime, noteWidth, bpm)
+      // console.log(`beforeEnd: ${beforeEnd}, left: ${left}, newLeft: ${newLeft}, `)
+      if (beforeEnd <= left) { // 前一个和当前的有空格
+        if (newLeft < beforeEnd) {
+          return false
+        }
+      } else { // 前一个和当前的没空格
+        if (newLeft < (before.left + noteWidth)) {
+          return false
+        }
+      }
+      return true
     },
     onArrowMoveEnd({ preTime }, index) {
       console.log(`onArrowMoveEnd, preTime:${preTime}`, index)

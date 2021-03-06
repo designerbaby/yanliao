@@ -58,7 +58,7 @@ export default {
       state => state.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
-        console.log('changeStoreState isStagePitchesChanged true')
+        // console.log('changeStoreState isStagePitchesChanged true')
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
       },
       {
@@ -93,9 +93,6 @@ export default {
     isStagePitchesChanged() {
       return this.$store.state.isStagePitchesChanged
     },
-    // mode() {
-    //   return this.$store.state.mode
-    // },
     firstPitch() {
       return this.$store.getters.firstPitch
     },
@@ -145,10 +142,6 @@ export default {
             preTime: item.preTime,
             fu: item.fu,
             yuan: item.yuan
-            // fuEnd: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
-            // fuLeft: timeToPx(item.startTime - item.preTime, this.noteWidth, pitchList[0].bpm),
-            // yuanEnd: timeToPx(item.yuanEndTime, this.noteWidth, pitchList[0].bpm),
-            // yuanLeft: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm)
           })
         })
         console.log('getEditorDetail stagePitches:', stagePitches)
@@ -389,16 +382,20 @@ export default {
       let lastPitchDuration = 0
       const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
       this.stagePitches.forEach(item => {
+        // console.log('getLinePosition this.stagePitches item:', item)
         const right = item.left + item.width
-        // console.log(`${item.left}: item.left, right: ${right}, lineLeft: ${lineLeft}`)
-        if (item.left >= lineLeft || right >= lineLeft) {
-          lineStartX = Math.min(lineStartX, item.left)
+        let left = item.left
+        if (item.hasOwnProperty('preTime')) {
+          left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
+        }
+        if (left >= lineLeft || right >= lineLeft) {
+          lineStartX = Math.min(lineStartX, left)
           lineEndX = Math.max(lineEndX, right)
         }
 
         maxEnd = Math.max(maxEnd, right)
         const duration = pxToTime(item.width, this.noteWidth, this.bpm)
-        const startTime = pxToTime(item.left, this.noteWidth, this.bpm)
+        const startTime = pxToTime(item.left, this.noteWidth, this.bpm) - item.preTime
 
         if (startTime < firstPitchStartTime) {
           firstPitchStartTime = startTime
@@ -529,7 +526,7 @@ export default {
         }
         await sleep(3000)
         const synthesizeEnd = Date.now()
-        console.log(`synthesizeEnd - synthesizeStart: ${synthesizeEnd - synthesizeStart}, synthesizeStart: ${synthesizeStart}, synthesizeEnd: ${synthesizeEnd}`, )
+        console.log(`synthesizeEnd - synthesizeStart: ${synthesizeEnd - synthesizeStart}, synthesizeStart: ${synthesizeStart}, synthesizeEnd: ${synthesizeEnd}`)
         if ((synthesizeEnd - synthesizeStart) > 30 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
           this.$store.dispatch('changeStoreState', { isSynthetizing: false })

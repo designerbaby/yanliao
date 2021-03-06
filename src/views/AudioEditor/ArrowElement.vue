@@ -14,7 +14,7 @@ import { pxToTime, timeToPx } from '@/common/utils/helper'
 
 export default {
   name: 'ArrowElement',
-  props: ['pitch', 'index'],
+  props: ['pitch', 'index', 'canMove'],
   data() {
     return {
       isActive: false,
@@ -62,29 +62,16 @@ export default {
         const moveTime = pxToTime(movePx, this.$store.state.noteWidth, this.$store.state.bpm)
         const newPreTime = this.moveArrowEleStart.preTime + moveTime
 
-        const before = this.index - 1 > -1 ? this.stagePitches[this.index - 1] : {}
-        let newLeft = this.pitch.left - movePx
-        console.log(`movePx: ${movePx}, preTime: ${this.moveArrowEleStart.preTime}, moveTime: ${moveTime}, newPreTime: ${newPreTime}, newLeft:${newLeft}`)
-        if (this.index === 0) { // 第一个只能拉到最左边
-          if (newLeft < 10) {
-            newLeft = 10
-          }
+        const move = this.canMove(this.moveArrowEleStart.preTime, newPreTime, this.index)
+        if (!move) {
+          return
         }
-        // if (before.yuanEnd < this.moveArrowEleStart.left) { // 上一个的元音结尾比当前的辅音开头小，说明两个有空格
-        //   if (newLeft < before.yuanEnd) { // 如果移动到的新的left比上一个元音的前面，那就只能是上一个元音的结尾
-        //     newLeft = before.yuanEnd
-        //   }
-        // } else { // 当前辅音在上一个元音之间
-        //   if (newLeft < (before.yuanLeft + this.$store.state.noteWidth)) { // 只能移动到上一个元音的最左边+1个32分音符的单位
-        //     newLeft = before.yuanLeft + this.$store.state.noteWidth
-        //   }
-        //   newYuanEnd = newLeft
-        // }
         this.moveArrowEleEnd = {
+          startPreTime: this.moveArrowEleStart.preTime,
           preTime: newPreTime
         }
 
-        this.$emit('move', {
+        this.$emit('move',  {
           ...this.moveArrowEleEnd
         })
       }

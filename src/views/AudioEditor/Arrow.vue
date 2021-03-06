@@ -41,18 +41,18 @@ export default {
       document.addEventListener('mousemove', this.onArrowMouseMove)
       document.addEventListener('mouseleave', this.onArrowLeave)
       const target = event.target
+
       this.isActive = true
       this.moveArrowStart = {
         width: this.pitch.width,
         left: this.pitch.left,
-        top: this.pitch.top,        
+        top: this.pitch.top,
         clientX: event.clientX
       }
 
-      console.log('moveArrowStart:', JSON.stringify(this.moveArrowStart))
+      // console.log('moveArrowStart:', JSON.stringify(this.moveArrowStart))
     },
     onArrowMouseMove(event) {
-      // console.log(`onArrowMouseMove:`, this.direction)
       if (this.moveArrowStart) {
         const parentNode = this.$el.parentNode
 
@@ -80,6 +80,7 @@ export default {
           target: parentNode,
           direction: this.direction
         }
+        // console.log(`onArrowMouseMove:`, JSON.stringify(this.moveArrowEnd))
       }
     },
     onArrowLeave(event) {
@@ -90,6 +91,16 @@ export default {
         document.removeEventListener('mouseleave', this.onArrowLeave)
         this.isActive = false
 
+        // let moveArrowEnd = this.moveArrowEnd
+        if (!this.moveArrowEnd) {
+          this.moveArrowEnd = {
+            width: this.pitch.width,
+            left: this.pitch.left,
+            top: this.pitch.top,
+            target: this.$el.parentNode,
+            direction: this.direction
+          }
+        }
         this.$emit('move-end', {
           ...this.moveArrowEnd
         })

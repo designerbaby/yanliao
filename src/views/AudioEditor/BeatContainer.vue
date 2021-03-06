@@ -46,7 +46,7 @@
           <PitchLine v-if="$store.state.mode === modeState.StateLine" ref="PitchLine"></PitchLine>
           <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
-        <Parameters ref="Parameters" v-if="$store.state.typeMode !== -1"></Parameters>
+        <Parameters ref="Parameters" v-if="$store.state.typeMode !== typeModeState.StateNone"></Parameters>
       </div>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import { pitchList, playState, modeState } from "@/common/utils/const"
+import { pitchList, playState, modeState, typeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
 import BeatTop from './BeatTop.vue'
 import BeatPiano from './BeatPiano.vue'
@@ -92,6 +92,7 @@ export default {
     return {
       pitchList: pitchList,
       modeState: modeState,
+      typeModeState: typeModeState,
       isMouseDown: false,
       startPos: null,
       endPos: null,
@@ -171,6 +172,7 @@ export default {
           }
         }
       }
+      this.$store.dispatch('changeStoreState', { pitchChanged: true })
     },
     scrollTo(left) {
       this.$refs.rightArea.scrollLeft = left
@@ -407,12 +409,10 @@ export default {
       } else {
         pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
       }
-
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
 
       // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
-
       this.checkPitchDuplicated()
     },
 

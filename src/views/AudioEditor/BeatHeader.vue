@@ -20,14 +20,14 @@
         </div>
       </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, typeMode === 0 ? $style.isActive : '']" @click="selectTypeMode(0)">
-          <img src="@/assets/audioEditor/loud-normal.png" v-if="typeMode === 1">
-          <img src="@/assets/audioEditor/loud-active.png" v-else>
+        <div :class="[$style.check, typeMode === typeModeState.StateVolume ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateVolume)">
+          <img src="@/assets/audioEditor/loud-active.png" v-if="typeMode === typeModeState.StateVolume">
+          <img src="@/assets/audioEditor/loud-normal.png" v-else>
           <div :class="$style.text">响度</div>
         </div>
-        <div :class="[$style.check, $style.right, typeMode === 1 ? $style.isActive : '']" @click="selectTypeMode(1)">
-          <img src="@/assets/audioEditor/tension-normal.png" v-if="typeMode === 0">
-          <img src="@/assets/audioEditor/tension-active.png" v-else>
+        <div :class="[$style.check, $style.right, typeMode === typeModeState.StateTension ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateTension)">
+          <img src="@/assets/audioEditor/tension-active.png" v-if="typeMode === typeModeState.StateTension">
+          <img src="@/assets/audioEditor/tension-normal.png" v-else>
           <div :class="$style.text">张力</div>
         </div>
       </div>
@@ -51,7 +51,7 @@
 
 <script>
 import { Icon, Button, Message } from 'element-ui'
-import { playState, modeState } from "@/common/utils/const"
+import { playState, modeState, typeModeState } from "@/common/utils/const"
 import { isDuplicated, reportEvent } from '@/common/utils/helper'
 
 export default {
@@ -59,7 +59,8 @@ export default {
   props: ['isPlaying'],
   data() {
     return {
-      modeState: modeState
+      modeState: modeState,
+      typeModeState: typeModeState
     }
   },
   computed: {
@@ -97,8 +98,8 @@ export default {
       this.$store.dispatch('changeStoreState', { mode })
     },
     selectTypeMode(typeMode) {
-      if (typeMode === this.typeMode && this.typeMode !== -1) {
-        this.$store.dispatch('changeStoreState', { typeMode: -1 })
+      if (typeMode === this.typeMode && this.typeMode !== typeModeState.StateNone) {
+        this.$store.dispatch('changeStoreState', { typeMode: typeModeState.StateNone })
       } else {
         this.$store.dispatch('changeStoreState', { typeMode })
       }

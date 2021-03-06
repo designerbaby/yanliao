@@ -62,7 +62,6 @@ export default {
       return this.$store.state.playState
     },
     svgData() {
-      // console.log(`svgData`)
       return this.toHandleF0Data(this.$store.state.f0AI)
     },
     svgDataDraw() {
@@ -72,6 +71,7 @@ export default {
   mounted() {
     if (this.$store.state.isPitchLineChanged
     || this.$store.state.isStagePitchesChanged || this.$store.state.mode === modeState.StateLine) { // 音高线有更改才去获取新的音高线
+      // this.$store.dispatch('getPitchLine', { forcePreTime: false })
       this.$store.dispatch('getPitchLine')
     }
   },
