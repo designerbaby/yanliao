@@ -95,6 +95,10 @@ export default {
           result += "M "
         }
 
+        // if (i > 0) {
+        //     result += "L "
+        // }
+
         if ((i - 1) % 3 ==0) {
           result += "C "
         }

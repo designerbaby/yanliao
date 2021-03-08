@@ -75,8 +75,7 @@ export default {
       }
     },
     getFuStyles(it) {
-      const { noteWidth, bpm } = this.$store.state
-      const width = timeToPx(it.preTime, noteWidth, bpm)
+      const width = this.timeToPx(it.preTime)
       let left = it.left - width
       if (left <= 0) { // 最小不能为0
         left = 0
@@ -100,7 +99,7 @@ export default {
       console.log(`getYuanStyles:`, it.width, width)
       return this.getStyles(it, width, it.left)
     },
-    onArrowMove({ startPreTime, preTime }, index) {
+    onArrowMove({ preTime }, index) {
       // console.log(`preTime: ${preTime}, startPreTime: ${startPreTime}`)
       const pitch = this.stagePitches[index]
 
@@ -119,27 +118,6 @@ export default {
       Object.keys(yuanStyles).forEach(k => {
         eleYuan.style[k] = yuanStyles[k]
       })
-      // this.moveBeforeYuan(startPreTime, preTime, index)
-    },
-    moveBeforeYuan(startPreTime, preTime, index) {
-      // 当前在移动的时候，当前元素的辅音占据了上一个元音的位置，需要把上一个元音的位置改了
-      const { noteWidth, bpm } = this.$store.state
-      const pitch = this.stagePitches[index]
-      const beforePitch = this.stagePitches[index - 1]
-      const beforePitchEnd = beforePitch.left + beforePitch.width
-      const fuWidth = timeToPx(startPreTime, noteWidth, bpm)
-      const fuLeft = pitch.left - fuWidth
-      const newFuWidth = timeToPx(preTime, noteWidth, bpm)
-      const newFuLeft = pitch.left - newFuWidth
-      if (beforePitchEnd > fuLeft) {
-        const beforeYuanStyles = this.getYuanStyles(beforePitch, beforePitch.width - newFuWidth) // 这里要修改上一个元音的宽度
-        const BeforeEleItem = this.$el.childNodes[index - 1]
-        const beforeEleYuan = BeforeEleItem.querySelector(`[data-ele-type="yuan"]`)
-        Object.keys(beforeYuanStyles).forEach(k => {
-          beforeEleYuan.style[k] = beforeYuanStyles[k]
-          // this.stagePitches[index - 1].yuanEndTime = px
-        })
-      }
     },
     canMove(startPreTime, newPreTime, index) {
       if (newPreTime <= 30) { // 最小只能移动到30

@@ -99,8 +99,7 @@ const store = new Vuex.Store({
           select: item.select,
           fu: item.fu,
           yuan: item.yuan,
-          preTime: state.pitchChanged ? 0 : item.preTime,
-          yuanEndTime: item.yuanEndTime
+          preTime: state.pitchChanged ? 0 : item.preTime
         }
         pitches.push(pitchItem)
       })

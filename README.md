@@ -54,9 +54,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 1、要把doPlay的判断改成状态机
 - 2、配置gitlab-ci去设置代码发布
 
-- 2、当对应的辅音挤压上一个音符的元音，对应的元音也要相应的变短
-- 5、遗留的音高线插值问题
-
 ## 难点
 - 1、画音高线的时候锯齿
 - 2、整体数据规划

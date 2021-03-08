@@ -67,7 +67,6 @@ export default {
           return
         }
         this.moveArrowEleEnd = {
-          startPreTime: this.moveArrowEleStart.preTime,
           preTime: newPreTime
         }
 
