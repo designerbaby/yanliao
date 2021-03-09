@@ -12,33 +12,32 @@
           <img class="cover" :src="scope.row.cover_url" alt="暂无封面" @click="coverClick(scope.row)">
           <div class="info">
             <div class="title">
-              <!-- <span class="topic">#特朗普#</span> -->
               <span class="text">{{scope.row.desc}}</span>
             </div>
             <div class="detail">
               <span v-if="scope.row.music_info" class="music-info">所用歌曲: {{scope.row.music_info.name}} - {{scope.row.music_info.singer}}</span>
               <span class="upload-time">{{scope.row.public_unix_time | formatDate}}</span>
               <span class="video-state">{{scope.row.state_detail.state_pub_desc || ''}}</span>
-              <!-- <span v-if="scope.row.state === 3" class="video-state">发布中</span>
-              <span v-if="scope.row.state === 1 || scope.row.state === 0" class="video-state video-state-success">发布成功</span>
-              <span v-if="scope.row.state === 4" class="video-state">发布失败</span>
-              <span v-if="scope.row.state === 2" class="video-state video-state-invalid">被下线</span> -->
             </div>
-            <div class="data-column">
+            <div class="data-column data-top">
               <span class="data-item">
-                <!-- <span class="el-icon-view"></span> -->
                 <img class="icon-view" src="@/assets/icon-view.png" alt="">
                 <span>{{scope.row.stats.play_times}}</span>
               </span>
               <span class="data-item">
-                <!-- <span class="el-icon-star-off"></span> -->
                 <img class="icon-like" src="@/assets/icon-like.png" alt="">
                 <span>{{scope.row.stats.likes}}</span>
               </span>
             </div>
-            <div class="delete-button" @click="deleteButtonClick(scope.row)">
-              <span class="el-icon-delete"></span>
-              <span>删除视频</span>
+            <div class="data-column data-button">
+              <div @click="deleteButtonClick(scope.row)">
+                <span class="el-icon-delete"></span>
+                <span>删除视频</span>
+              </div>
+              <div class="edit" @click="editButtonClick(scope.row)">
+                <span class="el-icon-edit-outline"></span>
+                <span>编辑视频</span>
+              </div>
             </div>
           </div>
         </template>
@@ -60,14 +59,6 @@
         <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo">
           您的浏览器不支持 video 标签。
         </video>
-        <!-- <video class="video" controls autoplay ref="dialogVideo">
-          <source :src="currentVideoUrl" :type="videoGroup.type">
-          <object id="video" v-if="videoGroup.type === 'avi' || videoGroup.type === 'wmv' || videoGroup.type === 'asf'">
-            <embed border="0" showdisplay="0" showcontrols="1" autostart="1" :filename="currentVideoUrl" :src="currentVideoUrl">
-            </embed> 
-          </object>
-          Your browser is too old which doesn't support HTML5 video.
-        </video> -->
         <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
       </div>
     </Dialog>
@@ -76,6 +67,7 @@
       <div class="empty-text">还没有上传视频哦~</div>
       <div class="empty-tips">点击页面右上角"发布视频"</div>
     </div>
+    <VideoDescDialog ref="VideoDescriptor" @getList="getList"></VideoDescDialog>
   </div>
 </template>
 
@@ -84,7 +76,8 @@
 // 我的视频组件
 import { reportEvent } from '@/common/utils/helper'
 import CommonDialog from '@/common/components/CommonDialog'
-import { 
+import VideoDescDialog from './Components/VideoDescDialog'
+import {
   Table,
   TableColumn,
   Pagination,
@@ -104,6 +97,7 @@ export default {
     TableColumn,
     Pagination,
     CommonDialog,
+    VideoDescDialog
   },
   data() {
     return {
@@ -122,7 +116,7 @@ export default {
       const currentVideoUrl = this.currentVideoUrl
       const type = currentVideoUrl.split(currentVideoUrl)[1] || 'mp4'
       switch (type) {
-        case 'ogg': 
+        case 'ogg':
           return {
             url: currentVideoUrl,
             type: 'video/ogg'
@@ -159,7 +153,6 @@ export default {
       video.pause()
     },
     coverClick(row) {
-      console.log('coverClick row:', row)
       reportEvent('person-page-videocover-click')
       if (row.control.ban_play) {
         Message.error(row.control.ban_play_msg)
@@ -198,7 +191,7 @@ export default {
 
       const step = row.step
       const musicId = row.music_id
-      
+
       if (step === 2) {
         this.$router.push(`/rectify`)
       } else {
@@ -212,6 +205,9 @@ export default {
       // reportEvent('person-page-drawedelete-button', 'person-page-drawedelete-button', { draftId, })
       this.dialogShow = true
       this.targetId = targetId
+    },
+    editButtonClick(row) {
+      this.$refs.VideoDescriptor.show(row)
     },
     deleteItem() {
       // 删除视频按钮确认点击
@@ -235,7 +231,7 @@ export default {
     },
     currentPageChange() {
       this.getList()
-    },
+    }
   },
 }
 </script>
@@ -259,7 +255,7 @@ export default {
       font-weight: 500;
       margin-top: -30px;
       line-height: normal;
-      
+
     }
     .empty-tips {
       line-height: normal;
@@ -304,7 +300,6 @@ export default {
         }
       }
       .data-column {
-        margin-top: 60px;
         display: flex;
         align-items: center;
         .data-item + .data-item {
@@ -330,15 +325,24 @@ export default {
           }
         }
       }
-      .delete-button {
+      .data-top {
+        margin-top: 60px;
+      }
+      .data-button {
         font-size: 16px;
         margin-top: auto;
-        width: 100px;
+        // width: 100px;
         cursor: pointer;
         .el-icon-delete {
           font-size: 20px;
         }
-      }      
+        .el-icon-edit-outline {
+          font-size: 20px;
+        }
+        .edit {
+          margin: 0 10px;
+        }
+      }
     }
   }
   .video {
