@@ -11,7 +11,7 @@
           :maxlength="maxlength"
           :rows="5"
           show-word-limit
-        ></Input>
+        />
       </FormItem>
       <span>注：输入“-”号，即表示延续之前的字的尾音</span>
     </Form>
@@ -90,7 +90,6 @@ export default {
           } else {
             this.saveStagePitches()
             this.lyricVisible = false
-            this.$store.dispatch('changeStoreState', { pitchChanged: true })
           }
         } else {
           Message.error('请全部填写完整并正确再提交')
@@ -168,10 +167,12 @@ export default {
     saveHanzi () {
       if (this.index === -1) {
         for (let i = 0; i < this.maxlength; i += 1) {
-          this.$store.dispatch('changeStagePitches', { index: i, key: 'hanzi', value: this.lyricArray[i] || '啦' })
+          this.$store.dispatch('changeStagePitches', { index: i, key: 'hanzi', value: this.lyricArray[i] || '啦', pitchChanged: true })
         }
       } else {
-        this.$store.dispatch('changeStagePitches', { index: this.index, key: 'hanzi', value: this.lyricForm.lyric })
+        console.log('saveHanzi1:', this.index, this.stagePitches[this.index])
+        this.$store.dispatch('changeStagePitches', { index: this.index, key: 'hanzi', value: this.lyricForm.lyric, pitchChanged: true })
+        console.log('saveHanzi2:', this.index, this.stagePitches[this.index])
       }
     },
     savePinyin() {

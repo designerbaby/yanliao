@@ -172,7 +172,6 @@ export default {
           }
         }
       }
-      this.$store.dispatch('changeStoreState', { pitchChanged: true })
     },
     scrollTo(left) {
       this.$refs.rightArea.scrollLeft = left
@@ -273,7 +272,7 @@ export default {
         target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
         target.dataset.left = pitch.left
         target.dataset.top = pitch.top
-
+        pitch.pitchChanged = true
         if (isPositionChanged) {
           this.checkPitchDuplicated()
         }
@@ -393,6 +392,7 @@ export default {
       });
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0`)
       this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
+      this.stagePitches[this.stagePitches.length - 1].pitchChanged = true
       this.checkPitchDuplicated()
       this.checkPitchesOverStage()
     },
@@ -411,7 +411,7 @@ export default {
       }
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
-
+      pitch.pitchChanged = true
       // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
       this.checkPitchDuplicated()
     },

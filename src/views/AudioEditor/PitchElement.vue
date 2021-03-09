@@ -96,7 +96,7 @@ export default {
         }
       }
 
-      console.log(`getYuanStyles:`, it.width, width)
+      // console.log(`getYuanStyles:`, it.width, width)
       return this.getStyles(it, width, it.left)
     },
     onArrowMove({ preTime }, index) {
@@ -120,7 +120,7 @@ export default {
       })
     },
     canMove(startPreTime, newPreTime, index) {
-      if (newPreTime <= 30) { // 最小只能移动到30
+      if (newPreTime <= 20) { // 最小只能移动到30
         return false
       }
       if (index <= 0) {

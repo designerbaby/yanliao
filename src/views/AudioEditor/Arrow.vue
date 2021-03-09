@@ -1,17 +1,21 @@
 <template>
-  <div :class="[$style.arrow, $style[direction], isActive ? $style.isActive : '']"
-    @mouseup.stop="onArrowLeave"
-    @mousedown.prevent="onArrowMouseDown">
-      <img src="@/assets/audioEditor/arrow-right.png"/>
-  </div>
+  <Dragger :class="[$style.arrow, $style[direction], isActive ? $style.isActive : '']"
+    @on-start="onStart"
+    @on-move="onMove"
+    @on-end="onEnd"
+    >
+    <img src="@/assets/audioEditor/arrow-right.png">
+  </Dragger>
 </template>
 
 <script>
 import { Message } from 'element-ui'
 import { playState } from '@/common/utils/const'
+import Dragger from './Components/Dragger.vue'
 
 export default {
   name: 'Arrow',
+  components: { Message, Dragger },
   props: ['direction', 'pitch'],
   data() {
     return {
@@ -20,16 +24,13 @@ export default {
       moveArrowEnd: null
     }
   },
-  components: {
-    Message
-  },
   computed: {
     playState() {
       return this.$store.state.playState
     }
   },
   methods: {
-    onArrowMouseDown(event) { // 鼠标按下事件
+    onStart(event) { // 鼠标按下事件
       if (this.$store.state.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -38,9 +39,6 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      document.addEventListener('mousemove', this.onArrowMouseMove)
-      document.addEventListener('mouseleave', this.onArrowLeave)
-      const target = event.target
 
       this.isActive = true
       this.moveArrowStart = {
@@ -50,9 +48,8 @@ export default {
         clientX: event.clientX
       }
 
-      // console.log('moveArrowStart:', JSON.stringify(this.moveArrowStart))
     },
-    onArrowMouseMove(event) {
+    onMove(event) {
       if (this.moveArrowStart) {
         const parentNode = this.$el.parentNode
 
@@ -67,6 +64,10 @@ export default {
         } else if (this.direction === 'left') {
           newLeft = this.moveArrowStart.left + movePx // 这里要加是因为往左话，movePx是负的
           newWidth = Math.max(20, this.moveArrowStart.width - movePx)
+          // console.log(`newLeft: ${newLeft}, newWidth: ${newWidth}`)
+          if (newWidth <= 20) {
+            return
+          }
         }
         if (newLeft < 0) {
           newLeft = 0
@@ -83,12 +84,10 @@ export default {
         // console.log(`onArrowMouseMove:`, JSON.stringify(this.moveArrowEnd))
       }
     },
-    onArrowLeave(event) {
-      console.log(`onArrowLeave`)
+    onEnd(event) {
+      // console.log(`onArrowLeave`)
       if (this.moveArrowStart) {
         this.moveArrowStart = null
-        document.removeEventListener('mousemove', this.onArrowMouseMove)
-        document.removeEventListener('mouseleave', this.onArrowLeave)
         this.isActive = false
 
         // let moveArrowEnd = this.moveArrowEnd

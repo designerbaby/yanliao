@@ -1,19 +1,22 @@
 <template>
-  <div :class="[$style.ArrowElement, isActive ? $style.isActive : '']"
-    @mouseup.stop="onArrowEleLeave"
-    @mousedown.prevent="onArrowEleMouseDown"
-  >
+  <Dragger :class="[$style.ArrowElement, isActive ? $style.isActive : '']"
+    @on-start="onStart"
+    @on-move="onMove"
+    @on-end="onEnd"
+    >
     <img src="@/assets/audioEditor/arrow-right.png">
-  </div>
+  </Dragger>
 </template>
 
 <script>
 import { Message } from 'element-ui'
 import { playState } from '@/common/utils/const'
 import { pxToTime, timeToPx } from '@/common/utils/helper'
+import Dragger from './Components/Dragger.vue'
 
 export default {
   name: 'ArrowElement',
+  components: { Dragger },
   props: ['pitch', 'index', 'canMove'],
   data() {
     return {
@@ -31,7 +34,7 @@ export default {
     }
   },
   methods: {
-    onArrowEleMouseDown(event) {
+    onStart(event) {
       if (this.$store.state.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -40,9 +43,6 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      document.addEventListener('mousemove', this.onArrowEleMouseMove)
-      document.addEventListener('mouseleave', this.onArrowEleLeave)
-      const target = event.target
       this.isActive = true
       console.log('onArrowEleMouseDown this.pitch:', this.pitch)
       const preTime = this.pitch.preTime
@@ -52,7 +52,7 @@ export default {
       }
       console.log('moveArrowEleStart:', JSON.stringify(this.moveArrowEleStart))
     },
-    onArrowEleMouseMove(event) {
+    onMove(event) {
       if (this.moveArrowEleStart) {
         // const parentNode = this.$el.parentNode
         const startX = this.moveArrowEleStart.clientX
@@ -75,12 +75,10 @@ export default {
         })
       }
     },
-    onArrowEleLeave(event) {
+    onEnd(event) {
       console.log('onArrowEleLeave')
       if (this.moveArrowEleStart) {
         this.moveArrowEleStart = null
-        document.removeEventListener('mousemove', this.onArrowEleMouseMove)
-        document.removeEventListener('mouseleave', this.onArrowEleLeave)
         this.isActive = false
 
         this.$emit('move-end', {

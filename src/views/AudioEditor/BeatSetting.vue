@@ -83,7 +83,6 @@ export default {
       this.toneList = data.data.tone_list
     },
     singleToneIdChange(value) {
-      console.log('singleToneIdChange:', value)
       this.toneList.forEach(item => {
         if (value === item.tone_id) {
           this.$store.dispatch('changeStoreState', { toneId: item.tone_id, toneName: item.name, auditUrl: item.audit_url })
@@ -93,8 +92,7 @@ export default {
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     bpmInputChange(value) {
-      this.$store.dispatch('changeStoreState', { bpm: value })
-      this.$store.dispatch('changeStoreState', { pitchChanged: true })
+      this.$store.dispatch('changeStoreState', { bpm: value, pitchChanged: true })
       this.$store.dispatch('getPitchLine')
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },

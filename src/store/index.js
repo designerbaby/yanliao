@@ -53,7 +53,7 @@ const defaultState = {
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
   typeContainerHeight: 250,
-  pitchChanged: false // 音块的长度/歌曲/曲速是否改动了
+  pitchChanged: false
 }
 
 const store = new Vuex.Store({
@@ -78,7 +78,6 @@ const store = new Vuex.Store({
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
     },
     pitchList: (state, getters) =>  {
-      console.log(`pitchList: getters, state.pitchChanged: ${state.pitchChanged}`)
       const stagePitches = state.stagePitches
       const pitches = []
       stagePitches.forEach(item => {
@@ -99,7 +98,7 @@ const store = new Vuex.Store({
           select: item.select,
           fu: item.fu,
           yuan: item.yuan,
-          preTime: state.pitchChanged ? 0 : item.preTime
+          preTime: state.pitchChanged || item.pitchChanged ? 0 : item.preTime
         }
         pitches.push(pitchItem)
       })
@@ -239,17 +238,13 @@ const store = new Vuex.Store({
       const pitchList = data.data.pitchList
       const stagePitches = [ ...state.stagePitches]
       // 合并数据
-      console.log('state.pitchChanged:', state.pitchChanged)
       for (let i = 0; i < pitchList.length; i += 1) {
         const item = stagePitches[i]
-        // 如果有这个属性，表示是手动修改过，或者是点编辑进来的情况
-        // if (item.hasOwnProperty('preTime')) {
-        //   continue
-        // }
         const isExist = item.hasOwnProperty('preTime')
-        if (state.pitchChanged || !isExist) {
+        if (state.pitchChanged || item.pitchChanged || !isExist) {
           Vue.set(item, 'preTime', pitchList[i].preTime)
         }
+        item.pitchChanged = false
       }
       commit('changeStoreState', { f0Draw, stagePitches, isPitchLineChanged: false, isGetF0Data: false, pitchChanged: false })
     },

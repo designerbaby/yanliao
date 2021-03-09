@@ -95,24 +95,24 @@ export default {
           result += "M "
         }
 
-        // if (i > 0) {
-        //     result += "L "
-        // }
-
-        if ((i - 1) % 3 ==0) {
-          result += "C "
+        if (i > 0) {
+            result += "L "
         }
+
+        // if ((i - 1) % 3 ==0) {
+        //   result += "C "
+        // }
         result += `${x},${y} `
       }
 
-      if (f0Data.length > 0) {
-        const mod = (f0Data.length - 1) % 3
-        const size = mod === 0 ? 0 : 3 - mod
+      // if (f0Data.length > 0) {
+      //   const mod = (f0Data.length - 1) % 3
+      //   const size = mod === 0 ? 0 : 3 - mod
 
-        for (let j = 0; j < size ; j += 1) {
-          result += `${lastX},${lastY} `
-        }
-      }
+      //   for (let j = 0; j < size ; j += 1) {
+      //     result += `${lastX},${lastY} `
+      //   }
+      // }
       return result
 
       // return drawSvgPath(points)
