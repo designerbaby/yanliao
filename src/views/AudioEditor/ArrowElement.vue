@@ -16,7 +16,7 @@ import Dragger from './Components/Dragger.vue'
 
 export default {
   name: 'ArrowElement',
-  components: { Dragger },
+  components: { Dragger, Message },
   props: ['pitch', 'index', 'canMove'],
   data() {
     return {
@@ -44,7 +44,7 @@ export default {
         return
       }
       this.isActive = true
-      console.log('onArrowEleMouseDown this.pitch:', this.pitch)
+      // console.log('onArrowEleMouseDown this.pitch:', this.pitch)
       const preTime = this.pitch.preTime
       this.moveArrowEleStart = {
         preTime,

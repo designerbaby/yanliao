@@ -2,7 +2,7 @@
     <div
       :class="[$style.container, className]"
       :style="styles"
-      @mouseup.stop.prevent="onMoveEnd"
+      @mouseup.stop.prevent="onArrowEleLeave"
       @mousedown.prevent="onMouseDown">
     <slot></slot>
   </div>
@@ -48,6 +48,9 @@ export default {
       document.body.appendChild(target)
       this.$emit('on-start', event)
     },
+    onArrowEleLeave(event) {
+      console.log(`onArrowEleLeave event: ${event}`)
+    }
   }
 }
 </script>

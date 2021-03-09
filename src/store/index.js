@@ -80,10 +80,22 @@ const store = new Vuex.Store({
     pitchList: (state, getters) =>  {
       const stagePitches = state.stagePitches
       const pitches = []
-      stagePitches.forEach(item => {
+      for (let i = 0; i < stagePitches.length; i += 1) {
+        const item = stagePitches[i]
         const duration = pxToTime(item.width, state.noteWidth, state.bpm)
         const pitch = getters.firstPitch - (item.top / item.height)
         const startTime = pxToTime(item.left, state.noteWidth, state.bpm)
+        let preTime = state.pitchChanged || item.pitchChanged ? 0 : item.preTime
+        const before = stagePitches[i - 1]
+        if (before) { // 确定当两个节拍有空格的时候，辅音不会重叠到前面的元音
+          const beforeEndTime = pxToTime(before.left + before.width, state.noteWidth, state.bpm)
+          if (beforeEndTime < startTime) {
+            if (startTime + item.preTime > beforeEndTime) {
+              preTime = 0
+              item.pitchChanged = true
+            }
+          }
+        }
         const pitchItem = {
           duration: duration,
           pitch: pitch,
@@ -98,10 +110,10 @@ const store = new Vuex.Store({
           select: item.select,
           fu: item.fu,
           yuan: item.yuan,
-          preTime: state.pitchChanged || item.pitchChanged ? 0 : item.preTime
+          preTime: preTime
         }
         pitches.push(pitchItem)
-      })
+      }
       return pitches
     },
     audioDuration: (state, getters) => {
@@ -191,6 +203,9 @@ const store = new Vuex.Store({
     },
     changeStagePitches({ commit }, { index, key, value }) {
       commit('changeStagePitches', { index, key, value })
+    },
+    changeStagePitchesByKey({ commit, state }, {}) {
+      // 用于批量更改stagePitches
     },
     async getPitchLine({ commit, state, getters }) {
       if (getters.pitchList.length <= 0) {

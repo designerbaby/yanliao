@@ -41,7 +41,7 @@ export default {
   },
   mounted() {
     // console.log(`PitchElement mounted`)
-    this.handleSatgePitches()
+    this.handleStagePitches()
     if (this.$store.state.isStagePitchesChanged ||
     this.$store.state.isPitchLineChanged ||
     this.$store.state.mode === modeState.StateElement) {
@@ -151,7 +151,7 @@ export default {
       pitch.preTime = preTime
       this.$store.dispatch('changeStoreState', { isStagePitchElementChanged: true })
     },
-    async handleSatgePitches() {
+    async handleStagePitches() {
       const stagePitches = this.$store.state.stagePitches
       if (stagePitches.length <= 0) {
         // Message.error('没有画音块，所以不去获取音符')

@@ -170,9 +170,7 @@ export default {
           this.$store.dispatch('changeStagePitches', { index: i, key: 'hanzi', value: this.lyricArray[i] || '啦', pitchChanged: true })
         }
       } else {
-        console.log('saveHanzi1:', this.index, this.stagePitches[this.index])
         this.$store.dispatch('changeStagePitches', { index: this.index, key: 'hanzi', value: this.lyricForm.lyric, pitchChanged: true })
-        console.log('saveHanzi2:', this.index, this.stagePitches[this.index])
       }
     },
     savePinyin() {
