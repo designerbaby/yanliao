@@ -64,8 +64,7 @@ export default {
         } else if (this.direction === 'left') {
           newLeft = this.moveArrowStart.left + movePx // 这里要加是因为往左话，movePx是负的
           newWidth = Math.max(20, this.moveArrowStart.width - movePx)
-          // console.log(`newLeft: ${newLeft}, newWidth: ${newWidth}`)
-          if (newWidth <= 20) {
+          if (newLeft > (this.moveArrowStart.left + this.moveArrowStart.width)) {
             return
           }
         }

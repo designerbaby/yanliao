@@ -172,6 +172,7 @@ export default {
           }
         }
       }
+      this.$store.dispatch('getPitchLine')
     },
     scrollTo(left) {
       this.$refs.rightArea.scrollLeft = left
@@ -272,7 +273,7 @@ export default {
         target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
         target.dataset.left = pitch.left
         target.dataset.top = pitch.top
-        pitch.pitchChanged = true
+        // pitch.pitchChanged = true
         if (isPositionChanged) {
           this.checkPitchDuplicated()
         }
@@ -389,6 +390,8 @@ export default {
         red: false,
         pinyinList: ['la'],
         select: 0,
+        fu: 'l',
+        yuan: 'a'
       });
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0`)
       this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
@@ -396,7 +399,6 @@ export default {
       this.checkPitchDuplicated()
       this.checkPitchesOverStage()
     },
-
     onArrowMoveEnd({ width, left, top, target, direction }, index) {
       const pitch = this.stagePitches[index]
       // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
@@ -441,9 +443,7 @@ export default {
       this.$refs.LyricCorrect.showLyric(lyric, index)
     },
     beatLyricSaveAllPinyin() {
-      this.$refs.BeatLyric.savePinyin()
-      this.$refs.BeatLyric.savePinyinList()
-      this.$refs.BeatLyric.saveHanzi()
+      this.$refs.BeatLyric.save()
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)

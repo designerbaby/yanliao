@@ -53,7 +53,7 @@ const defaultState = {
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
   typeContainerHeight: 250,
-  pitchChanged: false
+  pitchChanged: false // 是否全部重置
 }
 
 const store = new Vuex.Store({
@@ -87,15 +87,30 @@ const store = new Vuex.Store({
         const startTime = pxToTime(item.left, state.noteWidth, state.bpm)
         let preTime = state.pitchChanged || item.pitchChanged ? 0 : item.preTime
         const before = stagePitches[i - 1]
-        if (before) { // 确定当两个节拍有空格的时候，辅音不会重叠到前面的元音
+
+        // 首个的辅音最短不能小于0
+        if ((startTime - preTime) < 0) {
+          preTime = 0
+          item.pitchChanged = true
+        }
+
+        // 下面因为一些辅音和元音的限制，需要重置
+        if (before) {
           const beforeEndTime = pxToTime(before.left + before.width, state.noteWidth, state.bpm)
-          if (beforeEndTime < startTime) {
-            if (startTime + item.preTime > beforeEndTime) {
+          if (beforeEndTime < startTime) { // 前后两个有空格，辅音不会重叠到前面的元音
+            if ((startTime - item.preTime) < beforeEndTime) {
+              preTime = 0
+              item.pitchChanged = true
+            }
+          } else if (beforeEndTime === startTime) { // 前后两个没有空格
+            const beforeStartTimeAndpitch = pxToTime(before.left + state.noteWidth, state.noteWidth, state.bpm)
+            if ((startTime - item.preTime) < beforeStartTimeAndpitch) {
               preTime = 0
               item.pitchChanged = true
             }
           }
         }
+
         const pitchItem = {
           duration: duration,
           pitch: pitch,
@@ -154,12 +169,6 @@ const store = new Vuex.Store({
       const f0 = state.f0Draw
       f0[index] = value
       state.f0Draw = [...f0]
-    },
-    changeStagePitches(state, { index, key, value }) {
-      // console.log(`changeStagePitches, index: ${index}, k: ${key}, value: ${value}`,)
-      const stagePitches = state.stagePitches
-      stagePitches[index][key] = value
-      state.stagePitches = [...stagePitches]
     }
   },
   actions: {
@@ -200,12 +209,6 @@ const store = new Vuex.Store({
         tensionMap[x] = v
       }
       commit('changeStoreState', { tensionMap, isTensionChanged: true })
-    },
-    changeStagePitches({ commit }, { index, key, value }) {
-      commit('changeStagePitches', { index, key, value })
-    },
-    changeStagePitchesByKey({ commit, state }, {}) {
-      // 用于批量更改stagePitches
     },
     async getPitchLine({ commit, state, getters }) {
       if (getters.pitchList.length <= 0) {

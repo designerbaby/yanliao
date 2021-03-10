@@ -28,7 +28,6 @@
 
 <script>
 import ArrowElement from './ArrowElement.vue'
-import { getYinsu } from '@/api/audio'
 import { Message } from 'element-ui'
 import { timeToPx } from '@/common/utils/helper'
 import { modeState } from '@/common/utils/const'
@@ -40,14 +39,6 @@ export default {
     }
   },
   mounted() {
-    // console.log(`PitchElement mounted`)
-    this.handleStagePitches()
-    if (this.$store.state.isStagePitchesChanged ||
-    this.$store.state.isPitchLineChanged ||
-    this.$store.state.mode === modeState.StateElement) {
-      // this.$store.dispatch('getPitchLine', { forcePreTime: false })
-      this.$store.dispatch('getPitchLine')
-    }
   },
   computed: {
     stageWidth() {
@@ -150,24 +141,6 @@ export default {
       const pitch = this.stagePitches[index]
       pitch.preTime = preTime
       this.$store.dispatch('changeStoreState', { isStagePitchElementChanged: true })
-    },
-    async handleStagePitches() {
-      const stagePitches = this.$store.state.stagePitches
-      if (stagePitches.length <= 0) {
-        // Message.error('没有画音块，所以不去获取音符')
-        return
-      }
-      let pinyin = []
-      stagePitches.forEach(item => {
-        pinyin.push(item.pinyin)
-      })
-      const res = await getYinsu({pin_yin: pinyin})
-      const yinsu = res.data.data.yin_su
-      for (let i = 0; i < stagePitches.length; i += 1) {
-        const item = stagePitches[i]
-        this.$set(item, 'fu', yinsu[item.pinyin].f)
-        this.$set(item, 'yuan', yinsu[item.pinyin].y)
-      }
     }
   },
   components: {

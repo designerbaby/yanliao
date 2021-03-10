@@ -89,12 +89,10 @@ export default {
         }
       })
       this.$store.dispatch('getPitchLine')
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     bpmInputChange(value) {
       this.$store.dispatch('changeStoreState', { bpm: value, pitchChanged: true })
       this.$store.dispatch('getPitchLine')
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     playerButtonClick() {
       this.toneList.forEach(item => {

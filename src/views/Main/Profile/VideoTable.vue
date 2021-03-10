@@ -54,19 +54,12 @@
     >
     </Pagination>
     <CommonDialog :show="dialogShow" titleText="确定删除该视频吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
-    <Dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
-      <div class="video-container">
-        <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo">
-          您的浏览器不支持 video 标签。
-        </video>
-        <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
-      </div>
-    </Dialog>
     <div class="empty-box" v-if="this.list.length === 0 && this.dataReady === true">
       <img class="empty-img" src="@/assets/empty.png" alt="" />
       <div class="empty-text">还没有上传视频哦~</div>
       <div class="empty-tips">点击页面右上角"发布视频"</div>
     </div>
+    <VideoDialog ref="VideoDialog"></VideoDialog>
     <VideoDescDialog ref="VideoDescriptor" @getList="getList"></VideoDescDialog>
   </div>
 </template>
@@ -77,6 +70,7 @@
 import { reportEvent } from '@/common/utils/helper'
 import CommonDialog from '@/common/components/CommonDialog'
 import VideoDescDialog from './Components/VideoDescDialog'
+import VideoDialog from './Components/VideoDialog'
 import {
   Table,
   TableColumn,
@@ -97,50 +91,17 @@ export default {
     TableColumn,
     Pagination,
     CommonDialog,
-    VideoDescDialog
+    VideoDescDialog,
+    VideoDialog
   },
   data() {
     return {
-      videoDialogShow: false,
       list: [],
       currentPage: 1,
       dialogShow: false,
       total: 0,
       targetId: '',
-      currentVideoUrl: '',
-      dataReady: false,
-    }
-  },
-  computed: {
-    videoGroup() {
-      const currentVideoUrl = this.currentVideoUrl
-      const type = currentVideoUrl.split(currentVideoUrl)[1] || 'mp4'
-      switch (type) {
-        case 'ogg':
-          return {
-            url: currentVideoUrl,
-            type: 'video/ogg'
-          }
-          break
-        case 'webm':
-          return {
-            url: currentVideoUrl,
-            type: 'video/webm'
-          }
-          break
-        case 'mov':
-          return {
-            url: currentVideoUrl,
-            type: 'video/mov'
-          }
-          break
-        case 'mp4':
-          return {
-            url: currentVideoUrl,
-            type: 'video/mp4'
-          }
-          break
-      }
+      dataReady: false
     }
   },
   mounted() {
@@ -148,21 +109,14 @@ export default {
     reportEvent('person-page-myvideotab-exposure')
   },
   methods: {
-    videoDialogClose() {
-      const video = document.querySelector('.video')
-      video.pause()
-    },
     coverClick(row) {
+      console.log('coverClick:', row)
       reportEvent('person-page-videocover-click')
       if (row.control.ban_play) {
         Message.error(row.control.ban_play_msg)
         return
       }
-      this.videoDialogShow = true
-      this.currentVideoUrl = row.play_info[0].url
-      this.$nextTick(() => {
-        this.$refs.dialogVideo.play()
-      })
+      this.$refs.VideoDialog.show(row)
     },
     getList() { // 获取视频列表
       const p = {
@@ -222,12 +176,6 @@ export default {
     },
     closeDialog() {
       this.dialogShow = false
-    },
-    closeButtonClick() {
-      this.videoDialogShow = false
-      this.$nextTick(() => { // 暂停视频
-        this.$refs.dialogVideo.pause()
-      })
     },
     currentPageChange() {
       this.getList()
@@ -361,25 +309,25 @@ export default {
 </style>
 
 <style lang="less">
-  .video-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    .close-button {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-      margin: -20px 10px;
-    }
-  }
-  .video-dialog {
-    .el-dialog {
-      background: none;
-      box-shadow: none;
-      text-align: center;
-      .el-dialog__header {
-        display: none;
-      }
-    }
-  }
+  // .video-container {
+  //   position: relative;
+  //   display: flex;
+  //   justify-content: center;
+  //   .close-button {
+  //     width: 20px;
+  //     height: 20px;
+  //     cursor: pointer;
+  //     margin: -20px 10px;
+  //   }
+  // }
+  // .video-dialog {
+  //   .el-dialog {
+  //     background: none;
+  //     box-shadow: none;
+  //     text-align: center;
+  //     .el-dialog__header {
+  //       display: none;
+  //     }
+  //   }
+  // }
 </style>
