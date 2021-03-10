@@ -2,35 +2,24 @@
   <div :class="$style.PitchElement"
     ref="PitchElement"
     :style="{ height: `${stageHeight}px`, width: `${stageWidth}px` }">
-    <template v-for="(it, index) in yinsuStagePitches">
-      <div 
+    <template v-for="(it, index) in stagePitches">
+      <div
         :key="index"
-        slot="reference" 
-        :class="$style.container" 
-        :data-left="it.left"
-        :data-top="it.top"
-        :style="{
-          width: `${it.width}px`,
-          height: `${it.height}px`,
-          transform: `translate(${it.left}px, ${it.top}px)`
-        }"
+        slot="reference"
+        :class="$style.container"
       >
-        <div 
+        <div
           :class="$style.fu"
-          :style="{
-            width: `${it.width}px`,
-            transform: `translate(-10px)`
-          }"
+          data-ele-type="fu"
+          :style="getFuStyles(it)"
         >
           {{ it.fu }}
-          <ArrowElement :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
+          <ArrowElement :pitch="it" :index="index" @move="onArrowMove($event, index)" @move-end="onArrowMoveEnd($event, index)" :canMove="canMove"/>
         </div>
-        <div 
+        <div
           :class="$style.yuan"
-          :style="{
-            width: `${it.width}px`,
-            height: `${it.height}px`
-          }"
+          data-ele-type="yuan"
+          :style="getYuanStyles(index)"
         >{{ it.yuan }}</div>
       </div>
     </template>
@@ -39,7 +28,9 @@
 
 <script>
 import ArrowElement from './ArrowElement.vue'
-import { getYinsu } from '@/api/audio'
+import { Message } from 'element-ui'
+import { timeToPx } from '@/common/utils/helper'
+import { modeState } from '@/common/utils/const'
 
 export default {
   name: 'PitchElement',
@@ -48,11 +39,6 @@ export default {
     }
   },
   mounted() {
-    // if (this.$store.state.isStagePitchElementChanged
-    //   || this.$store.state.isStagePitchesChanged
-    //   || this.$store.state.mode === 2) { // 元辅音变化或者音块变化或者切换模式，都要重新去获取元辅音的内容
-    //     this.$store.dispatch('getPitchLine')
-    // }
   },
   computed: {
     stageWidth() {
@@ -61,33 +47,101 @@ export default {
     stageHeight() {
       return this.$store.getters.stageHeight
     },
-    yinsuStagePitches() {
-      return this.handleSatgePitches(this.$store.state.stagePitches)
+    stagePitches() {
+      return this.$store.state.stagePitches
     }
   },
-  mounted() {},
   methods: {
-    onArrowMoveEnd({ width, left, target }, index) {
+    timeToPx(time) {
+      const { noteWidth, bpm } = this.$store.state
+      const px = timeToPx(time, noteWidth, bpm)
+      return px
+    },
+    getStyles(it, width, left) {
+      return {
+        width: `${width}px`,
+        height: `${it.height}px`,
+        left: `${left}px`,
+        top: `${it.top}px`
+      }
+    },
+    getFuStyles(it) {
+      const width = this.timeToPx(it.preTime)
+      let left = it.left - width
+      if (left <= 0) { // 最小不能为0
+        left = 0
+      }
+      return this.getStyles(it, width, left)
+    },
+    getYuanStyles(index) {
+      const it = this.stagePitches[index]
+      const next = this.stagePitches[index + 1]
+
+      let width = it.width
+      const end = it.width + it.left // The end position of current pitch
+
+      if (next) {
+        const startPxOfNext = next.left
+        if (end === startPxOfNext) {
+          width = width - this.timeToPx(next.preTime)
+        }
+      }
+
+      // console.log(`getYuanStyles:`, it.width, width)
+      return this.getStyles(it, width, it.left)
+    },
+    onArrowMove({ preTime }, index) {
+      // console.log(`preTime: ${preTime}, startPreTime: ${startPreTime}`)
       const pitch = this.stagePitches[index]
 
-      console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, target: ${target}`)
-      console.log('pitch:', pitch)
-    },
-    async handleSatgePitches(stagePitches) {
-      let pinyin = []
-      stagePitches.forEach(item => {
-        pinyin.push(item.pinyin)
+      const it = {...pitch, preTime }
+      const fuStyles = this.getFuStyles(it)
+      const yuanStyles = this.getYuanStyles(index)
+
+      const eleItem = this.$el.childNodes[index]
+      const eleFu = eleItem.querySelector(`[data-ele-type="fu"]`)
+      const eleYuan = eleItem.querySelector(`[data-ele-type="yuan"]`)
+
+      Object.keys(fuStyles).forEach(k => {
+        eleFu.style[k] = fuStyles[k]
       })
-      const res = await getYinsu({pin_yin: pinyin})
-      console.log('getYinsu:', res)
-      const yinsu = res.data.data.yin_su
-      for (let i = 0; i < stagePitches.length; i += 1) {
-        const item = stagePitches[i]
-        item.fu = yinsu[item.pinyin].f
-        item.yuan = yinsu[item.pinyin].y
-      }
-      return stagePitches
+
+      Object.keys(yuanStyles).forEach(k => {
+        eleYuan.style[k] = yuanStyles[k]
+      })
     },
+    canMove(startPreTime, newPreTime, index) {
+      if (newPreTime <= 20) { // 最小只能移动到30
+        return false
+      }
+      if (index <= 0) {
+        return true
+      }
+      const { noteWidth, bpm } = this.$store.state
+      const current = this.stagePitches[index]
+      const before = this.stagePitches[index - 1]
+      const beforeEnd = before.left + before.width
+      const width = timeToPx(startPreTime, noteWidth, bpm)
+      const left = current.left - width
+      const newLeft = current.left - timeToPx(newPreTime, noteWidth, bpm)
+      // console.log(`beforeEnd: ${beforeEnd}, left: ${left}, newLeft: ${newLeft}, `)
+      if (beforeEnd <= left) { // 前一个和当前的有空格
+        if (newLeft < beforeEnd) {
+          return false
+        }
+      } else { // 前一个和当前的没空格
+        if (newLeft < (before.left + noteWidth)) {
+          return false
+        }
+      }
+      return true
+    },
+    onArrowMoveEnd({ preTime }, index) {
+      console.log(`onArrowMoveEnd, preTime:${preTime}`, index)
+      const pitch = this.stagePitches[index]
+      pitch.preTime = preTime
+      this.$store.dispatch('changeStoreState', { isStagePitchElementChanged: true })
+    }
   },
   components: {
     ArrowElement
@@ -106,10 +160,11 @@ export default {
 .container {
   clear: both;
   border-radius: 3px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 25px;
   padding-left: 5px;
   position: relative;
+  color: #fff;
 }
 
 .fu {
@@ -118,14 +173,16 @@ export default {
   left: 0;
   background: #1F9C7C;
   border-radius: 4px 0px 0px 4px;
+  padding: 0 0 0 5px;
 }
 
 .yuan {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   background: #016F53;
   border-radius: 0px 4px 4px 0px;
+  padding: 0 0 0 5px;
 }
 
 </style>

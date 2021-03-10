@@ -1,15 +1,15 @@
 <template>
-  <div 
-    :class="$style.PitchLine" 
+  <div
+    :class="$style.PitchLine"
     ref="PitchLine"
     :style="{ height: `${stageHeight}px`, width: `${stageWidth}px`, 'z-index': `${zIndex}` }"
   >
-    <svg 
+    <svg
       xmlns="http://www.w3.org/2000/svg"
-      version="1.1" 
-      ref="svgStage" 
-      :width="`${stageWidth}px`" 
-      :height="`${stageHeight}px`" 
+      version="1.1"
+      ref="svgStage"
+      :width="`${stageWidth}px`"
+      :height="`${stageHeight}px`"
       @mousedown.stop="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup.stop="onMouseUp"
@@ -25,7 +25,7 @@
 
 <script>
 import { Message } from 'element-ui'
-import { playState } from "@/common/utils/const"
+import { playState, modeState } from "@/common/utils/const"
 // import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
@@ -62,7 +62,6 @@ export default {
       return this.$store.state.playState
     },
     svgData() {
-      // console.log(`svgData`)
       return this.toHandleF0Data(this.$store.state.f0AI)
     },
     svgDataDraw() {
@@ -70,10 +69,6 @@ export default {
     }
   },
   mounted() {
-    if (this.$store.state.isPitchLineChanged
-    || this.$store.state.isStagePitchesChanged || this.$store.state.mode === 1) { // 音高线有更改才去获取新的音高线
-      this.$store.dispatch('getPitchLine')
-    }
   },
   methods: {
     toHandleF0Data (f0Data) {
@@ -95,11 +90,15 @@ export default {
           result += "M "
         }
 
+        // if (i > 0) {
+        //     result += "L "
+        // }
+
         if ((i - 1) % 3 ==0) {
           result += "C "
         }
         result += `${x},${y} `
-      } 
+      }
 
       if (f0Data.length > 0) {
         const mod = (f0Data.length - 1) % 3

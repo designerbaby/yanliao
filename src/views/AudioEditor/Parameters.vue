@@ -11,21 +11,21 @@
       <span :class="[$style.text, $style.rightBottom]" :style="{left: `${clientWidth - 105}px`}">{{ typeParas.minus }}</span>
     </div>
     <div :class="$style.drawStage">
-      <Drawable 
+      <Drawable
         :className="$style.draw"
         :styles="stageStyle"
         :valueHandler="valueHandler"
         @on-draw="onDraw"
         >
-        <svg 
+        <svg
           xmlns="http://www.w3.org/2000/svg"
-          version="1.1" 
+          version="1.1"
           :class="$style.svg"
           >
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
-            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 0"/>
-            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === 1"/>
+            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === typeModeState.StateVolume"/>
+            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === typeModeState.StateTension"/>
           </g>
         </svg>
       </Drawable>
@@ -35,10 +35,16 @@
 
 <script>
 import Drawable from './Components/Drawable.vue'
+import { typeModeState } from '@/common/utils/const'
 
 export default {
   name: 'Parameters',
   components: { Drawable },
+  data() {
+    return {
+      typeModeState: typeModeState
+    }
+  },
   computed: {
     clientWidth() {
       return document.documentElement.clientWidth
@@ -59,9 +65,9 @@ export default {
     typeName() {
       const typeMode = this.typeMode
       switch (typeMode) {
-        case 0:
+        case typeModeState.StateVolume:
           return '响度'
-        case 1:
+        case typeModeState.StateTension:
           return '张力'
         default:
           return ''
@@ -70,30 +76,30 @@ export default {
     typeParas() {
       const typeMode = this.typeMode
       switch (typeMode) {
-        case 0:
+        case typeModeState.StateVolume:
           return {
             plus: '+12 dB',
             minus: '-12 dB'
           }
-        case 1: 
+        case typeModeState.StateTension:
           return {
             plus: '紧张',
             minus: '放松'
           }
-        default: 
+        default:
           return {}
       }
     },
     typeRange() {
       const typeMode = this.typeMode
       switch (typeMode) {
-        case 0: return 2400
-        case 1: return 200
+        case typeModeState.StateVolume: return 2400
+        case typeModeState.StateTension: return 200
         default: return 100
       }
     },
     stageStyle() {
-      return { 
+      return {
         width: `${this.stageWidth}px`,
         left: `-${this.$store.state.stage.scrollLeft}px`,
         height: `${this.typeContainerHeight}px`
@@ -113,9 +119,9 @@ export default {
   methods: {
     onDraw(values) {
       // console.log(`onDraw values:`, values)
-      if (this.typeMode === 0) {
+      if (this.typeMode === typeModeState.StateVolume) {
         this.$store.dispatch('changeVolumeMap', { values })
-      } else {
+      } else if (this.typeMode === typeModeState.StateTension) {
         this.$store.dispatch('changeTensionMap', { values })
       }
     },
@@ -133,7 +139,7 @@ export default {
       let y = this.typeContainerHeight / 2
       if (db > 0) { // 上半部分
         y = (this.typeContainerHeight / 2) - pxPerDb * db
-      } else if (db < 0) { 
+      } else if (db < 0) {
         y = Math.abs(pxPerDb * db) + (this.typeContainerHeight / 2)
       }
       return y
@@ -169,7 +175,7 @@ export default {
         }
         result += `${x},${y} `
       }
-      
+
       if (resultArr.length > 0) {
         const lastX = Math.round(resultArr[resultArr.length - 1].x)
 
@@ -183,14 +189,14 @@ export default {
 
         result += `L ${lastX},125 ${this.stageWidth},125 `
       }
-    
+
       return result.trimRight()
     },
     valueHandler(x, y) {
       return this.positionY2Db(y)
     },
     closeParameter() {
-      this.$store.dispatch('changeStoreState', { typeMode: -1 })
+      this.$store.dispatch('changeStoreState', { typeMode: typeModeState.StateNone })
     }
   }
 }

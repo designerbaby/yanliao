@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import profile from './profile'
-import { pitchList, playState } from '@/common/utils/const'
+import { pitchList, playState, modeState, typeModeState } from '@/common/utils/const'
 import { getF0Data } from '@/api/audio'
 import { pxToTime } from '@/common/utils/helper'
 import { Message } from 'element-ui'
@@ -32,19 +32,18 @@ const defaultState = {
     scrollTop: 0 // 垂直滚动条位置
   },
   maxPitchRight: 0, // 音块最右边的位置
-  mode: 0, // 0 代表音符模式, 1代表音高线模式
-  typeMode: -1, // 附加模式类型: 0 代表响度, 1 代表张力
+  mode: modeState.StatePitch, // 模式
+  typeMode: typeModeState.StateNone, // 附加模式类型
   playState: playState.StateNone, // 播放状态
   stagePitches: [], // 舞台音块
-  // stagePitchElements: [], // 舞台音块+元辅音
-  // pitchListElement: [], 
   isStagePitchesChanged: false, // 舞台音块是否有改变
   isPitchLineChanged: false, // 音高线是否有改变
   isVolumeChanged: false, // 响度是否有改变
   isTensionChanged: false, // 张力是否有改变
-  // isStagePitchElementChanged: false, // 舞台音块+元辅音是否有改变
+  isStagePitchElementChanged: false, // 元辅音是否有改变
   f0AI: [], // 音高线虚线部分
   f0Draw: [], // 音高线实线部分
+  f0Xy: {}, // 音高线的坐标部分
   volumeMap: [], // 响度原始map数据
   tensionMap: [], // 张力原始map数据
   changedLineMap: {},
@@ -53,7 +52,8 @@ const defaultState = {
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
-  typeContainerHeight: 250
+  typeContainerHeight: 250,
+  pitchChanged: false // 是否全部重置
 }
 
 const store = new Vuex.Store({
@@ -77,17 +77,40 @@ const store = new Vuex.Store({
       // 10是因为数据的每一项间隔10ms
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
     },
-    // stagePitches: state => {
-    //   return this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
-    // },
     pitchList: (state, getters) =>  {
       const stagePitches = state.stagePitches
-      // console.log('stagePitches:', stagePitches)
       const pitches = []
-      stagePitches.forEach(item => {
+      for (let i = 0; i < stagePitches.length; i += 1) {
+        const item = stagePitches[i]
         const duration = pxToTime(item.width, state.noteWidth, state.bpm)
         const pitch = getters.firstPitch - (item.top / item.height)
         const startTime = pxToTime(item.left, state.noteWidth, state.bpm)
+        let preTime = state.pitchChanged || item.pitchChanged ? 0 : item.preTime
+        const before = stagePitches[i - 1]
+
+        // 首个的辅音最短不能小于0
+        if ((startTime - preTime) < 0) {
+          preTime = 0
+          item.pitchChanged = true
+        }
+
+        // 下面因为一些辅音和元音的限制，需要重置
+        if (before) {
+          const beforeEndTime = pxToTime(before.left + before.width, state.noteWidth, state.bpm)
+          if (beforeEndTime < startTime) { // 前后两个有空格，辅音不会重叠到前面的元音
+            if ((startTime - item.preTime) < beforeEndTime) {
+              preTime = 0
+              item.pitchChanged = true
+            }
+          } else if (beforeEndTime === startTime) { // 前后两个没有空格
+            const beforeStartTimeAndpitch = pxToTime(before.left + state.noteWidth, state.noteWidth, state.bpm)
+            if ((startTime - item.preTime) < beforeStartTimeAndpitch) {
+              preTime = 0
+              item.pitchChanged = true
+            }
+          }
+        }
+
         const pitchItem = {
           duration: duration,
           pitch: pitch,
@@ -99,10 +122,13 @@ const store = new Vuex.Store({
           toneId: state.toneId,
           bpm: state.bpm,
           pinyinList: item.pinyinList,
-          select: item.select
+          select: item.select,
+          fu: item.fu,
+          yuan: item.yuan,
+          preTime: preTime
         }
         pitches.push(pitchItem)
-      })
+      }
       return pitches
     },
     audioDuration: (state, getters) => {
@@ -143,12 +169,6 @@ const store = new Vuex.Store({
       const f0 = state.f0Draw
       f0[index] = value
       state.f0Draw = [...f0]
-    },
-    changeStagePitches(state, { index, key, value }) {
-      // console.log(`changeStagePitches, index: ${index}, k: ${key}, value: ${value}`,)
-      const stagePitches = state.stagePitches
-      stagePitches[index][key] = value
-      state.stagePitches = [...stagePitches]
     }
   },
   actions: {
@@ -181,7 +201,6 @@ const store = new Vuex.Store({
       for (const [x, v] of values) {
         volumeMap[x] = v
       }
-      // console.log('volumeMap:', volumeMap)
       commit('changeStoreState', { volumeMap, isVolumeChanged: true })
     },
     changeTensionMap({ commit, state }, { values }) {
@@ -190,9 +209,6 @@ const store = new Vuex.Store({
         tensionMap[x] = v
       }
       commit('changeStoreState', { tensionMap, isTensionChanged: true })
-    },
-    changeStagePitches({ commit }, { index, key, value }) {
-      commit('changeStagePitches', { index, key, value })
     },
     async getPitchLine({ commit, state, getters }) {
       if (getters.pitchList.length <= 0) {
@@ -217,7 +233,7 @@ const store = new Vuex.Store({
       const f0Draw = []
       const changed = state.changedLineMap
       // 修正音高线
-      for (const [index, value] of f0Data.entries()) {      
+      for (const [index, value] of f0Data.entries()) {
         const x = Math.round(getters.pitchWidth * index)
         // const preX = Math.round(getters.pitchWidth * (index - 1))
         const nextX = Math.round(getters.pitchWidth * (index + 1))
@@ -236,7 +252,19 @@ const store = new Vuex.Store({
           f0Draw[index] = value
         }
       }
-      commit('changeStoreState', { f0Draw, isPitchLineChanged: false, isGetF0Data: false })
+
+      const pitchList = data.data.pitchList
+      const stagePitches = [ ...state.stagePitches]
+      // 合并数据
+      for (let i = 0; i < pitchList.length; i += 1) {
+        const item = stagePitches[i]
+        const isExist = item.hasOwnProperty('preTime')
+        if (state.pitchChanged || item.pitchChanged || !isExist) {
+          Vue.set(item, 'preTime', pitchList[i].preTime)
+        }
+        item.pitchChanged = false
+      }
+      commit('changeStoreState', { f0Draw, stagePitches, isPitchLineChanged: false, isGetF0Data: false, pitchChanged: false })
     },
     updateStageSize({ commit, state }) {
       const windowWidth = window.innerWidth
@@ -245,7 +273,7 @@ const store = new Vuex.Store({
         stage: {
           ...state.stage,
           width
-        } 
+        }
       })
     }
   },

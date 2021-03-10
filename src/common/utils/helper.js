@@ -8,7 +8,7 @@ export const isTestEnv = !isProdEnv
 // export const isTestEnv = (/dev|test|localhost/i).test(location.hostname)
 
 // 获取url上各个信息
-export const getUrlParameters = _ => { 
+export const getUrlParameters = _ => {
   const match = window.location.search.match(/([^?=&]+)(=([^&]*))/g)
   if (match) {
     return match.reduce((a, v) => (a[v.slice(0, v.indexOf('='))] = process.browser && decodeURIComponent(v.slice(v.indexOf('=') + 1)), a), {}) // eslint-disable-line
@@ -40,7 +40,7 @@ export const safeParse = (str, def) => {
     return JSON.parse(str)
   } catch (error) {
     return def
-  } 
+  }
 }
 
 // 将像素转成相应时间的方法
@@ -58,7 +58,8 @@ export const isChineseChar = str => {
   return (/^((?![\u3000-\u303F])[\u2E80-\uFE4F]|\·)*(?![\u3000-\u303F])[\u2E80-\uFE4F](\·)*$/.test(str))
 }
 
-export const isDuplicated = (pitches) => { // 检测是否重叠了
+// 检测是否重叠了
+export const isDuplicated = (pitches) => {
   for (let i = 0; i < pitches.length; i += 1) {
     if (pitches[i].red) {
       return true

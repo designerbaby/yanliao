@@ -248,6 +248,18 @@ export const playState = {
   StateEnded: 3 // 播放完成
 }
 
+export const modeState = {
+  StatePitch: 0, // 音符模式
+  StateLine: 1,  // 音高线模式
+  StateElement: 2 // 音素模式
+}
+
+export const typeModeState = {
+  StateNone: -1, // 初识状态
+  StateVolume: 0, // 响度模式
+  StateTension: 1 // 张力模式
+}
+
 // 我的音源的音源状态
 export const audioStatusMap = {
   1: '审核中',
@@ -256,4 +268,15 @@ export const audioStatusMap = {
   4: '音源合成失败',
   5: '已上线',
   6: '已下线'
+}
+
+// 错误码对应信息
+export const errorMsg = {
+  100000: 'token无效，用户未登录',
+  100011: '参数错误',
+  100012: '登录后台服务错误',
+  100013: '业务后台错误',
+  100014: '路由不存在',
+  100015: '请求参数为空',
+  100016: '设置header错误'
 }

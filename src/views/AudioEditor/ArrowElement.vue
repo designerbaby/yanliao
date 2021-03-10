@@ -1,19 +1,23 @@
 <template>
-  <div :class="[$style.ArrowElement, isActive ? $style.isActive : '']"
-    @mouseup.stop="onArrowEleLeave"
-    @mousedown.prevent="onArrowEleMouseDown"
-  >
+  <Dragger :class="[$style.ArrowElement, isActive ? $style.isActive : '']"
+    @on-start="onStart"
+    @on-move="onMove"
+    @on-end="onEnd"
+    >
     <img src="@/assets/audioEditor/arrow-right.png">
-  </div>
+  </Dragger>
 </template>
 
 <script>
 import { Message } from 'element-ui'
 import { playState } from '@/common/utils/const'
+import { pxToTime, timeToPx } from '@/common/utils/helper'
+import Dragger from './Components/Dragger.vue'
 
 export default {
   name: 'ArrowElement',
-  props: ['pitch'],
+  components: { Dragger, Message },
+  props: ['pitch', 'index', 'canMove'],
   data() {
     return {
       isActive: false,
@@ -24,10 +28,13 @@ export default {
   computed: {
     playState() {
       return this.$store.state.playState
+    },
+    stagePitches() {
+      return this.$store.state.stagePitches
     }
   },
   methods: {
-    onArrowEleMouseDown(event) {
+    onStart(event) {
       if (this.$store.state.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -36,44 +43,42 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      document.addEventListener('mousemove', this.onArrowEleMouseMove)
-      document.addEventListener('mouseleave', this.onArrowEleLeave)
-      const target = event.target
       this.isActive = true
+      // console.log('onArrowEleMouseDown this.pitch:', this.pitch)
+      const preTime = this.pitch.preTime
       this.moveArrowEleStart = {
-        width: this.pitch.fuwidth,   // 辅音宽度
-        left: this.pitch.fuleft, // 辅音left
+        preTime,
         clientX: event.clientX
       }
       console.log('moveArrowEleStart:', JSON.stringify(this.moveArrowEleStart))
     },
-    onArrowEleMouseMove(event) {
+    onMove(event) {
       if (this.moveArrowEleStart) {
-        const parentNode = this.$el.parentNode
+        // const parentNode = this.$el.parentNode
+        const startX = this.moveArrowEleStart.clientX
+        const endX = event.clientX
+        const movePx = startX - endX
 
-        const movePx = event.clientX - this.moveArrowEleStart.clientX
-        let newLeft = newLeft = this.moveArrowEleStart.left + movePx
-        let newWidth = this.moveArrowEleStart.width - movePx
-        
-        if (newLeft < 0) {
-          newLeft = 0
+        const moveTime = pxToTime(movePx, this.$store.state.noteWidth, this.$store.state.bpm)
+        const newPreTime = this.moveArrowEleStart.preTime + moveTime
+
+        const move = this.canMove(this.moveArrowEleStart.preTime, newPreTime, this.index)
+        if (!move) {
+          return
         }
-
-        parentNode.style.width = `${newWidth}px`
-        parentNode.style.transform = `translate(${newLeft}px)`
         this.moveArrowEleEnd = {
-          width: newWidth,
-          left: newLeft,
-          target: parentNode
+          preTime: newPreTime
         }
+
+        this.$emit('move',  {
+          ...this.moveArrowEleEnd
+        })
       }
     },
-    onArrowEleLeave(event) {
+    onEnd(event) {
       console.log('onArrowEleLeave')
       if (this.moveArrowEleStart) {
         this.moveArrowEleStart = null
-        document.removeEventListener('mousemove', this.onArrowEleMouseMove)
-        document.removeEventListener('mouseleave', this.onArrowEleLeave)
         this.isActive = false
 
         this.$emit('move-end', {
@@ -100,6 +105,7 @@ export default {
     width: 100%;
     height: 100%;
     transform: scale(-1);
+    pointer-events: none;
   }
   &:hover {
     opacity: 1;

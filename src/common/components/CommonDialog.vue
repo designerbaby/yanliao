@@ -1,5 +1,5 @@
 <template>
-  <el-dialog
+  <Dialog
     :visible.sync="show"
     width="400px"
     custom-class="common-dialog-box"
@@ -11,17 +11,15 @@
       <button class="common-confirm-button common-dialog-button" @click="confirmButtonEvent">{{confirmButtonText}}</button>
       <button class="common-cancel-button common-dialog-button" @click="cancelButtonEvent">{{cancelButtonText}}</button>
     </div>
-  </el-dialog>
+  </Dialog>
 </template>
 
 <script>
-import { 
-  Dialog,
-} from 'element-ui'
+import { Dialog } from 'element-ui'
 
 export default {
   components: {
-    'el-dialog': Dialog,
+    Dialog
   },
   props: {
     show: {

@@ -10,7 +10,7 @@
       <div :class="$style.select">
         <Select
           filterable
-          :class="$style.selector" 
+          :class="$style.selector"
           :placeholder="'选择谁来演唱这首歌'"
           v-model="$store.state.toneId"
           @change="singleToneIdChange"
@@ -83,19 +83,16 @@ export default {
       this.toneList = data.data.tone_list
     },
     singleToneIdChange(value) {
-      console.log('singleToneIdChange:', value)
       this.toneList.forEach(item => {
         if (value === item.tone_id) {
           this.$store.dispatch('changeStoreState', { toneId: item.tone_id, toneName: item.name, auditUrl: item.audit_url })
         }
       })
       this.$store.dispatch('getPitchLine')
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     bpmInputChange(value) {
-      this.$store.dispatch('changeStoreState', { bpm: value })
+      this.$store.dispatch('changeStoreState', { bpm: value, pitchChanged: true })
       this.$store.dispatch('getPitchLine')
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     playerButtonClick() {
       this.toneList.forEach(item => {
@@ -172,7 +169,7 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;
 }
 
 .select {
