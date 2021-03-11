@@ -61,3 +61,4 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 4、播放的状态机
 - 5、播放线移动的位置
 - 6、组件的规划
+

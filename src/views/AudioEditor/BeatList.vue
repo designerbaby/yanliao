@@ -1,5 +1,5 @@
 <template>
-  <div :class="$style.list" 
+  <div :class="$style.list"
     :style="{
       left: `${left}px`,
       top: `${top}px`

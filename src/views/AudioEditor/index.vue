@@ -457,27 +457,6 @@ export default {
     },
     async toSynthesize(callback) {
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
-      // if ((this.$store.state.f0AI.length === 0 && this.$store.state.f0Draw.length === 0)) {
-      //   this.$store.dispatch('getPitchLine')
-      //   const getF0DataStart = Date.now()
-      //   for (let i = 0; i < 10; i += 1) {
-      //     if (!this.$store.state.isGetF0Data) {
-      //       console.log('获取F0数据成功~')
-      //       break
-      //     }
-      //     const getF0DataEnd = Date.now()
-      //     if ((getF0DataEnd - getF0DataStart) > 10 * 1000) {
-      //       Message.error('音频合成失败，请稍后再试~')
-      //       this.$store.dispatch('changeStoreState', { isSynthetizing: false })
-      //       this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
-      //       break
-      //     }
-      //     console.log(`获取音频中:`, getF0DataEnd - getF0DataStart)
-      //     Message.success(`算法努力合成音频中(0%)`)
-      //     await sleep(1000)
-      //   }
-      // }
-
       const synthesizeStart = Date.now()
       const handleData = this.handleVolumeTension()
       const req = {

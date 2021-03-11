@@ -1,9 +1,9 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
     <EditAudioHeader v-if="$router.history.current.path === '/audioEditor'" :openLoginDialog="openLoginDialog"></EditAudioHeader>
-    <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
-      ref="header" :currentPath="$router.history.current.path" 
-      :openLoginDialog="openLoginDialog" 
+    <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'"
+      ref="header" :currentPath="$router.history.current.path"
+      :openLoginDialog="openLoginDialog"
     />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
     <template v-if="$router.history.current.path === '/audioEditor'" class="audioFooter"></template>
@@ -44,7 +44,7 @@ export default {
       const isExceedHeader = appScrollTop > 48
       this.$store.dispatch("changeStoreState", {
         appScrollTop,
-        isExceedHeader 
+        isExceedHeader
       })
     })
   },
@@ -84,8 +84,8 @@ export default {
   }
   #app {
     height: 100vh;
-    // overflow: auto;
-    overflow-y: auto;
+    // overflow-y: auto;
+    overflow-y: overlay;
     overflow-x: hidden;
     background-size: cover;
     font-family: "Source Han Sans CN", Avenir, Helvetica, Arial, sans-serif;
@@ -101,6 +101,18 @@ export default {
     }
     .input {
       line-height: normal;
+    }
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+    &::-webkit-scrollbar-track-piece {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      margin-right: 4px;
+      width: 6px;
     }
   }
   .audioFooter {

@@ -448,7 +448,7 @@ export default {
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
       // console.log('this.stageWidth:', this.stageWidth)
-      if ((x + 100) >= this.stageWidth) {
+      while ((x + 100) >= this.stageWidth) {
         this.$store.dispatch('updateMatter', 15)
       }
     },
@@ -476,10 +476,23 @@ export default {
 .right {
   position: absolute;
   width: calc(100% - 50px);
-  height: 100%;
+  height: calc(100%);
   left: 50px;
   user-select: none;
   overflow-x: scroll;
+  overflow-x: overlay;
+  &::-webkit-scrollbar {
+    position: absolute;
+    width: 0px;
+    height: 10px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    background: transparent
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+  }
 }
 
 .stage {
