@@ -220,6 +220,23 @@ export const pitchListBefore = [
     str: 'A5',
     type: 0,
     show: 0
+  },
+  {
+    pitch: 82,
+    str: 'A5#',
+    type: 1,
+    show: 0
+  },
+  {
+    pitch: 83,
+    str: 'B5',
+    type: 0,
+    show: 0
+  },{
+    pitch: 84,
+    str: 'C6',
+    type: 0,
+    show: 0
   }
 ]
 

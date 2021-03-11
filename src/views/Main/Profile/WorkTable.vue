@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { 
+import {
   Table,
   TableColumn,
   Pagination,
@@ -99,7 +99,7 @@ export default {
         Message.error('音频合成中，暂不可编辑')
         return
       }
-      console.log('toAudioEditor row:', row)
+      // console.log('toAudioEditor row:', row)
       this.$router.push(`/audioEditor?taskId=${row.arrange_id}`)
     },
     audioNameClick(arrangeId) {
