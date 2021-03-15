@@ -15,7 +15,7 @@ const defaultState = {
     fenmu: 4
   },
   lineLeft: 6,   // 播放线的左边距
-  matter: 15,    // 总共有多少个小节
+  matter: 30,    // 总共有多少个小节
   noteWidth: 20, // 32分音符占据的最小像素单位
   noteHeight: 25, // 32分音符的占据的最小高度
   bpm: 90,       // 音调
@@ -53,7 +53,10 @@ const defaultState = {
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
   typeContainerHeight: 250,
-  pitchChanged: false // 是否全部重置
+  pitchChanged: false, // 是否全部重置
+  showMenuList: -1, // 音块的右键菜单列表
+  showRightList: false, // 全局舞台的右键
+  copyStagePitches: []
 }
 
 const store = new Vuex.Store({

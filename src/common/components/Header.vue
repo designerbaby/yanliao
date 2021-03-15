@@ -5,10 +5,10 @@
       <div class="header-text">盐料视频 - 百万调音合成工具</div>
       <div class="beta-icon">Beta</div>
     </div>
-    <a href="/springFestival" class="subhead" target="_blank">
+    <!-- <a href="/springFestival" class="subhead" target="_blank">
       <div class="subhead-text">万元悬赏拜年视频！</div>
       <img src="@/assets/icon-act.png" alt="">
-    </a>
+    </a> -->
     <div class="user-info">
       <div class="audio-edit" @click="toAudioEditor">
         <img src="@/assets/audioEditor/music.png" alt="">音频编辑器
@@ -101,7 +101,7 @@ export default {
           if (data !== null) {
             this.showBind = data.show_bind
             this.$store.dispatch('profileChangeStoreState', { showBindKugou: this.showBind })
-          } 
+          }
         }
       })
     },

@@ -17,7 +17,7 @@
           ></div>
           <template v-for="(it, index) in stagePitches">
             <div
-              :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
+              :class="[$style.pitch, it.selected ? $style.isActive : '', it.red ? $style.isRed: '']"
               :style="{
                 width: `${it.width}px`,
                 height: `${it.height}px`,
@@ -36,20 +36,20 @@
               <img :class="$style.aerate" src="@/assets/audioEditor/aerate.png" v-if="it.insertAeration"/>
             </div>
           </template>
-          <BeatList
-            ref="BeatList"
+          <BeatMenuList
+            ref="BeatMenuList"
             :index="index"
             @deletePitch="toDeletePitch"
             @editLyric="editLyric"
-            @hideList="hideList"
-            v-if="showList === index"
-          ></BeatList>
+            v-if="showMenuList === index"
+          ></BeatMenuList>
           <div :class="$style.sharp" ref="sharp"></div>
           <PitchLine v-if="$store.state.mode === modeState.StateLine" ref="PitchLine"></PitchLine>
           <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
         <Parameters ref="Parameters" v-if="$store.state.typeMode !== typeModeState.StateNone"></Parameters>
       </div>
+      <BeatRightList ref="BeatRightList" v-if="$store.state.showRightList"></BeatRightList>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
     <LyricCorrect ref="LyricCorrect" @saveAllPinyin="beatLyricSaveAllPinyin"></LyricCorrect>
@@ -68,7 +68,8 @@ import PitchLine from './PitchLine.vue' // 音高线
 import PitchElement from './PitchElement.vue' // 音素
 import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
-import BeatList from './BeatList.vue'
+import BeatMenuList from './BeatMenuList.vue'
+import BeatRightList from './BeatRightList.vue'
 import Parameters from './Parameters.vue'
 import StatusBar from './StatusBar.vue'
 import { amendTop, amendLeft } from '@/common/utils/helper'
@@ -82,10 +83,11 @@ export default {
     BeatStageBg,
     Arrow,
     BeatLine,
+    BeatRightList,
     PitchLine,
     BeatLyric,
     LyricCorrect,
-    BeatList,
+    BeatMenuList,
     Parameters,
     StatusBar,
     PitchElement
@@ -100,8 +102,6 @@ export default {
       endPos: null,
       // stageOffset: null,
       movePitchStart: null,
-      selectedPitch: -1,
-      showList: -1,
       index: 0
     }
   },
@@ -129,6 +129,9 @@ export default {
     },
     isExceedHeader() {
       return this.$store.state.isExceedHeader
+    },
+    showMenuList() {
+      return this.$store.state.showMenuList
     }
   },
   mounted() {
@@ -145,6 +148,17 @@ export default {
     }
   },
   methods: {
+    clickRight(event) {
+      const rect = this.$refs.stage.getBoundingClientRect()
+
+      const left = event.clientX - rect.left
+      const top = event.clientY - rect.top
+      console.log(`left: ${left}, top: ${top}`)
+      this.$store.dispatch('changeStoreState', { showRightList: true })
+      this.$nextTick(() => {
+        this.$refs.BeatRightList.setPosition(left, top)
+      })
+    },
     checkPitchDuplicated() { // 检查音符块有没重叠
       // log('checkPitchDuplicated pitches:', this.stagePitches)
       this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
@@ -198,7 +212,6 @@ export default {
     },
     onPitchMouseDown(event, index){
       // 绿色块鼠标按下事件
-      this.hideRight()
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -210,12 +223,13 @@ export default {
       const target = event.target
       target.style.opacity = 0.8
       this.index = index
-      this.toSelectPitch(index)
+      this.initSelect()
+      this.stagePitches[index].selected = true
       if (event.button === 2) { // 按下了鼠标右键
         console.log(`onPitchMouseDown`, event, index, event.button)
-        this.showRight(index)
+        this.$store.dispatch('changeStoreState', { showMenuList: index })
         this.$nextTick(() => {
-          this.$refs.BeatList.setPosition(event.layerX, event.layerY + this.noteHeight)
+          this.$refs.BeatMenuList.setPosition(event.layerX, event.layerY + this.noteHeight)
         })
       }
       this.movePitchStart = {
@@ -242,7 +256,7 @@ export default {
         if (newTop < 0) {
           newTop = 0
         }
-        if (newLeft < 0) { // sdk那边限制不能从0开始画
+        if (newLeft < 0) {
           newLeft = 0
         }
 
@@ -268,21 +282,19 @@ export default {
         // pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
         const newLeft = amendLeft(left, this.noteWidth)
         const newTop = amendTop(top, this.noteHeight)
-        const isPositionChanged = pitch.left !== newLeft || pitch.top !== newTop
+        // const isPositionChanged = pitch.left !== newLeft || pitch.top !== newTop
         pitch.left = newLeft
         pitch.top = newTop
 
         target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
         target.dataset.left = pitch.left
         target.dataset.top = pitch.top
-        // pitch.pitchChanged = true
-        if (isPositionChanged) {
-          this.checkPitchDuplicated()
-        }
+        this.checkPitchDuplicated()
+        // if (isPositionChanged) {}
       }
     },
     onMouseDown(event) {
-      // console.log(`onStageMouseDown`)
+
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -291,7 +303,7 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      this.hideRight()
+
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
 
       const rect = this.$refs.stage.getBoundingClientRect()
@@ -300,7 +312,7 @@ export default {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       };
-      // console.log(`this.startPos, x: ${this.startPos.x}, y: ${this.startPos.y}`)
+
       // 初始化绿色块
       this.$refs.sharp.style.left = `${this.startPos.x}px`;
       this.$refs.sharp.style.top = `${this.startPos.y}px`;
@@ -344,7 +356,6 @@ export default {
           x: event.clientX - rect.left,
           y: event.clientY - rect.top
         };
-        // console.log(`this.endPos: x${this.endPos.x}, y: ${this.endPos.y}`)
         this.$refs.sharp.style.display = "none";
 
         //
@@ -363,9 +374,8 @@ export default {
 
         const topPx = Math.min(this.startPos.y, this.endPos.y);
         const initLeft = Math.min(this.startPos.x, this.endPos.x);
-        // const top = topPx - (topPx % this.noteHeight);
+
         const top = amendTop(topPx, this.noteHeight)
-        // const left = Math.floor(initLeft / this.noteWidth) * this.noteWidth
         const left = amendLeft(initLeft, this.noteWidth)
 
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
@@ -382,6 +392,7 @@ export default {
     },
 
     addOnePitch({ width, height, left, top }) {
+      this.initSelect()
       this.stagePitches.push({
         width,
         height,
@@ -393,10 +404,10 @@ export default {
         pinyinList: ['la'],
         select: 0,
         fu: 'l',
-        yuan: 'a'
+        yuan: 'a',
+        selected: true
       });
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0`)
-      this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
       this.stagePitches[this.stagePitches.length - 1].pitchChanged = true
       this.checkPitchDuplicated()
       this.checkPitchesOverStage()
@@ -420,31 +431,21 @@ export default {
       this.checkPitchDuplicated()
     },
 
-    toSelectPitch(index) {
-      this.selectedPitch = index
-    },
-    showRight(index) {
-      this.selectedPitch = index
-      this.showList = index
-    },
-    hideRight() {
-      this.selectedPitch = -1
-      this.showList = -1
-    },
-    hideList() {
-      this.showList = -1
+    initSelect() {
+      this.stagePitches.forEach(item => {
+        item.selected = false
+      })
     },
     toDeletePitch(index) {
       this.stagePitches.splice(index, 1)
-      this.showList = -1 // 删除掉之后顺便把选择的还原
+      this.$store.dispatch('changeStoreState', { showMenuList: -1 })
       this.checkPitchDuplicated()
     },
     editLyric(index) {
       this.$refs.BeatLyric.showLyric(index)
-      this.showList = -1
+      this.$store.dispatch('changeStoreState', { showMenuList: -1 })
     },
     showLyric(lyric, index) {
-      console.log('showLyric:', lyric, index)
       this.$refs.LyricCorrect.showLyric(lyric, index)
     },
     beatLyricSaveAllPinyin() {
@@ -453,7 +454,7 @@ export default {
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
       // console.log('this.stageWidth:', this.stageWidth)
-      while ((x + 100) >= this.stageWidth) {
+      while ((x + 500) >= this.stageWidth) {
         this.$store.dispatch('updateMatter', 15)
       }
     },
