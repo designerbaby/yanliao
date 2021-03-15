@@ -1,10 +1,10 @@
 <template>
-  <div :class="$style.audioHeader">
+  <div :class="$style.EditAudioHeader">
     <div :class="$style.left" @click="openHomePage">
       <img src="@/assets/logo.png" alt="" :class="$style.logo">
       <div :class="$style.text">百万填词创作工具</div>
     </div>
-    <div :class="$style.right" @click="openProfilePage" v-if="mxIsLogin || userInfo">
+    <div :class="$style.right" @click="openProfilePage" v-if="userInfo">
       <div :class="$style.nick">{{ userInfo.nick_name || `用户${uid}` }}</div>
       <img :src="userInfo.user_logo || defaultAvatar" :class="$style.avatar">
     </div>
@@ -15,11 +15,10 @@
 </template>
 
 <script>
-import { safeParse } from '@/common/utils/helper'
-import { getCookie } from '@/common/utils/helper'
+import { safeParse, getCookie } from '@/common/utils/helper'
 
 export default {
-  name: 'AudioHeader',
+  name: 'EditAudioHeader',
   props: {
     openLoginDialog: Function
   },
@@ -27,9 +26,11 @@ export default {
     return {
       defaultAvatar: 'https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/image/profile_default.png',
       userInfo: safeParse(sessionStorage.getItem('userInfo')),
-      uid: getCookie('mx_uid'),
-      mxIsLogin: getCookie('mx_is_login')
+      uid: getCookie('mx_uid')
     }
+  },
+  mounted() {
+    // console.log('mx_uid:', this.uid)
   },
   methods: {
     openHomePage() {
@@ -46,7 +47,7 @@ export default {
 </script>
 
 <style lang="less" module>
-.audioHeader{
+.EditAudioHeader{
   height: 48px;
   background: #373736;
   display: flex;

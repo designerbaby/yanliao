@@ -28,8 +28,17 @@ const deleteVideo = (videoId) => {
   })
 }
 
+const updateVideo = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/vod/update',
+    data: data
+  })
+}
+
 export {
   fetchSign,
   fetchList,
   deleteVideo,
+  updateVideo
 }

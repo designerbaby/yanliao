@@ -1,15 +1,15 @@
 <template>
-  <div 
-    :class="$style.PitchLine" 
+  <div
+    :class="$style.PitchLine"
     ref="PitchLine"
     :style="{ height: `${stageHeight}px`, width: `${stageWidth}px`, 'z-index': `${zIndex}` }"
   >
-    <svg 
+    <svg
       xmlns="http://www.w3.org/2000/svg"
-      version="1.1" 
-      ref="svgStage" 
-      :width="`${stageWidth}px`" 
-      :height="`${stageHeight}px`" 
+      version="1.1"
+      ref="svgStage"
+      :width="`${stageWidth}px`"
+      :height="`${stageHeight}px`"
       @mousedown.stop="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup.stop="onMouseUp"
@@ -25,7 +25,7 @@
 
 <script>
 import { Message } from 'element-ui'
-import { playState } from "@/common/utils/const"
+import { playState, modeState } from "@/common/utils/const"
 // import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
@@ -38,7 +38,7 @@ export default {
       lastTime: 0,
       lastX: 0,
       lastY: 0,
-      zIndex: 999,
+      zIndex: 998,
       cache: new Map()
     }
   },
@@ -62,7 +62,6 @@ export default {
       return this.$store.state.playState
     },
     svgData() {
-      // console.log(`svgData`)
       return this.toHandleF0Data(this.$store.state.f0AI)
     },
     svgDataDraw() {
@@ -70,31 +69,45 @@ export default {
     }
   },
   mounted() {
-    if (this.$store.state.isPitchLineChanged
-    || this.$store.state.isStagePitchesChanged || this.$store.state.mode === 1) { // 音高线有更改才去获取新的音高线
-      this.$store.dispatch('getPitchLine')
-    }
   },
   methods: {
     toHandleF0Data (f0Data) {
-      let result = 'M '
+      let result = ''
       // const points = []
       // 将拿到的数据转成x轴和y轴
+      let lastX = 0
+      let lastY = 0
       for (let i = 0; i < f0Data.length; i += 1) {
         const item = f0Data[i]
         const x = Math.round(this.pitchWidth * i)
         const y = parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5
 
+        lastX = x
+        lastY = y
+
         // points.push([x, y])
-        if (i == 1) {
-          // result += "L "
+        if (i === 0) {
+          result += "M "
         }
 
-        if ((i + 1) % 3 ==0) {
+        // if (i > 0) {
+        //     result += "L "
+        // }
+
+        if ((i - 1) % 3 ==0) {
           result += "C "
         }
         result += `${x},${y} `
-      } 
+      }
+
+      if (f0Data.length > 0) {
+        const mod = (f0Data.length - 1) % 3
+        const size = mod === 0 ? 0 : 3 - mod
+
+        for (let j = 0; j < size ; j += 1) {
+          result += `${lastX},${lastY} `
+        }
+      }
       return result
 
       // return drawSvgPath(points)
@@ -152,25 +165,23 @@ export default {
     onMouseUp() {
       // console.log(`onMouseUp event`, event)
       this.mouseStart = null
-      this.zIndex = 999 // 把层级设得比播放线的低
+      this.zIndex = 998 // 把层级设得比播放线的低
       this.lastX = 0
       this.lastY = 0
       this.lastTime = 0
-    },
-    onMouseLeave() {
-      // console.log(`onMouseLeave event`, event)
-      // this.mouseStart = null
     },
     changeF0Value(x, y) {
       const index = Math.round(x / this.pitchWidth)
       const data = this.$store.state.f0AI
       if (data) {
         const item = data[index]
-        const value = (this.firstPitch - y / this.noteHeight) * 100
+        if (item) {
+          const value = (this.firstPitch - y / this.noteHeight) * 100
         // const pos = Math.round(index * this.pitchWidth)
         // this.$store.dispatch('changeF0', { index, value, x: pos })
 
-        this.cache.set(x, value)
+          this.cache.set(x, value)
+        }
         // console.log('this.cache:', this.cache)
       }
     },
@@ -199,7 +210,7 @@ export default {
   position: absolute;
   top: 0px;
   left: 0px;
-  z-index: 999; // 音高线的层级
+  z-index: 998; // 音高线的层级
   background: transparent;
 }
 </style>

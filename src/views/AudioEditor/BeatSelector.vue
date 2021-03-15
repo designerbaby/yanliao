@@ -2,6 +2,7 @@
   <Dialog
     title="编辑拍号"
     :visible.sync="dialogVisible"
+    :custom-class="$style.beatSelector"
     width="400px">
     <Form label-position="top" :rules="rules" ref="ruleForm" label-width="80px" :model="beatForm">
       <FormItem label="分子" prop="fenzi">
@@ -68,9 +69,10 @@ export default {
       })
     },
     toUpdateStage() { // 根据内外舞台的框进行比较
-      const stageConWidth = this.$store.state.stageSize.width
+      const stageConWidth = this.$store.state.stage.width
       const maxPitchRight = this.$store.state.maxPitchRight
-      if (stageConWidth > this.stageWidth) { // 外框比里框更大
+      console.log(`maxPitchRight: ${maxPitchRight}, stageConWidth: ${stageConWidth}, this.stageWidth: ${this.stageWidth}`)
+      while (stageConWidth > this.stageWidth) { // 外框比里框更大
         this.$store.dispatch('updateMatter', 15)
       }
       while (maxPitchRight > this.stageWidth) {
@@ -86,6 +88,8 @@ export default {
   }
 }
 </script>
-<style lang="less">
-
+<style lang="less" module>
+.beatSelector {
+  text-align: left;
+}
 </style>

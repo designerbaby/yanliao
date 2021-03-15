@@ -1,50 +1,49 @@
 <template>
   <div class="video-table-box">
-    <el-table
+    <Table
       ref="table"
       :data="list"
       class="table-box"
       :show-header="false"
       v-if="this.list.length !== 0"
     >
-      <el-table-column>
+      <TableColumn>
         <template slot-scope="scope">
           <img class="cover" :src="scope.row.cover_url" alt="暂无封面" @click="coverClick(scope.row)">
           <div class="info">
             <div class="title">
-              <!-- <span class="topic">#特朗普#</span> -->
               <span class="text">{{scope.row.desc}}</span>
             </div>
             <div class="detail">
-              <span v-if="scope.row.music" class="music-info">所用歌曲: {{scope.row.music}}</span>
-              <span class="upload-time">{{scope.row.publish_time}}</span>
+              <span v-if="scope.row.music_info" class="music-info">所用歌曲: {{scope.row.music_info.name}} - {{scope.row.music_info.singer}}</span>
+              <span class="upload-time">{{scope.row.public_unix_time | formatDate}}</span>
               <span class="video-state">{{scope.row.state_detail.state_pub_desc || ''}}</span>
-              <!-- <span v-if="scope.row.state === 3" class="video-state">发布中</span>
-              <span v-if="scope.row.state === 1 || scope.row.state === 0" class="video-state video-state-success">发布成功</span>
-              <span v-if="scope.row.state === 4" class="video-state">发布失败</span>
-              <span v-if="scope.row.state === 2" class="video-state video-state-invalid">被下线</span> -->
             </div>
-            <div class="data-column">
+            <div class="data-column data-top">
               <span class="data-item">
-                <!-- <span class="el-icon-view"></span> -->
                 <img class="icon-view" src="@/assets/icon-view.png" alt="">
-                <span>{{scope.row.play_times}}</span>
+                <span>{{scope.row.stats.play_times}}</span>
               </span>
               <span class="data-item">
-                <!-- <span class="el-icon-star-off"></span> -->
                 <img class="icon-like" src="@/assets/icon-like.png" alt="">
-                <span>{{scope.row.likes}}</span>
+                <span>{{scope.row.stats.likes}}</span>
               </span>
             </div>
-            <div class="delete-button" @click="deleteButtonClick(scope.row)">
-              <span class="el-icon-delete"></span>
-              <span>删除视频</span>
+            <div class="data-column data-button">
+              <div @click="deleteButtonClick(scope.row)">
+                <span class="el-icon-delete"></span>
+                <span>删除视频</span>
+              </div>
+              <div class="edit" @click="editButtonClick(scope.row)">
+                <span class="el-icon-edit-outline"></span>
+                <span>编辑视频</span>
+              </div>
             </div>
           </div>
         </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
+      </TableColumn>
+    </Table>
+    <Pagination
       v-if="this.list.length !== 0"
       class="pagination"
       @current-change="currentPageChange"
@@ -53,29 +52,15 @@
       layout="prev, pager, next, jumper"
       :total="total"
     >
-    </el-pagination>
+    </Pagination>
     <CommonDialog :show="dialogShow" titleText="确定删除该视频吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
-    <el-dialog class="video-dialog" :visible.sync="videoDialogShow" @close="videoDialogClose">
-      <div class="video-container">
-        <video class="video" :src="currentVideoUrl" controls autoplay ref="dialogVideo">
-          您的浏览器不支持 video 标签。
-        </video>
-        <!-- <video class="video" controls autoplay ref="dialogVideo">
-          <source :src="currentVideoUrl" :type="videoGroup.type">
-          <object id="video" v-if="videoGroup.type === 'avi' || videoGroup.type === 'wmv' || videoGroup.type === 'asf'">
-            <embed border="0" showdisplay="0" showcontrols="1" autostart="1" :filename="currentVideoUrl" :src="currentVideoUrl">
-            </embed> 
-          </object>
-          Your browser is too old which doesn't support HTML5 video.
-        </video> -->
-        <img class="close-button" src="@/assets/icon-close.png" alt="" @click="closeButtonClick">
-      </div>
-    </el-dialog>
     <div class="empty-box" v-if="this.list.length === 0 && this.dataReady === true">
       <img class="empty-img" src="@/assets/empty.png" alt="" />
       <div class="empty-text">还没有上传视频哦~</div>
       <div class="empty-tips">点击页面右上角"发布视频"</div>
     </div>
+    <VideoDialog ref="VideoDialog"></VideoDialog>
+    <VideoDescDialog ref="VideoDescriptor" @getList="getList"></VideoDescDialog>
   </div>
 </template>
 
@@ -84,7 +69,9 @@
 // 我的视频组件
 import { reportEvent } from '@/common/utils/helper'
 import CommonDialog from '@/common/components/CommonDialog'
-import { 
+import VideoDescDialog from './Components/VideoDescDialog'
+import VideoDialog from './Components/VideoDialog'
+import {
   Table,
   TableColumn,
   Pagination,
@@ -99,54 +86,22 @@ import {
 export default {
   name: 'VideoTable',
   components: {
-    'el-dialog': Dialog,
-    'el-table': Table,
-    'el-table-column': TableColumn,
-    'el-pagination': Pagination,
+    Dialog,
+    Table,
+    TableColumn,
+    Pagination,
     CommonDialog,
+    VideoDescDialog,
+    VideoDialog
   },
   data() {
     return {
-      videoDialogShow: false,
       list: [],
       currentPage: 1,
       dialogShow: false,
       total: 0,
       targetId: '',
-      currentVideoUrl: '',
-      dataReady: false,
-    }
-  },
-  computed: {
-    videoGroup() {
-      const currentVideoUrl = this.currentVideoUrl
-      const type = currentVideoUrl.split(currentVideoUrl)[1] || 'mp4'
-      switch (type) {
-        case 'ogg': 
-          return {
-            url: currentVideoUrl,
-            type: 'video/ogg'
-          }
-          break
-        case 'webm':
-          return {
-            url: currentVideoUrl,
-            type: 'video/webm'
-          }
-          break
-        case 'mov':
-          return {
-            url: currentVideoUrl,
-            type: 'video/mov'
-          }
-          break
-        case 'mp4':
-          return {
-            url: currentVideoUrl,
-            type: 'video/mp4'
-          }
-          break
-      }
+      dataReady: false
     }
   },
   mounted() {
@@ -154,21 +109,14 @@ export default {
     reportEvent('person-page-myvideotab-exposure')
   },
   methods: {
-    videoDialogClose() {
-      const video = document.querySelector('.video')
-      video.pause()
-    },
     coverClick(row) {
+      console.log('coverClick:', row)
       reportEvent('person-page-videocover-click')
       if (row.control.ban_play) {
         Message.error(row.control.ban_play_msg)
         return
       }
-      this.videoDialogShow = true
-      this.currentVideoUrl = row.play_url
-      this.$nextTick(() => {
-        this.$refs.dialogVideo.play()
-      })
+      this.$refs.VideoDialog.show(row)
     },
     getList() { // 获取视频列表
       const p = {
@@ -197,7 +145,7 @@ export default {
 
       const step = row.step
       const musicId = row.music_id
-      
+
       if (step === 2) {
         this.$router.push(`/rectify`)
       } else {
@@ -211,6 +159,9 @@ export default {
       // reportEvent('person-page-drawedelete-button', 'person-page-drawedelete-button', { draftId, })
       this.dialogShow = true
       this.targetId = targetId
+    },
+    editButtonClick(row) {
+      this.$refs.VideoDescriptor.show(row)
     },
     deleteItem() {
       // 删除视频按钮确认点击
@@ -226,15 +177,9 @@ export default {
     closeDialog() {
       this.dialogShow = false
     },
-    closeButtonClick() {
-      this.videoDialogShow = false
-      this.$nextTick(() => { // 暂停视频
-        this.$refs.dialogVideo.pause()
-      })
-    },
     currentPageChange() {
       this.getList()
-    },
+    }
   },
 }
 </script>
@@ -258,7 +203,7 @@ export default {
       font-weight: 500;
       margin-top: -30px;
       line-height: normal;
-      
+
     }
     .empty-tips {
       line-height: normal;
@@ -303,7 +248,6 @@ export default {
         }
       }
       .data-column {
-        margin-top: 60px;
         display: flex;
         align-items: center;
         .data-item + .data-item {
@@ -329,15 +273,24 @@ export default {
           }
         }
       }
-      .delete-button {
+      .data-top {
+        margin-top: 60px;
+      }
+      .data-button {
         font-size: 16px;
         margin-top: auto;
-        width: 100px;
+        // width: 100px;
         cursor: pointer;
         .el-icon-delete {
           font-size: 20px;
         }
-      }      
+        .el-icon-edit-outline {
+          font-size: 20px;
+        }
+        .edit {
+          margin: 0 10px;
+        }
+      }
     }
   }
   .video {
@@ -356,25 +309,25 @@ export default {
 </style>
 
 <style lang="less">
-  .video-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    .close-button {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-      margin: -20px 10px;
-    }
-  }
-  .video-dialog {
-    .el-dialog {
-      background: none;
-      box-shadow: none;
-      text-align: center;
-      .el-dialog__header {
-        display: none;
-      }
-    }
-  }
+  // .video-container {
+  //   position: relative;
+  //   display: flex;
+  //   justify-content: center;
+  //   .close-button {
+  //     width: 20px;
+  //     height: 20px;
+  //     cursor: pointer;
+  //     margin: -20px 10px;
+  //   }
+  // }
+  // .video-dialog {
+  //   .el-dialog {
+  //     background: none;
+  //     box-shadow: none;
+  //     text-align: center;
+  //     .el-dialog__header {
+  //       display: none;
+  //     }
+  //   }
+  // }
 </style>

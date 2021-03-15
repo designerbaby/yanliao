@@ -13,14 +13,14 @@
       <div class="audio-edit" @click="toAudioEditor">
         <img src="@/assets/audioEditor/music.png" alt="">音频编辑器
       </div>
-      <template v-if="mxIsLogin || nickName">
+      <template v-if="nickName">
         <img class="user-ava" :src="userLogo" alt="" @click="openProfilePage('im')">
         <div class="user-name" @click="openProfilePage('name')">{{ nickName }}</div>
         <button class="user-info-button" @click="bindKugou" v-if="!showBind && currentPath === '/profile'">绑定酷狗账号</button>
         <button v-if="currentPath === '/profile'" class="user-info-button" @click="logoutButtonClick">退出登录</button>
       </template>
+      <button v-else class="login-button" @click="loginButtonClick">登录</button>
     </div>
-    <button v-if="!mxIsLogin" class="login-button" @click="loginButtonClick">登录</button>
     <LogoutDialog ref="LogoutDialog"></LogoutDialog>
     <KugouDialog ref="KugouDialog" @showBindKugou="toShowBindKugou" @getUserInfo="toGetUserInfo"></KugouDialog>
   </div>
@@ -28,7 +28,7 @@
 
 <script>
 import { Message } from 'element-ui'
-import { reportEvent, isTestEnv, getParam, getCookie } from '@/common/utils/helper'
+import { reportEvent, isTestEnv, getParam } from '@/common/utils/helper'
 import { fetchAuthCode, login, logout, userInfo } from '@/api/login'
 import { bindKugou, showBindKuGou } from '@/api/bind'
 import LogoutDialog from '@/common/components/LogoutDialog.vue'
@@ -47,7 +47,6 @@ export default {
     return {
       nickName: '',
       userLogo: '',
-      mxIsLogin: getCookie('mx_is_login'),
       showBind: 1
     }
   },
@@ -108,7 +107,7 @@ export default {
     },
     toAudioEditor() {
       const userInfo = sessionStorage.getItem('userInfo')
-      if (this.mxIsLogin || userInfo) {
+      if (userInfo) {
         this.$router.push(`/audioEditor`)
       } else {
         this.openLoginDialog()

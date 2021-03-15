@@ -10,7 +10,7 @@
       <div :class="$style.select">
         <Select
           filterable
-          :class="$style.selector" 
+          :class="$style.selector"
           :placeholder="'选择谁来演唱这首歌'"
           v-model="$store.state.toneId"
           @change="singleToneIdChange"
@@ -21,6 +21,8 @@
             :label="item.display_name"
             :value="item.tone_id"
           >
+            <span style="float: left">{{ item.display_name }}</span>
+            <span style="float: right; color:#8492a6; font-size: 13px;">by {{ item.nickname }}</span>
           </Option>
         </Select>
       </div>
@@ -81,21 +83,23 @@ export default {
       this.toneList = data.data.tone_list
     },
     singleToneIdChange(value) {
-      console.log('singleToneIdChange:', value)
       this.toneList.forEach(item => {
         if (value === item.tone_id) {
           this.$store.dispatch('changeStoreState', { toneId: item.tone_id, toneName: item.name, auditUrl: item.audit_url })
         }
       })
       this.$store.dispatch('getPitchLine')
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     bpmInputChange(value) {
-      this.$store.dispatch('changeStoreState', { bpm: value })
+      this.$store.dispatch('changeStoreState', { bpm: value, pitchChanged: true })
       this.$store.dispatch('getPitchLine')
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true })
     },
     playerButtonClick() {
+      this.toneList.forEach(item => {
+        if (this.$store.state.toneId === item.tone_id) {
+          this.$store.dispatch('changeStoreState', { auditUrl: item.audit_url })
+        }
+      })
       const url = this.$store.state.auditUrl
       this.audio = PlayAudio({
         url,
@@ -165,7 +169,7 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;
 }
 
 .select {

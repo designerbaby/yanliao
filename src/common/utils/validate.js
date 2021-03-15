@@ -18,10 +18,16 @@ export const validateFenmu = (rule, value, callback) => {
 }
 
 export const validateChinese = (rule, value, callback) => {
+  const valueArray = value.split('')
   const r = /^((?![\u3000-\u303F])[\u2E80-\uFE4F]|\·)*(?![\u3000-\u303F])[\u2E80-\uFE4F](\·)*$/
-  if (!r.test(value)) {
-    callback(new Error('必须为中文'))
-    return
+  for (let i = 0; i < valueArray.length; i += 1) {
+    const item = valueArray[i]
+    if (item === '-' || r.test(item)) {
+      continue
+    } else {
+      callback(new Error('必须为中文或者“-”'))
+      return
+    }
   }
   callback()
 }

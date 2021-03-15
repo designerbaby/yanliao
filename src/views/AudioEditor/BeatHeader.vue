@@ -3,15 +3,32 @@
     <div :class="$style.blank" v-if="isExceedHeader"></div>
     <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
       <div :class="$style.linefu">
-        <div :class="[$style.check, mode === 0 ? $style.isActive : '']" @click="selectMode(0)">
-          <img src="@/assets/audioEditor/note-normal.png" v-if="mode === 1">
-          <img src="@/assets/audioEditor/note-active.png" v-else>
+        <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
+          <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
+          <img src="@/assets/audioEditor/note-normal.png" v-else>
           <div :class="$style.text">音符模式</div>
         </div>
-        <div :class="[$style.check, $style.right, mode === 1 ? $style.isActive : '']" @click="selectMode(1)">
-          <img src="@/assets/audioEditor/line-normal.png" v-if="mode === 0">
-          <img src="@/assets/audioEditor/line-active.png" v-else>
+        <div :class="[$style.check, $style.middle, mode === modeState.StateLine ? $style.isActive : '']" @click="selectMode(modeState.StateLine)">
+          <img src="@/assets/audioEditor/line-active.png" v-if="mode === modeState.StateLine">
+          <img src="@/assets/audioEditor/line-normal.png" v-else>
           <div :class="$style.text">音高线模式</div>
+        </div>
+        <div :class="[$style.check, $style.right, mode === modeState.StateElement ? $style.isActive : '']" @click="selectMode(modeState.StateElement)">
+          <img src="@/assets/audioEditor/yinsu-active.png" v-if="mode === modeState.StateElement">
+          <img src="@/assets/audioEditor/yinsu-normal.png" v-else>
+          <div :class="$style.text">音素模式</div>
+        </div>
+      </div>
+      <div :class="$style.linefu">
+        <div :class="[$style.check, typeMode === typeModeState.StateVolume ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateVolume)">
+          <img src="@/assets/audioEditor/loud-active.png" v-if="typeMode === typeModeState.StateVolume">
+          <img src="@/assets/audioEditor/loud-normal.png" v-else>
+          <div :class="$style.text">响度</div>
+        </div>
+        <div :class="[$style.check, $style.right, typeMode === typeModeState.StateTension ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateTension)">
+          <img src="@/assets/audioEditor/tension-active.png" v-if="typeMode === typeModeState.StateTension">
+          <img src="@/assets/audioEditor/tension-normal.png" v-else>
+          <div :class="$style.text">张力</div>
         </div>
       </div>
       <div :class="$style.common" @click="toPlay">
@@ -29,12 +46,12 @@
       </div>
     </div>
   </div>
-  
+
 </template>
 
 <script>
 import { Icon, Button, Message } from 'element-ui'
-import { playState } from "@/common/utils/const"
+import { playState, modeState, typeModeState } from "@/common/utils/const"
 import { isDuplicated, reportEvent } from '@/common/utils/helper'
 
 export default {
@@ -42,11 +59,16 @@ export default {
   props: ['isPlaying'],
   data() {
     return {
+      modeState: modeState,
+      typeModeState: typeModeState
     }
   },
   computed: {
     mode() {
       return this.$store.state.mode
+    },
+    typeMode() {
+      return this.$store.state.typeMode
     },
     playState() {
       return this.$store.state.playState
@@ -64,7 +86,7 @@ export default {
       this.$emit('play')
     },
     selectMode(mode) {
-      if (mode === 0) {
+      if (mode === modeState.StatePitch) {
         reportEvent('note-button-click', 147617)
       } else {
         reportEvent('pitch-button-click', 147618)
@@ -73,29 +95,34 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      // if (this.playState === playState.StatePlaying) {
-      //   Message.error('正在播放中, 不能修改哦~')
-      //   return
-      // }
-      this.$store.dispatch('changeStoreState', { mode: mode })
-      // if (mode === 0) { // 改成音块模式，就默认设置为音块没改动
-      //   this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false })
-      // }
+      this.$store.dispatch('changeStoreState', { mode })
     },
-    toGenerateAudio() {
+    selectTypeMode(typeMode) {
+      if (typeMode === this.typeMode && this.typeMode !== typeModeState.StateNone) {
+        this.$store.dispatch('changeStoreState', { typeMode: typeModeState.StateNone })
+      } else {
+        this.$store.dispatch('changeStoreState', { typeMode })
+      }
+    },
+    async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       if (isDuplicated(this.$store.state.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
-      if (this.$store.state.stagePitches.length === 0 && 
+      if (this.$store.state.stagePitches.length === 0 &&
           this.$store.state.f0AI.length === 0 &&
           this.$store.state.f0Draw.length === 0) {
         Message.error('没有音符！！')
         return
       }
-      this.$emit('synthesize')
-      this.$router.push(`/profile`)
+      this.$emit('synthesize', () => {
+        this.$router.push(`/profile`)
+      })
     },
     toSet() {
       reportEvent('more-information-button-click', 147620)
@@ -171,7 +198,7 @@ export default {
   flex-direction: column;
   background: #1E1E1E;
   &.isActive {
-    opacity: 1; 
+    opacity: 1;
   }
   &:active {
     opacity: 0.8;
@@ -183,6 +210,10 @@ export default {
 
 .right {
   border-radius: 0px 12px 12px 0px;
+}
+
+.middle {
+  border-radius: 0px;
 }
 
 .text {

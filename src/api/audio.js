@@ -12,12 +12,13 @@ const editorSynth = (data) => {
 }
 
 // 合成状态查询接口
-const editorSynthStatus = (paramId) => {
+const editorSynthStatus = (paramId, taskId) => {
   return axios({
     method: 'post',
     url: '/cgi-bin/v1/yan/synth/editor_synth_status',
     data: {
-      param_id: paramId
+      param_id: paramId,
+      task_id: taskId
     }
   })
 }
@@ -60,11 +61,21 @@ const editorDetail = (data) => {
   })
 }
 
+// 获取元辅音的接口
+const getYinsu = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/synth/yinsu',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
   editorSynthResult,
   getF0Data,
   Hanzi2Pinyin,
-  editorDetail
+  editorDetail,
+  getYinsu
 }

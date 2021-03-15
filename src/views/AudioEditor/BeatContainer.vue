@@ -1,54 +1,52 @@
 <template>
   <div ref="container" :class="$style.container">
-    <div :class="$style.beat" @click="toShowBeat">
-      {{ beatForm.fenzi }}/{{ beatForm.fenmu }}
-    </div>
-    <BeatPiano></BeatPiano>
-    <div :class="$style.right">
-      <div :class="$style.top">
-        <div :class="$style.matter" v-for="n in matter" :key="n" :style="{width: `${beatWidth}px`}">{{ n }}</div>
-      </div>
-      <div ref="stage" :class="$style.stage" id="audioStage">
-        <BeatStageBg></BeatStageBg>
-        <BeatLine></BeatLine>
-        <div 
-          ref="drawStage"
-          @mousedown="onMouseDown"
-          @mousemove="onMouseMove"
-          @mouseup="onMouseUp"
-          @mouseleave="onMouseUp"
-          :class="$style.drawStage" 
-          :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
-        ></div>
-        <template v-for="(it, index) in stagePitches">
+    <div :class="$style.main">
+      <BeatPiano></BeatPiano>
+      <div :class="$style.right" ref="rightArea">
+        <div ref="stage" :class="$style.stage" id="audioStage">
+          <BeatStageBg></BeatStageBg>
+          <BeatLine></BeatLine>
           <div
-            :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
-            :style="{
-              width: `${it.width}px`,
-              height: `${it.height}px`,
-              transform: `translate(${it.left}px, ${it.top}px)`
-            }"
-            :key="index"
-            :data-left="it.left"
-            :data-top="it.top"
-            @mousedown.self="onPitchMouseDown($event, index)"
-            @mouseup.self="onPitchMouseUp"
-            slot="reference"
-          >
-            {{ it.hanzi }}
-            <Arrow direction="left" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-            <Arrow direction="right" :pitch="it" @move-end="onArrowMoveEnd($event, index)"/>
-          </div>
-        </template>
-        <BeatList
-          ref="BeatList"
-          :index="index"
-          @deletePitch="toDeletePitch"
-          @editLyric="editLyric"
-          v-if="showList === index"
-        ></BeatList>
-        <div :class="$style.sharp" ref="sharp"></div>
-        <PitchLine v-if="this.$store.state.mode === 1" ref="PitchLine"></PitchLine>
+            ref="drawStage"
+            @mousedown="onMouseDown"
+            @mousemove="onMouseMove"
+            @mouseup="onMouseUp"
+            @mouseleave="onMouseUp"
+            :class="$style.drawStage"
+            :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
+          ></div>
+          <template v-for="(it, index) in stagePitches">
+            <div
+              :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
+              :style="{
+                width: `${it.width}px`,
+                height: `${it.height}px`,
+                transform: `translate(${it.left}px, ${it.top}px)`
+              }"
+              :key="index"
+              :data-left="it.left"
+              :data-top="it.top"
+              @mousedown.self="onPitchMouseDown($event, index)"
+              @mouseup.self="onPitchMouseUp"
+              slot="reference"
+            >
+              {{ it.hanzi }}
+              <Arrow :pitch="it" direction="left" @move-end="onArrowMoveEnd($event, index)"/>
+              <Arrow :pitch="it" direction="right" @move-end="onArrowMoveEnd($event, index)"/>
+            </div>
+          </template>
+          <BeatList
+            ref="BeatList"
+            :index="index"
+            @deletePitch="toDeletePitch"
+            @editLyric="editLyric"
+            v-if="showList === index"
+          ></BeatList>
+          <div :class="$style.sharp" ref="sharp"></div>
+          <PitchLine v-if="$store.state.mode === modeState.StateLine" ref="PitchLine"></PitchLine>
+          <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
+        </div>
+        <Parameters ref="Parameters" v-if="$store.state.typeMode !== typeModeState.StateNone"></Parameters>
       </div>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
@@ -57,21 +55,26 @@
 </template>
 
 <script>
-import { pitchList, playState } from "@/common/utils/const"
+import { pitchList, playState, modeState, typeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
+import BeatTop from './BeatTop.vue'
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
 import Arrow from './Arrow.vue'
 import PitchLine from './PitchLine.vue' // 音高线
+import PitchElement from './PitchElement.vue' // 音素
 import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
 import BeatList from './BeatList.vue'
+import Parameters from './Parameters.vue'
+import StatusBar from './StatusBar.vue'
 import { amendTop, amendLeft } from '@/common/utils/helper'
 
 export default {
   name: "BeatContainer",
   components: {
+    BeatTop,
     Message,
     BeatPiano,
     BeatStageBg,
@@ -80,15 +83,20 @@ export default {
     PitchLine,
     BeatLyric,
     LyricCorrect,
-    BeatList
+    BeatList,
+    Parameters,
+    StatusBar,
+    PitchElement
   },
   data() {
     return {
       pitchList: pitchList,
+      modeState: modeState,
+      typeModeState: typeModeState,
       isMouseDown: false,
       startPos: null,
       endPos: null,
-      stageOffset: null,
+      // stageOffset: null,
       movePitchStart: null,
       selectedPitch: -1,
       showList: -1,
@@ -98,9 +106,6 @@ export default {
   computed: {
     stagePitches() {
       return this.$store.state.stagePitches
-    },
-    beatForm() {
-      return this.$store.state.beatForm
     },
     noteWidth() {
       return this.$store.state.noteWidth
@@ -114,17 +119,14 @@ export default {
     stageWidth() {
       return this.$store.getters.stageWidth
     },
-    matter() {
-      return this.$store.state.matter
-    },
     stageHeight() {
       return this.$store.getters.stageHeight
     },
-    beatWidth() {
-      return this.$store.getters.beatWidth
-    },
     playState() {
       return this.$store.state.playState
+    },
+    isExceedHeader() {
+      return this.$store.state.isExceedHeader
     }
   },
   mounted() {
@@ -132,10 +134,10 @@ export default {
     // window.addEventListener('resize', () => {
     //   this.updateStageOffset()
     // })
-    this.$refs.stage.addEventListener('scroll', () => {
+    this.$refs.rightArea.addEventListener('scroll', () => {
       this.updateStageOffset()
     })
-    document.getElementById('audioStage').oncontextmenu = (e) => { 
+    document.getElementById('audioStage').oncontextmenu = (e) => {
       // 右键基础事件被阻止掉了
       return false
     }
@@ -143,6 +145,7 @@ export default {
   methods: {
     checkPitchDuplicated() { // 检查音符块有没重叠
       // log('checkPitchDuplicated pitches:', this.stagePitches)
+      this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
       const pitches = this.stagePitches
       for(let i = 0; i < pitches.length; i++){
         const pitch1 = pitches[i]
@@ -160,7 +163,7 @@ export default {
               leftPitch = pitch2
               rightPitch = pitch1
             }
-            
+
             const isRed = leftPitch.left + leftPitch.width > rightPitch.left
             if (isRed) {
               pitch1.red = isRed
@@ -169,29 +172,29 @@ export default {
           }
         }
       }
+      this.$store.dispatch('getPitchLine')
+    },
+    scrollTo(left) {
+      this.$refs.rightArea.scrollLeft = left
     },
     updateStageOffset() {
       // 初始化舞台的位置
-      const scrollLeft = this.$refs.stage.scrollLeft
-      const scrollTop = this.$refs.stage.scrollTop
-      this.stageOffset = {
-        scrollLeft,
-        scrollTop
-      }
-    },
-    toShowBeat() {
-      if (this.isSynthetizing) {
-        Message.error('正在合成音频中,不能修改哦~')
-        return
-      }
-      if (this.playState === playState.StatePlaying) {
-        Message.error('正在播放中, 不能修改哦~')
-        return
-      }
-      this.$emit("showBeat");
+      const scrollLeft = this.$refs.rightArea.scrollLeft
+      const scrollTop = this.$refs.rightArea.scrollTop
+      // this.stageOffset = {
+      //   scrollLeft,
+      //   scrollTop
+      // }
+
+      this.$store.dispatch("changeStoreState", {
+        stage: {
+          ...this.$store.state.stage,
+          scrollLeft,
+          scrollTop
+        }
+      })
     },
     onPitchMouseDown(event, index){
-      console.log(`onPitchMouseDown`, event, index, event.button)
       // 绿色块鼠标按下事件
       this.hideRight()
       if (this.isSynthetizing) {
@@ -207,6 +210,7 @@ export default {
       this.index = index
       this.toSelectPitch(index)
       if (event.button === 2) { // 按下了鼠标右键
+        console.log(`onPitchMouseDown`, event, index, event.button)
         this.showRight(index)
         this.$nextTick(() => {
           this.$refs.BeatList.setPosition(event.layerX, event.layerY + this.noteHeight)
@@ -227,6 +231,7 @@ export default {
     },
     onPitchMouseMove(event){
       // 绿色块鼠标移动事件
+      // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
         const { target } = this.movePitchStart
         let newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
@@ -238,14 +243,13 @@ export default {
         if (newLeft < 0) { // sdk那边限制不能从0开始画
           newLeft = 0
         }
-        // console.log('target:', target)
+
         target.style.transform = `translate(${newLeft}px, ${newTop}px)`
         target.dataset.left = newLeft
         target.dataset.top = newTop
       }
     },
     onPitchMouseUp(event) {
-      console.log(`onPitchMouseUp`)
       if (this.movePitchStart) {
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
@@ -259,15 +263,20 @@ export default {
 
         // 松开时修正位置
         const pitch = this.stagePitches[index]
-        
         // pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
-        pitch.left = amendLeft(left, this.noteWidth)
-        pitch.top = amendTop(top, this.noteHeight)
+        const newLeft = amendLeft(left, this.noteWidth)
+        const newTop = amendTop(top, this.noteHeight)
+        const isPositionChanged = pitch.left !== newLeft || pitch.top !== newTop
+        pitch.left = newLeft
+        pitch.top = newTop
 
         target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
         target.dataset.left = pitch.left
         target.dataset.top = pitch.top
-        this.checkPitchDuplicated()
+        // pitch.pitchChanged = true
+        if (isPositionChanged) {
+          this.checkPitchDuplicated()
+        }
       }
     },
     onMouseDown(event) {
@@ -286,8 +295,8 @@ export default {
       const rect = this.$refs.stage.getBoundingClientRect()
 
       this.startPos = {
-        x: event.clientX + this.stageOffset.scrollLeft - rect.left,
-        y: event.clientY + this.stageOffset.scrollTop - rect.top
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
       };
       // console.log(`this.startPos, x: ${this.startPos.x}, y: ${this.startPos.y}`)
       // 初始化绿色块
@@ -301,10 +310,10 @@ export default {
       if (this.isMouseDown) {
         const rect = this.$refs.stage.getBoundingClientRect()
         const pos = {
-          x: event.clientX + this.stageOffset.scrollLeft - rect.left,
-          y: event.clientY + this.stageOffset.scrollTop - rect.top
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
         };
-        
+
         const width = pos.x - this.startPos.x;
         const height = pos.y - this.startPos.y;
 
@@ -330,8 +339,8 @@ export default {
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
-          x: event.clientX + this.stageOffset.scrollLeft - rect.left,
-          y: event.clientY + this.stageOffset.scrollTop - rect.top
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
         };
         // console.log(`this.endPos: x${this.endPos.x}, y: ${this.endPos.y}`)
         this.$refs.sharp.style.display = "none";
@@ -356,7 +365,7 @@ export default {
         const top = amendTop(topPx, this.noteHeight)
         // const left = Math.floor(initLeft / this.noteWidth) * this.noteWidth
         const left = amendLeft(initLeft, this.noteWidth)
-        
+
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
@@ -381,14 +390,15 @@ export default {
         red: false,
         pinyinList: ['la'],
         select: 0,
+        fu: 'l',
+        yuan: 'a'
       });
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0`)
       this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
-      this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
+      this.stagePitches[this.stagePitches.length - 1].pitchChanged = true
       this.checkPitchDuplicated()
       this.checkPitchesOverStage()
     },
-
     onArrowMoveEnd({ width, left, top, target, direction }, index) {
       const pitch = this.stagePitches[index]
       // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
@@ -401,15 +411,13 @@ export default {
       } else {
         pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
       }
-      
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
-      
+      pitch.pitchChanged = true
       // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
-
       this.checkPitchDuplicated()
     },
-    
+
     toSelectPitch(index) {
       this.selectedPitch = index
     },
@@ -435,14 +443,12 @@ export default {
       this.$refs.LyricCorrect.showLyric(lyric, index)
     },
     beatLyricSaveAllPinyin() {
-      this.$refs.BeatLyric.savePinyin()
-      this.$refs.BeatLyric.savePinyinList()
-      this.$refs.BeatLyric.saveHanzi()
+      this.$refs.BeatLyric.save()
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
       // console.log('this.stageWidth:', this.stageWidth)
-      if ((x + 100) >= this.stageWidth) {
+      while ((x + 100) >= this.stageWidth) {
         this.$store.dispatch('updateMatter', 15)
       }
     },
@@ -451,7 +457,7 @@ export default {
       this.stagePitches.forEach((item) => {
         const right = item.left + item.width
         maxPitchRight = Math.max(maxPitchRight, right)
-        this.$store.dispatch('changeStoreState', { maxPitchRight: maxPitchRight})
+        this.$store.dispatch('changeStoreState', { maxPitchRight })
       })
     }
   }
@@ -470,16 +476,23 @@ export default {
 .right {
   position: absolute;
   width: calc(100% - 50px);
-  height: 100%;
+  height: calc(100%);
   left: 50px;
   user-select: none;
   overflow-x: scroll;
-}
-
-.top {
-  height: 25px;
-  position: relative;
-  display: flex;
+  overflow-x: overlay;
+  &::-webkit-scrollbar {
+    position: absolute;
+    width: 0px;
+    height: 10px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    background: transparent
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+  }
 }
 
 .stage {
@@ -487,31 +500,12 @@ export default {
   // width: calc(100% - 50px);
   user-select: none;
 }
-.matter {
-  height: 25px;
-  color: #fff;
-  font-size: 13px;
-  border-left: 1px solid #626263;
-  text-align: left;
-  position: relative;
-  padding-left: 5px;
-  line-height: 25px;
-  flex-shrink: 0;
-}
-
 .drawStage {
   position: absolute;
   left: 0;
   top: 0px;
   z-index: 10; // 绘画舞台的层级
   overflow: hidden;
-}
-.beat {
-  position: absolute;
-  color: #fff;
-  font-size: 13px;
-  top: 3px;
-  left: 15px;
 }
 .pitch {
   height: 0;

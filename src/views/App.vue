@@ -1,12 +1,12 @@
 <template>
   <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
-    <AudioHeader v-if="$router.history.current.path === '/audioEditor'" :openLoginDialog="openLoginDialog"></AudioHeader>
-    <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" 
-      ref="header" :currentPath="$router.history.current.path" 
-      :openLoginDialog="openLoginDialog" 
+    <EditAudioHeader v-if="$router.history.current.path === '/audioEditor'" :openLoginDialog="openLoginDialog"></EditAudioHeader>
+    <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'"
+      ref="header" :currentPath="$router.history.current.path"
+      :openLoginDialog="openLoginDialog"
     />
     <router-view @changeBg="changeBg" @openLoginDialog="openLoginDialog" />
-    <template v-if="$router.history.current.path === '/audioEditor'" class="footer"></template>
+    <template v-if="$router.history.current.path === '/audioEditor'" class="audioFooter"></template>
     <Footer v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'" />
     <LoginDialog :loginDialogShow="loginDialogShow" :closeLoginDialog="closeLoginDialog"></LoginDialog>
   </div>
@@ -14,7 +14,7 @@
 
 <script>
 // @ is an alias to /src
-import AudioHeader from '@/common/components/AudioHeader.vue'
+import EditAudioHeader from '@/common/components/EditAudioHeader.vue'
 import LoginDialog from '@/common/components/LoginDialog.vue'
 import Header from '@/common/components/Header.vue'
 import Footer from '@/common/components/Footer.vue'
@@ -28,7 +28,7 @@ export default {
   components: {
     Header,
     Footer,
-    AudioHeader,
+    EditAudioHeader,
     LoginDialog
   },
   data() {
@@ -40,13 +40,12 @@ export default {
   mounted() {
     const app = document.querySelector('#app')
     app.addEventListener('scroll', (event) => {
-      const scrollTop = app.scrollTop
-      // console.log('scrollTop:', scrollTop)
-      if (scrollTop > 48) {
-        this.$store.dispatch("changeStoreState", { isExceedHeader: true })
-      } else {
-        this.$store.dispatch("changeStoreState", { isExceedHeader: false })
-      }
+      const appScrollTop = app.scrollTop
+      const isExceedHeader = appScrollTop > 48
+      this.$store.dispatch("changeStoreState", {
+        appScrollTop,
+        isExceedHeader
+      })
     })
   },
   methods: {
@@ -85,8 +84,8 @@ export default {
   }
   #app {
     height: 100vh;
-    // overflow: auto;
-    overflow-y: auto;
+    // overflow-y: auto;
+    overflow-y: overlay;
     overflow-x: hidden;
     background-size: cover;
     font-family: "Source Han Sans CN", Avenir, Helvetica, Arial, sans-serif;
@@ -103,8 +102,20 @@ export default {
     .input {
       line-height: normal;
     }
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+    &::-webkit-scrollbar-track-piece {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      margin-right: 4px;
+      width: 6px;
+    }
   }
-  .footer {
+  .audioFooter {
     height: 0px;
     width: 0px
   }

@@ -60,9 +60,12 @@
                   :label="item.display_name"
                   :value="item.tone_id"
                 >
+                  <span style="float: left">{{ item.display_name }}</span>
+                  <span style="float: right; color:#8492a6; font-size: 13px;">by {{ item.nickname }}</span>
                 </el-option>
               </el-select>
               <img v-if="singleToneId !== null" src="@/assets/icon-player.png" alt="" @click="playerButtonClick($event, singleToneId)">
+              <a href="/audioUpload" class="upload-audio">上传其他音源 ></a>
             </div>
 
             <div v-if="toneType === 1" :class="validateResult.tone[index] === false ? 'tone-selector check-failed' : 'tone-selector'">
@@ -76,12 +79,15 @@
                   :label="item.display_name"
                   :value="item.tone_id"
                 >
+                  <span style="float: left">{{ item.display_name }}</span>
+                  <span style="float: right; color:#8492a6; font-size: 13px;">by {{ item.nickname }}</span>
                 </el-option>
               </el-select>
               <img 
                 v-if="(newLyricList.findIndex((item) => { return item.toneId === newLyricList[index].toneId }) === index) && newLyricList[index].toneId !== null" 
                 src="@/assets/icon-player.png" alt="" @click="playerButtonClick($event, newLyricList[index].toneId)"
                 >
+              <a href="/audioUpload" class="upload-audio" v-if="index === 0">上传其他音源 ></a>
             </div>
 
           </div>
@@ -544,7 +550,9 @@ export default {
     // 删除草稿
     deleteDraft() {
       const draftId = sessionStorage.getItem('draftId')
-      deleteDraft(draftId)
+      if (draftId) {
+        deleteDraft(draftId)
+      }
       sessionStorage.setItem('draftId', '')
     },
     // 确认按钮点击
@@ -1027,5 +1035,11 @@ export default {
     .el-input__inner {
       font-size: 16px;
     }
+  }
+
+  .upload-audio {
+    color: #2cabff;
+    padding: 0 10px;
+    text-decoration: none;
   }
 </style>
