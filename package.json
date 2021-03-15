@@ -12,6 +12,7 @@
     "axios": "^0.20.0",
     "cos-js-sdk-v5": "^1.2.2",
     "element-ui": "^2.13.2",
+    "midi-json-parser": "^8.0.31",
     "moment": "^2.29.1",
     "object-assign-deep": "^0.4.0",
     "smoothscroll-polyfill": "^0.4.4",

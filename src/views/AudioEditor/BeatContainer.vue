@@ -33,6 +33,7 @@
               {{ it.hanzi }}
               <Arrow :pitch="it" direction="left" @move-end="onArrowMoveEnd($event, index)"/>
               <Arrow :pitch="it" direction="right" @move-end="onArrowMoveEnd($event, index)"/>
+              <img :class="$style.aerate" src="@/assets/audioEditor/aerate.png" v-if="it.insertAeration"/>
             </div>
           </template>
           <BeatList
@@ -40,6 +41,7 @@
             :index="index"
             @deletePitch="toDeletePitch"
             @editLyric="editLyric"
+            @hideList="hideList"
             v-if="showList === index"
           ></BeatList>
           <div :class="$style.sharp" ref="sharp"></div>
@@ -425,8 +427,11 @@ export default {
       this.selectedPitch = index
       this.showList = index
     },
-    hideRight () {
+    hideRight() {
       this.selectedPitch = -1
+      this.showList = -1
+    },
+    hideList() {
       this.showList = -1
     },
     toDeletePitch(index) {
@@ -538,5 +543,12 @@ export default {
   background-color: rgba(204, 204, 204, 0.514);
 }
 
+.aerate {
+  width: 38px;
+  height: 53px;
+  position: absolute;
+  top: -47px;
+  left: -15px;
+}
 
 </style>

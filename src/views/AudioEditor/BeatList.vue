@@ -5,9 +5,14 @@
       top: `${top}px`
     }">
     <img src="@/assets/audioEditor/arrow-black.png">
-    <div :class="[$style.edit, $style.delete]" @click.stop="toDeletePitch">删除</div>
-    <div :class="$style.edit" @click.stop="editLyric(index)">编辑歌词</div>
-    <div :class="[$style.edit, $style.delete]" @click.stop="editLyric(-1)">批量编辑歌词</div>
+    <div :class="[$style.button, $style.top]" @click.stop="toDeletePitch">删除</div>
+    <!-- <div :class="[$style.button, $style.line]" @click.stop="copy">复制</div> -->
+
+    <div :class="[$style.button, $style.top]" @click.stop="editLyric">编辑歌词</div>
+    <div :class="[$style.button, $style.line]" @click.stop="editLyric(-1)">批量编辑歌词</div>
+
+    <!-- <div :class="[$style.button, $style.bottom]" @click.stop="cancelAeration" v-if="stagePitches[index].insertAeration">取消换气</div>
+    <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="insertAeration" v-else>插入换气</div> -->
   </div>
 </template>
 
@@ -23,6 +28,11 @@ export default {
       top: 0
     }
   },
+  computed: {
+    stagePitches() {
+      return this.$store.state.stagePitches
+    }
+  },
   methods: {
     setPosition(left, top) {
       this.left = left
@@ -31,8 +41,20 @@ export default {
     toDeletePitch() {
       this.$emit('deletePitch', this.index)
     },
-    editLyric(index) {
-      this.$emit('editLyric', index)
+    editLyric() {
+      this.$emit('editLyric', this.index)
+    },
+    insertAeration() {
+      this.stagePitches[this.index].insertAeration = true
+      this.$emit('hideList')
+    },
+    cancelAeration() {
+      this.stagePitches[this.index].insertAeration = false
+      this.$emit('hideList')
+    },
+    copy() {
+      const item = this.stagePitches[this.index]
+      console.log('item:', item)
     }
   }
 }
@@ -40,13 +62,11 @@ export default {
 
 <style lang="less" module>
 .list {
-  width: 104px;
+  width: 140px;
   background: #151517;
   box-shadow: -4px 4px 10px 0 rgba(0,0,0, 0.30);
   border-radius: 8px;
   position: absolute;
-  // top: 38px;
-  // right: -80px;
   color: #fff;
   font-size: 14px;
   text-align: center;
@@ -59,10 +79,11 @@ export default {
     top: -8px;
   }
 }
-.edit {
+.button {
+  width: 116px;
   height: 44px;
   line-height: 44px;
-  margin: 8px 0 0 0;
+  margin: 0 auto;
   &:hover {
     background: #1C1C1E;
     border-radius: 8px;
@@ -73,7 +94,16 @@ export default {
   }
 }
 
-.delete {
-  margin: 0 0 8px 0;
+.top {
+  margin-top: 8px;
 }
+
+.line {
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.bottom {
+  margin-bottom: 8px;
+}
+
 </style>

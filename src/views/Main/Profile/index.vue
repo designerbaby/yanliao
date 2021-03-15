@@ -5,6 +5,7 @@
         <Menu :default-active="activeIndex" class="el-menu" mode="horizontal" @select="menuSelect">
           <MenuItem index="1">我的作品</MenuItem>
           <MenuItem index="2">我的草稿</MenuItem>
+          <MenuItem index="5">我的曲谱</MenuItem>
           <MenuItem index="3">我的视频</MenuItem>
           <MenuItem index="4">我的音源</MenuItem>
         </Menu>
@@ -31,6 +32,9 @@
       <div v-if="activeIndex === '4'">
         <AudioSourceTable />
       </div>
+      <div v-if="activeIndex === '5'">
+        <OperaTable />
+      </div>
     </div>
   </div>
 </template>
@@ -38,7 +42,7 @@
 <script>
 // @ is an alias to /src
 import { reportEvent } from '@/common/utils/helper'
-import { 
+import {
   Menu,
   MenuItem,
   Message,
@@ -48,6 +52,7 @@ import DraftTable from './DraftTable.vue'
 import VideoTable from './VideoTable.vue'
 import WorkTable from './WorkTable.vue'
 import AudioSourceTable from './AudioSourceTable.vue'
+import OperaTable from './OperaTable.vue'
 import { deleteAudio } from '@/api/profile'
 
 export default {
@@ -59,6 +64,7 @@ export default {
     WorkTable,
     DraftTable,
     VideoTable,
+    OperaTable,
     AudioSourceTable
   },
   data() {
@@ -76,7 +82,6 @@ export default {
   },
   methods: {
     menuSelect(index) {
-      log(index)
       this.activeIndex = index
       this.$router.push({
         path: this.$route.path,

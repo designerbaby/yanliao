@@ -7,39 +7,33 @@
       highlight-current-row
       @cell-mouse-enter="tableCellMouseEnter"
     >
-      <TableColumn
-        label="音频作品名称"
-      >
+      <TableColumn label="音频作品名称">
         <template slot-scope="scope">
           <span class="audio-name" v-if="scope.row.bus_type === 2" @click="toAudioEditor(scope.row)">{{scope.row.arrange_name || '填词'}}</span>
           <span class="audio-name" v-else @click="audioNameClick(scope.row.arrange_id)">{{scope.row.arrange_name || '填词'}}</span>
         </template>
       </TableColumn>
-      <TableColumn
-        label="音源"
-      >
+      <TableColumn label="音源">
         <template slot-scope="scope">
           <span>{{ scope.row.tone_infos.map(item => item.display_name).join('、') || '— —' }}</span>
         </template>
       </TableColumn>
-      <TableColumn
-        label="更新时间"
-      >
+      <TableColumn label="更新时间">
         <template slot-scope="scope">
           <span>{{$moment(scope.row.update_time * 1000).format('YYYY/MM/DD HH:mm')}}</span>
         </template>
       </TableColumn>
-      <TableColumn
-        label="状态"
-      >
+      <TableColumn label="状态">
         <template slot-scope="scope">
           <span>{{ stateMap(scope.row.state) }}</span>
         </template>
       </TableColumn>
-      <TableColumn
-        label="音频作品操作"
-        width="130"
-      >
+      <TableColumn label="共享曲谱">
+        <template slot-scope="scope">
+          <i class="icon el-icon-share" @click.stop="shareOpera(scope.row)"></i>
+        </template>
+      </TableColumn>
+      <TableColumn label="音频作品操作" width="130">
         <template slot-scope="scope">
           <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-download disabled' : 'icon el-icon-download'" @click="downloadButtonClick(scope.row)"></i>
           <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-if="scope.row.bus_type === 2" @click.stop="toAudioEditor(scope.row)"></i>
@@ -57,7 +51,20 @@
       :total="total"
     >
     </Pagination>
-    <CommonDialog :show="dialogShow" titleText="确定删除该作品吗?" confirmButtonText="删除" :confirmButtonEvent="deleteItem" :cancelButtonEvent="closeDialog" />
+    <CommonDialog
+      :show="dialogShow"
+      titleText="确定删除该作品吗?"
+      confirmButtonText="删除"
+      :confirmButtonEvent="deleteItem"
+      :cancelButtonEvent="closeDialog" />
+    <CommonConfirmDialog
+      :show="shareShow"
+      titleText="确定共享该曲谱吗?"
+      tipText="共享的曲谱将被收录进盐料视频的曲库供大家使用"
+      confirmButtonText="确认"
+      cancelButtonText="取消"
+      :confirmButtonEvent="shareQuPu"
+      :cancelButtonEvent="closeShareDialog" />
   </div>
 </template>
 
@@ -70,6 +77,7 @@ import {
 } from 'element-ui'
 import { fetchArrangeList, deleteAudio } from '@/api/profile'
 import CommonDialog from '@/common/components/CommonDialog'
+import CommonConfirmDialog from '@/common/components/CommonConfirmDialog'
 import { reportEvent } from '@/common/utils/helper'
 
 export default {
@@ -79,7 +87,8 @@ export default {
     TableColumn,
     Pagination,
     Message,
-    CommonDialog
+    CommonDialog,
+    CommonConfirmDialog
   },
   data() {
     return {
@@ -87,7 +96,8 @@ export default {
       currentPage: 1,
       total: 0,
       targetArrangeId: '',
-      dialogShow: false
+      dialogShow: false,
+      shareShow: false
     }
   },
   mounted() {
@@ -177,7 +187,7 @@ export default {
       this.getList()
     },
     deleteItem() {
-      log('deleteItem', this.targetArrangeId)
+      console.log('deleteItem', this.targetArrangeId)
       deleteAudio(this.targetArrangeId).then((response) => {
         const { data, ret_code } = response.data
         if (ret_code === 0) {
@@ -189,6 +199,16 @@ export default {
     },
     closeDialog() {
       this.dialogShow = false
+    },
+    shareOpera() {
+      this.shareShow = true
+    },
+    shareQuPu() {
+      console.log('shareQuPu')
+      // TODO 这里要对接下分享曲谱的接口
+    },
+    closeShareDialog() {
+      this.shareShow = false
     }
   }
 }

@@ -36,12 +36,12 @@
             <div class="text">{{ line }}</div>
 
             <div :class="validateResult.contents[index].status === false ? 'input check-failed' : 'input'">
-              <input 
-                :autofocus="index === 0 ? 'autofocus' : null" 
-                placeholder="输入新歌词" 
-                v-model="newLyricList[index].content" 
-                @input="lyricInputChange($event, index)" 
-                @blur="lyricInputBlur($event, index)" 
+              <input
+                :autofocus="index === 0 ? 'autofocus' : null"
+                placeholder="输入新歌词"
+                v-model="newLyricList[index].content"
+                @input="lyricInputChange($event, index)"
+                @blur="lyricInputBlur($event, index)"
               />
               <span class="error-text">{{ validateResult.contents[index].text }}</span>
             </div>
@@ -49,7 +49,7 @@
             <div v-if="toneType === 0 && index === 0" :class="validateResult.singleTone === false ? 'tone-selector check-failed' : 'tone-selector'">
               <el-select
                 filterable
-                class="selector" 
+                class="selector"
                 :placeholder="'选择谁来演唱这首歌'"
                 v-model="singleToneId"
                 @change="singleToneIdChange"
@@ -83,8 +83,8 @@
                   <span style="float: right; color:#8492a6; font-size: 13px;">by {{ item.nickname }}</span>
                 </el-option>
               </el-select>
-              <img 
-                v-if="(newLyricList.findIndex((item) => { return item.toneId === newLyricList[index].toneId }) === index) && newLyricList[index].toneId !== null" 
+              <img
+                v-if="(newLyricList.findIndex((item) => { return item.toneId === newLyricList[index].toneId }) === index) && newLyricList[index].toneId !== null"
                 src="@/assets/icon-player.png" alt="" @click="playerButtonClick($event, newLyricList[index].toneId)"
                 >
               <a href="/audioUpload" class="upload-audio" v-if="index === 0">上传其他音源 ></a>
@@ -109,7 +109,7 @@
         <div class="section-title">选择曲调
           <span class="melody-tips">(单位: 1 度代表 1 半音)</span>
         </div>
-        <el-select class="melody-selector" 
+        <el-select class="melody-selector"
           v-model="melody"
           :disabled="melodySelectorDisable === true ? true : false" :placeholder="melodySelectorDisable === true ? '请选择音源后再选择曲调' : ''"
         >
@@ -125,7 +125,8 @@
     </div>
     <div class="footer">
       <button @click="prevButtonClick" class="main-button">上一步</button>
-      <button @click="confirmButtonClick" class="main-button">确定</button>
+      <button @click="audioButtonClick" class="main-button">去调音</button>
+      <button @click="confirmButtonClick" class="main-button">生成音频</button>
     </div>
     <el-dialog
       :visible.sync="dialogVisible"
@@ -139,15 +140,15 @@
 </template>
 
 <script>
-import { 
-  Select, 
+import {
+  Select,
   Option,
   Input,
   Dialog,
   InputNumber,
 } from 'element-ui'
 
-import { 
+import {
   songDetail,
   songOtherDetail,
   preSubmit,
@@ -427,7 +428,7 @@ export default {
     // 初始化校验数据
     initvalidateData() {
       this.validateResult = {
-        contents: this.oldLyricList.map(item => { 
+        contents: this.oldLyricList.map(item => {
           return { status: null, text: '', }
         }),
         bpm: null,
@@ -554,6 +555,10 @@ export default {
         deleteDraft(draftId)
       }
       sessionStorage.setItem('draftId', '')
+    },
+    // 去调音
+    audioButtonClick() {
+      this.$router.push('/audioEditor') // TODO 这里要把歌曲数据带过去
     },
     // 确认按钮点击
     confirmButtonClick() {
@@ -784,7 +789,7 @@ export default {
           .edit-title, .tone-title {
             min-width: 216px;
           }
-        } 
+        }
         .section-title {
           font-size: 30px;
           color: #000;
@@ -1030,7 +1035,7 @@ export default {
       font-size: 16px;
     }
   }
-  
+
   .melody-selector {
     .el-input__inner {
       font-size: 16px;

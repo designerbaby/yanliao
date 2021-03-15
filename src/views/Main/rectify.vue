@@ -23,6 +23,7 @@
     </div>
     <div class="footer">
       <button @click="prevButtonClick" class="main-button">上一步</button>
+      <button @click="audioButtonClick" class="main-button">去调音</button>
       <button @click="confirmButtonClick" class="main-button">完成</button>
     </div>
   </div>
@@ -35,7 +36,7 @@ import {
   submit,
 } from '@/api/api'
 
-import { 
+import {
   addDraft,
   fetchDraftDetailById,
   deleteDraft,
@@ -198,6 +199,9 @@ export default {
         this.$router.push('/edit/' + this.oldForm.music_id)
       }
       // this.$router.go(-1)
+    },
+    audioButtonClick() {
+      this.$router.push('/audioEditor')
     },
     confirmButtonClick() {
       // 多音字编辑页-确认按钮-点击
