@@ -448,7 +448,7 @@ export default {
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
       // console.log('this.stageWidth:', this.stageWidth)
-      while ((x + 100) >= this.stageWidth) {
+      while ((x + 500) >= this.stageWidth) {
         this.$store.dispatch('updateMatter', 15)
       }
     },
