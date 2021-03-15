@@ -24,7 +24,7 @@
     <div class="footer">
       <button @click="prevButtonClick" class="main-button">上一步</button>
       <button @click="audioButtonClick" class="main-button">去调音</button>
-      <button @click="confirmButtonClick" class="main-button">完成</button>
+      <button @click="confirmButtonClick" class="main-button">生成音频</button>
     </div>
   </div>
 </template>

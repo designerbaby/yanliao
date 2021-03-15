@@ -126,7 +126,7 @@
     <div class="footer">
       <button @click="prevButtonClick" class="main-button">上一步</button>
       <button @click="audioButtonClick" class="main-button">去调音</button>
-      <button @click="confirmButtonClick" class="main-button">生成音频</button>
+      <button @click="confirmButtonClick" class="main-button">确定</button>
     </div>
     <el-dialog
       :visible.sync="dialogVisible"
