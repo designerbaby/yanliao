@@ -2,7 +2,7 @@
   <Dialog
     title="拼音校正"
     :visible.sync="pinyinVisible"
-    width="400px">  
+    width="400px">
     <div :class="$style.pinyinInput">
       <div :class="$style.list" v-for="(it, index) in pinyinList" :key="index">
         {{ it.hanzi }}
@@ -28,7 +28,6 @@ export default {
   data() {
     return {
       pinyinVisible: false,
-      index: -1,
       lyric: ''
     }
   },
@@ -46,14 +45,12 @@ export default {
     }
   },
   methods: {
-    showLyric(lyric, index) {
+    showLyric(lyric) {
       this.pinyinVisible = true
-      this.index = index
       this.lyric = lyric
     },
     submit() {
       this.$emit('saveAllPinyin')
-      this.$store.dispatch('changeStoreState', { pinyinList: this.pinyinList })
       this.pinyinVisible = false
     },
     toBack() {

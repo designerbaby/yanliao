@@ -36,7 +36,7 @@ export default {
       lyricForm: {
         lyric: ''
       },
-      index: -1, // -1 代表批量更新歌词, 其他代表歌词的某一项
+      index: -1, // -1 代表全量更新歌词, 其他根据有没选择去处理
       rule: {
         lyric: [
           { required: true, message: '请输入歌词,且必须为中文或者“-”',
@@ -63,6 +63,7 @@ export default {
   },
   methods: {
     showLyric(index) {
+      console.log('showLyric index:', index)
       this.lyricVisible = true
       this.index = index
       this.setLyric(index)
@@ -74,7 +75,11 @@ export default {
           lyric += item.hanzi
         })
       } else {
-        lyric = this.stagePitches.find((item, i) => i === index).hanzi
+        this.stagePitches.forEach(item => {
+          if (item.selected) {
+            lyric += item.hanzi
+          }
+        })
       }
       this.lyricForm.lyric = lyric
       this.maxlength = this.lyricArray.length
@@ -99,15 +104,23 @@ export default {
     checkFisrtPitch() {
       // console.log('this.lyricArray:', this.lyricArray)
       let check = true
-      if (this.index !== -1) {
-        if (this.lyricArray[0] === '-' && this.index === 0) {
-          check = false
-        }
-      } else {
+
+      if (this.index === -1) {
         if (this.lyricArray[0] === '-') {
           check = false
         }
+      } else {
+        const selectIndex = []
+        this.stagePitches.forEach((item, index) => {
+          if (item.selected) {
+            selectIndex.push(index)
+          }
+        })
+        if (this.lyricArray[0] === '-' && selectIndex[0] === 0) {
+          check = false
+        }
       }
+
       return check
     },
     checkPitch() {
@@ -115,17 +128,28 @@ export default {
       const lyricArray = this.lyricArray
       if (lyricArray.indexOf('-') !== -1) {
         lyricArray.findIndex((value, index, arr) => {
-          const idx = this.index !== -1 ? this.index : index
+          const idx = this.index === -1 ? index : this.getIndex(index)
           if (value === '-' && (idx - 1) >= 0) {
             const before = this.stagePitches.find((item, i) => i === idx - 1)
             const current = this.stagePitches.find((item, i) => i === idx)
             if (before.left + before.width !== current.left) {
               check = false
+              return
             }
           }
         })
       }
       return check
+    },
+    getIndex(index) {
+      let selectIndex = []
+      const changeStagePitches = this.stagePitches.filter(v => v.selected)
+      for (let i = 0; i < this.stagePitches.length; i += 1) {
+        if (this.stagePitches[i].selected) {
+          selectIndex.push(i)
+        }
+      }
+      return selectIndex[index]
     },
     async saveStagePitches () {
       const pinyinList = await this.getPinyin()
@@ -146,10 +170,10 @@ export default {
       return pinyinList
     },
     save() {
-      const stagePitches = this.$store.state.stagePitches
+      const stagePitches = this.stagePitches
       const pinyinList = this.$store.state.pinyinList
       const lyricArray = this.lyricArray
-      console.log('lyricArray:', lyricArray)
+      // console.log('lyricArray:', lyricArray)
       if (this.index === -1) {
         for(let i = 0; i < this.maxlength; i += 1) {
           // const item = pinyinList[i] || {}
@@ -177,24 +201,28 @@ export default {
           pitch.pinyin = value
         }
       } else {
-        const pitch = stagePitches[this.index]
-
-        pitch.pitchChanged = true
-        pitch.hanzi = this.lyricForm.lyric
-        pitch.select = 0
-        pitch.pinyinList = ['la']
-        pitch.pinyin = '-'
-        if (pinyinList[0]) {
-          pitch.select = pinyinList[0].select
-          pitch.pinyinList = pinyinList[0].pinyin
-          pitch.pinyin = pinyinList[0].pinyin[pinyinList[0].select]
+        const changeStagePitches = this.stagePitches.filter(v => v.selected)
+        for (let i = 0; i < changeStagePitches.length; i += 1) {
+          const pitch = changeStagePitches[i]
+          pitch.pitchChanged = true
+          pitch.hanzi = this.lyricArray[i]
+          pitch.select = 0
+          pitch.pinyinList = ['la']
+          pitch.pinyin = '-'
+          pinyinList.forEach(item => {
+            if (item.hanzi === pitch.hanzi) {
+              pitch.select = item.select
+              pitch.pinyinList = item.pinyin
+              pitch.pinyin = item.pinyin[item.select]
+            }
+          })
         }
       }
       this.saveFuYuan()
       this.$store.dispatch('getPitchLine')
     },
     async saveFuYuan() {
-      const stagePitches = this.$store.state.stagePitches
+      const stagePitches = this.stagePitches
       let pinyin = stagePitches.map(v => v.pinyin)
       const res = await getYinsu({pin_yin: pinyin})
       const yinsu = res.data.data.yin_su
@@ -224,7 +252,7 @@ export default {
         Message.warning('没有多音字，无需校正~')
         return
       }
-      this.$emit('showLyric', this.lyricForm.lyric, this.index)
+      this.$emit('showLyric', this.lyricForm.lyric)
     }
   }
 }

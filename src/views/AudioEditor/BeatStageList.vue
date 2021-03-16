@@ -11,16 +11,18 @@
 
 <script>
 import { Message } from "element-ui"
+import { amendTop, amendLeft } from '@/common/utils/helper'
 
 export default {
-  name: 'BeatRightList',
+  name: 'BeatStageList',
   props: {
     index: Number
   },
   data() {
     return {
       left: 0,
-      top: 0
+      top: 0,
+      pos: {}
     }
   },
   computed: {
@@ -29,12 +31,34 @@ export default {
     }
   },
   methods: {
-    setPosition(left, top) {
+    setPosition(left, top, pos) {
       this.left = left
       this.top = top
+      this.pos = pos
     },
     toPaste() {
-      console.log('toPaste')
+      // this.$store.dispatch('initStagePitchesSelect')
+      // const copyStagePitches = this.$store.state.copyStagePitches
+
+      // const pos = this.pos
+      // // TODO这里要做粘贴功能
+      // const oldItem = copyStagePitches[0]
+      // const newItem = {
+      //   left: amendLeft(this.pos.x, this.$store.state.noteWidth),
+      //   top: amendTop(this.pos.y, this.$store.state.noteHeight),
+      //   selected: true
+      // }
+      // const copyItem = Object.assign({}, oldItem, newItem)
+      // console.log('toPaste:', copyItem)
+      // this.stagePitches.push(copyItem)
+      // // 粘贴成功后要把要粘贴的内容清空并隐藏操作列表
+      // this.$store.dispatch('changeStoreState', { copyStagePitches: [], showRightList: false })\
+      const copyStagePitches = this.$store.state.copyStagePitches
+      if (copyStagePitches.length === 0) {
+        Message.error('没有复制东西，快去复制把~')
+        return
+      }
+
     }
   }
 }

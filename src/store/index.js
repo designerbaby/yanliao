@@ -31,7 +31,6 @@ const defaultState = {
     scrollLeft: 0, // 水平滚动条位置
     scrollTop: 0 // 垂直滚动条位置
   },
-  maxPitchRight: 0, // 音块最右边的位置
   mode: modeState.StatePitch, // 模式
   typeMode: typeModeState.StateNone, // 附加模式类型
   playState: playState.StateNone, // 播放状态
@@ -43,20 +42,20 @@ const defaultState = {
   isStagePitchElementChanged: false, // 元辅音是否有改变
   f0AI: [], // 音高线虚线部分
   f0Draw: [], // 音高线实线部分
-  f0Xy: {}, // 音高线的坐标部分
+  f0Xy: {}, // 音高线的坐标部分 !!!暂时没用到
   volumeMap: [], // 响度原始map数据
   tensionMap: [], // 张力原始map数据
-  changedLineMap: {},
-  pinyinList: [],
+  changedLineMap: {}, // 音高线改变的信息
+  pinyinList: [], // 当前用户输入的字里面包括的多音字列表
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
   typeContainerHeight: 250,
   pitchChanged: false, // 是否全部重置
-  showMenuList: -1, // 音块的右键菜单列表
-  showRightList: false, // 全局舞台的右键
-  copyStagePitches: []
+  showMenuList: false, // 音块的右键菜单列表
+  showStageList: false, // 全局舞台的右键
+  copyStagePitches: [] // 复制的内容
 }
 
 const store = new Vuex.Store({
@@ -212,6 +211,13 @@ const store = new Vuex.Store({
         tensionMap[x] = v
       }
       commit('changeStoreState', { tensionMap, isTensionChanged: true })
+    },
+    resetStagePitchesSelect({ commit, state }) { // 重置舞台音块的每个选择
+      const stagePitches = [...state.stagePitches]
+      stagePitches.forEach(item => {
+        item.selected = false
+      })
+      commit('changeStoreState', { stagePitches })
     },
     async getPitchLine({ commit, state, getters }) {
       if (getters.pitchList.length <= 0) {

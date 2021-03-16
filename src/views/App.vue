@@ -67,7 +67,7 @@ export default {
       this.loginDialogShow = false
     },
     clickApp() {
-      this.$store.dispatch('changeStoreState', { showMenuList: -1, showRightList: false })
+      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
     }
   }
 }

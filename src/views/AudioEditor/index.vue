@@ -58,7 +58,7 @@ export default {
       state => state.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
-        console.log('changeStoreState isStagePitchesChanged true')
+        // console.log('changeStoreState isStagePitchesChanged true')
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
       },
       {

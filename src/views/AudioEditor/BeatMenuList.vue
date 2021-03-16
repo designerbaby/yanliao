@@ -5,14 +5,11 @@
       top: `${top}px`
     }">
     <img src="@/assets/audioEditor/arrow-black.png">
-    <div :class="[$style.button, $style.top]" @click.stop="toDeletePitch">删除</div>
+    <div :class="[$style.button, $style.top]" @click.stop="deletePitch">删除</div>
     <div :class="[$style.button, $style.line]" @click.stop="copy">复制</div>
 
-    <div :class="[$style.button, $style.top]" @click.stop="editLyric">编辑歌词</div>
-    <div :class="[$style.button, $style.bottom]" @click.stop="editLyric(-1)">批量编辑歌词</div>
-
-    <!-- <div :class="[$style.button, $style.bottom]" @click.stop="cancelAeration" v-if="stagePitches[index].insertAeration">取消换气</div>
-    <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="insertAeration" v-else>插入换气</div> -->
+    <div :class="[$style.button, $style.top]" @click.stop="editLyric(-2)">编辑歌词</div>
+    <div :class="[$style.button, $style.bottom]" @click.stop="editLyric(-1)">全量编辑歌词</div>
   </div>
 </template>
 
@@ -21,8 +18,7 @@ import { Message } from "element-ui"
 
 export default {
   name: 'BeatMenuList',
-  props: {
-    index: Number
+  components: {
   },
   data() {
     return {
@@ -40,26 +36,19 @@ export default {
       this.left = left
       this.top = top
     },
-    toDeletePitch() {
-      this.$emit('deletePitch', this.index)
+    deletePitch() {
+      const stagePitches = this.stagePitches.filter(({ selected }) => !selected)
+      this.$store.dispatch('changeStoreState', { showMenuList: false, stagePitches })
+      this.$emit('afterChangePitchAndHandle')
     },
-    editLyric() {
-      this.$emit('editLyric', this.index)
-    },
-    insertAeration() {
-      this.stagePitches[this.index].insertAeration = true
-      this.$store.dispatch('changeStoreState', { showMenuList: -1 })
-    },
-    cancelAeration() {
-      this.stagePitches[this.index].insertAeration = false
-      this.$store.dispatch('changeStoreState', { showMenuList: -1 })
+    editLyric(type) {
+      this.$emit('editLyric', type)
+      this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     copy() {
-      const item = this.stagePitches[this.index]
-      // console.log('item:', item)
-      Message.success('复制成功,快去空白处点右键粘贴吧~')
-      const copyStagePitches = [item]
-      this.$store.dispatch('changeStoreState', { showMenuList: -1, copyStagePitches })
+      Message.success('复制成功,快去点右键粘贴吧~')
+      const copyStagePitches = this.stagePitches.filter(v => v.selected);
+      this.$store.dispatch('changeStoreState', { copyStagePitches })
     }
   }
 }
