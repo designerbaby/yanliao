@@ -54,6 +54,11 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 1、要把doPlay的判断改成状态机
 - 2、配置gitlab-ci去设置代码发布
 
+
+- 1、要做复制粘贴的功能
+- 2、shift选中的逻辑需要完善
+- 3、打通主流程需要和后端对接口做调整
+
 ## 难点
 - 1、画音高线的时候锯齿
 - 2、整体数据规划
