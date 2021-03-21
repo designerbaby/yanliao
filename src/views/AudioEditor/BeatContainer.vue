@@ -23,6 +23,7 @@
                 height: `${it.height}px`,
                 transform: `translate(${it.left}px, ${it.top}px)`
               }"
+              data-ref="pitch"
               :key="index"
               :data-left="it.left"
               :data-top="it.top"
@@ -104,7 +105,8 @@ export default {
       startPos: null,
       endPos: null,
       movePitchStart: null,
-      actionPitchIndex: -1
+      actionPitchIndex: -1,
+      isMoved: false
     }
   },
   computed: {
@@ -179,9 +181,16 @@ export default {
     onClickPitch(event, index){
       // 单纯单击绿色块鼠标事件
       console.log('单纯单击绿色块鼠标事件 onClickPitch:', event)
-      this.$store.dispatch('resetStagePitchesSelect')
-      this.actionPitchIndex = index
-      this.stagePitches[index].selected = true
+      // 移动过则不处理重置选中状态
+      if (this.isMoved) {
+        // 把是否移动的标志恢复初始状态
+        this.isMoved = false
+      } else {
+        this.$store.dispatch('resetStagePitchesSelect')
+        this.actionPitchIndex = index
+        this.stagePitches[index].selected = true
+      }
+
     },
     onShiftClickPitch(event, index) {
       // 绿色块鼠标+shift事件
@@ -234,13 +243,35 @@ export default {
       const target = event.target
       target.style.opacity = 0.8
 
+      // 都有的dom元素
+      const allElements = [...this.$el.querySelectorAll('[data-ref="pitch"]')]
+      const selectedElements = []
+      const selectedPitches = []
+      // 当前是否选中
+      const selected = this.stagePitches[index].selected
+      if (selected) {
+        this.stagePitches.forEach((v, idx) => {
+          if (v.selected) {
+            selectedElements.push(allElements[idx])
+            selectedPitches.push(v)
+          }
+        })
+      } else { // 当前点击的项没有选中，则值操作当前点的项
+        selectedElements.push(target)
+        selectedPitches.push(this.stagePitches[index])
+      }
+      // 把选中的元素的透明弄成0.8
+      selectedElements.forEach(v => v.style.opacity = 0.8)
+
       this.movePitchStart = {
         left: Number(target.dataset.left),
         top: Number(target.dataset.top),
         clientX: event.clientX,
         clientY: event.clientY,
         target,
-        index
+        index,
+        selectedPitches,
+        selectedElements
       }
 
       document.addEventListener('mousemove', this.onPitchMouseMove)
@@ -251,48 +282,69 @@ export default {
       // 绿色块鼠标移动事件
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
-        const { target } = this.movePitchStart
-        let newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
-        let newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
+        const { target, selectedPitches, selectedElements } = this.movePitchStart
 
-        if (newTop < 0) {
-          newTop = 0
-        }
-        if (newLeft < 0) {
-          newLeft = 0
-        }
+        const moveX = event.clientX - this.movePitchStart.clientX
+        const moveY = event.clientY - this.movePitchStart.clientY
 
-        target.style.transform = `translate(${newLeft}px, ${newTop}px)`
-        target.dataset.left = newLeft
-        target.dataset.top = newTop
+        // 只有每一个块的位置都在可拖动范围内才能拖动
+        const canMove = selectedPitches.every(it => {
+          return (it.left + moveX) >= 0 && (it.top + moveY) >= 0
+        })
+        if (canMove) {
+          for (let i = 0; i < selectedPitches.length; i ++) {
+            const pitch = selectedPitches[i]
+            const eleDom = selectedElements[i]
+            const newLeft = pitch.left + moveX
+            const newTop = pitch.top + moveY
+
+            eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
+            eleDom.dataset.left = newLeft
+            eleDom.dataset.top = newTop
+          }
+
+        }
       }
     },
     onPitchMouseUp(event) {
+      console.log(`onPitchMouseUp`)
       if (this.movePitchStart) {
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
-        const { target, index } = this.movePitchStart
-        // 绿色块鼠标移走事件
-        event.target.style.opacity = 1
+        const { target, index, selectedPitches, selectedElements } = this.movePitchStart
+
+
+        for (let i = 0; i < selectedPitches.length; i ++) {
+          const pitch = selectedPitches[i]
+          const eleDom = selectedElements[i]
+          // 移动结束时的位置
+          const left = parseInt(eleDom.dataset.left, 10)
+          const top = parseInt(eleDom.dataset.top, 10)
+          // 修正位置，自动吸附
+          const newLeft = amendLeft(left, this.noteWidth)
+          const newTop = amendTop(top, this.noteHeight)
+
+          eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
+          eleDom.dataset.left = newLeft
+          eleDom.dataset.top = newTop
+          // 移动结束，透明度去掉
+          eleDom.style.opacity = 1
+
+
+          // 只要有任何一个块移动了位置，都标记一下已经移动
+          // onClickPitch方法里面会判断是否移动过
+          if (newLeft !== pitch.left || newTop !== pitch.top) {
+            // 表示已经移动了块，后续在点击事件那里用来判断
+            this.isMoved = true
+          }
+
+          // 修改元数据的位置，然vue重新渲染
+          pitch.left = newLeft
+          pitch.top = newTop
+        }
+
         this.movePitchStart = null
-
-        const left = parseInt(event.target.dataset.left, 10)
-        const top = parseInt(event.target.dataset.top, 10)
-
-        // 松开时修正位置
-        const pitch = this.stagePitches[index]
-
-        const newLeft = amendLeft(left, this.noteWidth)
-        const newTop = amendTop(top, this.noteHeight)
-        // const isPositionChanged = pitch.left !== newLeft || pitch.top !== newTop
-        pitch.left = newLeft
-        pitch.top = newTop
-
-        target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
-        target.dataset.left = pitch.left
-        target.dataset.top = pitch.top
         this.$store.dispatch('afterChangePitchAndHandle')
-        // if (isPositionChanged) {}
       }
     },
     onMouseDown(event) {
