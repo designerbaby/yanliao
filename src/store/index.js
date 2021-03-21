@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import profile from './profile'
 import { pitchList, playState, modeState, typeModeState } from '@/common/utils/const'
 import { getF0Data } from '@/api/audio'
-import { pxToTime } from '@/common/utils/helper'
+import { pxToTime, checkPitchDuplicated } from '@/common/utils/helper'
 import { Message } from 'element-ui'
 import deepAssign from 'object-assign-deep'
 
@@ -54,7 +54,7 @@ const defaultState = {
   typeContainerHeight: 250,
   pitchChanged: false, // 是否全部重置
   showMenuList: false, // 音块的右键菜单列表
-  showStageList: false, // 全局舞台的右键
+  showStageList: false, // 全局舞台的右键菜单列表
   copyStagePitches: [] // 复制的内容
 }
 
@@ -284,6 +284,12 @@ const store = new Vuex.Store({
           width
         }
       })
+    },
+    afterChangePitchAndHandle({ commit, state, dispatch }) {
+      state.stagePitches.sort((a, b) => a.left - b.left) // 排序
+      const stagePitches = checkPitchDuplicated(state.stagePitches)
+      commit('changeStoreState', { stagePitches })
+      dispatch('getPitchLine')
     }
   },
   modules: {

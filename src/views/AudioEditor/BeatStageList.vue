@@ -15,9 +15,6 @@ import { amendTop, amendLeft } from '@/common/utils/helper'
 
 export default {
   name: 'BeatStageList',
-  props: {
-    index: Number
-  },
   data() {
     return {
       left: 0,
@@ -37,28 +34,34 @@ export default {
       this.pos = pos
     },
     toPaste() {
-      // this.$store.dispatch('initStagePitchesSelect')
-      // const copyStagePitches = this.$store.state.copyStagePitches
 
-      // const pos = this.pos
-      // // TODO这里要做粘贴功能
-      // const oldItem = copyStagePitches[0]
-      // const newItem = {
-      //   left: amendLeft(this.pos.x, this.$store.state.noteWidth),
-      //   top: amendTop(this.pos.y, this.$store.state.noteHeight),
-      //   selected: true
-      // }
-      // const copyItem = Object.assign({}, oldItem, newItem)
-      // console.log('toPaste:', copyItem)
-      // this.stagePitches.push(copyItem)
-      // // 粘贴成功后要把要粘贴的内容清空并隐藏操作列表
-      // this.$store.dispatch('changeStoreState', { copyStagePitches: [], showRightList: false })\
+      this.$store.dispatch('resetStagePitchesSelect')
       const copyStagePitches = this.$store.state.copyStagePitches
+      console.log('粘贴 copyStagePitches', copyStagePitches, this.pos)
+
       if (copyStagePitches.length === 0) {
         Message.error('没有复制东西，快去复制把~')
         return
       }
 
+      const firstItem = copyStagePitches[0]
+      const offsetLeft = this.pos.x - firstItem.left
+      const offsetTop = this.pos.y - firstItem.top
+      for (let i = 0; i < copyStagePitches.length; i += 1) {
+        const item = copyStagePitches[i]
+        const newLeft = amendLeft(item.left + offsetLeft, this.$store.state.noteWidth)
+        const newTop = amendTop(item.top + offsetTop, this.$store.state.noteHeight)
+
+        const newItem = {
+          left: newLeft,
+          top: newTop,
+          selected: true
+        }
+        this.stagePitches.push(Object.assign({}, item, newItem))
+      }
+      // console.log('this.stagePitches:', this.stagePitches)
+      this.$store.dispatch('changeStoreState', { copyStagePitches: [], showStageList: false })
+      this.$store.dispatch('afterChangePitchAndHandle')
     }
   }
 }

@@ -39,14 +39,14 @@ export default {
     deletePitch() {
       const stagePitches = this.stagePitches.filter(({ selected }) => !selected)
       this.$store.dispatch('changeStoreState', { showMenuList: false, stagePitches })
-      this.$emit('afterChangePitchAndHandle')
+      this.$store.dispatch('afterChangePitchAndHandle')
     },
     editLyric(type) {
       this.$emit('editLyric', type)
       this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     copy() {
-      Message.success('复制成功,快去点右键粘贴吧~')
+      Message.success('复制成功~')
       const copyStagePitches = this.stagePitches.filter(v => v.selected);
       this.$store.dispatch('changeStoreState', { copyStagePitches })
     }

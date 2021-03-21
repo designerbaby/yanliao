@@ -97,3 +97,34 @@ export const camSafeUrlEncode = (str) => {
     .replace(/\)/g, '%29')
     .replace(/\*/g, '%2A')
 }
+
+// 检查音符块有没重叠
+export const checkPitchDuplicated = (stagePitches) => {
+  const pitches = stagePitches
+  for(let i = 0; i < pitches.length; i++){
+    const pitch1 = pitches[i]
+    pitch1.red = false
+    for(let j = 0; j < pitches.length; j++){
+      const pitch2 = pitches[j]
+      if (i !== j) {
+        let leftPitch = null
+        let rightPitch = null
+
+        if (pitch1.left < pitch2.left) {
+          leftPitch = pitch1
+          rightPitch = pitch2
+        } else {
+          leftPitch = pitch2
+          rightPitch = pitch1
+        }
+
+        const isRed = leftPitch.left + leftPitch.width > rightPitch.left
+        if (isRed) {
+          pitch1.red = isRed
+        }
+        // console.log(`检查外层第${i}个格子left:${pitch1.left},width:${pitch1.width}，内层第${j}个格子left:${pitch2.left},width:${pitch2.width} ,red:${isRed}`)
+      }
+    }
+  }
+  return pitches
+}

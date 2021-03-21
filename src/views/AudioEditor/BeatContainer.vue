@@ -31,7 +31,8 @@
               @click.exact="onClickPitch($event, index)"
               @click.shift.exact="onShiftClickPitch($event, index)"
               @click.ctrl.exact="onCtrlClickPitch($event, index)"
-              @click.right.stop.prevent="onPitchMouseRight($event, index)"
+              @click.right.stop.prevent.exact="onRightClickPitch($event, index)"
+              @click.shift.right.exact="onShiftRightClickPitch($event, index)"
               slot="reference"
             >
               {{ it.hanzi }}
@@ -43,7 +44,6 @@
           <BeatMenuList
             ref="BeatMenuList"
             @editLyric="editLyric"
-            @afterChangePitchAndHandle="afterChangePitchAndHandle"
             v-if="$store.state.showMenuList"
           ></BeatMenuList>
           <div :class="$style.sharp" ref="sharp"></div>
@@ -103,7 +103,6 @@ export default {
       isMouseDown: false,
       startPos: null,
       endPos: null,
-      // stageOffset: null,
       movePitchStart: null,
       actionPitchIndex: -1
     }
@@ -133,7 +132,7 @@ export default {
   },
   mounted() {
     this.updateStageOffset()
-    // window.addEventListener('resize', () => {
+    // window.addEventListener('resize', () => { // 缩放功能
     //   this.updateStageOffset()
     // })
     this.$refs.rightArea.addEventListener('scroll', () => {
@@ -145,40 +144,6 @@ export default {
     }
   },
   methods: {
-    afterChangePitchAndHandle() {
-      this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
-      this.checkPitchDuplicated()
-      this.$store.dispatch('getPitchLine')
-    },
-    checkPitchDuplicated() { // 检查音符块有没重叠
-      const pitches = this.stagePitches
-      for(let i = 0; i < pitches.length; i++){
-        const pitch1 = pitches[i]
-        pitch1.red = false
-        for(let j = 0; j < pitches.length; j++){
-          const pitch2 = pitches[j]
-          if (i !== j) {
-            let leftPitch = null
-            let rightPitch = null
-
-            if (pitch1.left < pitch2.left) {
-              leftPitch = pitch1
-              rightPitch = pitch2
-            } else {
-              leftPitch = pitch2
-              rightPitch = pitch1
-            }
-
-            const isRed = leftPitch.left + leftPitch.width > rightPitch.left
-            if (isRed) {
-              pitch1.red = isRed
-            }
-            // console.log(`检查外层第${i}个格子left:${pitch1.left},width:${pitch1.width}，内层第${j}个格子left:${pitch2.left},width:${pitch2.width} ,red:${isRed}`)
-          }
-        }
-      }
-
-    },
     scrollTo(left) {
       this.$refs.rightArea.scrollLeft = left
     },
@@ -186,10 +151,6 @@ export default {
       // 初始化舞台的位置
       const scrollLeft = this.$refs.rightArea.scrollLeft
       const scrollTop = this.$refs.rightArea.scrollTop
-      // this.stageOffset = {
-      //   scrollLeft,
-      //   scrollTop
-      // }
 
       this.$store.dispatch("changeStoreState", {
         stage: {
@@ -224,9 +185,9 @@ export default {
     },
     onShiftClickPitch(event, index) {
       // 绿色块鼠标+shift事件
-      console.log('绿色块鼠标+shift事件 onShiftClickPitch:', event)
+      console.log('绿色块鼠标+shift事件 onShiftClickPitch:', event, index)
       this.$store.dispatch('resetStagePitchesSelect')
-
+      console.log('this.actionPitchIndex:', this.actionPitchIndex)
       if (this.actionPitchIndex >= 0) {
         this.stagePitches.filter((_, i) => {
           if (this.actionPitchIndex < index) {
@@ -242,13 +203,18 @@ export default {
     onCtrlClickPitch(event, index) {
       // 绿色块鼠标ctrl事件
       console.log('绿色块鼠标ctrl事件 onCtrlClickPitch:', event)
-      this.actionPitchIndex = index
       this.stagePitches[index].selected = true
     },
-    onPitchMouseRight(event, index) {
-      // 绿色块鼠标右键事件
-      console.log(`绿色块鼠标右键事件 onPitchMouseRight`, event, index, event.button)
-      // this.$store.dispatch('resetStagePitchesSelect')
+    onRightClickPitch(event, index) {
+      console.log(`单纯点击鼠标绿色块右键事件 onRightClickPitch,`, event, index)
+      this.$store.dispatch('resetStagePitchesSelect')
+      this.commonRightClickPitch(event, index)
+    },
+    onShiftRightClickPitch(event, index) {
+      console.log(`shift+鼠标右键事件 onShiftRightClickPitch,`, event, index)
+      this.commonRightClickPitch(event, index)
+    },
+    commonRightClickPitch(event, index) {
       this.$store.dispatch('changeStoreState', { showMenuList: true })
       this.stagePitches[index].selected = true
       this.$nextTick(() => {
@@ -325,7 +291,7 @@ export default {
         target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
         target.dataset.left = pitch.left
         target.dataset.top = pitch.top
-        this.afterChangePitchAndHandle()
+        this.$store.dispatch('afterChangePitchAndHandle')
         // if (isPositionChanged) {}
       }
     },
@@ -430,7 +396,6 @@ export default {
 
     addOnePitch({ width, height, left, top }) {
       this.$store.dispatch('resetStagePitchesSelect')
-      this.actionPitchIndex = -1
       this.stagePitches.push({
         width,
         height,
@@ -447,7 +412,12 @@ export default {
         pitchChanged: true
       });
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
-      this.afterChangePitchAndHandle()
+      this.$store.dispatch('afterChangePitchAndHandle')
+      this.stagePitches.forEach((item, index) => {
+        if (item.selected) {
+          this.actionPitchIndex = index
+        }
+      })
     },
     onArrowMoveEnd({ width, left, top, target, direction }, index) {
       const pitch = this.stagePitches[index]
@@ -465,7 +435,7 @@ export default {
       target.style.width = `${pitch.width}px`
       pitch.pitchChanged = true
       // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
-      this.afterChangePitchAndHandle()
+      this.$store.dispatch('afterChangePitchAndHandle')
     },
     editLyric(type) {
       this.$refs.BeatLyric.showLyric(type)
