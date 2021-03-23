@@ -49,6 +49,7 @@ export default {
       Message.success('复制成功~')
       const copyStagePitches = this.stagePitches.filter(v => v.selected);
       this.$store.dispatch('changeStoreState', { copyStagePitches })
+      this.$store.dispatch('changeStoreState', { showMenuList: false })
     }
   }
 }

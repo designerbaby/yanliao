@@ -9,8 +9,7 @@
     >
       <TableColumn label="音频作品名称">
         <template slot-scope="scope">
-          <span class="audio-name" v-if="scope.row.bus_type === 2" @click="toAudioEditor(scope.row)">{{scope.row.arrange_name || '填词'}}</span>
-          <span class="audio-name" v-else @click="audioNameClick(scope.row.arrange_id)">{{scope.row.arrange_name || '填词'}}</span>
+          <span class="audio-name" @click="toAudioEditor(scope.row)">{{scope.row.arrange_name || '填词'}}</span>
         </template>
       </TableColumn>
       <TableColumn label="音源">
@@ -30,14 +29,14 @@
       </TableColumn>
       <TableColumn label="共享曲谱">
         <template slot-scope="scope">
-          <i class="icon el-icon-share" @click.stop="shareOpera(scope.row)"></i>
+          <i class="icon el-icon-share disabled" v-if="scope.row.share_type === 2" @click.stop="shareAgain"></i>
+          <i class="icon el-icon-share" v-else @click.stop="shareOpera(scope.row)"></i>
         </template>
       </TableColumn>
       <TableColumn label="音频作品操作" width="130">
         <template slot-scope="scope">
           <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-download disabled' : 'icon el-icon-download'" @click="downloadButtonClick(scope.row)"></i>
-          <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-if="scope.row.bus_type === 2" @click.stop="toAudioEditor(scope.row)"></i>
-          <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-else @click="editButtonClick(scope.row)"></i>
+          <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" @click.stop="toAudioEditor(scope.row)"></i>
           <i class="icon el-icon-delete" @click="deleteButtonClick(scope.row)"></i>
         </template>
       </TableColumn>
@@ -76,6 +75,7 @@ import {
   Message
 } from 'element-ui'
 import { fetchArrangeList, deleteAudio } from '@/api/profile'
+import { shareMusicScore } from '@/api/audio'
 import CommonDialog from '@/common/components/CommonDialog'
 import CommonConfirmDialog from '@/common/components/CommonConfirmDialog'
 import { reportEvent } from '@/common/utils/helper'
@@ -97,7 +97,8 @@ export default {
       total: 0,
       targetArrangeId: '',
       dialogShow: false,
-      shareShow: false
+      shareShow: false,
+      row: {}
     }
   },
   mounted() {
@@ -109,17 +110,13 @@ export default {
         Message.error('音频合成中，暂不可编辑')
         return
       }
-      // console.log('toAudioEditor row:', row)
       this.$router.push(`/audioEditor?taskId=${row.arrange_id}`)
-    },
-    audioNameClick(arrangeId) {
-      console.log('audioNameClick', arrangeId)
-      this.$router.push(`/audio/${arrangeId}`)
     },
     getList() {
       const p = {
         start: (this.currentPage - 1) * 10,
         count: 10,
+        bus_type: 2 // 曲谱列表
       }
       fetchArrangeList(p).then((response) => {
         const { data } = response.data
@@ -160,23 +157,6 @@ export default {
       a.click()
       document.body.removeChild(element)
     },
-    editButtonClick(row) {
-      const arrangeId = row.arrange_id
-      const state = row.state
-      if (state === 0 || state === 1) {
-        Message.error('音频合成中，暂不可编辑')
-        return
-      }
-      sessionStorage.setItem('draftId', '')
-      reportEvent('person-page-audioedit-button', 'person-page-audioedit-button', { arrangeId, })
-      const editable = row.is_edit
-      if (editable === 1) {
-        this.$router.push('/exception')
-        return
-      }
-      console.log('profile editButtonClick row:', JSON.stringify(row))
-      this.$router.push(`/edit/${row.music_id}/${row.arrange_id}`)
-    },
     deleteButtonClick(row) {
       const arrangeId = row.arrange_id
       reportEvent('person-page-audiodelete-button', 'person-page-audiodelete-button', { arrangeId, })
@@ -200,15 +180,23 @@ export default {
     closeDialog() {
       this.dialogShow = false
     },
-    shareOpera() {
+    shareOpera(row) {
+      this.row = row
       this.shareShow = true
     },
-    shareQuPu() {
-      console.log('shareQuPu')
-      // TODO 这里要对接下分享曲谱的接口
+    async shareQuPu() {
+      const res = await shareMusicScore({ task_id: this.row.arrange_id })
+      if (res.data.data.ret_code === 0) {
+        Message.success('分享曲谱成功~')
+        this.getList()
+        this.shareShow = false
+      }
     },
     closeShareDialog() {
       this.shareShow = false
+    },
+    shareAgain() {
+      Message.info('该曲谱已被共享，无需再次进行共享操作～')
     }
   }
 }

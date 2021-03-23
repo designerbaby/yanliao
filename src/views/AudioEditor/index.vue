@@ -21,9 +21,10 @@ import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
 import StatusBar from './StatusBar.vue'
-import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail } from '@/api/audio'
+import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
+import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, generateUUID } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
 
 export default {
@@ -120,31 +121,45 @@ export default {
       }
       return xyMap
     },
+    async getMusicInfo(musicId) {
+      const res = await songDetail(musicId)
+      return res.data.data
+    },
+    async getMusicxml2Json(xml2JsonReq) {
+      const res = await musicxml2Json(xml2JsonReq)
+      return res.data.data
+    },
+    pitchList2StagePitches(pitchList) {
+      let stagePitches = []
+      pitchList.forEach(item => {
+        stagePitches.push({
+          hanzi: item.hanzi,
+          pinyin: item.pinyin,
+          red: false,
+          height: this.noteHeight,
+          width: timeToPx(item.duration, this.noteWidth, pitchList[0].bpm),
+          left: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
+          top: this.noteHeight * (this.firstPitch - item.pitch),
+          pinyinList: item.pinyinList,
+          select: item.select,
+          preTime: item.preTime,
+          fu: item.fu,
+          yuan: item.yuan,
+          selected: false, // 表示是否选中了音块
+          uuid: generateUUID()
+        })
+      })
+      console.log('pitchList2StagePitches:', stagePitches)
+      return stagePitches
+    },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
-      if (taskId) {
+      const musicId = getParam('musicId') || 0
+      if (taskId) { // 从我的曲谱的编辑按钮进来
         const res = await editorDetail({ task_id: taskId })
         const data = res.data.data
-        console.log('editorDetail:', data)
         const pitchList = data.pitchList
-        let stagePitches = []
-        pitchList.forEach(item => {
-          stagePitches.push({
-            hanzi: item.hanzi,
-            pinyin: item.pinyin,
-            red: false,
-            height: this.noteHeight,
-            width: timeToPx(item.duration, this.noteWidth, pitchList[0].bpm),
-            left: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
-            top: this.noteHeight * (this.firstPitch - item.pitch),
-            pinyinList: item.pinyinList,
-            select: item.select,
-            preTime: item.preTime,
-            fu: item.fu,
-            yuan: item.yuan
-          })
-        })
-        console.log('getEditorDetail stagePitches:', stagePitches)
+        const stagePitches = this.pitchList2StagePitches(pitchList)
         await this.$store.dispatch('changeStoreState', {
           taskId: data.task_id,
           downUrl: data.down_url,
@@ -157,8 +172,11 @@ export default {
           stagePitches: stagePitches,
           volumeMap: this.convertXyMap(data.volume_xy),
           tensionMap: this.convertXyMap(data.tension_xy),
-          f0Xy: data.f0_xy
+          f0Xy: data.f0_xy,
+          musicId: data.music_id,
+          musicName: data.music_name
         })
+        // this.$store.dispatch('getPitchLine')
         const changed = {}
         const pitchWidth = this.$store.getters.pitchWidth
         // 比较元数据和AI数据，如果不一样表示是修改过的，下次生成新的时候不能覆盖
@@ -174,7 +192,24 @@ export default {
           }
         }
         this.$store.state.changedLineMap = changed
+      } else if (musicId) { // 从编辑页面或者修改歌词页面进来
+        const musicInfo = await this.getMusicInfo(musicId)
+        const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
+        const stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList)
+        this.$store.dispatch('changeStoreState', {
+          taskId: musicxml2Json.task_id,
+          musicId: musicId,
+          bpm: musicxml2Json.pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
+          toneName: musicxml2Json.pitchList[0].singer,
+          toneId: musicxml2Json.pitchList[0].toneId,
+          musicName: musicInfo.name,
+          stagePitches: stagePitches,
+          pitchChanged: true // 标记音块改动了，这样才能重新拉到辅音
+        })
+        this.$store.dispatch('getPitchLine')
+        this.$store.dispatch('saveFuYuan')
       }
+      this.$store.dispatch('adjustStageWidth')
     },
     isNeedGenerate() {
       // 舞台音块改变
@@ -468,7 +503,9 @@ export default {
         tension_data: handleData.f0Tension,
         volume_xy: handleData.volumeXy,
         tension_xy: handleData.tensionXy,
-        f0_xy: this.$store.state.f0Xy
+        f0_xy: this.$store.state.f0Xy,
+        music_id: this.$store.state.musicId,
+        music_name: this.$store.state.musicName
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)

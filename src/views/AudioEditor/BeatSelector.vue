@@ -70,22 +70,11 @@ export default {
     },
     toUpdateStage() { // 根据内外舞台的框进行比较
       const stageConWidth = this.$store.state.stage.width
-      const maxPitchRight = this.getPitchMaxRight()
-      console.log(`maxPitchRight: ${maxPitchRight}, stageConWidth: ${stageConWidth}, this.stageWidth: ${this.stageWidth}`)
+      console.log(`stageConWidth: ${stageConWidth}, this.stageWidth: ${this.stageWidth}`)
       while (stageConWidth > this.stageWidth) { // 外框比里框更大
         this.$store.dispatch('updateMatter', 15)
       }
-      while (maxPitchRight > this.stageWidth) {
-        this.$store.dispatch('updateMatter', 15)
-      }
-    },
-    getPitchMaxRight() {
-      let maxPitchRight = 0
-      this.$store.state.stagePitches.forEach((item) => {
-        const right = item.left + item.width
-        maxPitchRight = Math.max(maxPitchRight, right)
-      })
-      return maxPitchRight
+      this.$store.dispatch('adjustStageWidth')
     },
     showBeatDialog() {
       this.beatForm = {

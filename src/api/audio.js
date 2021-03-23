@@ -79,6 +79,15 @@ const musicxml2Json = (data) => {
   })
 }
 
+// 曲谱共享状态
+const shareMusicScore = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/synth/share_music_score',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
@@ -87,5 +96,6 @@ export {
   Hanzi2Pinyin,
   editorDetail,
   getYinsu,
-  musicxml2Json
+  musicxml2Json,
+  shareMusicScore
 }

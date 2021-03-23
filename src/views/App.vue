@@ -67,7 +67,10 @@ export default {
       this.loginDialogShow = false
     },
     clickApp() {
+      console.log('点击整个页面 clickApp')
       this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
+      this.$store.dispatch('resetStagePitchesSelect')
+      // this.$store.dispatch('doSelectUUID', { values: null })
     }
   }
 }

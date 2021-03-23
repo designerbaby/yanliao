@@ -11,8 +11,8 @@
         label="音频作品名称"
       >
         <template slot-scope="scope">
-          <span class="audio-name" v-if="scope.row.bus_type === 2" @click="toAudioEditor(scope.row)">{{scope.row.arrange_name || '填词'}}</span>
-          <span class="audio-name" v-else @click="audioNameClick(scope.row.arrange_id)">{{scope.row.arrange_name || '填词'}}</span>
+          <span class="audio-name" v-if="scope.row.bus_type === 1" @click="audioNameClick(scope.row.arrange_id)">{{scope.row.arrange_name || '填词'}}</span>
+          <span class="audio-name" v-else @click="toAudioEditor(scope.row)">{{scope.row.arrange_name || '填词'}}</span>
         </template>
       </TableColumn>
       <TableColumn
@@ -42,8 +42,8 @@
       >
         <template slot-scope="scope">
           <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-download disabled' : 'icon el-icon-download'" @click="downloadButtonClick(scope.row)"></i>
-          <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-if="scope.row.bus_type === 2" @click.stop="toAudioEditor(scope.row)"></i>
-          <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-else @click="editButtonClick(scope.row)"></i>
+          <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-if="scope.row.bus_type === 1" @click="editButtonClick(scope.row)"></i>
+          <i :class="scope.row.state === 0 || scope.row.state === 1 ? 'icon el-icon-edit disabled' : 'icon el-icon-edit'" v-else @click.stop="toAudioEditor(scope.row)"></i>
           <i class="icon el-icon-delete" @click="deleteButtonClick(scope.row)"></i>
         </template>
       </TableColumn>
@@ -110,6 +110,7 @@ export default {
       const p = {
         start: (this.currentPage - 1) * 10,
         count: 10,
+        bus_type: 0
       }
       fetchArrangeList(p).then((response) => {
         const { data } = response.data

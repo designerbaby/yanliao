@@ -3,7 +3,7 @@
     <div :class="$style.main">
       <BeatPiano></BeatPiano>
       <div :class="$style.right" ref="rightArea">
-        <div ref="stage" :class="$style.stage" id="audioStage" @click.right="onRightClickStage">
+        <div ref="stage" :class="$style.stage" id="audioStage">
           <BeatStageBg></BeatStageBg>
           <BeatLine></BeatLine>
           <div
@@ -12,6 +12,7 @@
             @mousemove="onMouseMove"
             @mouseup="onMouseUp"
             @mouseleave="onMouseUp"
+            @click.right="onRightClickStage"
             :class="$style.drawStage"
             :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
           ></div>
@@ -29,7 +30,7 @@
               :data-top="it.top"
               @mousedown.self="onPitchMouseDown($event, index)"
               @mouseup.self="onPitchMouseUp"
-              @click.exact="onClickPitch($event, index)"
+              @click.stop.exact="onClickPitch($event, index)"
               @click.shift.exact="onShiftClickPitch($event, index)"
               @click.ctrl.exact="onCtrlClickPitch($event, index)"
               @click.right.stop.prevent.exact="onRightClickPitch($event, index)"
@@ -76,7 +77,7 @@ import BeatMenuList from './BeatMenuList.vue'
 import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
 import StatusBar from './StatusBar.vue'
-import { amendTop, amendLeft } from '@/common/utils/helper'
+import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 
 export default {
   name: "BeatContainer",
@@ -105,8 +106,8 @@ export default {
       startPos: null,
       endPos: null,
       movePitchStart: null,
-      actionPitchIndex: -1,
-      isMoved: false
+      isMoved: false,
+      selectedUUID: null
     }
   },
   computed: {
@@ -146,6 +147,17 @@ export default {
     }
   },
   methods: {
+    doSelectUUID(uuid) {
+      // 为空时清空
+      if (!uuid) {
+        this.selectedUUID = null
+      } else {
+        // 如果之前没有值才设置
+        if (!this.selectedUUID) {
+          this.selectedUUID = uuid
+        }
+      }
+    },
     scrollTo(left) {
       this.$refs.rightArea.scrollLeft = left
     },
@@ -164,6 +176,9 @@ export default {
     },
     onRightClickStage(event) {
       console.log('右键整个舞台事件 onRightClickStage:', event)
+      this.$store.dispatch('resetStagePitchesSelect')
+      this.doSelectUUID(null)
+      // this.$store.dispatch('doSelectUUID', { values: null })
       const rect = this.$refs.stage.getBoundingClientRect()
 
       const left = event.clientX - 10
@@ -181,42 +196,52 @@ export default {
     onClickPitch(event, index){
       // 单纯单击绿色块鼠标事件
       console.log('单纯单击绿色块鼠标事件 onClickPitch:', event)
+      this.$store.dispatch('changeStoreState', { showStageList: false })
       // 移动过则不处理重置选中状态
       if (this.isMoved) {
         // 把是否移动的标志恢复初始状态
         this.isMoved = false
       } else {
         this.$store.dispatch('resetStagePitchesSelect')
-        this.actionPitchIndex = index
         this.stagePitches[index].selected = true
+        this.doSelectUUID(this.stagePitches[index].uuid)
+        // this.$store.dispatch('doSelectUUID', { values: this.stagePitches[index].uuid })
       }
-
     },
     onShiftClickPitch(event, index) {
       // 绿色块鼠标+shift事件
       console.log('绿色块鼠标+shift事件 onShiftClickPitch:', event, index)
-      this.$store.dispatch('resetStagePitchesSelect')
-      console.log('this.actionPitchIndex:', this.actionPitchIndex)
-      if (this.actionPitchIndex >= 0) {
-        this.stagePitches.filter((_, i) => {
-          if (this.actionPitchIndex < index) {
-            return i >= this.actionPitchIndex && i <= index
-          } else {
-            return i >= index && i <= this.actionPitchIndex
-          }
-        }).forEach(v => v.selected = true)
-      }
+      // this.$store.dispatch('resetStagePitchesSelect')
+      this.$store.dispatch('changeStoreState', { showStageList: false })
+      this.doSelectUUID(this.stagePitches[index].uuid)
+      // this.$store.dispatch('doSelectUUID', { values: this.stagePitches[index].uuid })
+      let start = this.stagePitches.findIndex(v => v.uuid === this.selectedUUID)
+      start = start === -1 ? index : start
 
-      this.actionPitchIndex = index
+      let [from, to] = [start, index]
+      if (start > index) {
+        [from, to] = [index, start]
+      }
+      console.log(`from ${from}, to:${to}`, this.stagePitches.map(v => v.selected).reverse())
+      this.stagePitches.forEach((v, i) => {
+        if (i >= from && i <= to) {
+          v.selected = true
+        } else {
+          v.selected = false
+        }
+      })
     },
     onCtrlClickPitch(event, index) {
       // 绿色块鼠标ctrl事件
       console.log('绿色块鼠标ctrl事件 onCtrlClickPitch:', event)
       this.stagePitches[index].selected = true
+      this.doSelectUUID(this.stagePitches[index].uuid)
+      // this.$store.dispatch('doSelectUUID', { values: this.stagePitches[index].uuid })
     },
     onRightClickPitch(event, index) {
       console.log(`单纯点击鼠标绿色块右键事件 onRightClickPitch,`, event, index)
-      this.$store.dispatch('resetStagePitchesSelect')
+      // this.$store.dispatch('resetStagePitchesSelect')
+      this.$store.dispatch('changeStoreState', { showStageList: false })
       this.commonRightClickPitch(event, index)
     },
     onShiftRightClickPitch(event, index) {
@@ -226,6 +251,8 @@ export default {
     commonRightClickPitch(event, index) {
       this.$store.dispatch('changeStoreState', { showMenuList: true })
       this.stagePitches[index].selected = true
+      this.doSelectUUID(this.stagePitches[index].uuid)
+      // this.$store.dispatch('doSelectUUID', { values: this.stagePitches[index].uuid })
       this.$nextTick(() => {
         this.$refs.BeatMenuList.setPosition(event.layerX, event.layerY + this.noteHeight)
       })
@@ -448,6 +475,8 @@ export default {
 
     addOnePitch({ width, height, left, top }) {
       this.$store.dispatch('resetStagePitchesSelect')
+      this.doSelectUUID(null)
+      // this.$store.dispatch('doSelectUUID', { values: null })
       this.stagePitches.push({
         width,
         height,
@@ -461,15 +490,11 @@ export default {
         fu: 'l',
         yuan: 'a',
         selected: true,
-        pitchChanged: true
+        pitchChanged: true,
+        uuid: generateUUID()
       });
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
       this.$store.dispatch('afterChangePitchAndHandle')
-      this.stagePitches.forEach((item, index) => {
-        if (item.selected) {
-          this.actionPitchIndex = index
-        }
-      })
     },
     onArrowMoveEnd({ width, left, top, target, direction }, index) {
       const pitch = this.stagePitches[index]

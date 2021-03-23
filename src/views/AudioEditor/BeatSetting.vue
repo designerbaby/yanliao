@@ -7,7 +7,7 @@
     </div>
     <div :class="$style.text">歌曲名称</div>
     <div :class="$style.select">
-      <Input v-model="name" placeholder="请输入歌曲名称"/>
+      <Input v-model="$store.state.musicName" placeholder="请输入歌曲名称"/>
     </div>
     <div :class="[$style.text, $style.qusu]">当前音源</div>
     <div :class="$style.setting">

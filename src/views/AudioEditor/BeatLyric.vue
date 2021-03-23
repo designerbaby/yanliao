@@ -218,23 +218,24 @@ export default {
           })
         }
       }
-      this.saveFuYuan()
+      // this.saveFuYuan()
+      this.$store.dispatch('saveFuYuan')
       this.$store.dispatch('getPitchLine')
     },
-    async saveFuYuan() {
-      const stagePitches = this.stagePitches
-      let pinyin = stagePitches.map(v => v.pinyin)
-      const res = await getYinsu({pin_yin: pinyin})
-      const yinsu = res.data.data.yin_su
-      for (let i = 0; i < stagePitches.length; i += 1) {
-        const item = stagePitches[i]
-        const py = yinsu[item.pinyin] || {}
-        const f = py.f || '-'
-        const y = py.y || '-'
-        this.$set(item, 'fu', f)
-        this.$set(item, 'yuan', y)
-      }
-    },
+    // async saveFuYuan() {
+    //   const stagePitches = this.stagePitches
+    //   let pinyin = stagePitches.map(v => v.pinyin)
+    //   const res = await getYinsu({pin_yin: pinyin})
+    //   const yinsu = res.data.data.yin_su
+    //   for (let i = 0; i < stagePitches.length; i += 1) {
+    //     const item = stagePitches[i]
+    //     const py = yinsu[item.pinyin] || {}
+    //     const f = py.f || '-'
+    //     const y = py.y || '-'
+    //     this.$set(item, 'fu', f)
+    //     this.$set(item, 'yuan', y)
+    //   }
+    // },
     async checkComplexPinyin() {
       let hasPolyphnic = false
       const pinyinList = await this.getPinyin()

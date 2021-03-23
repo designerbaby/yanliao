@@ -20,16 +20,17 @@
           <div class="lyric-item first-lyric-item">
             <div class="title">原歌词:</div>
             <div class="title">新歌词:</div>
-            <div :class="toneType === 0 ? 'radio selected' : 'radio'">
+            音源:
+            <!-- <div :class="toneType === 0 ? 'radio selected' : 'radio'">
               <div class="icon" @click="toneType = 0"></div>
               <input id="0" v-model="toneType" type="radio" :value="0" hidden>
               <label for="0">单个音源</label>
-            </div>
-            <div :class="toneType === 1 ? 'radio selected' : 'radio'">
+            </div> -->
+            <!-- <div :class="toneType === 1 ? 'radio selected' : 'radio'">
               <div class="icon" @click="toneType = 1"></div>
               <input id="1" v-model="toneType" type="radio" :value="1" hidden>
               <label for="1">多个音源</label>
-            </div>
+            </div> -->
           </div>
 
           <div class="lyric-item" v-for="(line, index) in oldLyricList" :key="line + index">
@@ -236,7 +237,7 @@ export default {
     const arrangeId = this.$route.params.arrangeId // 编辑id
     let toneId = this.$route.params.toneId // 音色id
     const draftId = sessionStorage.getItem('draftId') // 草稿箱id
-    log(`musicId:${musicId}, arrangeId:${arrangeId},toneId:${toneId}`)
+    console.log(`musicId:${musicId}, arrangeId:${arrangeId},toneId:${toneId}`)
 
     this.toneId = toneId
     this.musicId = musicId
@@ -338,7 +339,7 @@ export default {
     },
     // 初始化表单数据
     initFormData(data) {
-      log('initFormData data:', data)
+      console.log('initFormData data:', data)
       let type = 'normal'
       if (this.draftId) {
         type = 'draft'
@@ -357,12 +358,13 @@ export default {
           this.bpm = data.avg_bpm
           this.maxTone = 0
           this.minTone = 0
+          this.musicId = data.music_id
           this.countAdjust = data.count_adjust || []
           this.initLyricData()
         },
         'edit': () => {
           const editInfo = data.edit_info
-          log('edit editInfo:', editInfo)
+          console.log('edit editInfo:', editInfo)
           this.maxTone = data.max_tone
           this.minTone = data.min_tone
           this.bpm = editInfo.bpm
@@ -558,7 +560,27 @@ export default {
     },
     // 去调音
     audioButtonClick() {
-      this.$router.push('/audioEditor') // TODO 这里要把歌曲数据带过去
+      let xml2JsonReq = this.getFormData()
+      if (this.arrangeId) {
+        xml2JsonReq.arrange_id = arrangeId
+      }
+      this.checkForm()
+      if (this.formChecked === true) {
+        preSubmit(xml2JsonReq).then((response) => {
+          const { data } = response.data
+          xml2JsonReq.fix_pinyin_list = data.polyphonic_list
+          xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
+          sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
+          this.$router.push(`/audioEditor?musicId=${this.musicId}`)
+        }).then((response) => {
+          if (!response) {
+            return
+          }
+          this.deleteDraft()
+        })
+      } else {
+        this.dialogVisible = true
+      }
     },
     // 确认按钮点击
     confirmButtonClick() {
@@ -569,7 +591,7 @@ export default {
       if (arrangeId) {
         f.arrange_id = arrangeId
       }
-      log('edit confirmButtonClick提交数据', f)
+      console.log('edit confirmButtonClick提交数据', f)
       this.checkForm()
       if (this.formChecked === true) {
         preSubmit(f).then((response) => {

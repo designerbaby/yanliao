@@ -37,7 +37,7 @@ export default {
 
       this.$store.dispatch('resetStagePitchesSelect')
       const copyStagePitches = this.$store.state.copyStagePitches
-      console.log('粘贴 copyStagePitches', copyStagePitches, this.pos)
+      // console.log('粘贴 copyStagePitches', copyStagePitches, this.pos)
 
       if (copyStagePitches.length === 0) {
         Message.error('没有复制东西，快去复制把~')
@@ -60,7 +60,7 @@ export default {
         this.stagePitches.push(Object.assign({}, item, newItem))
       }
       // console.log('this.stagePitches:', this.stagePitches)
-      this.$store.dispatch('changeStoreState', { copyStagePitches: [], showStageList: false })
+      this.$store.dispatch('changeStoreState', { showStageList: false })
       this.$store.dispatch('afterChangePitchAndHandle')
     }
   }
