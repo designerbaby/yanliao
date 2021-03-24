@@ -100,7 +100,7 @@ export default {
         return
       }
       // console.log('toAudioEditor row:', row)
-      this.$router.push(`/audioEditor?taskId=${row.arrange_id}`)
+      this.$router.push(`/audioEditor?taskId=${row.arrange_id}&index=1`)
     },
     audioNameClick(arrangeId) {
       console.log('audioNameClick', arrangeId)

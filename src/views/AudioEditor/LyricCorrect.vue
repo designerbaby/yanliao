@@ -76,6 +76,7 @@ export default {
   border-radius: 4px;
   transition: border-color .2s cubic-bezier(.645,.045,.355,1);
   height: 120px;
+  overflow: scroll;
 }
 .list {
   color: #606266;

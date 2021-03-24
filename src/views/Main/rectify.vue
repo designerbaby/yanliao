@@ -205,11 +205,11 @@ export default {
       let xml2JsonReq = JSON.parse(sessionStorage.getItem('form'))
       if (this.$route.query.arrangeId) {
         xml2JsonReq.arrange_id = this.$route.query.arrangeId
-        ml2JsonReq.fix_pinyin_list = JSON.parse(sessionStorage.getItem('polyphonicList'))
-        xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
       }
+      xml2JsonReq.fix_pinyin_list = JSON.parse(this.getFormData())
+      xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
       sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
-      this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}`)
+      this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1`)
     },
     confirmButtonClick() {
       // 多音字编辑页-确认按钮-点击

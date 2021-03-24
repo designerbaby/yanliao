@@ -57,7 +57,7 @@
 <script>
 import { Icon, Button, Message } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
-import { isDuplicated, reportEvent } from '@/common/utils/helper'
+import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import ImportDialog from './ImportDialog'
 
 export default {
@@ -128,7 +128,8 @@ export default {
         return
       }
       this.$emit('synthesize', () => {
-        this.$router.push(`/profile`)
+        const index = getParam('index')
+        this.$router.push(`/profile?index=${index}`)
       })
     },
     toSet() {

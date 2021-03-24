@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }" @click="clickApp">
+  <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
     <EditAudioHeader v-if="$router.history.current.path === '/audioEditor'" :openLoginDialog="openLoginDialog"></EditAudioHeader>
     <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'"
       ref="header" :currentPath="$router.history.current.path"
@@ -65,12 +65,6 @@ export default {
     },
     closeLoginDialog() {
       this.loginDialogShow = false
-    },
-    clickApp() {
-      console.log('点击整个页面 clickApp')
-      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
-      this.$store.dispatch('resetStagePitchesSelect')
-      // this.$store.dispatch('doSelectUUID', { values: null })
     }
   }
 }

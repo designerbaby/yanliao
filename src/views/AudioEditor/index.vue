@@ -202,7 +202,7 @@ export default {
           bpm: musicxml2Json.pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
           toneName: musicxml2Json.pitchList[0].singer,
           toneId: musicxml2Json.pitchList[0].toneId,
-          musicName: musicInfo.name,
+          musicName: `${musicInfo.name}填词`,
           stagePitches: stagePitches,
           pitchChanged: true // 标记音块改动了，这样才能重新拉到辅音
         })

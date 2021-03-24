@@ -57,8 +57,7 @@ const defaultState = {
   showStageList: false, // 全局舞台的右键菜单列表
   copyStagePitches: [], // 复制的内容
   musicId: 0, // 从主流程过来的选中的歌曲id
-  musicName: '', // 歌曲名称
-  selectedUUID: null
+  musicName: '编辑器填词' // 歌曲名称
 }
 
 const store = new Vuex.Store({
@@ -319,20 +318,6 @@ const store = new Vuex.Store({
       }
       commit('changeStoreState', { stagePitches })
     }
-    // doSelectUUID({ commit, state }, { values }) {
-    //   console.log('doSelectUUID:', values)
-    //   // 为空时清空
-    //   let selectedUUID
-    //   if (!values) {
-    //     selectedUUID = null
-    //   } else {
-    //     // 如果之前没有值才设置
-    //     if (!state.selectedUUID) {
-    //       selectedUUID = values
-    //     }
-    //   }
-    //   commit('changeStoreState', { selectedUUID })
-    // }
   },
   modules: {
     profile: profile

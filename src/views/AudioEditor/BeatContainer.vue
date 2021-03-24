@@ -30,9 +30,7 @@
               :data-top="it.top"
               @mousedown.self="onPitchMouseDown($event, index)"
               @mouseup.self="onPitchMouseUp"
-              @click.stop.exact="onClickPitch($event, index)"
               @click.shift.exact="onShiftClickPitch($event, index)"
-              @click.ctrl.exact="onCtrlClickPitch($event, index)"
               @click.right.stop.prevent.exact="onRightClickPitch($event, index)"
               @click.shift.right.exact="onShiftRightClickPitch($event, index)"
               slot="reference"
@@ -40,7 +38,6 @@
               {{ it.hanzi }}
               <Arrow :pitch="it" direction="left" @move-end="onArrowMoveEnd($event, index)"/>
               <Arrow :pitch="it" direction="right" @move-end="onArrowMoveEnd($event, index)"/>
-              <!-- <img :class="$style.aerate" src="@/assets/audioEditor/aerate.png" v-if="it.insertAeration"/> -->
             </div>
           </template>
           <BeatMenuList
@@ -106,7 +103,6 @@ export default {
       startPos: null,
       endPos: null,
       movePitchStart: null,
-      isMoved: false,
       selectedUUID: null
     }
   },
@@ -178,7 +174,6 @@ export default {
       console.log('右键整个舞台事件 onRightClickStage:', event)
       this.$store.dispatch('resetStagePitchesSelect')
       this.doSelectUUID(null)
-      // this.$store.dispatch('doSelectUUID', { values: null })
       const rect = this.$refs.stage.getBoundingClientRect()
 
       const left = event.clientX - 10
@@ -193,28 +188,11 @@ export default {
         this.$refs.BeatStageList.setPosition(left, top, pos)
       })
     },
-    onClickPitch(event, index){
-      // 单纯单击绿色块鼠标事件
-      console.log('单纯单击绿色块鼠标事件 onClickPitch:', event)
-      this.$store.dispatch('changeStoreState', { showStageList: false })
-      // 移动过则不处理重置选中状态
-      if (this.isMoved) {
-        // 把是否移动的标志恢复初始状态
-        this.isMoved = false
-      } else {
-        this.$store.dispatch('resetStagePitchesSelect')
-        this.stagePitches[index].selected = true
-        this.doSelectUUID(this.stagePitches[index].uuid)
-        // this.$store.dispatch('doSelectUUID', { values: this.stagePitches[index].uuid })
-      }
-    },
     onShiftClickPitch(event, index) {
       // 绿色块鼠标+shift事件
       console.log('绿色块鼠标+shift事件 onShiftClickPitch:', event, index)
-      // this.$store.dispatch('resetStagePitchesSelect')
       this.$store.dispatch('changeStoreState', { showStageList: false })
       this.doSelectUUID(this.stagePitches[index].uuid)
-      // this.$store.dispatch('doSelectUUID', { values: this.stagePitches[index].uuid })
       let start = this.stagePitches.findIndex(v => v.uuid === this.selectedUUID)
       start = start === -1 ? index : start
 
@@ -222,7 +200,7 @@ export default {
       if (start > index) {
         [from, to] = [index, start]
       }
-      console.log(`from ${from}, to:${to}`, this.stagePitches.map(v => v.selected).reverse())
+      // console.log(`from ${from}, to:${to}`, this.stagePitches.map(v => v.selected).reverse())
       this.stagePitches.forEach((v, i) => {
         if (i >= from && i <= to) {
           v.selected = true
@@ -231,16 +209,11 @@ export default {
         }
       })
     },
-    onCtrlClickPitch(event, index) {
-      // 绿色块鼠标ctrl事件
-      console.log('绿色块鼠标ctrl事件 onCtrlClickPitch:', event)
-      this.stagePitches[index].selected = true
-      this.doSelectUUID(this.stagePitches[index].uuid)
-      // this.$store.dispatch('doSelectUUID', { values: this.stagePitches[index].uuid })
-    },
     onRightClickPitch(event, index) {
       console.log(`单纯点击鼠标绿色块右键事件 onRightClickPitch,`, event, index)
-      // this.$store.dispatch('resetStagePitchesSelect')
+      if (!this.stagePitches[index].selected) {
+        this.$store.dispatch('resetStagePitchesSelect')
+      }
       this.$store.dispatch('changeStoreState', { showStageList: false })
       this.commonRightClickPitch(event, index)
     },
@@ -249,16 +222,17 @@ export default {
       this.commonRightClickPitch(event, index)
     },
     commonRightClickPitch(event, index) {
+      console.log('commonRightClickPitch', event, index)
       this.$store.dispatch('changeStoreState', { showMenuList: true })
       this.stagePitches[index].selected = true
       this.doSelectUUID(this.stagePitches[index].uuid)
-      // this.$store.dispatch('doSelectUUID', { values: this.stagePitches[index].uuid })
       this.$nextTick(() => {
         this.$refs.BeatMenuList.setPosition(event.layerX, event.layerY + this.noteHeight)
       })
     },
     onPitchMouseDown(event, index){
       // 绿色块鼠标按下事件
+      // console.log('onPitchMouseDown', event, index)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -269,7 +243,6 @@ export default {
       }
       const target = event.target
       target.style.opacity = 0.8
-
       // 都有的dom元素
       const allElements = [...this.$el.querySelectorAll('[data-ref="pitch"]')]
       const selectedElements = []
@@ -284,9 +257,11 @@ export default {
           }
         })
       } else { // 当前点击的项没有选中，则值操作当前点的项
+        this.$store.dispatch('resetStagePitchesSelect')
         selectedElements.push(target)
         selectedPitches.push(this.stagePitches[index])
       }
+      this.stagePitches[index].selected = true
       // 把选中的元素的透明弄成0.8
       selectedElements.forEach(v => v.style.opacity = 0.8)
 
@@ -334,8 +309,8 @@ export default {
       }
     },
     onPitchMouseUp(event) {
-      console.log(`onPitchMouseUp`)
       if (this.movePitchStart) {
+        // console.log(`onPitchMouseUp`, event)
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
         const { target, index, selectedPitches, selectedElements } = this.movePitchStart
@@ -357,15 +332,6 @@ export default {
           // 移动结束，透明度去掉
           eleDom.style.opacity = 1
 
-
-          // 只要有任何一个块移动了位置，都标记一下已经移动
-          // onClickPitch方法里面会判断是否移动过
-          if (newLeft !== pitch.left || newTop !== pitch.top) {
-            // 表示已经移动了块，后续在点击事件那里用来判断
-            this.isMoved = true
-          }
-
-          // 修改元数据的位置，然vue重新渲染
           pitch.left = newLeft
           pitch.top = newTop
         }
@@ -376,6 +342,7 @@ export default {
     },
     onMouseDown(event) {
       // 画音块，鼠标按住事件
+      // console.log('onMouseDown:', event)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -384,7 +351,9 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-
+      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
+      this.$store.dispatch('resetStagePitchesSelect')
+      this.doSelectUUID(null)
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
 
       const rect = this.$refs.stage.getBoundingClientRect()
@@ -404,6 +373,7 @@ export default {
     onMouseMove(event) {
       // 画音块鼠标移动事件
       if (this.isMouseDown) {
+        // console.log('onMouseMove', event)
         const rect = this.$refs.stage.getBoundingClientRect()
         const pos = {
           x: event.clientX - rect.left,
@@ -431,6 +401,7 @@ export default {
     },
     onMouseUp(event) {
       // 必须先按下了鼠标，才有松开鼠标事件
+      // console.log('onMouseUp', event)
       if (this.isMouseDown) {
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
@@ -476,7 +447,6 @@ export default {
     addOnePitch({ width, height, left, top }) {
       this.$store.dispatch('resetStagePitchesSelect')
       this.doSelectUUID(null)
-      // this.$store.dispatch('doSelectUUID', { values: null })
       this.stagePitches.push({
         width,
         height,
