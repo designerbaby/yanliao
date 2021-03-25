@@ -71,6 +71,7 @@ export default {
   mounted() {
   },
   methods: {
+    // TODO 这里的f0Draw要改成分步去渲染
     toHandleF0Data (f0Data) {
       let result = ''
       // const points = []

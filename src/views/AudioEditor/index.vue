@@ -132,7 +132,7 @@ export default {
       const res = await musicxml2Json(xml2JsonReq)
       return res.data.data
     },
-    pitchList2StagePitches(pitchList) {
+    pitchList2StagePitches(pitchList, type) {
       let stagePitches = []
       pitchList.forEach(item => {
         stagePitches.push({
@@ -140,8 +140,8 @@ export default {
           pinyin: item.pinyin,
           red: false,
           height: this.noteHeight,
-          width: timeToPx(item.duration, this.noteWidth, pitchList[0].bpm),
-          left: timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
+          width: type === 'grid' ? item.duration * this.noteWidth : timeToPx(item.duration, this.noteWidth, pitchList[0].bpm),
+          left: type === 'grid' ? item.startTime * this.noteWidth : timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
           top: this.noteHeight * (this.firstPitch - item.pitch),
           pinyinList: item.pinyinList,
           select: item.select,
@@ -198,7 +198,7 @@ export default {
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
         const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
-        const stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList)
+        const stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList, 'grid')
         this.$store.dispatch('changeStoreState', {
           taskId: getParam('arrangeId') || musicxml2Json.task_id,
           musicId: musicId,
@@ -526,7 +526,7 @@ export default {
       let onlineUrl = ''
       let downUrl = ''
 
-      for (let i = 0; i < 10 ;i ++) {
+      for (let i = 0; i < 20 ;i ++) {
         const { data } = await editorSynthStatus(paramId, taskId)
         if (data.ret_code !== 0) {
           Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
@@ -548,7 +548,7 @@ export default {
         await sleep(3000)
         const synthesizeEnd = Date.now()
         console.log(`synthesizeEnd - synthesizeStart: ${synthesizeEnd - synthesizeStart}, synthesizeStart: ${synthesizeStart}, synthesizeEnd: ${synthesizeEnd}`)
-        if ((synthesizeEnd - synthesizeStart) > 30 * 1000) {
+        if ((synthesizeEnd - synthesizeStart) > 60 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
           this.$store.dispatch('changeStoreState', { isSynthetizing: false })
           this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
