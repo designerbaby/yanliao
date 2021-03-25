@@ -69,6 +69,9 @@ export default {
     this.$store.dispatch('updateStageSize')
   },
   destroyed() {
+    if (this.audio) {
+      this.audio.pause() // 要把播放的暂停了
+    }
     this.storeStagePitchesWatcher()
     this.resetStoreState()
   },
@@ -197,7 +200,7 @@ export default {
         const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
         const stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList)
         this.$store.dispatch('changeStoreState', {
-          taskId: musicxml2Json.task_id,
+          taskId: getParam('arrangeId') || musicxml2Json.task_id,
           musicId: musicId,
           bpm: musicxml2Json.pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
           toneName: musicxml2Json.pitchList[0].singer,

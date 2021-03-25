@@ -323,7 +323,6 @@ export default {
     },
     // 初始化表单数据
     initFormData(data) {
-      console.log('initFormData data:', data)
       let type = 'normal'
       // !这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西。即草稿没有被加载
       if (this.draftId) {
@@ -331,6 +330,7 @@ export default {
       } else if (this.arrangeId) {
         type = 'edit'
       }
+      console.log('initFormData data, type', data, type)
       const m = {
         'normal': () => {
           this.oldLyricList = data.lyric_list
@@ -450,6 +450,7 @@ export default {
         })
       }
       this.melodyOptions = melodyOptions
+      console.log(`initMelodyOption, this.maxTone: ${this.maxTone}, this.minTone: ${this.minTone}, this.melody: ${this.melody}this.melodyOptions`, melodyOptions)
     },
     /* 数据初始化 end */
 
@@ -463,7 +464,8 @@ export default {
         this.maxTone = parseInt(data.tone_max)
         this.minTone = parseInt(data.tone_min)
         this.initMelodyOption()
-        this.melody = parseInt((this.maxTone + this.minTone) / 2)
+        // this.melody = parseInt((this.maxTone + this.minTone) / 2)
+        this.melody = 0
       })
     },
 
@@ -553,22 +555,24 @@ export default {
     // 去调音
     audioButtonClick() {
       let xml2JsonReq = this.getFormData()
-      if (this.arrangeId) {
-        xml2JsonReq.arrange_id = arrangeId
-      }
       this.checkForm()
       if (this.formChecked === true) {
         preSubmit(xml2JsonReq).then((response) => {
           const { data } = response.data
           xml2JsonReq.fix_pinyin_list = this.handlePolyphonicList(data.polyphonic_list)
           xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
+          if (this.arrangeId) {
+            xml2JsonReq.arrange_id = this.arrangeId
+            this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1&arrangeId=${this.arrangeId}`)
+          } else {
+            this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1`)
+          }
           sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
-          this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1`)
+          this.deleteDraft()
         }).then((response) => {
           if (!response) {
             return
           }
-          this.deleteDraft()
         })
       } else {
         // this.$refs.CompleteDialog.show('请校验歌词格式正确')
@@ -853,7 +857,8 @@ export default {
                 margin-right: 6px;
               }
               input:checked + label {
-                color: #2cabff;
+                // color: #2cabff;
+                color: #000;
               }
             }
             .radio {

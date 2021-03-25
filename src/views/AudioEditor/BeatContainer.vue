@@ -241,6 +241,7 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
+      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
       const target = event.target
       target.style.opacity = 0.8
       // 都有的dom元素
@@ -516,13 +517,13 @@ export default {
 .right {
   position: absolute;
   width: calc(100% - 50px);
-  height: calc(100%);
+  // height: calc(100%);
+  height: 100%;
   left: 50px;
   user-select: none;
   overflow-x: scroll;
   overflow-x: overlay;
   &::-webkit-scrollbar {
-    position: absolute;
     width: 0px;
     height: 10px;
   }
@@ -530,7 +531,8 @@ export default {
     background: transparent
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.5);
+    // background: rgba(0, 0, 0, 0.5);
+    background: #b4b4b4;
     border-radius: 20px;
   }
 }

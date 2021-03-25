@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }">
+  <div id="app" :style="{ backgroundImage: 'url(' + pageBg + ')' }" @click="clickApp">
     <EditAudioHeader v-if="$router.history.current.path === '/audioEditor'" :openLoginDialog="openLoginDialog"></EditAudioHeader>
     <Header v-else-if="$router.history.current.meta.auth !== 'noLogin' || $router.history.current.path === '/'"
       ref="header" :currentPath="$router.history.current.path"
@@ -65,6 +65,9 @@ export default {
     },
     closeLoginDialog() {
       this.loginDialogShow = false
+    },
+    clickApp() {
+      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
     }
   }
 }
@@ -110,6 +113,7 @@ export default {
     }
     &::-webkit-scrollbar-thumb {
       background: rgba(0, 0, 0, 0.5);
+      // background:#b4b4b4;
       border-radius: 20px;
       margin-right: 4px;
       width: 6px;

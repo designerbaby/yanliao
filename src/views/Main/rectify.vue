@@ -203,13 +203,16 @@ export default {
     // 去调音
     audioButtonClick() {
       let xml2JsonReq = JSON.parse(sessionStorage.getItem('form'))
-      if (this.$route.query.arrangeId) {
-        xml2JsonReq.arrange_id = this.$route.query.arrangeId
-      }
       xml2JsonReq.fix_pinyin_list = JSON.parse(this.getFormData())
       xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
+      if (this.$route.query.arrangeId) {
+        xml2JsonReq.arrange_id = this.$route.query.arrangeId
+        this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1&arrangeId=${this.$route.query.arrangeId}`)
+      } else {
+        this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1`)
+      }
       sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
-      this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1`)
+      this.deleteDraft()
     },
     confirmButtonClick() {
       // 多音字编辑页-确认按钮-点击
