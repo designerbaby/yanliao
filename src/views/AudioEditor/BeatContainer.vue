@@ -232,7 +232,7 @@ export default {
     },
     onPitchMouseDown(event, index){
       // 绿色块鼠标按下事件
-      // console.log('onPitchMouseDown', event, index)
+      console.log('onPitchMouseDown', event, index)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -326,17 +326,31 @@ export default {
           // 修正位置，自动吸附
           const newLeft = amendLeft(left, this.noteWidth)
           const newTop = amendTop(top, this.noteHeight)
-          if (pitch.left !== newLeft || pitch.top !== newTop) {
+          if (pitch.left !== newLeft || pitch.top !== newTop) { // left和top有变动
             pitchHasChanged = true
           }
+
+          // if (!this.canMoveUpPitch(pitch)) { // 他不能移动这个音符，还原回去
+          //   pitch.left = this.movePitchStart.left
+          //   pitch.top = this.movePitchStart.top
+          //   return false
+          // }
           eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
           eleDom.dataset.left = newLeft
           eleDom.dataset.top = newTop
           // 移动结束，透明度去掉
           eleDom.style.opacity = 1
-
           pitch.left = newLeft
           pitch.top = newTop
+
+          if (!this.canMoveUpPitch(pitch)) {
+            pitch.left = this.movePitchStart.left
+            pitch.top = this.movePitchStart.top
+            eleDom.style.transform = `translate(${this.movePitchStart.left}px, ${this.movePitchStart.top}px)`
+            eleDom.dataset.left = this.movePitchStart.left
+            eleDom.dataset.top = this.movePitchStart.top
+            pitchHasChanged = false
+          }
         }
 
         this.movePitchStart = null
@@ -344,6 +358,24 @@ export default {
           this.$store.dispatch('afterChangePitchAndHandle')
         }
       }
+    },
+    canMoveUpPitch(pitch) {
+      let canMoveUp = true
+      if (pitch.pinyin === '-') {
+        let idx = 0
+        this.stagePitches.forEach((item, i) => {
+          if (item.uuid == pitch.uuid) {
+            idx = i
+          }
+        })
+        const before = this.stagePitches[idx - 1]
+        const current = this.stagePitches[idx]
+        if (before.left + before.width !== current.left) {
+          Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
+          canMoveUp = false
+        }
+      }
+      return canMoveUp
     },
     onMouseDown(event) {
       // 画音块，鼠标按住事件
