@@ -311,11 +311,11 @@ export default {
     },
     onPitchMouseUp(event) {
       if (this.movePitchStart) {
-        // console.log(`onPitchMouseUp`, event)
+        console.log(`onPitchMouseUp`, event)
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
         const { target, index, selectedPitches, selectedElements } = this.movePitchStart
-
+        let pitchHasChanged = false
 
         for (let i = 0; i < selectedPitches.length; i ++) {
           const pitch = selectedPitches[i]
@@ -326,7 +326,9 @@ export default {
           // 修正位置，自动吸附
           const newLeft = amendLeft(left, this.noteWidth)
           const newTop = amendTop(top, this.noteHeight)
-
+          if (pitch.left !== newLeft || pitch.top !== newTop) {
+            pitchHasChanged = true
+          }
           eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
           eleDom.dataset.left = newLeft
           eleDom.dataset.top = newTop
@@ -338,7 +340,9 @@ export default {
         }
 
         this.movePitchStart = null
-        this.$store.dispatch('afterChangePitchAndHandle')
+        if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
+          this.$store.dispatch('afterChangePitchAndHandle')
+        }
       }
     },
     onMouseDown(event) {
@@ -468,9 +472,14 @@ export default {
       this.$store.dispatch('afterChangePitchAndHandle')
     },
     onArrowMoveEnd({ width, left, top, target, direction }, index) {
+      let pitchHasChanged = false
       const pitch = this.stagePitches[index]
       // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
       // 结束后修正宽度和左边距
+      if (pitch.left !== left || pitch.top !== top || pitch.width !== width) {
+        pitchHasChanged = true
+      }
+      // console.log(`pitch.left: ${pitch.left}, pitch.top: ${pitch.top}, left: ${left}, top: ${top}, width: ${width}, pitch.width: ${pitch.width}`)
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
       pitch.top = top
       if (direction === 'left') {
@@ -483,7 +492,9 @@ export default {
       target.style.width = `${pitch.width}px`
       pitch.pitchChanged = true
       // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
-      this.$store.dispatch('afterChangePitchAndHandle')
+      if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
+        this.$store.dispatch('afterChangePitchAndHandle')
+      }
     },
     editLyric(type) {
       this.$refs.BeatLyric.showLyric(type)
@@ -491,8 +502,8 @@ export default {
     beatLyricSaveAllPinyin() {
       this.$refs.BeatLyric.save()
     },
-    showLyric(lyric) {
-      this.$refs.LyricCorrect.showLyric(lyric)
+    showLyric(selectStagePitches) {
+      this.$refs.LyricCorrect.showLyric(selectStagePitches)
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)

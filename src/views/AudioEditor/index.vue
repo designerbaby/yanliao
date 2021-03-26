@@ -158,7 +158,8 @@ export default {
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       const musicId = getParam('musicId') || 0
-      if (taskId) { // 从我的曲谱的编辑按钮进来
+      if (taskId) { // 从我的曲谱编辑按钮进来，如果从我的作品的编辑按钮进来就同时有taskId和musicId
+        // console.log('taskId:', taskId)
         const res = await editorDetail({ task_id: taskId })
         const data = res.data.data
         const pitchList = data.pitchList
@@ -176,10 +177,9 @@ export default {
           volumeMap: this.convertXyMap(data.volume_xy),
           tensionMap: this.convertXyMap(data.tension_xy),
           f0Xy: data.f0_xy,
-          musicId: data.music_id,
+          musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
           musicName: data.music_name
         })
-        // this.$store.dispatch('getPitchLine')
         const changed = {}
         const pitchWidth = this.$store.getters.pitchWidth
         // 比较元数据和AI数据，如果不一样表示是修改过的，下次生成新的时候不能覆盖
