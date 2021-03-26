@@ -2,6 +2,10 @@
   <div :class="$style.wrap">
     <div :class="$style.blank" v-if="isExceedHeader"></div>
     <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
+      <!-- <div :class="$style.common" @click="toImport">
+        <img src="@/assets/audioEditor/import.png"/>
+        <div :class="$style.text">导入曲谱</div>
+      </div> -->
       <div :class="$style.linefu">
         <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
           <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
@@ -45,6 +49,7 @@
         <div :class="$style.text">更多信息</div>
       </div>
     </div>
+    <ImportDialog ref="ImportDialog"></ImportDialog>
   </div>
 
 </template>
@@ -52,7 +57,8 @@
 <script>
 import { Icon, Button, Message } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
-import { isDuplicated, reportEvent } from '@/common/utils/helper'
+import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
+import ImportDialog from './ImportDialog'
 
 export default {
   name: 'BeatHeader',
@@ -79,7 +85,8 @@ export default {
   },
   components: {
     Icon,
-    Button
+    Button,
+    ImportDialog
   },
   methods: {
     toPlay() {
@@ -121,12 +128,16 @@ export default {
         return
       }
       this.$emit('synthesize', () => {
-        this.$router.push(`/profile`)
+        const index = getParam('index')
+        this.$router.push(`/profile?index=${index}`)
       })
     },
     toSet() {
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
+    },
+    toImport() {
+      this.$refs.ImportDialog.show()
     }
   }
 }

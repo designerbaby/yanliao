@@ -2,8 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import profile from './profile'
 import { pitchList, playState, modeState, typeModeState } from '@/common/utils/const'
-import { getF0Data } from '@/api/audio'
-import { pxToTime } from '@/common/utils/helper'
+import { getF0Data, getYinsu } from '@/api/audio'
+import { pxToTime, checkPitchDuplicated } from '@/common/utils/helper'
 import { Message } from 'element-ui'
 import deepAssign from 'object-assign-deep'
 
@@ -31,7 +31,6 @@ const defaultState = {
     scrollLeft: 0, // 水平滚动条位置
     scrollTop: 0 // 垂直滚动条位置
   },
-  maxPitchRight: 0, // 音块最右边的位置
   mode: modeState.StatePitch, // 模式
   typeMode: typeModeState.StateNone, // 附加模式类型
   playState: playState.StateNone, // 播放状态
@@ -43,17 +42,22 @@ const defaultState = {
   isStagePitchElementChanged: false, // 元辅音是否有改变
   f0AI: [], // 音高线虚线部分
   f0Draw: [], // 音高线实线部分
-  f0Xy: {}, // 音高线的坐标部分
+  f0Xy: {}, // 音高线的坐标部分 !!!暂时没用到
   volumeMap: [], // 响度原始map数据
   tensionMap: [], // 张力原始map数据
-  changedLineMap: {},
-  pinyinList: [],
+  changedLineMap: {}, // 音高线改变的信息
+  pinyinList: [], // 当前用户输入的字里面包括的多音字列表
   onlineUrl: '', // 在线播放的音频
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
   typeContainerHeight: 250,
-  pitchChanged: false // 是否全部重置
+  pitchChanged: false, // 是否全部重置
+  showMenuList: false, // 音块的右键菜单列表
+  showStageList: false, // 全局舞台的右键菜单列表
+  copyStagePitches: [], // 复制的内容
+  musicId: 0, // 从主流程过来的选中的歌曲id
+  musicName: '编辑器填词' // 歌曲名称
 }
 
 const store = new Vuex.Store({
@@ -210,6 +214,13 @@ const store = new Vuex.Store({
       }
       commit('changeStoreState', { tensionMap, isTensionChanged: true })
     },
+    resetStagePitchesSelect({ commit, state }) { // 重置舞台音块的每个选择
+      const stagePitches = [...state.stagePitches]
+      stagePitches.forEach(item => {
+        item.selected = false
+      })
+      commit('changeStoreState', { stagePitches })
+    },
     async getPitchLine({ commit, state, getters }) {
       if (getters.pitchList.length <= 0) {
         // Message.error('没有画音块，所以没音高线')
@@ -220,6 +231,14 @@ const store = new Vuex.Store({
           Message.error('音符存在重叠, 请调整好~')
           return
         }
+        // if (state.stagePitches[i].pinyin === '-') {
+        //   const before = state.stagePitches[i - 1]
+        //   const current = state.stagePitches[i]
+        //   if (before.left + before.width !== current.left) {
+        //     Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
+        //     return
+        //   }
+        // }
       }
       commit('changeStoreState', { isGetF0Data: true })
       const { data } = await getF0Data({ pitchList: getters.pitchList })
@@ -255,7 +274,7 @@ const store = new Vuex.Store({
 
       const pitchList = data.data.pitchList
       const stagePitches = [ ...state.stagePitches]
-      // 合并数据
+      // 辅音合并数据
       for (let i = 0; i < pitchList.length; i += 1) {
         const item = stagePitches[i]
         const isExist = item.hasOwnProperty('preTime')
@@ -275,6 +294,37 @@ const store = new Vuex.Store({
           width
         }
       })
+    },
+    afterChangePitchAndHandle({ commit, state, dispatch }) {
+      state.stagePitches.sort((a, b) => a.left - b.left) // 排序
+      const stagePitches = checkPitchDuplicated(state.stagePitches)
+      commit('changeStoreState', { stagePitches })
+      dispatch('getPitchLine')
+    },
+    adjustStageWidth({ state, getters, dispatch }) {
+      let maxPitchRight = 0
+      state.stagePitches.forEach((item) => {
+        const right = item.left + item.width
+        maxPitchRight = Math.max(maxPitchRight, right)
+      })
+      while (maxPitchRight > getters.stageWidth) {
+        dispatch('updateMatter', 15)
+      }
+    },
+    async saveFuYuan({ commit, state }) {
+      const stagePitches = state.stagePitches
+      let pinyin = stagePitches.map(v => v.pinyin)
+      const res = await getYinsu({pin_yin: pinyin})
+      const yinsu = res.data.data.yin_su
+      for (let i = 0; i < stagePitches.length; i += 1) {
+        const item = stagePitches[i]
+        const py = yinsu[item.pinyin] || {}
+        const f = py.f || '-'
+        const y = py.y || '-'
+        Vue.set(item, 'fu', f)
+        Vue.set(item, 'yuan', y)
+      }
+      commit('changeStoreState', { stagePitches })
     }
   },
   modules: {

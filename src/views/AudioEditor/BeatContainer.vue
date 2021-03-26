@@ -12,22 +12,27 @@
             @mousemove="onMouseMove"
             @mouseup="onMouseUp"
             @mouseleave="onMouseUp"
+            @click.right="onRightClickStage"
             :class="$style.drawStage"
             :style="{ width: `${stageWidth}px`, height: `${stageHeight}px`}"
           ></div>
           <template v-for="(it, index) in stagePitches">
             <div
-              :class="[$style.pitch, selectedPitch === index ? $style.isActive : '', it.red ? $style.isRed: '']"
+              :class="[$style.pitch, it.selected ? $style.isActive : '', it.red ? $style.isRed: '']"
               :style="{
                 width: `${it.width}px`,
                 height: `${it.height}px`,
                 transform: `translate(${it.left}px, ${it.top}px)`
               }"
+              data-ref="pitch"
               :key="index"
               :data-left="it.left"
               :data-top="it.top"
               @mousedown.self="onPitchMouseDown($event, index)"
               @mouseup.self="onPitchMouseUp"
+              @click.shift.exact="onShiftClickPitch($event, index)"
+              @click.right.stop.prevent.exact="onRightClickPitch($event, index)"
+              @click.shift.right.exact="onShiftRightClickPitch($event, index)"
               slot="reference"
             >
               {{ it.hanzi }}
@@ -35,19 +40,18 @@
               <Arrow :pitch="it" direction="right" @move-end="onArrowMoveEnd($event, index)"/>
             </div>
           </template>
-          <BeatList
-            ref="BeatList"
-            :index="index"
-            @deletePitch="toDeletePitch"
+          <BeatMenuList
+            ref="BeatMenuList"
             @editLyric="editLyric"
-            v-if="showList === index"
-          ></BeatList>
+            v-if="$store.state.showMenuList"
+          ></BeatMenuList>
           <div :class="$style.sharp" ref="sharp"></div>
           <PitchLine v-if="$store.state.mode === modeState.StateLine" ref="PitchLine"></PitchLine>
           <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
         <Parameters ref="Parameters" v-if="$store.state.typeMode !== typeModeState.StateNone"></Parameters>
       </div>
+      <BeatStageList ref="BeatStageList" v-if="$store.state.showStageList"></BeatStageList>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
     <LyricCorrect ref="LyricCorrect" @saveAllPinyin="beatLyricSaveAllPinyin"></LyricCorrect>
@@ -66,10 +70,11 @@ import PitchLine from './PitchLine.vue' // 音高线
 import PitchElement from './PitchElement.vue' // 音素
 import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
-import BeatList from './BeatList.vue'
+import BeatMenuList from './BeatMenuList.vue'
+import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
 import StatusBar from './StatusBar.vue'
-import { amendTop, amendLeft } from '@/common/utils/helper'
+import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 
 export default {
   name: "BeatContainer",
@@ -80,10 +85,11 @@ export default {
     BeatStageBg,
     Arrow,
     BeatLine,
+    BeatStageList,
     PitchLine,
     BeatLyric,
     LyricCorrect,
-    BeatList,
+    BeatMenuList,
     Parameters,
     StatusBar,
     PitchElement
@@ -96,11 +102,8 @@ export default {
       isMouseDown: false,
       startPos: null,
       endPos: null,
-      // stageOffset: null,
       movePitchStart: null,
-      selectedPitch: -1,
-      showList: -1,
-      index: 0
+      selectedUUID: null
     }
   },
   computed: {
@@ -124,14 +127,11 @@ export default {
     },
     playState() {
       return this.$store.state.playState
-    },
-    isExceedHeader() {
-      return this.$store.state.isExceedHeader
     }
   },
   mounted() {
     this.updateStageOffset()
-    // window.addEventListener('resize', () => {
+    // window.addEventListener('resize', () => { // 缩放功能
     //   this.updateStageOffset()
     // })
     this.$refs.rightArea.addEventListener('scroll', () => {
@@ -143,36 +143,16 @@ export default {
     }
   },
   methods: {
-    checkPitchDuplicated() { // 检查音符块有没重叠
-      // log('checkPitchDuplicated pitches:', this.stagePitches)
-      this.stagePitches.sort((a, b) => a.left - b.left) // 上面push之后是乱序的，要排序下
-      const pitches = this.stagePitches
-      for(let i = 0; i < pitches.length; i++){
-        const pitch1 = pitches[i]
-        pitch1.red = false
-        for(let j = 0; j < pitches.length; j++){
-          const pitch2 = pitches[j]
-          if (i !== j) {
-            let leftPitch = null
-            let rightPitch = null
-
-            if (pitch1.left < pitch2.left) {
-              leftPitch = pitch1
-              rightPitch = pitch2
-            } else {
-              leftPitch = pitch2
-              rightPitch = pitch1
-            }
-
-            const isRed = leftPitch.left + leftPitch.width > rightPitch.left
-            if (isRed) {
-              pitch1.red = isRed
-            }
-            // console.log(`检查外层第${i}个格子left:${pitch1.left},width:${pitch1.width}，内层第${j}个格子left:${pitch2.left},width:${pitch2.width} ,red:${isRed}`)
-          }
+    doSelectUUID(uuid) {
+      // 为空时清空
+      if (!uuid) {
+        this.selectedUUID = null
+      } else {
+        // 如果之前没有值才设置
+        if (!this.selectedUUID) {
+          this.selectedUUID = uuid
         }
       }
-      this.$store.dispatch('getPitchLine')
     },
     scrollTo(left) {
       this.$refs.rightArea.scrollLeft = left
@@ -181,10 +161,6 @@ export default {
       // 初始化舞台的位置
       const scrollLeft = this.$refs.rightArea.scrollLeft
       const scrollTop = this.$refs.rightArea.scrollTop
-      // this.stageOffset = {
-      //   scrollLeft,
-      //   scrollTop
-      // }
 
       this.$store.dispatch("changeStoreState", {
         stage: {
@@ -194,9 +170,69 @@ export default {
         }
       })
     },
+    onRightClickStage(event) {
+      console.log('右键整个舞台事件 onRightClickStage:', event)
+      this.$store.dispatch('resetStagePitchesSelect')
+      this.doSelectUUID(null)
+      const rect = this.$refs.stage.getBoundingClientRect()
+
+      const left = event.clientX - 10
+      const top = event.layerY + 10
+
+      const pos = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      }
+      this.$store.dispatch('changeStoreState', { showStageList: true })
+      this.$nextTick(() => {
+        this.$refs.BeatStageList.setPosition(left, top, pos)
+      })
+    },
+    onShiftClickPitch(event, index) {
+      // 绿色块鼠标+shift事件
+      console.log('绿色块鼠标+shift事件 onShiftClickPitch:', event, index)
+      this.$store.dispatch('changeStoreState', { showStageList: false })
+      this.doSelectUUID(this.stagePitches[index].uuid)
+      let start = this.stagePitches.findIndex(v => v.uuid === this.selectedUUID)
+      start = start === -1 ? index : start
+
+      let [from, to] = [start, index]
+      if (start > index) {
+        [from, to] = [index, start]
+      }
+      // console.log(`from ${from}, to:${to}`, this.stagePitches.map(v => v.selected).reverse())
+      this.stagePitches.forEach((v, i) => {
+        if (i >= from && i <= to) {
+          v.selected = true
+        } else {
+          v.selected = false
+        }
+      })
+    },
+    onRightClickPitch(event, index) {
+      console.log(`单纯点击鼠标绿色块右键事件 onRightClickPitch,`, event, index)
+      if (!this.stagePitches[index].selected) {
+        this.$store.dispatch('resetStagePitchesSelect')
+      }
+      this.$store.dispatch('changeStoreState', { showStageList: false })
+      this.commonRightClickPitch(event, index)
+    },
+    onShiftRightClickPitch(event, index) {
+      console.log(`shift+鼠标右键事件 onShiftRightClickPitch,`, event, index)
+      this.commonRightClickPitch(event, index)
+    },
+    commonRightClickPitch(event, index) {
+      console.log('commonRightClickPitch', event, index)
+      this.$store.dispatch('changeStoreState', { showMenuList: true })
+      this.stagePitches[index].selected = true
+      this.doSelectUUID(this.stagePitches[index].uuid)
+      this.$nextTick(() => {
+        this.$refs.BeatMenuList.setPosition(event.layerX, event.layerY + this.noteHeight)
+      })
+    },
     onPitchMouseDown(event, index){
       // 绿色块鼠标按下事件
-      this.hideRight()
+      console.log('onPitchMouseDown', event, index)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -205,24 +241,40 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
+      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
       const target = event.target
       target.style.opacity = 0.8
-      this.index = index
-      this.toSelectPitch(index)
-      if (event.button === 2) { // 按下了鼠标右键
-        console.log(`onPitchMouseDown`, event, index, event.button)
-        this.showRight(index)
-        this.$nextTick(() => {
-          this.$refs.BeatList.setPosition(event.layerX, event.layerY + this.noteHeight)
+      // 都有的dom元素
+      const allElements = [...this.$el.querySelectorAll('[data-ref="pitch"]')]
+      const selectedElements = []
+      const selectedPitches = []
+      // 当前是否选中
+      const selected = this.stagePitches[index].selected
+      if (selected) {
+        this.stagePitches.forEach((v, idx) => {
+          if (v.selected) {
+            selectedElements.push(allElements[idx])
+            selectedPitches.push(v)
+          }
         })
+      } else { // 当前点击的项没有选中，则值操作当前点的项
+        this.$store.dispatch('resetStagePitchesSelect')
+        selectedElements.push(target)
+        selectedPitches.push(this.stagePitches[index])
       }
+      this.stagePitches[index].selected = true
+      // 把选中的元素的透明弄成0.8
+      selectedElements.forEach(v => v.style.opacity = 0.8)
+
       this.movePitchStart = {
         left: Number(target.dataset.left),
         top: Number(target.dataset.top),
         clientX: event.clientX,
         clientY: event.clientY,
         target,
-        index
+        index,
+        selectedPitches,
+        selectedElements
       }
 
       document.addEventListener('mousemove', this.onPitchMouseMove)
@@ -233,54 +285,101 @@ export default {
       // 绿色块鼠标移动事件
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
-        const { target } = this.movePitchStart
-        let newLeft = this.movePitchStart.left + (event.clientX - this.movePitchStart.clientX)
-        let newTop = this.movePitchStart.top + (event.clientY - this.movePitchStart.clientY)
+        const { target, selectedPitches, selectedElements } = this.movePitchStart
 
-        if (newTop < 0) {
-          newTop = 0
-        }
-        if (newLeft < 0) { // sdk那边限制不能从0开始画
-          newLeft = 0
-        }
+        const moveX = event.clientX - this.movePitchStart.clientX
+        const moveY = event.clientY - this.movePitchStart.clientY
 
-        target.style.transform = `translate(${newLeft}px, ${newTop}px)`
-        target.dataset.left = newLeft
-        target.dataset.top = newTop
+        // 只有每一个块的位置都在可拖动范围内才能拖动
+        const canMove = selectedPitches.every(it => {
+          return (it.left + moveX) >= 0 && (it.top + moveY) >= 0
+        })
+        if (canMove) {
+          for (let i = 0; i < selectedPitches.length; i ++) {
+            const pitch = selectedPitches[i]
+            const eleDom = selectedElements[i]
+            const newLeft = pitch.left + moveX
+            const newTop = pitch.top + moveY
+
+            eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
+            eleDom.dataset.left = newLeft
+            eleDom.dataset.top = newTop
+          }
+
+        }
       }
     },
     onPitchMouseUp(event) {
       if (this.movePitchStart) {
+        console.log(`onPitchMouseUp`, event)
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
-        const { target, index } = this.movePitchStart
-        // 绿色块鼠标移走事件
-        event.target.style.opacity = 1
+        const { target, index, selectedPitches, selectedElements } = this.movePitchStart
+        let pitchHasChanged = false
+
+        for (let i = 0; i < selectedPitches.length; i ++) {
+          const pitch = selectedPitches[i]
+          const eleDom = selectedElements[i]
+          // 移动结束时的位置
+          const left = parseInt(eleDom.dataset.left, 10)
+          const top = parseInt(eleDom.dataset.top, 10)
+          // 修正位置，自动吸附
+          const newLeft = amendLeft(left, this.noteWidth)
+          const newTop = amendTop(top, this.noteHeight)
+          if (pitch.left !== newLeft || pitch.top !== newTop) { // left和top有变动
+            pitchHasChanged = true
+          }
+
+          // if (!this.canMoveUpPitch(pitch)) { // 他不能移动这个音符，还原回去
+          //   pitch.left = this.movePitchStart.left
+          //   pitch.top = this.movePitchStart.top
+          //   return false
+          // }
+          eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
+          eleDom.dataset.left = newLeft
+          eleDom.dataset.top = newTop
+          // 移动结束，透明度去掉
+          eleDom.style.opacity = 1
+          pitch.left = newLeft
+          pitch.top = newTop
+
+          if (!this.canMoveUpPitch(pitch)) {
+            pitch.left = this.movePitchStart.left
+            pitch.top = this.movePitchStart.top
+            eleDom.style.transform = `translate(${this.movePitchStart.left}px, ${this.movePitchStart.top}px)`
+            eleDom.dataset.left = this.movePitchStart.left
+            eleDom.dataset.top = this.movePitchStart.top
+            pitchHasChanged = false
+          }
+        }
+
         this.movePitchStart = null
-
-        const left = parseInt(event.target.dataset.left, 10)
-        const top = parseInt(event.target.dataset.top, 10)
-
-        // 松开时修正位置
-        const pitch = this.stagePitches[index]
-        // pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
-        const newLeft = amendLeft(left, this.noteWidth)
-        const newTop = amendTop(top, this.noteHeight)
-        const isPositionChanged = pitch.left !== newLeft || pitch.top !== newTop
-        pitch.left = newLeft
-        pitch.top = newTop
-
-        target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
-        target.dataset.left = pitch.left
-        target.dataset.top = pitch.top
-        // pitch.pitchChanged = true
-        if (isPositionChanged) {
-          this.checkPitchDuplicated()
+        if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
+          this.$store.dispatch('afterChangePitchAndHandle')
         }
       }
     },
+    canMoveUpPitch(pitch) {
+      let canMoveUp = true
+      if (pitch.pinyin === '-') {
+        let idx = 0
+        this.stagePitches.forEach((item, i) => {
+          if (item.uuid == pitch.uuid) {
+            idx = i
+          }
+        })
+        const before = this.stagePitches[idx - 1]
+        const current = this.stagePitches[idx]
+        if (before.left + before.width !== current.left) {
+          Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
+          canMoveUp = false
+        }
+      }
+      return canMoveUp
+    },
     onMouseDown(event) {
-      // console.log(`onStageMouseDown`)
+      // 画音块，鼠标按住事件
+      // console.log('onMouseDown:', event)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -289,7 +388,9 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      this.hideRight()
+      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
+      this.$store.dispatch('resetStagePitchesSelect')
+      this.doSelectUUID(null)
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
 
       const rect = this.$refs.stage.getBoundingClientRect()
@@ -298,7 +399,7 @@ export default {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       };
-      // console.log(`this.startPos, x: ${this.startPos.x}, y: ${this.startPos.y}`)
+
       // 初始化绿色块
       this.$refs.sharp.style.left = `${this.startPos.x}px`;
       this.$refs.sharp.style.top = `${this.startPos.y}px`;
@@ -307,7 +408,9 @@ export default {
       this.$refs.sharp.style.display = "block";
     },
     onMouseMove(event) {
+      // 画音块鼠标移动事件
       if (this.isMouseDown) {
+        // console.log('onMouseMove', event)
         const rect = this.$refs.stage.getBoundingClientRect()
         const pos = {
           x: event.clientX - rect.left,
@@ -335,6 +438,7 @@ export default {
     },
     onMouseUp(event) {
       // 必须先按下了鼠标，才有松开鼠标事件
+      // console.log('onMouseUp', event)
       if (this.isMouseDown) {
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
@@ -342,7 +446,6 @@ export default {
           x: event.clientX - rect.left,
           y: event.clientY - rect.top
         };
-        // console.log(`this.endPos: x${this.endPos.x}, y: ${this.endPos.y}`)
         this.$refs.sharp.style.display = "none";
 
         //
@@ -361,9 +464,8 @@ export default {
 
         const topPx = Math.min(this.startPos.y, this.endPos.y);
         const initLeft = Math.min(this.startPos.x, this.endPos.x);
-        // const top = topPx - (topPx % this.noteHeight);
+
         const top = amendTop(topPx, this.noteHeight)
-        // const left = Math.floor(initLeft / this.noteWidth) * this.noteWidth
         const left = amendLeft(initLeft, this.noteWidth)
 
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
@@ -380,6 +482,8 @@ export default {
     },
 
     addOnePitch({ width, height, left, top }) {
+      this.$store.dispatch('resetStagePitchesSelect')
+      this.doSelectUUID(null)
       this.stagePitches.push({
         width,
         height,
@@ -391,18 +495,23 @@ export default {
         pinyinList: ['la'],
         select: 0,
         fu: 'l',
-        yuan: 'a'
+        yuan: 'a',
+        selected: true,
+        pitchChanged: true,
+        uuid: generateUUID()
       });
-      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0`)
-      this.selectedPitch = this.stagePitches.length - 1 // 生成新的数据块后那个高亮
-      this.stagePitches[this.stagePitches.length - 1].pitchChanged = true
-      this.checkPitchDuplicated()
-      this.checkPitchesOverStage()
+      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
+      this.$store.dispatch('afterChangePitchAndHandle')
     },
     onArrowMoveEnd({ width, left, top, target, direction }, index) {
+      let pitchHasChanged = false
       const pitch = this.stagePitches[index]
       // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
       // 结束后修正宽度和左边距
+      if (pitch.left !== left || pitch.top !== top || pitch.width !== width) {
+        pitchHasChanged = true
+      }
+      // console.log(`pitch.left: ${pitch.left}, pitch.top: ${pitch.top}, left: ${left}, top: ${top}, width: ${width}, pitch.width: ${pitch.width}`)
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
       pitch.top = top
       if (direction === 'left') {
@@ -415,35 +524,18 @@ export default {
       target.style.width = `${pitch.width}px`
       pitch.pitchChanged = true
       // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
-      this.checkPitchDuplicated()
+      if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
+        this.$store.dispatch('afterChangePitchAndHandle')
+      }
     },
-
-    toSelectPitch(index) {
-      this.selectedPitch = index
-    },
-    showRight(index) {
-      this.selectedPitch = index
-      this.showList = index
-    },
-    hideRight () {
-      this.selectedPitch = -1
-      this.showList = -1
-    },
-    toDeletePitch(index) {
-      this.stagePitches.splice(index, 1)
-      this.showList = -1 // 删除掉之后顺便把选择的还原
-      this.checkPitchDuplicated()
-    },
-    editLyric(index) {
-      this.$refs.BeatLyric.showLyric(index)
-      this.showList = -1
-    },
-    showLyric(lyric, index) {
-      console.log('showLyric:', lyric, index)
-      this.$refs.LyricCorrect.showLyric(lyric, index)
+    editLyric(type) {
+      this.$refs.BeatLyric.showLyric(type)
     },
     beatLyricSaveAllPinyin() {
       this.$refs.BeatLyric.save()
+    },
+    showLyric(selectStagePitches) {
+      this.$refs.LyricCorrect.showLyric(selectStagePitches)
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       // console.log('toCheckOverStage:x', x)
@@ -451,14 +543,6 @@ export default {
       while ((x + 500) >= this.stageWidth) {
         this.$store.dispatch('updateMatter', 15)
       }
-    },
-    checkPitchesOverStage() {
-      let maxPitchRight = 0
-      this.stagePitches.forEach((item) => {
-        const right = item.left + item.width
-        maxPitchRight = Math.max(maxPitchRight, right)
-        this.$store.dispatch('changeStoreState', { maxPitchRight })
-      })
     }
   }
 };
@@ -476,13 +560,13 @@ export default {
 .right {
   position: absolute;
   width: calc(100% - 50px);
-  height: calc(100%);
+  // height: calc(100%);
+  height: 100%;
   left: 50px;
   user-select: none;
   overflow-x: scroll;
   overflow-x: overlay;
   &::-webkit-scrollbar {
-    position: absolute;
     width: 0px;
     height: 10px;
   }
@@ -490,7 +574,8 @@ export default {
     background: transparent
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.5);
+    // background: rgba(0, 0, 0, 0.5);
+    background: #b4b4b4;
     border-radius: 20px;
   }
 }
@@ -538,5 +623,12 @@ export default {
   background-color: rgba(204, 204, 204, 0.514);
 }
 
+// .aerate {
+//   width: 38px;
+//   height: 53px;
+//   position: absolute;
+//   top: -47px;
+//   left: -15px;
+// }
 
 </style>

@@ -2,13 +2,19 @@
   <Dialog
     title="拼音校正"
     :visible.sync="pinyinVisible"
-    width="400px">  
+    width="400px">
     <div :class="$style.pinyinInput">
-      <div :class="$style.list" v-for="(it, index) in pinyinList" :key="index">
+      <div :class="$style.list" v-for="(it, index) in correctSelectStagePitches" :key="index">
         {{ it.hanzi }}
-        <template v-if="it.pinyin.length > 1">
+        <template v-if="it.pinyinList.length > 1">
           [
-            <Radio v-for="(item, itemIndex) in it.pinyin" :key="itemIndex" :label="itemIndex" v-model="it.select">{{ item }}</Radio>
+            <Radio v-for="(item, itemIndex) in it.pinyinList"
+              :key="itemIndex"
+              :label="itemIndex"
+              v-model="it.select"
+              @change="changeSelect($event, it.uuid)"
+              >{{ item }}
+            </Radio>
           ]
         </template>
       </div>
@@ -28,8 +34,8 @@ export default {
   data() {
     return {
       pinyinVisible: false,
-      index: -1,
-      lyric: ''
+      selectStagePitches: [],
+      correctSelectStagePitches: []
     }
   },
   components: {
@@ -38,26 +44,52 @@ export default {
     Radio
   },
   computed: {
-    pinyinList() {
-      return this.$store.state.pinyinList
-    },
     stagePitches() {
       return this.$store.state.stagePitches
     }
   },
   methods: {
-    showLyric(lyric, index) {
+    showLyric(selectStagePitches) {
       this.pinyinVisible = true
-      this.index = index
-      this.lyric = lyric
+      this.selectStagePitches = selectStagePitches
+      this.setCorrectSelectStagePitches()
+    },
+    setCorrectSelectStagePitches() {
+      const pinyinList = this.$store.state.pinyinList
+      const selectStagePitches = this.selectStagePitches
+      let correctSelectStagePitches = []
+      for (let i = 0; i < selectStagePitches.length; i += 1) {
+        const item = selectStagePitches[i]
+        const pinyin = item.pinyin
+        item.pinyinList = pinyinList[i].pinyin
+        let select = 0
+        if (item.pinyinList.length > 1) {
+          for (let j = 0; j < item.pinyinList.length; j += 1) {
+            if (item.pinyinList[j] === pinyin) {
+              select = j
+            }
+          }
+        }
+        item.hanzi = pinyinList[i].hanzi
+        item.select = select
+        correctSelectStagePitches.push(item)
+      }
+      // console.log('correctSelectStagePitches:', correctSelectStagePitches)
+      this.correctSelectStagePitches = correctSelectStagePitches
     },
     submit() {
       this.$emit('saveAllPinyin')
-      this.$store.dispatch('changeStoreState', { pinyinList: this.pinyinList })
       this.pinyinVisible = false
     },
     toBack() {
       this.pinyinVisible = false
+    },
+    changeSelect(event, uuid) {
+      this.$store.state.stagePitches.forEach(item => {
+        if (item.uuid === uuid) {
+          item.select = event
+        }
+      });
     }
   }
 }
@@ -79,6 +111,7 @@ export default {
   border-radius: 4px;
   transition: border-color .2s cubic-bezier(.645,.045,.355,1);
   height: 120px;
+  overflow: scroll;
 }
 .list {
   color: #606266;

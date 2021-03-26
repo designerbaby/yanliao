@@ -108,7 +108,7 @@ export default {
     toAudioEditor() {
       const userInfo = sessionStorage.getItem('userInfo')
       if (userInfo) {
-        this.$router.push(`/audioEditor`)
+        this.$router.push(`/audioEditor?index=5`)
       } else {
         this.openLoginDialog()
       }

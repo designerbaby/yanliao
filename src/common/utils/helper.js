@@ -97,3 +97,58 @@ export const camSafeUrlEncode = (str) => {
     .replace(/\)/g, '%29')
     .replace(/\*/g, '%2A')
 }
+
+// 检查音符块有没重叠
+export const checkPitchDuplicated = (stagePitches) => {
+  const pitches = stagePitches
+  for(let i = 0; i < pitches.length; i++){
+    const pitch1 = pitches[i]
+    pitch1.red = false
+    for(let j = 0; j < pitches.length; j++){
+      const pitch2 = pitches[j]
+      if (i !== j) {
+        let leftPitch = null
+        let rightPitch = null
+
+        if (pitch1.left < pitch2.left) {
+          leftPitch = pitch1
+          rightPitch = pitch2
+        } else {
+          leftPitch = pitch2
+          rightPitch = pitch1
+        }
+
+        const isRed = leftPitch.left + leftPitch.width > rightPitch.left
+        if (isRed) {
+          pitch1.red = isRed
+        }
+        // console.log(`检查外层第${i}个格子left:${pitch1.left},width:${pitch1.width}，内层第${j}个格子left:${pitch2.left},width:${pitch2.width} ,red:${isRed}`)
+      }
+    }
+  }
+  return pitches
+}
+
+export const findLastIndex = (array, cb) => {
+    for (let i = array.length-1; i >=0; i--) {
+      const element = array[i];
+      if (cb.call(null, element, i, array)) {
+        return i
+      }
+    }
+    return -1
+}
+
+
+export const generateUUID = () => {
+  var d = new Date().getTime();
+  if (window.performance && typeof window.performance.now === "function") {
+      d += performance.now(); //use high-precision timer if available
+  }
+  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = (d + Math.random() * 16) % 16 | 0;
+      d = Math.floor(d / 16);
+      return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+  return uuid;
+}

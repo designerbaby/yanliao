@@ -70,6 +70,24 @@ const getYinsu = (data) => {
   })
 }
 
+// xml转json的接口
+const musicxml2Json = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/synth/xml2json',
+    data: data
+  })
+}
+
+// 曲谱共享状态
+const shareMusicScore = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/synth/share_music_score',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
@@ -77,5 +95,7 @@ export {
   getF0Data,
   Hanzi2Pinyin,
   editorDetail,
-  getYinsu
+  getYinsu,
+  musicxml2Json,
+  shareMusicScore
 }

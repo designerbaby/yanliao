@@ -41,11 +41,11 @@ export default {
       },
       rules: {
         fenzi: [
-          { required: true, message: '请输入分子,且必须为正整数', 
+          { required: true, message: '请输入分子,且必须为正整数',
             trigger: 'blur', validator: validateInt }
         ],
         fenmu: [
-          { required: true, message: '请输入分母,只能为2,4,8或16', 
+          { required: true, message: '请输入分母,只能为2,4,8或16',
             trigger: 'blur', validator: validateFenmu }
         ]
       }
@@ -70,14 +70,11 @@ export default {
     },
     toUpdateStage() { // 根据内外舞台的框进行比较
       const stageConWidth = this.$store.state.stage.width
-      const maxPitchRight = this.$store.state.maxPitchRight
-      console.log(`maxPitchRight: ${maxPitchRight}, stageConWidth: ${stageConWidth}, this.stageWidth: ${this.stageWidth}`)
+      console.log(`stageConWidth: ${stageConWidth}, this.stageWidth: ${this.stageWidth}`)
       while (stageConWidth > this.stageWidth) { // 外框比里框更大
         this.$store.dispatch('updateMatter', 15)
       }
-      while (maxPitchRight > this.stageWidth) {
-        this.$store.dispatch('updateMatter', 15)
-      }
+      this.$store.dispatch('adjustStageWidth')
     },
     showBeatDialog() {
       this.beatForm = {

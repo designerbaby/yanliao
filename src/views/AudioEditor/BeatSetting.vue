@@ -5,7 +5,11 @@
       <div :class="$style.title">设置面板</div>
       <img src="@/assets/audioEditor/close.png" @click.stop="closeDrawer">
     </div>
-    <div :class="$style.text">当前音源</div>
+    <div :class="$style.text">歌曲名称</div>
+    <div :class="$style.select">
+      <Input v-model="$store.state.musicName" placeholder="请输入歌曲名称"/>
+    </div>
+    <div :class="[$style.text, $style.qusu]">当前音源</div>
     <div :class="$style.setting">
       <div :class="$style.select">
         <Select
@@ -39,7 +43,7 @@
   </div>
 </template>
 <script>
-import { Select, Option, InputNumber } from "element-ui"
+import { Select, Option, InputNumber, Input } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
 export default {
@@ -48,13 +52,15 @@ export default {
     return {
       showDrawer: false,
       audio: null,
-      toneList: []
+      toneList: [],
+      name: ''
     }
   },
   components: {
     Select,
     Option,
-    InputNumber
+    InputNumber,
+    Input
   },
   computed: {
     stageHeight() {
@@ -174,6 +180,7 @@ export default {
 
 .select {
   margin: 0 0 0 24px;
+  width: 196px;
 }
 
 .listen {

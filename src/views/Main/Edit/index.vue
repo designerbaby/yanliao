@@ -21,27 +21,29 @@
             <div class="title">原歌词:</div>
             <div class="title">新歌词:</div>
             <div :class="toneType === 0 ? 'radio selected' : 'radio'">
-              <div class="icon" @click="toneType = 0"></div>
+              <!-- TODO 这里改为多音源的时候要切换回来 -->
+              <!-- <div class="icon" @click="toneType = 0"></div> -->
               <input id="0" v-model="toneType" type="radio" :value="0" hidden>
-              <label for="0">单个音源</label>
+              <!-- <label for="0">单个音源</label> -->
+              <label for="0">音源</label>
             </div>
-            <div :class="toneType === 1 ? 'radio selected' : 'radio'">
+            <!-- <div :class="toneType === 1 ? 'radio selected' : 'radio'">
               <div class="icon" @click="toneType = 1"></div>
               <input id="1" v-model="toneType" type="radio" :value="1" hidden>
               <label for="1">多个音源</label>
-            </div>
+            </div> -->
           </div>
 
           <div class="lyric-item" v-for="(line, index) in oldLyricList" :key="line + index">
             <div class="text">{{ line }}</div>
 
             <div :class="validateResult.contents[index].status === false ? 'input check-failed' : 'input'">
-              <input 
-                :autofocus="index === 0 ? 'autofocus' : null" 
-                placeholder="输入新歌词" 
-                v-model="newLyricList[index].content" 
-                @input="lyricInputChange($event, index)" 
-                @blur="lyricInputBlur($event, index)" 
+              <input
+                :autofocus="index === 0 ? 'autofocus' : null"
+                placeholder="输入新歌词"
+                v-model="newLyricList[index].content"
+                @input="lyricInputChange($event, index)"
+                @blur="lyricInputBlur($event, index)"
               />
               <span class="error-text">{{ validateResult.contents[index].text }}</span>
             </div>
@@ -49,7 +51,7 @@
             <div v-if="toneType === 0 && index === 0" :class="validateResult.singleTone === false ? 'tone-selector check-failed' : 'tone-selector'">
               <el-select
                 filterable
-                class="selector" 
+                class="selector"
                 :placeholder="'选择谁来演唱这首歌'"
                 v-model="singleToneId"
                 @change="singleToneIdChange"
@@ -83,8 +85,8 @@
                   <span style="float: right; color:#8492a6; font-size: 13px;">by {{ item.nickname }}</span>
                 </el-option>
               </el-select>
-              <img 
-                v-if="(newLyricList.findIndex((item) => { return item.toneId === newLyricList[index].toneId }) === index) && newLyricList[index].toneId !== null" 
+              <img
+                v-if="(newLyricList.findIndex((item) => { return item.toneId === newLyricList[index].toneId }) === index) && newLyricList[index].toneId !== null"
                 src="@/assets/icon-player.png" alt="" @click="playerButtonClick($event, newLyricList[index].toneId)"
                 >
               <a href="/audioUpload" class="upload-audio" v-if="index === 0">上传其他音源 ></a>
@@ -109,7 +111,7 @@
         <div class="section-title">选择曲调
           <span class="melody-tips">(单位: 1 度代表 1 半音)</span>
         </div>
-        <el-select class="melody-selector" 
+        <el-select class="melody-selector"
           v-model="melody"
           :disabled="melodySelectorDisable === true ? true : false" :placeholder="melodySelectorDisable === true ? '请选择音源后再选择曲调' : ''"
         >
@@ -125,29 +127,22 @@
     </div>
     <div class="footer">
       <button @click="prevButtonClick" class="main-button">上一步</button>
+      <button @click="audioButtonClick" class="main-button">去调音</button>
       <button @click="confirmButtonClick" class="main-button">确定</button>
     </div>
-    <el-dialog
-      :visible.sync="dialogVisible"
-      width="400px"
-      custom-class="dialog"
-    >
-      <div class="dialog-main">请先完善信息后再进行下一步</div>
-      <div class="dialog-confirm-button" @click="dialogVisible = false">确定</div>
-    </el-dialog>
+    <CompleteDialog ref="CompleteDialog"></CompleteDialog>
   </div>
 </template>
 
 <script>
-import { 
-  Select, 
+import {
+  Select,
   Option,
   Input,
-  Dialog,
   InputNumber,
 } from 'element-ui'
 
-import { 
+import {
   songDetail,
   songOtherDetail,
   preSubmit,
@@ -164,6 +159,7 @@ import {
 
 import Header from '@/common/components/Header.vue'
 import { reportEvent } from '@/common/utils/helper'
+import CompleteDialog from './Components/CompleteDialog.vue'
 
 export default {
   name: 'Home',
@@ -171,9 +167,9 @@ export default {
     'el-input': Input,
     'el-select': Select,
     'el-option': Option,
-    'el-dialog': Dialog,
     'el-input-number': InputNumber,
     Header,
+    CompleteDialog
   },
   data() {
     return {
@@ -201,8 +197,6 @@ export default {
       melody: null,
       // 表单校验
       formChecked: true,
-      // 弹窗展示
-      dialogVisible: false,
       melodyOptions: [],
       oldLyricList: [],
       toneList: [],
@@ -235,7 +229,7 @@ export default {
     const arrangeId = this.$route.params.arrangeId // 编辑id
     let toneId = this.$route.params.toneId // 音色id
     const draftId = sessionStorage.getItem('draftId') // 草稿箱id
-    log(`musicId:${musicId}, arrangeId:${arrangeId},toneId:${toneId}`)
+    console.log(`musicId:${musicId}, arrangeId:${arrangeId},toneId:${toneId}`)
 
     this.toneId = toneId
     this.musicId = musicId
@@ -255,14 +249,6 @@ export default {
       // 获取歌曲基本信息
       this.getSongInfo()
     }
-    // if (arrangeId) {
-    //   this.getEditedInfo(arrangeId)
-    // } else if (draftId) {
-    //   this.getDraftInfo(draftId)
-    // } else {
-    //   // 获取歌曲基本信息
-    //   this.getSongInfo()
-    // }
   },
   mounted() {
     reportEvent('edit-page-exposure')
@@ -337,31 +323,28 @@ export default {
     },
     // 初始化表单数据
     initFormData(data) {
-      log('initFormData data:', data)
       let type = 'normal'
+      // !这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西。即草稿没有被加载
       if (this.draftId) {
         type = 'draft'
       } else if (this.arrangeId) {
         type = 'edit'
       }
-      // !这里主要兼容，在矫正歌词点上一步时，先显示上次编辑的东西。即草稿没有被加载
-      // if (this.arrangeId) {
-      //   type = 'edit'
-      // } else if (this.draftId) {
-      //   type = 'draft'
-      // }
+      console.log('initFormData data, type', data, type)
       const m = {
         'normal': () => {
           this.oldLyricList = data.lyric_list
           this.bpm = data.avg_bpm
           this.maxTone = 0
           this.minTone = 0
+          this.melody = 0
+          this.musicId = data.music_id
           this.countAdjust = data.count_adjust || []
           this.initLyricData()
         },
         'edit': () => {
           const editInfo = data.edit_info
-          log('edit editInfo:', editInfo)
+          console.log('edit editInfo:', editInfo)
           this.maxTone = data.max_tone
           this.minTone = data.min_tone
           this.bpm = editInfo.bpm
@@ -427,7 +410,7 @@ export default {
     // 初始化校验数据
     initvalidateData() {
       this.validateResult = {
-        contents: this.oldLyricList.map(item => { 
+        contents: this.oldLyricList.map(item => {
           return { status: null, text: '', }
         }),
         bpm: null,
@@ -467,6 +450,7 @@ export default {
         })
       }
       this.melodyOptions = melodyOptions
+      console.log(`initMelodyOption, this.maxTone: ${this.maxTone}, this.minTone: ${this.minTone}, this.melody: ${this.melody}this.melodyOptions`, melodyOptions)
     },
     /* 数据初始化 end */
 
@@ -480,7 +464,8 @@ export default {
         this.maxTone = parseInt(data.tone_max)
         this.minTone = parseInt(data.tone_min)
         this.initMelodyOption()
-        this.melody = parseInt((this.maxTone + this.minTone) / 2)
+        // this.melody = parseInt((this.maxTone + this.minTone) / 2)
+        this.melody = 0
       })
     },
 
@@ -555,6 +540,45 @@ export default {
       }
       sessionStorage.setItem('draftId', '')
     },
+    handlePolyphonicList(polyphonic_list) {
+      const list = polyphonic_list
+      let fixPinyinList = []
+      list.forEach(item => {
+        fixPinyinList.push({
+          x: item.x,
+          y: item.y,
+          pinyin: item.pinyin_list[0]
+        })
+      })
+      return fixPinyinList
+    },
+    // 去调音
+    audioButtonClick() {
+      let xml2JsonReq = this.getFormData()
+      this.checkForm()
+      if (this.formChecked === true) {
+        preSubmit(xml2JsonReq).then((response) => {
+          const { data } = response.data
+          xml2JsonReq.fix_pinyin_list = this.handlePolyphonicList(data.polyphonic_list)
+          xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
+          if (this.arrangeId) {
+            xml2JsonReq.arrange_id = this.arrangeId
+            this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1&arrangeId=${this.arrangeId}`)
+          } else {
+            this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1`)
+          }
+          sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
+          this.deleteDraft()
+        }).then((response) => {
+          if (!response) {
+            return
+          }
+        })
+      } else {
+        // this.$refs.CompleteDialog.show('请校验歌词格式正确')
+        this.$refs.CompleteDialog.show('请先完善信息后再进行下一步')
+      }
+    },
     // 确认按钮点击
     confirmButtonClick() {
       // 编辑页-确认按钮-点击
@@ -564,7 +588,7 @@ export default {
       if (arrangeId) {
         f.arrange_id = arrangeId
       }
-      log('edit confirmButtonClick提交数据', f)
+      console.log('edit confirmButtonClick提交数据', f)
       this.checkForm()
       if (this.formChecked === true) {
         preSubmit(f).then((response) => {
@@ -590,7 +614,7 @@ export default {
           this.$router.push(`/profile`)
         })
       } else {
-        this.dialogVisible = true
+        this.$refs.CompleteDialog.show('请先完善信息后再进行下一步')
       }
 
       if (this.defaultForm.bpm !== this.bpm) {
@@ -689,13 +713,14 @@ export default {
       this.checkAllContentInput()
       // 检查所有 tone selector
       this.checkAllToneSelector()
-      log('validate result', this.validateResult)
+      console.log('validate result', this.validateResult)
 
       this.formChecked = true
       const validateResult = this.validateResult
       Object.keys(validateResult).forEach((k) => {
         const value = validateResult[k]
         const type = Object.prototype.toString.call(value)
+        // console.log(`k: ${k}, value: ${value}, type: ${type}`)
         if (type === '[object Array]') {
           // 数组
           for (let i = 0; i < value.length; i++) {
@@ -784,7 +809,7 @@ export default {
           .edit-title, .tone-title {
             min-width: 216px;
           }
-        } 
+        }
         .section-title {
           font-size: 30px;
           color: #000;
@@ -832,7 +857,8 @@ export default {
                 margin-right: 6px;
               }
               input:checked + label {
-                color: #2cabff;
+                // color: #2cabff;
+                color: #000;
               }
             }
             .radio {
@@ -1030,7 +1056,7 @@ export default {
       font-size: 16px;
     }
   }
-  
+
   .melody-selector {
     .el-input__inner {
       font-size: 16px;

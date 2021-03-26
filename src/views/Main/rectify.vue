@@ -23,7 +23,8 @@
     </div>
     <div class="footer">
       <button @click="prevButtonClick" class="main-button">上一步</button>
-      <button @click="confirmButtonClick" class="main-button">完成</button>
+      <button @click="audioButtonClick" class="main-button">去调音</button>
+      <button @click="confirmButtonClick" class="main-button">生成音频</button>
     </div>
   </div>
 </template>
@@ -35,7 +36,7 @@ import {
   submit,
 } from '@/api/api'
 
-import { 
+import {
   addDraft,
   fetchDraftDetailById,
   deleteDraft,
@@ -55,7 +56,7 @@ export default {
       oldForm: {},
       lyricList: [],
       polyphonicList: [],
-      polyphonicMap: {},
+      polyphonicMap: {}
     }
   },
   created() {
@@ -198,6 +199,20 @@ export default {
         this.$router.push('/edit/' + this.oldForm.music_id)
       }
       // this.$router.go(-1)
+    },
+    // 去调音
+    audioButtonClick() {
+      let xml2JsonReq = JSON.parse(sessionStorage.getItem('form'))
+      xml2JsonReq.fix_pinyin_list = JSON.parse(this.getFormData())
+      xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
+      if (this.$route.query.arrangeId) {
+        xml2JsonReq.arrange_id = this.$route.query.arrangeId
+        this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1&arrangeId=${this.$route.query.arrangeId}`)
+      } else {
+        this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1`)
+      }
+      sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
+      this.deleteDraft()
     },
     confirmButtonClick() {
       // 多音字编辑页-确认按钮-点击
