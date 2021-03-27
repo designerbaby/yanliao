@@ -200,7 +200,7 @@ export default {
       if (start > index) {
         [from, to] = [index, start]
       }
-      // console.log(`from ${from}, to:${to}`, this.stagePitches.map(v => v.selected).reverse())
+      console.log(`from ${from}, to:${to}`, this.stagePitches.map(v => v.selected).reverse())
       this.stagePitches.forEach((v, i) => {
         if (i >= from && i <= to) {
           v.selected = true
@@ -330,11 +330,6 @@ export default {
             pitchHasChanged = true
           }
 
-          // if (!this.canMoveUpPitch(pitch)) { // 他不能移动这个音符，还原回去
-          //   pitch.left = this.movePitchStart.left
-          //   pitch.top = this.movePitchStart.top
-          //   return false
-          // }
           eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
           eleDom.dataset.left = newLeft
           eleDom.dataset.top = newTop
@@ -343,13 +338,16 @@ export default {
           pitch.left = newLeft
           pitch.top = newTop
 
+          // 当他是连字符的时候，他前面不能有空格
           if (!this.canMoveUpPitch(pitch)) {
+            Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
             pitch.left = this.movePitchStart.left
             pitch.top = this.movePitchStart.top
             eleDom.style.transform = `translate(${this.movePitchStart.left}px, ${this.movePitchStart.top}px)`
             eleDom.dataset.left = this.movePitchStart.left
             eleDom.dataset.top = this.movePitchStart.top
             pitchHasChanged = false
+            return
           }
         }
 
@@ -371,7 +369,6 @@ export default {
         const before = this.stagePitches[idx - 1]
         const current = this.stagePitches[idx]
         if (before.left + before.width !== current.left) {
-          Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
           canMoveUp = false
         }
       }
@@ -503,15 +500,16 @@ export default {
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
       this.$store.dispatch('afterChangePitchAndHandle')
     },
-    onArrowMoveEnd({ width, left, top, target, direction }, index) {
+    onArrowMoveEnd({ width, left, top, target, direction, moveArrowStart }, index) {
       let pitchHasChanged = false
       const pitch = this.stagePitches[index]
       // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
-      // 结束后修正宽度和左边距
+
       if (pitch.left !== left || pitch.top !== top || pitch.width !== width) {
-        pitchHasChanged = true
+        pitchHasChanged = true // 有变化的话，需要去拉取f0数据
       }
-      // console.log(`pitch.left: ${pitch.left}, pitch.top: ${pitch.top}, left: ${left}, top: ${top}, width: ${width}, pitch.width: ${pitch.width}`)
+
+      // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
       pitch.top = top
       if (direction === 'left') {
@@ -522,8 +520,17 @@ export default {
       }
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
-      pitch.pitchChanged = true
-      // console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
+      pitch.pitchChanged = true // 有改变的话，需要去拉取元辅音
+      console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
+      if (!this.canMoveUpPitch(pitch)) {
+        Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
+        pitch.left = moveArrowStart.left
+        pitch.top = moveArrowStart.top
+        pitch.width = moveArrowStart.width
+        target.style.transform = `translate(${moveArrowStart.left}px, ${moveArrowStart.top}px)`
+        target.style.width = `${moveArrowStart.width}px`
+        pitchHasChanged = false
+      }
       if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
         this.$store.dispatch('afterChangePitchAndHandle')
       }
