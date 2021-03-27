@@ -11,7 +11,7 @@
 
 <script>
 import { Message } from "element-ui"
-import { amendTop, amendLeft } from '@/common/utils/helper'
+import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 
 export default {
   name: 'BeatStageList',
@@ -55,7 +55,8 @@ export default {
         const newItem = {
           left: newLeft,
           top: newTop,
-          selected: true
+          selected: true,
+          uuid: generateUUID()
         }
         this.stagePitches.push(Object.assign({}, item, newItem))
       }

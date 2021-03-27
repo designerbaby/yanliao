@@ -78,7 +78,8 @@ export default {
           left: newLeft,
           top: newTop,
           target: parentNode,
-          direction: this.direction
+          direction: this.direction,
+          moveArrowStart: this.moveArrowStart
         }
         // console.log(`onArrowMouseMove:`, JSON.stringify(this.moveArrowEnd))
       }
@@ -96,7 +97,8 @@ export default {
             left: this.pitch.left,
             top: this.pitch.top,
             target: this.$el.parentNode,
-            direction: this.direction
+            direction: this.direction,
+            moveArrowStart: this.moveArrowStart
           }
         }
         this.$emit('move-end', {
