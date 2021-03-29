@@ -2,17 +2,17 @@ import Vue from 'vue'
 import App from './views/App.vue'
 import router from './router'
 import store from './store'
-import moment from 'moment'
+// import moment from 'moment'
 import smoothscroll from 'smoothscroll-polyfill'
 import '@/common/utils/permission'
 import '@/common/utils/filter'
 
 smoothscroll.polyfill()
-Vue.prototype.$moment = moment
+// Vue.prototype.$moment = moment
 Vue.config.productionTip = false
 
 Vue.mixin({
-  beforeRouteEnter(to, from, next) { 
+  beforeRouteEnter(to, from, next) {
     // 修复改变跳转不同页面的时候，改变背景图
     next(vm => {
       const toFullPath = to.fullPath

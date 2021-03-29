@@ -15,7 +15,7 @@
         label="更新时间"
       >
         <template slot-scope="scope">
-          <span>{{$moment(scope.row.update_time * 1000).format('YYYY/MM/DD HH:mm')}}</span>
+          <span>{{scope.row.update_time | formatShortDate}}</span>
         </template>
       </TableColumn>
       <TableColumn
@@ -47,7 +47,7 @@
 import { reportEvent } from '@/common/utils/helper'
 import CommonDialog from '@/common/components/CommonDialog'
 
-import { 
+import {
   Table,
   TableColumn,
   Pagination,
@@ -105,10 +105,10 @@ export default {
       }
 
       sessionStorage.setItem('editPath', '')
-      
+
       const step = row.step
       const musicId = row.music_id
-      
+
       if (step === 2) {
         this.$router.push(`/rectify`)
       } else {
