@@ -200,7 +200,8 @@ export default {
       melodyOptions: [],
       oldLyricList: [],
       toneList: [],
-      toneId: 0
+      toneId: 0,
+      wantAddDraft: true // 是否想要添加草稿箱
     }
   },
   watch:{
@@ -253,9 +254,6 @@ export default {
   mounted() {
     reportEvent('edit-page-exposure')
     this.toOnBeforeUpload()
-    // setInterval(() => {
-    //   this.submitDraft()
-    // }, 1000)
   },
   destroyed() {
     window.onbeforeunload = null
@@ -265,7 +263,8 @@ export default {
       // 在浏览器退出之前，判断是否有数据修改了没保存
       window.onbeforeunload = (event) => {
         const isModified = this.comparisonFormData()
-        if (isModified === true) {
+        console.log('this.wantAddDraft:', this.wantAddDraft)
+        if (isModified === true && this.wantAddDraft) { // 有更改而且想要添加草稿箱
           this.submitDraft()
           return '您可能有数据没有保存'
         }
@@ -554,6 +553,7 @@ export default {
     },
     // 去调音
     audioButtonClick() {
+      this.wantAddDraft = false
       let xml2JsonReq = this.getFormData()
       this.checkForm()
       if (this.formChecked === true) {
@@ -568,7 +568,7 @@ export default {
             this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1`)
           }
           sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
-          this.deleteDraft()
+          // this.deleteDraft()
         }).then((response) => {
           if (!response) {
             return
@@ -601,7 +601,6 @@ export default {
             sessionStorage.setItem('form', JSON.stringify(f))
             sessionStorage.setItem('polyphonicList', JSON.stringify(data.polyphonic_list))
             sessionStorage.setItem('editPath', JSON.stringify(this.$router.history.current.path))
-            // this.submitDraft()
             this.$router.push(`/rectify?arrangeId=${f.arrange_id || ''}`)
           }
         }).then((response) => {

@@ -6,6 +6,7 @@
       @play="toPlay"
       @synthesize="toSynthesize"
       @openDrawer="toOpenDrawer"
+      @toScroll="toScroll"
     ></BeatHeader>
     <StatusBar></StatusBar>
     <BeatContainer
@@ -406,6 +407,9 @@ export default {
       }
 
       this.$store.dispatch('changeStoreState', { lineLeft: left })
+    },
+    toScroll(left) {
+      this.$refs.BeatContainer.scrollTo(left)
     },
     getLinePosition() {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块

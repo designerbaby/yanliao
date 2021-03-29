@@ -56,7 +56,8 @@ export default {
       oldForm: {},
       lyricList: [],
       polyphonicList: [],
-      polyphonicMap: {}
+      polyphonicMap: {},
+      wantAddDraft: true
     }
   },
   created() {
@@ -73,7 +74,7 @@ export default {
     reportEvent('edit-page-2-exposure')
     window.onbeforeunload = (event) => {
       const isModified = this.comparisonFormData()
-      if (isModified === true) {
+      if (isModified === true && this.wantAddDraft) {
         this.submitDraft()
         return '您可能有数据没有保存'
       }
@@ -202,6 +203,7 @@ export default {
     },
     // 去调音
     audioButtonClick() {
+      this.wantAddDraft = false
       let xml2JsonReq = JSON.parse(sessionStorage.getItem('form'))
       xml2JsonReq.fix_pinyin_list = JSON.parse(this.getFormData())
       xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫

@@ -103,7 +103,8 @@ export default {
       startPos: null,
       endPos: null,
       movePitchStart: null,
-      selectedUUID: null
+      selectedUUID: null,
+      mouseModalTarget: null
     }
   },
   computed: {
@@ -169,6 +170,7 @@ export default {
           scrollTop
         }
       })
+      // console.log('this.$store.state.stage:', JSON.stringify(this.$store.state.stage))
     },
     onRightClickStage(event) {
       console.log('右键整个舞台事件 onRightClickStage:', event)
@@ -241,6 +243,22 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
+
+      const { left, top } = event.target.getBoundingClientRect()
+      this.mouseModalTarget = document.createElement('div')
+      const mouseModalTarget = this.mouseModalTarget
+      mouseModalTarget.style.zIndex = 99999
+      mouseModalTarget.style.position = `absolute`
+      mouseModalTarget.style.width = '200px'
+      mouseModalTarget.style.height = '200px'
+      mouseModalTarget.style.left = `${left - 100}px`
+      mouseModalTarget.style.top = `${top - 100}px`
+      mouseModalTarget.style.opacity = 0  // 蒙层的透明度
+      mouseModalTarget.style.cursor = 'move'
+      mouseModalTarget.style.background = 'red'
+      mouseModalTarget.addEventListener('mouseup', this.onPitchMouseUp)
+      this.$refs.rightArea.appendChild(mouseModalTarget)
+
       this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
       const target = event.target
       target.style.opacity = 0.8
@@ -285,6 +303,9 @@ export default {
       // 绿色块鼠标移动事件
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
+        this.mouseModalTarget.style.left = `${event.clientX - 100}px`
+        this.mouseModalTarget.style.top = `${event.clientY - 100}px`
+
         const { target, selectedPitches, selectedElements } = this.movePitchStart
 
         const moveX = event.clientX - this.movePitchStart.clientX
@@ -311,6 +332,7 @@ export default {
     },
     onPitchMouseUp(event) {
       if (this.movePitchStart) {
+        this.mouseModalTarget.parentNode.removeChild(this.mouseModalTarget)
         console.log(`onPitchMouseUp`, event)
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
