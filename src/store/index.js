@@ -221,7 +221,8 @@ const store = new Vuex.Store({
       })
       commit('changeStoreState', { stagePitches })
     },
-    async getPitchLine({ commit, state, getters }) {
+    async getPitchLine({ commit, state, getters }, { beforeRequest, afterRequest } = {}) {
+      console.log(`[action] getPitchLine called`)
       if (getters.pitchList.length <= 0) {
         // Message.error('没有画音块，所以没音高线')
         return
@@ -241,7 +242,16 @@ const store = new Vuex.Store({
         // }
       }
       commit('changeStoreState', { isGetF0Data: true })
-      const { data } = await getF0Data({ pitchList: getters.pitchList })
+      // 请求参数先深复制一份
+      const reqData = deepAssign({}, { pitchList: getters.pitchList })
+      if (beforeRequest) {
+        await beforeRequest()
+      }
+      const { data } = await getF0Data(reqData)
+      if (afterRequest) {
+        await afterRequest()
+      }
+
       if (data.ret_code !== 0) {
         // Message.error(`请求音高线数据错误,错误信息:${data.err_msg}`)
         return

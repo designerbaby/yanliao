@@ -5,7 +5,7 @@
         作品详情
       </div>
       <div class="audio-title">{{arrangeName}}</div>
-      <div class="audio-create-time">创作时间：{{$moment(updateTime * 1000).format("YYYY/MM/DD  HH:mm")}}</div>
+      <div class="audio-create-time">创作时间：{{updateTime | formatShortDate}}</div>
       <div v-if="audioUrl !== ''" class="player-box" @mousemove="progressMousemoveEvent" @mouseup="progressMouseupEvent" @mouseleave="progressMouseleaveEvent">
         <img v-if="audioPaused === true" class="play-button" src="@/assets/icon-play.png" alt="" @click="playButtonClick">
         <img v-if="audioPaused === false" class="play-button" src="@/assets/icon-pause.png" alt="" @click="playButtonClick">
@@ -14,7 +14,8 @@
             <div class="progress-button" @mousedown="progressButtonMousedownEvent" ></div>
           </div>
         </div>
-        <div class="audio-duration">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</div>
+        <!-- <div class="audio-duration">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</div> -->
+        <div class="audio-duration">{{ currentTime | formatTime }} / {{ duration | formatTime }}</div>
       </div>
       <audio @play="playEvent" @pause="pauseEvent" @canplay="canplay" @timeupdate="timeupdate" id="audio" :src="audioUrl" />
       <div class="strong-text text">歌曲：{{ musicName }}</div>
@@ -73,9 +74,6 @@ export default {
     })
   },
   methods: {
-    formatTime(time) {
-      return this.$moment(time * 1000).format('mm:ss')
-    },
     initAudio() {
       this.audio = document.querySelector('#audio')
     },
@@ -161,7 +159,7 @@ export default {
         width: 644px;
         height: 50px;
         background-color: #ffffff;
-        box-shadow: 0px 0px 20px 0px 
+        box-shadow: 0px 0px 20px 0px
           rgba(0, 0, 0, 0.05);
         border-radius: 6px;
         margin: 0 0 22px 0px;

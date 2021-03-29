@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { parseArrayBuffer } from 'midi-json-parser'
+// import { parseArrayBuffer } from 'midi-json-parser'
 import { Dialog, Upload, Form } from 'element-ui'
 
 export default {

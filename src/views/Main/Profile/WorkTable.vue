@@ -26,7 +26,7 @@
         label="更新时间"
       >
         <template slot-scope="scope">
-          <span>{{$moment(scope.row.update_time * 1000).format('YYYY/MM/DD HH:mm')}}</span>
+          <span>{{scope.row.update_time | formatShortDate}}</span>
         </template>
       </TableColumn>
       <TableColumn
