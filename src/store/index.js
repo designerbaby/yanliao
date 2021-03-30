@@ -243,6 +243,11 @@ const store = new Vuex.Store({
         }
       }
       commit('changeStoreState', { isGetF0Data: true })
+      // const loadingInstance = Loading.service({
+      //   lock: true,
+      //   spinner: 'el-icon-loading',
+      //   background: 'rgba(0, 0, 0, 0.3)'
+      // })
       // 请求参数先深复制一份
       const reqData = deepAssign({}, { pitchList: getters.pitchList })
       if (beforeRequest) {
@@ -294,6 +299,7 @@ const store = new Vuex.Store({
         }
         item.pitchChanged = false
       }
+      // loadingInstance.close()
       commit('changeStoreState', { f0Draw, stagePitches, isPitchLineChanged: false, isGetF0Data: false, pitchChanged: false })
     },
     updateStageSize({ commit, state }) {

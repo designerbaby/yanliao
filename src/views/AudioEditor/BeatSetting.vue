@@ -36,14 +36,22 @@
       </div>
     </div>
     <div :class="[$style.text, $style.qusu]">当前曲速</div>
-    <div :class="$style.select">
-      <InputNumber :class="$style.bpmInput" :value="$store.state.bpm" @change="bpmInputChange" controls-position="right" :min="50" :max="200"/>
+    <div :class="$style.setting">
+      <InputNumber :class="$style.bpmInput"
+        :value="$store.state.bpm" 
+        @change="bpmChangeChange"
+        controls-position="right"
+        :min="50" :max="200"
+      />
+      <div :class="$style.confirm">
+        <Button type="success" @click="confirmBpm">确定</Button>
+      </div>
     </div>
     <div :class="$style.bpmText">请控制输入范围在50-200BPM</div>
   </div>
 </template>
 <script>
-import { Select, Option, InputNumber, Input } from "element-ui"
+import { Select, Option, InputNumber, Input, Button } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
 
@@ -54,14 +62,16 @@ export default {
       showDrawer: false,
       audio: null,
       toneList: [],
-      name: ''
+      name: '',
+      inputBpmValue: 0
     }
   },
   components: {
     Select,
     Option,
     InputNumber,
-    Input
+    Input,
+    Button
   },
   computed: {
     stageHeight() {
@@ -97,10 +107,15 @@ export default {
       })
       this.$store.dispatch('getPitchLine')
     },
-    bpmInputChange(value) {
+    bpmChangeChange(value) {
+      console.log('bpmChangeChange:', value)
+      this.inputBpmValue = value
+    },
+    confirmBpm() {
+      console.log('confirmBpm:', this.inputBpmValue)
       // 为了修复，bpm改变的时候，曲线闪一下的bug,这里特殊处理。
       const oldBpm = this.$store.state.bpm
-      this.$store.dispatch('changeStoreState', { bpm: value, pitchChanged: true })
+      this.$store.dispatch('changeStoreState', { bpm: this.inputBpmValue, pitchChanged: true })
       this.$store.dispatch('getPitchLine', {
         beforeRequest: () => {
           // 请求函数之前把bpm改回旧的，这样曲线就不会变动
@@ -108,7 +123,7 @@ export default {
         },
         afterRequest: () => {
           // 数据请求回来之后，把bpm改成真正修改后的值，这样f0和bpm都是新的，曲线重新绘制
-          this.$store.state.bpm = value
+          this.$store.state.bpm = this.inputBpmValue
         }
       })
     },
@@ -215,5 +230,13 @@ export default {
   font-size: 12px;
   color: rgba(255,255,255,0.60);
   margin: 5px 0 0 24px;
+}
+
+.confirm {
+  margin: 0px 0 0 20px;
+  // .el-button--success {
+  //   background-color: #009032 !important;
+  //   border-color: #009032 !important;
+  // }
 }
 </style>

@@ -152,3 +152,11 @@ export const generateUUID = () => {
   });
   return uuid;
 }
+
+export const divideArray = (n, arr) => {
+  const result = []
+  for (let i = 0; i < arr.length;) {
+    result.push(arr.slice(i, i += n))
+  }
+  return result
+}

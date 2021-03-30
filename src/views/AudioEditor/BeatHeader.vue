@@ -315,5 +315,8 @@ export default {
   &:active {
     transform: scale(0.95);
   }
+  [class*=" el-icon-"], [class^=el-icon-] {
+    font-weight: 1000;
+  }
 }
 </style>
