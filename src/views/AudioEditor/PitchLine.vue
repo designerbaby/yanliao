@@ -3,6 +3,7 @@
     :class="$style.PitchLine"
     ref="PitchLine"
     :style="{ height: `${stageHeight}px`, width: `${stageWidth}px`, 'z-index': `${zIndex}` }"
+    id="PitchLine"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -18,6 +19,7 @@
      <g>
       <path :d="svgData" stroke="white" fill="transparent" stroke-dasharray="5,5"/>
       <path :d="svgDataDraw" stroke="white" fill="transparent" stroke-linejoin="round" />
+      <!-- <path v-for="(it, index) in divideDraw" :key="index" :d="it" stroke="white" fill="transparent" stroke-linejoin="round"/> -->
      </g>
     </svg>
   </div>
@@ -26,6 +28,7 @@
 <script>
 import { Message } from 'element-ui'
 import { playState, modeState } from "@/common/utils/const"
+import { divideArray } from '@/common/utils/helper'
 // import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
@@ -66,27 +69,75 @@ export default {
     },
     svgDataDraw() {
       return this.toHandleF0Data(this.$store.state.f0Draw)
+    },
+    divideDraw() {
+      return this.handleDrawData(this.$store.state.f0Draw)
     }
   },
   mounted() {
   },
   methods: {
-    // TODO 这里的f0Draw要改成分步去渲染
+    handleDrawData(data) {
+      let result = []
+      for (let i = 0; i < data.length; i += 1) {
+        const item = data[i]
+        const x = Math.round(this.pitchWidth * i)
+        const y = (parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5).toFixed(2)
+        result.push({
+          x,
+          y
+        })
+      }
+      console.log('result:', result)
+      const divide = divideArray(99, result)
+      console.log('divide:', divide)
+      let classifyDraw = []
+      for (let i = 0; i < divide.length; i += 1) {
+        console.log('divide[i]:', divide[i])
+        classifyDraw.push(this.toDrawSvg(divide[i]))
+      }
+      return classifyDraw
+    },
+    toDrawSvg(arr) {
+      let result = ''
+
+      let lastX = 0
+      let lastY = 0
+
+      for (let i = 0; i < arr.length; i += 1) {
+        lastX = arr[i].x
+        lastY = arr[i].y
+        if (i === 0) {
+          result += "M "
+        }
+        if ((i - 1) % 3 ==0) {
+          result += "C "
+        }
+        result += `${arr[i].x},${arr[i].y} `
+      }
+      if (arr.length > 0) {
+        const mod = (arr.length - 1) % 3
+        const size = mod === 0 ? 0 : 3 - mod
+
+        for (let j = 0; j < size ; j += 1) {
+          result += `${lastX},${lastY} `
+        }
+      }
+      return result
+    },
     toHandleF0Data (f0Data) {
       let result = ''
-      // const points = []
-      // 将拿到的数据转成x轴和y轴
+
       let lastX = 0
       let lastY = 0
       for (let i = 0; i < f0Data.length; i += 1) {
         const item = f0Data[i]
         const x = Math.round(this.pitchWidth * i)
-        const y = parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5
+        const y = (parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5).toFixed(2)
 
         lastX = x
         lastY = y
 
-        // points.push([x, y])
         if (i === 0) {
           result += "M "
         }

@@ -36,16 +36,36 @@
         </div>
       </div>
       <div :class="$style.common" @click="toPlay">
-        <img src="@/assets/audioEditor/pause.png" v-if="isPlaying"/>
-        <img src="@/assets/audioEditor/play.png" v-else/>
+        <img src="@/assets/audioEditor/pause.png" v-if="isPlaying" :class="$style.icon"/>
+        <img src="@/assets/audioEditor/play.png" v-else :class="$style.icon"/>
         <div :class="$style.text">播放控制</div>
       </div>
       <div :class="$style.common" @click="toGenerateAudio">
-        <img src="@/assets/audioEditor/export.png"/>
+        <img src="@/assets/audioEditor/export.png" :class="$style.icon"/>
         <div :class="$style.text">生成音频</div>
       </div>
+      <div :class="$style.common"
+        @mousedown="toScrollLeft"
+        @mousemove="onMouseUp"
+        @mouseup="onMouseUp"
+      >
+        <div :class="$style.temIcon">
+          <i class="el-icon-arrow-left"></i>
+        </div>
+        <div :class="$style.text">左滑</div>
+      </div>
+      <div :class="[$style.common, $style.commonRight]"
+        @mousedown="toScrollRight"
+        @mousemove="onMouseUp"
+        @mouseup="onMouseUp"
+      >
+        <div :class="$style.temIcon">
+          <i class="el-icon-arrow-right"></i>
+        </div>
+        <div :class="$style.text">右滑</div>
+      </div>
       <div :class="[$style.common, $style.set]" @click="toSet">
-        <img src="@/assets/audioEditor/setting.png"/>
+        <img src="@/assets/audioEditor/setting.png" :class="$style.icon"/>
         <div :class="$style.text">更多信息</div>
       </div>
     </div>
@@ -66,7 +86,10 @@ export default {
   data() {
     return {
       modeState: modeState,
-      typeModeState: typeModeState
+      typeModeState: typeModeState,
+      clickMouseStart: false,
+      timer: null,
+      scrollType: ''
     }
   },
   computed: {
@@ -87,6 +110,25 @@ export default {
     Icon,
     Button,
     ImportDialog
+  },
+  watch: {
+    clickMouseStart(oldValue) {
+      console.log('clickMouseStart:', oldValue)
+      if (oldValue) {
+        this.timer = setInterval(() => {
+          if (this.scrollType === 'left') {
+            this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
+          } else {
+            this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
+          }
+        }, 50)
+      } else {
+        clearInterval(this.timer)
+      }
+    }
+  },
+  destroyed() {
+    clearInterval(this.timer)
   },
   methods: {
     toPlay() {
@@ -138,6 +180,19 @@ export default {
     },
     toImport() {
       this.$refs.ImportDialog.show()
+    },
+    toScrollLeft() {
+      this.clickMouseStart = true
+      this.scrollType = 'left'
+      this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
+    },
+    toScrollRight() {
+      this.clickMouseStart = true
+      this.scrollType = 'right'
+      this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
+    },
+    onMouseUp() {
+      this.clickMouseStart = false
     }
   }
 }
@@ -168,6 +223,12 @@ export default {
     margin: 2px auto;
     cursor: pointer;
     opacity: 1;
+    &:hover {
+      opacity: 0.8;
+    }
+    &:active {
+      transform: scale(0.95);
+    }
   }
   &.isFloat {
     position: fixed;
@@ -185,6 +246,10 @@ export default {
   position: relative;
   margin: 0 0 0 40px;
   // border: 1px solid red;
+}
+
+.commonRight {
+  margin: 0 0 0 5px;
 }
 
 .set {
@@ -231,5 +296,27 @@ export default {
   height: 20px;
   line-height: 20px;
   opacity: 1;
+}
+
+.temIcon {
+  width: 24px;
+  height: 24px;
+  background: #1b1b1b;
+  border-radius: 5px;
+  color: #009032;
+  line-height: 24px;
+  text-align: center;
+  font-weight: bolder;
+  margin: 2px auto;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+  [class*=" el-icon-"], [class^=el-icon-] {
+    font-weight: 1000;
+  }
 }
 </style>

@@ -79,6 +79,7 @@ const store = new Vuex.Store({
     },
     pitchWidth: state => { // 音高线2个数据之间的px值
       // 10是因为数据的每一项间隔10ms
+      console.log('state.bpm:', state.bpm)
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
     },
     pitchList: (state, getters) =>  {
@@ -232,16 +233,21 @@ const store = new Vuex.Store({
           Message.error('音符存在重叠, 请调整好~')
           return
         }
-        // if (state.stagePitches[i].pinyin === '-') {
-        //   const before = state.stagePitches[i - 1]
-        //   const current = state.stagePitches[i]
-        //   if (before.left + before.width !== current.left) {
-        //     Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
-        //     return
-        //   }
-        // }
+        if (state.stagePitches[i].pinyin === '-') {
+          const before = state.stagePitches[i - 1]
+          const current = state.stagePitches[i]
+          if (before.left + before.width !== current.left) {
+            Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
+            return
+          }
+        }
       }
       commit('changeStoreState', { isGetF0Data: true })
+      // const loadingInstance = Loading.service({
+      //   lock: true,
+      //   spinner: 'el-icon-loading',
+      //   background: 'rgba(0, 0, 0, 0.3)'
+      // })
       // 请求参数先深复制一份
       const reqData = deepAssign({}, { pitchList: getters.pitchList })
       if (beforeRequest) {
@@ -293,6 +299,7 @@ const store = new Vuex.Store({
         }
         item.pitchChanged = false
       }
+      // loadingInstance.close()
       commit('changeStoreState', { f0Draw, stagePitches, isPitchLineChanged: false, isGetF0Data: false, pitchChanged: false })
     },
     updateStageSize({ commit, state }) {
