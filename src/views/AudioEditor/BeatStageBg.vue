@@ -23,7 +23,7 @@
 
 <script>
 import { pitchList } from "@/common/utils/const"
-
+// https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.wav 声音地址
 export default {
   name: 'BeatStageBg',
   components: {},

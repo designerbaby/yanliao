@@ -153,7 +153,7 @@ export const generateUUID = () => {
   return uuid;
 }
 
-export const divideArray = (n, arr) => {
+export const divideArray = (n, arr) => { // 每个n个分隔下数组
   const result = []
   for (let i = 0; i < arr.length;) {
     result.push(arr.slice(i, i += n))

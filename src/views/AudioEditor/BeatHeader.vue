@@ -2,10 +2,20 @@
   <div :class="$style.wrap">
     <div :class="$style.blank" v-if="isExceedHeader"></div>
     <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
-      <!-- <div :class="$style.common" @click="toImport">
-        <img src="@/assets/audioEditor/import.png"/>
-        <div :class="$style.text">导入曲谱</div>
-      </div> -->
+      <!-- <Upload
+        class="uploadQupu"
+        ref="upload"
+        accept=".mid"
+        :on-change="uploadChange"
+        :multiple="false"
+        :limit="1"
+        action="/api/kuwa/user/uploadFile"
+        :on-success="uploadQupu">
+        <div :class="$style.common">
+          <img src="@/assets/audioEditor/import.png"/>
+          <div :class="$style.text">导入曲谱</div>
+        </div>
+      </Upload> -->
       <div :class="$style.linefu">
         <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
           <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
@@ -69,16 +79,16 @@
         <div :class="$style.text">更多信息</div>
       </div>
     </div>
-    <ImportDialog ref="ImportDialog"></ImportDialog>
+    <MidiDialog ref="MidiDialog"></MidiDialog>
   </div>
 
 </template>
 
 <script>
-import { Icon, Button, Message } from 'element-ui'
+import { Icon, Button, Message, Upload } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
-import ImportDialog from './ImportDialog'
+import MidiDialog from './MidiDialog'
 
 export default {
   name: 'BeatHeader',
@@ -89,7 +99,8 @@ export default {
       typeModeState: typeModeState,
       clickMouseStart: false,
       timer: null,
-      scrollType: ''
+      scrollType: '',
+      file: ''
     }
   },
   computed: {
@@ -109,7 +120,8 @@ export default {
   components: {
     Icon,
     Button,
-    ImportDialog
+    Upload,
+    MidiDialog
   },
   watch: {
     clickMouseStart(oldValue) {
@@ -178,9 +190,6 @@ export default {
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     },
-    toImport() {
-      this.$refs.ImportDialog.show()
-    },
     toScrollLeft() {
       this.clickMouseStart = true
       this.scrollType = 'left'
@@ -193,6 +202,27 @@ export default {
     },
     onMouseUp() {
       this.clickMouseStart = false
+    },
+    uploadChange(file) {
+      console.log('uploadChange:', file)
+      const fileNameArr = file.name.split('.')
+      const type = fileNameArr[fileNameArr.length - 1]
+      if (type !== 'mid') {
+        Message.error('只能上传mid格式的文件～')
+        return
+      }
+      const size = file.size
+      if (size > 2147483648) {
+        Message.error('文件大小超过 2GB')
+        this.$refs['upload'].clearFiles()
+        return
+      }
+      this.file = file.raw
+      console.log('this.file:', this.file)
+      this.$refs.MidiDialog.show()
+    },
+    uploadQupu() {
+      console.log('uploadQupu')
     }
   }
 }

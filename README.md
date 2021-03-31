@@ -52,7 +52,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### TODO
 
 - 1、要把doPlay的判断改成状态机
-- 2、配置gitlab-ci去设置代码发布
 
 ## 难点
 - 1、用svg画音高线的时候出现锯齿
