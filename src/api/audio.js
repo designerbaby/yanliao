@@ -88,6 +88,15 @@ const shareMusicScore = (data) => {
   })
 }
 
+// 获取曲调范围
+const getToneInfo = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/sdk_client/get_tone_info',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
@@ -97,5 +106,6 @@ export {
   editorDetail,
   getYinsu,
   musicxml2Json,
-  shareMusicScore
+  shareMusicScore,
+  getToneInfo
 }

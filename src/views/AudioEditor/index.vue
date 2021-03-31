@@ -13,6 +13,12 @@
       ref="BeatContainer"
     ></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
+    <CommonDialog
+      :show="dialogShow"
+      titleText="为更好的提供服务,建议您使用chrome浏览器哦～"
+      confirmButtonText="确定"
+      :confirmButtonEvent="closeDialogShow"
+      :cancelButtonEvent="closeDialogShow" />
   </div>
 </template>
 
@@ -25,8 +31,9 @@ import StatusBar from './StatusBar.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, generateUUID } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, generateUUID, isChrome } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
+import CommonDialog from '@/common/components/CommonDialog'
 
 export default {
   name: 'AudioEditor',
@@ -35,7 +42,8 @@ export default {
     BeatContainer,
     BeatHeader,
     BeatSetting,
-    StatusBar
+    StatusBar,
+    CommonDialog
   },
   data() {
     return {
@@ -50,7 +58,8 @@ export default {
         end: 0,
         current: 0 // 当前的位置, px
       },
-      playStartTime: 0 // 从第几秒开始播放
+      playStartTime: 0, // 从第几秒开始播放
+      dialogShow: false
     }
   },
   async mounted() {
@@ -68,6 +77,9 @@ export default {
       }
     )
     this.$store.dispatch('updateStageSize')
+    // if (isChrome) {
+    //   this.dialogShow = true
+    // }
   },
   destroyed() {
     if (this.audio) {
@@ -106,6 +118,9 @@ export default {
     }
   },
   methods: {
+    closeDialogShow() {
+      this.dialogShow = false
+    },
     checkLogin() {
       this.$emit('openLoginDialog')
     },

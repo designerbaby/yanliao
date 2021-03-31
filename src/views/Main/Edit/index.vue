@@ -157,6 +157,7 @@ import {
   deleteDraft,
 } from '@/api/draft'
 
+import { getToneInfo } from '@/api/audio'
 import Header from '@/common/components/Header.vue'
 import { reportEvent } from '@/common/utils/helper'
 import CompleteDialog from './Components/CompleteDialog.vue'
@@ -454,18 +455,28 @@ export default {
     /* 数据初始化 end */
 
     // 获取 melody 配置
-    getMelodyConfig(toneId) {
+    async getMelodyConfig(toneId) {
       const musicId = this.musicId
       console.log(`getMelodyConfig: musicId:${musicId}, toneId:${toneId}`)
-      melodyConfig(musicId, toneId).then((response) => {
-        this.melodySelectorDisable = false
-        const { data } = response.data
-        this.maxTone = parseInt(data.tone_max)
-        this.minTone = parseInt(data.tone_min)
-        this.initMelodyOption()
-        // this.melody = parseInt((this.maxTone + this.minTone) / 2)
-        this.melody = 0
+      const { data } = await getToneInfo({
+        music_id: musicId,
+        tone_id: toneId
       })
+      console.log('getToneInfo:', data)
+      this.melodySelectorDisable = false
+      this.maxTone = data.data.tone_max
+      this.minTone = data.data.tone_min
+      this.initMelodyOption()
+      this.melody = 0
+      // melodyConfig(musicId, toneId).then((response) => {
+      //   this.melodySelectorDisable = false
+      //   const { data } = response.data
+      //   this.maxTone = parseInt(data.tone_max)
+      //   this.minTone = parseInt(data.tone_min)
+      //   this.initMelodyOption()
+      //   // this.melody = parseInt((this.maxTone + this.minTone) / 2)
+      //   this.melody = 0
+      // })
     },
 
     /* 事件监听 start */

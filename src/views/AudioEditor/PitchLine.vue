@@ -19,7 +19,6 @@
      <g>
       <path :d="svgData" stroke="white" fill="transparent" stroke-dasharray="5,5"/>
       <path :d="svgDataDraw" stroke="white" fill="transparent" stroke-linejoin="round" />
-      <!-- <path v-for="(it, index) in divideDraw" :key="index" :d="it" stroke="white" fill="transparent" stroke-linejoin="round"/> -->
      </g>
     </svg>
   </div>
@@ -65,104 +64,66 @@ export default {
       return this.$store.state.playState
     },
     svgData() {
-      return this.toHandleF0Data(this.$store.state.f0AI)
+      return this.handleData(this.$store.state.f0AI)
     },
     svgDataDraw() {
-      return this.toHandleF0Data(this.$store.state.f0Draw)
-    },
-    divideDraw() {
-      return this.handleDrawData(this.$store.state.f0Draw)
+      return this.handleData(this.$store.state.f0Draw)
     }
   },
   mounted() {
   },
   methods: {
-    handleDrawData(data) {
+    handleData(data) {
+      console.time(`handleData`)
       let result = []
+      const pw = this.pitchWidth
+      const fp = this.firstPitch
+      const nh = this.noteHeight
       for (let i = 0; i < data.length; i += 1) {
         const item = data[i]
-        const x = Math.round(this.pitchWidth * i)
-        const y = (parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5).toFixed(2)
+        const x = Math.round(pw * i)
+        const y = (fp - item / 100) * nh + 12.5
         result.push({
           x,
           y
         })
       }
-      console.log('result:', result)
-      const divide = divideArray(99, result)
-      console.log('divide:', divide)
-      let classifyDraw = []
-      for (let i = 0; i < divide.length; i += 1) {
-        console.log('divide[i]:', divide[i])
-        classifyDraw.push(this.toDrawSvg(divide[i]))
-      }
-      return classifyDraw
+      console.timeEnd(`handleData`)
+      return this.toDrawSvg(result)
     },
     toDrawSvg(arr) {
-      let result = ''
+      let result = []
 
       let lastX = 0
       let lastY = 0
-
+      // 这里改成数组形式是因为字符串直接拼接性能比较差，用数组最后再转字符串。
       for (let i = 0; i < arr.length; i += 1) {
         lastX = arr[i].x
         lastY = arr[i].y
         if (i === 0) {
-          result += "M "
+          result.push("M ")
         }
         if ((i - 1) % 3 ==0) {
-          result += "C "
+          result.push("C ")
         }
-        result += `${arr[i].x},${arr[i].y} `
+        result.push(arr[i].x)
+        result.push(',')
+        result.push(arr[i].y)
+        result.push(' ')
       }
+      // 这里主要兼容svg，如果不满3个去贝塞尔，svg会出错。
       if (arr.length > 0) {
         const mod = (arr.length - 1) % 3
         const size = mod === 0 ? 0 : 3 - mod
 
         for (let j = 0; j < size ; j += 1) {
-          result += `${lastX},${lastY} `
+          result.push(lastX)
+          result.push(',')
+          result.push(lastY)
+          result.push(' ')
         }
       }
-      return result
-    },
-    toHandleF0Data (f0Data) {
-      let result = ''
-
-      let lastX = 0
-      let lastY = 0
-      for (let i = 0; i < f0Data.length; i += 1) {
-        const item = f0Data[i]
-        const x = Math.round(this.pitchWidth * i)
-        const y = (parseFloat((this.firstPitch - parseFloat(item / 100)).toFixed(2)).toFixed(2) * this.noteHeight + 12.5).toFixed(2)
-
-        lastX = x
-        lastY = y
-
-        if (i === 0) {
-          result += "M "
-        }
-
-        // if (i > 0) {
-        //     result += "L "
-        // }
-
-        if ((i - 1) % 3 ==0) {
-          result += "C "
-        }
-        result += `${x},${y} `
-      }
-
-      if (f0Data.length > 0) {
-        const mod = (f0Data.length - 1) % 3
-        const size = mod === 0 ? 0 : 3 - mod
-
-        for (let j = 0; j < size ; j += 1) {
-          result += `${lastX},${lastY} `
-        }
-      }
-      return result
-
-      // return drawSvgPath(points)
+      return result.join('')
     },
     onMouseDown(event) {
       // console.log(`onMouseDown event`, event)
