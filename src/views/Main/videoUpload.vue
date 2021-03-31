@@ -28,7 +28,7 @@
           :autosize="{ minRows: 4, maxRows: 6}"
           placeholder="请输入视频描述内容"
           v-model="form.desc"
-          maxlength="50"
+          maxlength="35"
           show-word-limit
         />
       </FormItem>

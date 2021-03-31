@@ -112,6 +112,9 @@ export default {
       this.inputBpmValue = value
     },
     confirmBpm() {
+      if (this.inputBpmValue === 0) {
+        this.inputBpmValue = this.$store.state.bpm
+      }
       console.log('confirmBpm:', this.inputBpmValue)
       // 为了修复，bpm改变的时候，曲线闪一下的bug,这里特殊处理。
       const oldBpm = this.$store.state.bpm
