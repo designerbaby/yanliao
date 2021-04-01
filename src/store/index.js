@@ -233,14 +233,6 @@ const store = new Vuex.Store({
           Message.error('音符存在重叠, 请调整好~')
           return
         }
-        if (state.stagePitches[i].pinyin === '-') {
-          const before = state.stagePitches[i - 1]
-          const current = state.stagePitches[i]
-          if (before.left + before.width !== current.left) {
-            Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
-            return
-          }
-        }
       }
       commit('changeStoreState', { isGetF0Data: true })
       // const loadingInstance = Loading.service({

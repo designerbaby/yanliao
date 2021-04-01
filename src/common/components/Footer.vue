@@ -10,7 +10,7 @@
       <a href="https://beian.miit.gov.cn" class="footer-link-box" target="_blank" rel="nofollow" title="粤ICP备17078037号">粤ICP备17078037号</a>
       <a target="_blank" href="http://wpa.qq.com/msgrd?v=3&uin=291243638&site=qq&menu=yes"><img border="0" src="http://wpa.qq.com/pa?p=2:291243638:51" alt="点击这里给我发消息" title="点击这里给我发消息"/></a>
     </div>
-    <div class="footer-copyright">© 2016 - 2021 腾讯音乐娱乐（深圳）有限公司 版权所有</div>
+    <div class="footer-copyright">© 2016 - 2021 {{ company }} 版权所有</div>
     <div class="footer-copyright">创作工具交流QQ：291243638</div>
   </div>
 </template>
@@ -22,6 +22,16 @@ export default {
   },
   data() {
     return {
+    }
+  },
+  computed: {
+    company() {
+      const host = window.location.host
+      if (host === 'tyan.honlyu.com') {
+        return '成都酷狗创业孵化器管理有限公司'
+      } else {
+        return '腾讯音乐娱乐（深圳）有限公司'
+      }
     }
   },
   mounted() {

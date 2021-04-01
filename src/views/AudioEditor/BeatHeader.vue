@@ -55,21 +55,21 @@
         <div :class="$style.text">生成音频</div>
       </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, clickType === 0 ? $style.isActive : '']" 
+        <div :class="[$style.check, $style.isActive]" 
           @mousedown="toScroll(0)"
           @mousemove="onMouseUp"
           @mouseup="onMouseUp"
         >
           <img src="@/assets/audioEditor/left.png">
-          <div :class="$style.text">向左</div>
+          <div :class="$style.text">左滑</div>
         </div>
-        <div :class="[$style.check, $style.right, clickType === 1 ? $style.isActive : '']" 
+        <div :class="[$style.check, $style.right, $style.isActive]" 
           @mousedown="toScroll(1)"
           @mousemove="onMouseUp"
           @mouseup="onMouseUp"
         >
           <img src="@/assets/audioEditor/right.png">
-          <div :class="$style.text">向右</div>
+          <div :class="$style.text">右滑</div>
         </div>
       </div>
       <div :class="[$style.common, $style.set]" @click="toSet">
@@ -240,7 +240,6 @@ export default {
   height: 78px;
   overflow: hidden;
   font-size: 12px;
-  color: rgba(255,255,255,0.80);
   background: #323232;
   z-index: 1050; // 头部控制板的层级
   img {
@@ -248,10 +247,6 @@ export default {
     height: 24px;
     margin: 2px auto;
     cursor: pointer;
-    opacity: 1;
-    &:hover {
-      opacity: 0.8;
-    }
     &:active {
       transform: scale(0.95);
     }
@@ -293,23 +288,19 @@ export default {
   width: 72px;
   height: 54px;
   border-radius: 12px 0px 0px 12px;
-  opacity: 0.3;
+  background: rgba(30,30,30,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: #1E1E1E;
   &.isActive {
-    color: rgba(255,255,255,0.80);
-    opacity: 1;
+    background: rgba(30,30,30,0.5);
   }
   &:active {
-    color: rgba(255,255,255,0.80);
-    opacity: 0.8;
+    background: rgba(30,30,30,0.5);
   }
   &:hover {
-    color: rgba(255,255,255,0.80);
-    opacity: 0.8;
+    background: rgba(30,30,30,0.5);
   }
 }
 
@@ -324,31 +315,5 @@ export default {
 .text {
   height: 20px;
   line-height: 20px;
-  opacity: 1;
-  &:active {
-    color: rgba(255,255,255,0.80);
-  }
-}
-
-.temIcon {
-  width: 24px;
-  height: 24px;
-  background: #1b1b1b;
-  border-radius: 5px;
-  color: #009032;
-  line-height: 24px;
-  text-align: center;
-  font-weight: bolder;
-  margin: 2px auto;
-  cursor: pointer;
-  &:hover {
-    opacity: 0.8;
-  }
-  &:active {
-    transform: scale(0.95);
-  }
-  [class*=" el-icon-"], [class^=el-icon-] {
-    font-weight: 1000;
-  }
 }
 </style>

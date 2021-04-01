@@ -39,11 +39,21 @@ function playSample(sample, note) {
   source.connect(context.destination);
   source.start(0);
 }
-export const playPiano = (pitch) => {
-  const url = 'https://musicx-1253428821.file.myqcloud.com/files'
-  loadSample(`${url}/harpsichord-c4.${extension}`)
-  .then(sample => {
-    console.log('sample:', sample)
-    playSample(sample, pitch); 
+
+let sample = null
+function toloadSample () {
+  const url = `https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.${extension}`
+  loadSample(url).then(sam => {
+    sample = sam
   })
+}
+toloadSample()
+// 这里主要是为了去缓存下sample
+export const playPiano = (pitch) => {
+  if (!sample) {
+    toloadSample()
+    playSample(sample, pitch); 
+  } else {
+    playSample(sample, pitch); 
+  }
 }
