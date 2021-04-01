@@ -54,25 +54,23 @@
         <img src="@/assets/audioEditor/export.png" :class="$style.icon"/>
         <div :class="$style.text">生成音频</div>
       </div>
-      <div :class="$style.common"
-        @mousedown="toScrollLeft"
-        @mousemove="onMouseUp"
-        @mouseup="onMouseUp"
-      >
-        <div :class="$style.temIcon">
-          <i class="el-icon-arrow-left"></i>
+      <div :class="$style.linefu">
+        <div :class="[$style.check, $style.isActive]" 
+          @mousedown="toScroll(0)"
+          @mousemove="onMouseUp"
+          @mouseup="onMouseUp"
+        >
+          <img src="@/assets/audioEditor/left.png">
+          <div :class="$style.text">左滑</div>
         </div>
-        <div :class="$style.text">左滑</div>
-      </div>
-      <div :class="[$style.common, $style.commonRight]"
-        @mousedown="toScrollRight"
-        @mousemove="onMouseUp"
-        @mouseup="onMouseUp"
-      >
-        <div :class="$style.temIcon">
-          <i class="el-icon-arrow-right"></i>
+        <div :class="[$style.check, $style.right, $style.isActive]" 
+          @mousedown="toScroll(1)"
+          @mousemove="onMouseUp"
+          @mouseup="onMouseUp"
+        >
+          <img src="@/assets/audioEditor/right.png">
+          <div :class="$style.text">右滑</div>
         </div>
-        <div :class="$style.text">右滑</div>
       </div>
       <div :class="[$style.common, $style.set]" @click="toSet">
         <img src="@/assets/audioEditor/setting.png" :class="$style.icon"/>
@@ -85,7 +83,7 @@
 </template>
 
 <script>
-import { Icon, Button, Message, Upload } from 'element-ui'
+import { Button, Message, Upload } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog'
@@ -99,8 +97,8 @@ export default {
       typeModeState: typeModeState,
       clickMouseStart: false,
       timer: null,
-      scrollType: '',
-      file: ''
+      file: '',
+      clickType: -1
     }
   },
   computed: {
@@ -118,17 +116,16 @@ export default {
     }
   },
   components: {
-    Icon,
     Button,
     Upload,
     MidiDialog
   },
   watch: {
     clickMouseStart(oldValue) {
-      console.log('clickMouseStart:', oldValue)
+      // console.log('clickMouseStart:', oldValue)
       if (oldValue) {
         this.timer = setInterval(() => {
-          if (this.scrollType === 'left') {
+          if (this.clickType === 0) {
             this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
           } else {
             this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
@@ -190,15 +187,14 @@ export default {
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     },
-    toScrollLeft() {
+    toScroll(type) {
+      this.clickType = type
       this.clickMouseStart = true
-      this.scrollType = 'left'
-      this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
-    },
-    toScrollRight() {
-      this.clickMouseStart = true
-      this.scrollType = 'right'
-      this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
+      if (type === 0) {
+        this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
+      } else {
+        this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
+      }
     },
     onMouseUp() {
       this.clickMouseStart = false
@@ -244,7 +240,6 @@ export default {
   height: 78px;
   overflow: hidden;
   font-size: 12px;
-  color: rgba(255,255,255,0.80);
   background: #323232;
   z-index: 1050; // 头部控制板的层级
   img {
@@ -252,10 +247,6 @@ export default {
     height: 24px;
     margin: 2px auto;
     cursor: pointer;
-    opacity: 1;
-    &:hover {
-      opacity: 0.8;
-    }
     &:active {
       transform: scale(0.95);
     }
@@ -297,20 +288,19 @@ export default {
   width: 72px;
   height: 54px;
   border-radius: 12px 0px 0px 12px;
-  opacity: 0.3;
+  background: rgba(30,30,30,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: #1E1E1E;
   &.isActive {
-    opacity: 1;
+    background: rgba(30,30,30,0.5);
   }
   &:active {
-    opacity: 0.8;
+    background: rgba(30,30,30,0.5);
   }
   &:hover {
-    opacity: 0.8;
+    background: rgba(30,30,30,0.5);
   }
 }
 
@@ -325,28 +315,5 @@ export default {
 .text {
   height: 20px;
   line-height: 20px;
-  opacity: 1;
-}
-
-.temIcon {
-  width: 24px;
-  height: 24px;
-  background: #1b1b1b;
-  border-radius: 5px;
-  color: #009032;
-  line-height: 24px;
-  text-align: center;
-  font-weight: bolder;
-  margin: 2px auto;
-  cursor: pointer;
-  &:hover {
-    opacity: 0.8;
-  }
-  &:active {
-    transform: scale(0.95);
-  }
-  [class*=" el-icon-"], [class^=el-icon-] {
-    font-weight: 1000;
-  }
 }
 </style>

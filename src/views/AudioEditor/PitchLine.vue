@@ -18,7 +18,8 @@
       >
      <g>
       <path :d="svgData" stroke="white" fill="transparent" stroke-dasharray="5,5"/>
-      <path :d="svgDataDraw" stroke="white" fill="transparent" stroke-linejoin="round" />
+      <!-- <path :d="svgDataDraw" stroke="white" fill="transparent" stroke-linejoin="round"/> -->
+      <path v-for="(it, index) in divideDraw" :key="index" :d="it" stroke="white" fill="transparent" stroke-linejoin="round"/>
      </g>
     </svg>
   </div>
@@ -68,11 +69,49 @@ export default {
     },
     svgDataDraw() {
       return this.handleData(this.$store.state.f0Draw)
+    },
+    divideDraw() {
+      return this.handleDivideDraw(this.$store.state.f0Draw)
     }
   },
   mounted() {
   },
   methods: {
+    handleDivideDraw(data) {
+      console.time('handleDivideDraw')
+      let result = []
+      const pw = this.pitchWidth
+      const fp = this.firstPitch
+      const nh = this.noteHeight
+      // const viewportLeft = this.$store.state.stage.scrollLeft
+      // const viewportRight = viewportLeft + window.innerWidth - 50
+      for (let i = 0; i < data.length; i += 1) {
+        const item = data[i]
+        const x = Math.round(pw * i)
+        // if (x >= viewportLeft && x <= viewportRight) {
+          const y = ((fp - item / 100) * nh + 12.5).toFixed(2)
+          result.push({
+            x,
+            y
+          })
+        // }
+      }
+      console.timeEnd('handleDivideDraw')
+      // 每隔100个分段显示
+      const divide = divideArray(99, result)
+      let classifyDraw = []
+      console.time(`toDrawSvg`)
+      for (let i = 0; i < divide.length; i += 1) {
+        const item = divide[i]
+        // 这里分段后，最后一个插入下一个的第一个值，这样就可以看起来连续了
+        if (i < divide.length - 1) {
+          item.push(divide[i + 1][0])
+        }
+        classifyDraw.push(this.toDrawSvg(item))
+      }
+      console.timeEnd(`toDrawSvg`)
+      return classifyDraw
+    },
     handleData(data) {
       console.time(`handleData`)
       let result = []
@@ -82,7 +121,7 @@ export default {
       for (let i = 0; i < data.length; i += 1) {
         const item = data[i]
         const x = Math.round(pw * i)
-        const y = (fp - item / 100) * nh + 12.5
+        const y = ((fp - item / 100) * nh + 12.5).toFixed(2)
         result.push({
           x,
           y

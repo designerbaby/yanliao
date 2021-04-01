@@ -458,25 +458,26 @@ export default {
     async getMelodyConfig(toneId) {
       const musicId = this.musicId
       console.log(`getMelodyConfig: musicId:${musicId}, toneId:${toneId}`)
-      const { data } = await getToneInfo({
-        music_id: musicId,
-        tone_id: toneId
-      })
-      console.log('getToneInfo:', data)
-      this.melodySelectorDisable = false
-      this.maxTone = data.data.tone_max
-      this.minTone = data.data.tone_min
-      this.initMelodyOption()
-      this.melody = 0
-      // melodyConfig(musicId, toneId).then((response) => {
-      //   this.melodySelectorDisable = false
-      //   const { data } = response.data
-      //   this.maxTone = parseInt(data.tone_max)
-      //   this.minTone = parseInt(data.tone_min)
-      //   this.initMelodyOption()
-      //   // this.melody = parseInt((this.maxTone + this.minTone) / 2)
-      //   this.melody = 0
+      // 更改接口，兼容打通主流程
+      // const { data } = await getToneInfo({
+      //   music_id: musicId,
+      //   tone_id: toneId
       // })
+      // console.log('getToneInfo:', data)
+      // this.melodySelectorDisable = false
+      // this.maxTone = data.data.tone_max
+      // this.minTone = data.data.tone_min
+      // this.initMelodyOption()
+      // this.melody = 0
+      melodyConfig(musicId, toneId).then((response) => {
+        this.melodySelectorDisable = false
+        const { data } = response.data
+        this.maxTone = parseInt(data.tone_max)
+        this.minTone = parseInt(data.tone_min)
+        this.initMelodyOption()
+        // this.melody = parseInt((this.maxTone + this.minTone) / 2)
+        this.melody = 0
+      })
     },
 
     /* 事件监听 start */

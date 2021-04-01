@@ -12,8 +12,12 @@ if (context.decodeAudioData.length !== 1) {
 }
 
 const $audio = document.createElement("audio");
-let extension = null;
+let extension = '';
 
+// 声音地址
+// mp4: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.mp4
+// wav: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.wav 
+// webm: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.webm
 if ($audio.canPlayType('audio/webm; codecs=vorbis')) {
   extension = 'webm';
 } else if ($audio.canPlayType('audio/mp4; codecs=mp4a.40.5')) {
@@ -36,51 +40,20 @@ function playSample(sample, note) {
   source.start(0);
 }
 
-const keyMap = {
-  'KeyZ': 48,
-  'KeyS': 49,
-  'KeyX': 50,
-  'KeyD': 51,
-  'KeyC': 52,
-  'KeyV': 53,
-  'KeyG': 54,
-  'KeyB': 55,
-  'KeyH': 56,
-  'KeyN': 57,
-  'KeyJ': 58,
-  'KeyM': 59,
-  'KeyQ': 60,
-  'Digit2': 61,
-  'KeyW': 62,
-  'Digit3': 63,
-  'KeyE': 64,
-  'KeyR': 65,
-  'Digit5': 66,
-  'KeyT': 67,
-  'Digit6': 68,
-  'KeyY': 69,
-  'Digit7': 70,
-  'KeyU': 71,
-};
-
-loadSample(`harpsichord-c4.${extension}`)
-  .then(sample => {
-    document.body.addEventListener('mousedown', event => {
-      if (event.target.classList.contains('keyboard__key')) {
-        playSample(sample, +event.target.dataset.note);
-      }
-    });
-    document.addEventListener('keydown', event => {
-      const note = keyMap[event.code];
-      if (note) {
-        playSample(sample, note);
-        document.querySelector(`[data-note="${note}"]`).classList.add('keyboard__key--active');
-      }
-    });
-    document.addEventListener('keyup', event => {
-      const note = keyMap[event.code];
-      if (note) {
-        document.querySelector(`[data-note="${note}"]`).classList.remove('keyboard__key--active');
-      }
-    });
+let sample = null
+function toloadSample () {
+  const url = `https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.${extension}`
+  loadSample(url).then(sam => {
+    sample = sam
   })
+}
+toloadSample()
+// 这里主要是为了去缓存下sample
+export const playPiano = (pitch) => {
+  if (!sample) {
+    toloadSample()
+    playSample(sample, pitch); 
+  } else {
+    playSample(sample, pitch); 
+  }
+}
