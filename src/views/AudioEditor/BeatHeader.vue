@@ -54,25 +54,23 @@
         <img src="@/assets/audioEditor/export.png" :class="$style.icon"/>
         <div :class="$style.text">生成音频</div>
       </div>
-      <div :class="$style.common"
-        @mousedown="toScrollLeft"
-        @mousemove="onMouseUp"
-        @mouseup="onMouseUp"
-      >
-        <div :class="$style.temIcon">
-          <i class="el-icon-arrow-left"></i>
+      <div :class="$style.linefu">
+        <div :class="[$style.check, clickType === 0 ? $style.isActive : '']" 
+          @mousedown="toScroll(0)"
+          @mousemove="onMouseUp"
+          @mouseup="onMouseUp"
+        >
+          <img src="@/assets/audioEditor/left.png">
+          <div :class="$style.text">向左</div>
         </div>
-        <div :class="$style.text">左滑</div>
-      </div>
-      <div :class="[$style.common, $style.commonRight]"
-        @mousedown="toScrollRight"
-        @mousemove="onMouseUp"
-        @mouseup="onMouseUp"
-      >
-        <div :class="$style.temIcon">
-          <i class="el-icon-arrow-right"></i>
+        <div :class="[$style.check, $style.right, clickType === 1 ? $style.isActive : '']" 
+          @mousedown="toScroll(1)"
+          @mousemove="onMouseUp"
+          @mouseup="onMouseUp"
+        >
+          <img src="@/assets/audioEditor/right.png">
+          <div :class="$style.text">向右</div>
         </div>
-        <div :class="$style.text">右滑</div>
       </div>
       <div :class="[$style.common, $style.set]" @click="toSet">
         <img src="@/assets/audioEditor/setting.png" :class="$style.icon"/>
@@ -85,7 +83,7 @@
 </template>
 
 <script>
-import { Icon, Button, Message, Upload } from 'element-ui'
+import { Button, Message, Upload } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog'
@@ -99,8 +97,8 @@ export default {
       typeModeState: typeModeState,
       clickMouseStart: false,
       timer: null,
-      scrollType: '',
-      file: ''
+      file: '',
+      clickType: -1
     }
   },
   computed: {
@@ -118,17 +116,16 @@ export default {
     }
   },
   components: {
-    Icon,
     Button,
     Upload,
     MidiDialog
   },
   watch: {
     clickMouseStart(oldValue) {
-      console.log('clickMouseStart:', oldValue)
+      // console.log('clickMouseStart:', oldValue)
       if (oldValue) {
         this.timer = setInterval(() => {
-          if (this.scrollType === 'left') {
+          if (this.clickType === 0) {
             this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
           } else {
             this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
@@ -190,15 +187,14 @@ export default {
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     },
-    toScrollLeft() {
+    toScroll(type) {
+      this.clickType = type
       this.clickMouseStart = true
-      this.scrollType = 'left'
-      this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
-    },
-    toScrollRight() {
-      this.clickMouseStart = true
-      this.scrollType = 'right'
-      this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
+      if (type === 0) {
+        this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
+      } else {
+        this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
+      }
     },
     onMouseUp() {
       this.clickMouseStart = false
@@ -304,12 +300,15 @@ export default {
   flex-direction: column;
   background: #1E1E1E;
   &.isActive {
+    color: rgba(255,255,255,0.80);
     opacity: 1;
   }
   &:active {
+    color: rgba(255,255,255,0.80);
     opacity: 0.8;
   }
   &:hover {
+    color: rgba(255,255,255,0.80);
     opacity: 0.8;
   }
 }
@@ -326,6 +325,9 @@ export default {
   height: 20px;
   line-height: 20px;
   opacity: 1;
+  &:active {
+    color: rgba(255,255,255,0.80);
+  }
 }
 
 .temIcon {

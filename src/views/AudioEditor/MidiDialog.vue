@@ -20,10 +20,28 @@
       <Button type="primary" @click="submit">确 定</Button>
     </span>
   </Dialog>
+  <!-- <Modal @close="doClose">
+    <div :class="$style.title">导入Midi</div>
+    <div :class="$style.midTitle">选择要导入的音轨</div>
+    <div :class="$style.midiList">
+      <div :class="$style.radio" v-for="(it, index) in pitchLists" :key="index">
+        <div :class="$style.select">
+          <img src="@/assets/audioEditor/radio-actived.png" v-if="it.select">
+          <img src="@/assets/audioEditor/radio-normal.png">
+        </div>
+      </div>
+      音轨{{ index + 1 }}({{ it.length }}个音符, D9 - G9, Piano)
+    </div>
+    <div :class="$style.footer">
+      <div :class="$style.cancel">取消</div>
+      <div :class="$style.confirm">确定</div>
+    </div>
+  </Modal> -->
 </template>
 
 <script>
 import { Dialog, Button, Message, Radio } from 'element-ui'
+import Modal from '@/common/components/Modal.vue'
 
 export default {
   name: 'MidiDialog',
@@ -31,7 +49,8 @@ export default {
     Dialog,
     Button,
     Message,
-    Radio
+    Radio,
+    Modal
   },
   data() {
     return {
@@ -51,6 +70,9 @@ export default {
     },
     submit() {
       console.log('submit')
+    },
+    doClose() {
+
     }
   }
 }

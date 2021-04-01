@@ -458,6 +458,7 @@ export default {
     async getMelodyConfig(toneId) {
       const musicId = this.musicId
       console.log(`getMelodyConfig: musicId:${musicId}, toneId:${toneId}`)
+      // 更改接口，兼容打通主流程
       const { data } = await getToneInfo({
         music_id: musicId,
         tone_id: toneId
