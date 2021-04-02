@@ -225,7 +225,7 @@ const store = new Vuex.Store({
     async getPitchLine({ commit, state, getters }, { beforeRequest, afterRequest } = {}) {
       console.log(`[action] getPitchLine called`)
       if (getters.pitchList.length <= 0) {
-        // Message.error('没有画音块，所以没音高线')
+        Message.error('没有画音块，所以没音高线')
         return
       }
       for (let i = 0; i < state.stagePitches.length; i += 1) {
