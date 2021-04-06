@@ -3,8 +3,8 @@
     title="导入Midi"
     :visible.sync="midiVisible"
     custom-class="midi-dialog">
-    <div class="container">
-      <div class="midi-tips">选择要导入的音轨</div>
+    <div>
+      <div :class="$style.tips">选择要导入的音轨</div>
       <Radio v-for="(it, index) in pitchLists"
         :key="index"
         :label="index"
@@ -13,6 +13,9 @@
         >
           音轨{{ index + 1 }} ({{ it.length }}个音符, D9-G9, Piano)
       </Radio>
+      <!-- <div :class="$style.radios">
+        <div :class="$style.select"></div>
+      </div> -->
     </div>
     <span slot="footer" class="dialog-footer">
       <Button @click="cancel">取 消</Button>
@@ -79,13 +82,6 @@ export default {
 </script>
 
 <style lang="less">
-.midi-tips {
-  margin: 0px 0 0 24px;
-  font-size: 14px;
-  color: #fff;
-  height: 44px;
-  line-height: 44px;
-}
 .midi-dialog {
   background: #323232;
   box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
@@ -117,7 +113,7 @@ export default {
     }
   }
   .el-dialog__body {
-    padding: 24px 0;
+    padding: 24px 0 16px 0;
   }
   .el-dialog__footer {
     border-top: 1px solid rgba(0,0,0,0.07);
@@ -161,6 +157,7 @@ export default {
   .el-radio__inner {
     border-radius: 3px;
     border: 1px solid #888888;
+    background-color: transparent;
     &:hover {
       border-color: #888888;
     }
@@ -180,5 +177,14 @@ export default {
     color: #fff;
     font-size: 14px;
   }
+}
+</style>
+<style module lang="less">
+.tips {
+  margin: 0px 0 0 24px;
+  font-size: 14px;
+  color: #fff;
+  height: 44px;
+  line-height: 44px;
 }
 </style>

@@ -2,21 +2,21 @@
   <div :class="$style.wrap">
     <div :class="$style.blank" v-if="isExceedHeader"></div>
     <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
-      <!-- <Upload
+      <Upload
         class="uploadQupu"
         ref="upload"
         accept=".mid"
         :on-change="uploadChange"
+        :on-success="uploadSuccess"
         :multiple="false"
         :limit="1"
-        :auto-upload="false"
         :show-file-list="false"
-        action="/">
+        action="/api/kuwa/user/uploadFile">
         <div :class="$style.common">
           <img src="@/assets/audioEditor/import.png"/>
           <div :class="$style.text">导入曲谱</div>
         </div>
-      </Upload> -->
+      </Upload>
       <div :class="$style.linefu">
         <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
           <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
@@ -234,6 +234,9 @@ export default {
       this.file = file.raw
       console.log('this.file:', this.file)
       this.$refs.MidiDialog.show()
+    },
+    uploadSuccess(res) {
+      console.log('uploadSuccess:', res)
     },
     confirmEvent() {
       this.dialogShow = false
