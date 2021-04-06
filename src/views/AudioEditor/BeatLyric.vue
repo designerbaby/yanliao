@@ -18,7 +18,7 @@
     </Form>
     <span slot="footer" class="dialog-footer">
       <Button @click="toCorrect">拼音校正</Button>
-      <Button type="primary" @click="submit">确 定</Button>
+      <Button type="primary" @click="submit">确定</Button>
     </span>
   </Dialog>
 </template>
@@ -256,6 +256,10 @@ export default {
   }
   .el-dialog__header {
     border-bottom: 1px solid rgba(0,0,0,0.07);
+    height: 64px;
+    text-align: center;
+    padding: 0;
+    line-height: 64px;
   }
   .el-textarea__inner {
     border: 2px solid rgba(255,255,255,0.15);
@@ -283,6 +287,11 @@ export default {
   .el-dialog__footer {
     background: #2c2c2c;
     border-top: 1px solid rgba(0,0,0,0.07);
+    height: 72px;
+    line-height: 72px;
+    padding: 0;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
   }
   .el-button {
     height: 40px;
@@ -294,20 +303,23 @@ export default {
     border: 0;
   }
   .el-button--default {
-    background: #252525;
+    background: #1D1D1D;
+    width: 96px;
+    padding: 0;
     &:hover {
-      background: #2b2b2b;
+      background: #292929;
     }
   }
   .el-button--primary {
     background: #179B30;
     height: 40px !important;
-    width: 96px;
+    width: 80px;
     border-radius: 8px;
     font-size: 16px;
     color: rgba(255,255,255,0.80);
     letter-spacing: 0;
     text-align: center;
+    margin: 0 24px 0 16px;
     border: 0;
     &:hover {
       background: #2ea545;

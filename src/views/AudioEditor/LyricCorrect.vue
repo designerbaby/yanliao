@@ -108,6 +108,10 @@ export default {
   }
   .el-dialog__header {
     border-bottom: 1px solid rgba(0,0,0,0.07);
+    height: 64px;
+    text-align: center;
+    padding: 0;
+    line-height: 64px;
   }
   .pinyinInput {
     display: block;
@@ -129,6 +133,9 @@ export default {
   }
   .el-dialog__footer {
     border-top: 1px solid rgba(0,0,0,0.07);
+    height: 72px;
+    line-height: 72px;
+    padding: 0;
   }
   .el-button {
     height: 40px;
@@ -140,20 +147,21 @@ export default {
     border: 0;
   }
   .el-button--default {
-    background: #252525;
+    background: #1D1D1D;
     &:hover {
-      background: #2b2b2b;
+      background: #292929;
     }
   }
   .el-button--primary {
     background: #179B30;
     height: 40px !important;
-    width: 96px;
+    width: 80px;
     border-radius: 8px;
     font-size: 16px;
     color: rgba(255,255,255,0.80);
     letter-spacing: 0;
     text-align: center;
+    margin: 0 24px 0 16px;
     border: 0;
     &:hover {
       background: #2ea545;
