@@ -2,10 +2,9 @@
   <Dialog
     title="导入Midi"
     :visible.sync="midiVisible"
-    width="400px"
-    center>
-    <div :class="$style.MidiDialog">
-      要导入的音轨
+    custom-class="midi-dialog">
+    <div class="container">
+      <div class="midi-tips">选择要导入的音轨</div>
       <Radio v-for="(it, index) in pitchLists"
         :key="index"
         :label="index"
@@ -67,6 +66,7 @@ export default {
     },
     cancel() {
       this.midiVisible = false
+      this.$emit('midi-cancel')
     },
     submit() {
       console.log('submit')
@@ -78,7 +78,38 @@ export default {
 }
 </script>
 
-<style lang="less" module>
-.MidiDialog{
+<style lang="less">
+.midi-tips {
+
+}
+.midi-dialog {
+  background: #323232;
+  box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
+  border-radius: 8px;
+  width: 520px;
+  .el-dialog__title {
+    font-family: PingFangSC-Medium;
+    font-size: 16px;
+    color: #FFFFFF;
+  }
+  .el-dialog__header {
+    height: 64px;
+    line-height: 64px;
+    text-align: center;
+    padding: 0;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+  }
+  .el-dialog__headerbtn {
+    font-size: 20px;
+    color: #d0d0d0;
+  }
+  .el-dialog__close, .el-icon, .el-icon-close {
+    &:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    &:active {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
 }
 </style>

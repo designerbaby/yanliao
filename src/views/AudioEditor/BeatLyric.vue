@@ -234,7 +234,7 @@ export default {
 <style lang="less">
 .lyric-dialog {
   width: 520px;
-  background: #2c2c2c;
+  background: #323232;
   box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
   border-radius: 8px;
   .el-dialog__title {
@@ -266,14 +266,14 @@ export default {
     font-size: 14px;
     color: #FFFFFF;
     font-family: PingFangSC-Regular;
-    background: #2c2c2c;
+    background: #323232;
     border-radius: 8px;
     &:focus {
       border-color: rgba(255,255,255,0.15);
     }
   }
   .el-textarea .el-input__count {
-    background: #2c2c2c;
+    background: #323232;
     font-size: 12px;
     color: rgba(255,255,255,0.40);
   }
@@ -285,7 +285,6 @@ export default {
     color: rgba(255,255,255,0.60);
   }
   .el-dialog__footer {
-    background: #2c2c2c;
     border-top: 1px solid rgba(0,0,0,0.07);
     height: 72px;
     line-height: 72px;

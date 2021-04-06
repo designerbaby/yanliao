@@ -88,7 +88,7 @@ export default {
 <style lang="less">
 .beatSelector {
   text-align: left;
-  background: #2c2c2c;
+  background: #323232;
   box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
   border-radius: 8px;
   .el-dialog__title {
@@ -127,9 +127,9 @@ export default {
     border: 0;
   }
   .el-button--default {
-    background: #252525;
+    background: #1D1D1D;
     &:hover {
-      background: #2b2b2b;
+      background: #292929;
     }
   }
   .el-button--primary {
@@ -147,7 +147,6 @@ export default {
     }
   }
   .el-dialog__footer {
-    background: #2c2c2c;
     border-top: 1px solid rgba(0,0,0,0.07);
   }
 }

@@ -244,6 +244,21 @@ export default {
         return
       }
 
+      const { left, top } = event.target.getBoundingClientRect()
+      this.mouseModalTarget = document.createElement('div')
+      const mouseModalTarget = this.mouseModalTarget
+      mouseModalTarget.style.zIndex = 99999
+      mouseModalTarget.style.position = `absolute`
+      mouseModalTarget.style.width = '200px'
+      mouseModalTarget.style.height = '200px'
+      mouseModalTarget.style.left = `${left - 100}px`
+      mouseModalTarget.style.top = `${top - 100}px`
+      mouseModalTarget.style.opacity = 0  // 蒙层的透明度
+      mouseModalTarget.style.cursor = 'move'
+      mouseModalTarget.style.background = 'red'
+      mouseModalTarget.addEventListener('mouseup', this.onPitchMouseUp)
+      this.$refs.rightArea.appendChild(mouseModalTarget)
+
       this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
       const target = event.target
       target.style.opacity = 0.8

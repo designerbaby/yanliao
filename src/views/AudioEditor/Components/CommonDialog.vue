@@ -69,7 +69,8 @@ export default {
     line-height: 100px;
   }
   .editor-footer {
-    height: 40px;
+    height: 72px;
+    line-height: 72px;
     border-top: 1px solid rgba(0,0,0,0.07);
     display: flex;
     flex-direction: row-reverse;
@@ -91,6 +92,7 @@ export default {
   }
   .editor-confirm-button {
     width: 96px;
+    margin-right: 24px;
     background: #179B30;
     &:hover {
       background: #2ea545;
@@ -115,6 +117,9 @@ export default {
     &:active {
       color: rgba(255, 255, 255, 0.8);
     }
+  }
+  .el-dialog__body {
+    padding: 0;
   }
 }
 </style>

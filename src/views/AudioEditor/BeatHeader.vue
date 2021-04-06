@@ -2,11 +2,21 @@
   <div :class="$style.wrap">
     <div :class="$style.blank" v-if="isExceedHeader"></div>
     <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
-      <div :class="$style.common">
-        <img src="@/assets/audioEditor/import.png"/>
-        <div :class="$style.text">导入曲谱</div>
-        <input type="file" id="fileInput" :class="$style.fileInput" accept=".mid">
-      </div>
+      <!-- <Upload
+        class="uploadQupu"
+        ref="upload"
+        accept=".mid"
+        :on-change="uploadChange"
+        :multiple="false"
+        :limit="1"
+        :auto-upload="false"
+        :show-file-list="false"
+        action="/">
+        <div :class="$style.common">
+          <img src="@/assets/audioEditor/import.png"/>
+          <div :class="$style.text">导入曲谱</div>
+        </div>
+      </Upload> -->
       <div :class="$style.linefu">
         <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
           <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
@@ -46,7 +56,7 @@
         <div :class="$style.text">生成音频</div>
       </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, $style.isActive]" 
+        <div :class="[$style.check, $style.isActive]"
           @mousedown="toScroll(0)"
           @mousemove="onMouseUp"
           @mouseup="onMouseUp"
@@ -54,7 +64,7 @@
           <img src="@/assets/audioEditor/left.png">
           <div :class="$style.text">左滑</div>
         </div>
-        <div :class="[$style.check, $style.right, $style.isActive]" 
+        <div :class="[$style.check, $style.right, $style.isActive]"
           @mousedown="toScroll(1)"
           @mousemove="onMouseUp"
           @mouseup="onMouseUp"
@@ -68,7 +78,7 @@
         <div :class="$style.text">更多信息</div>
       </div>
     </div>
-    <MidiDialog ref="MidiDialog"></MidiDialog>
+    <MidiDialog ref="MidiDialog" @midi-cancel="midiCancelEvent"></MidiDialog>
     <CommonDialog
       :show="dialogShow"
       tip="是否放弃未保存的改动？"
@@ -140,8 +150,7 @@ export default {
     clearInterval(this.timer)
   },
   mounted() {
-    // this.addListener()
-    // this.dialogShow = true
+    // this.$refs.MidiDialog.show()
   },
   methods: {
     toPlay() {
@@ -203,53 +212,39 @@ export default {
     onMouseUp() {
       this.clickMouseStart = false
     },
-    // uploadChange(file) {
-    //   console.log('uploadChange:', file)
-    //   const fileNameArr = file.name.split('.')
-    //   const type = fileNameArr[fileNameArr.length - 1]
-    //   if (type !== 'mid') {
-    //     Message.error('只能上传mid格式的文件～')
-    //     return
-    //   }
-    //   const size = file.size
-    //   if (size > 2147483648) {
-    //     Message.error('文件大小超过 2GB')
-    //     this.$refs['upload'].clearFiles()
-    //     return
-    //   }
-    //   this.file = file.raw
-    //   console.log('this.file:', this.file)
-    //   this.$refs.MidiDialog.show()
-    // }
+    uploadChange(file) {
+      console.log('uploadChange:', file)
+      if (this.isNeedGenerate) {
+        this.dialogShow = true
+        return
+      }
+      const fileNameArr = file.name.split('.')
+      const type = fileNameArr[fileNameArr.length - 1]
+      if (type !== 'mid') {
+        Message.error('只能上传mid格式的文件～')
+        this.$refs['upload'].clearFiles()
+        return
+      }
+      const size = file.size
+      if (size > 2147483648) {
+        Message.error('文件大小超过 2GB')
+        this.$refs['upload'].clearFiles()
+        return
+      }
+      this.file = file.raw
+      console.log('this.file:', this.file)
+      this.$refs.MidiDialog.show()
+    },
     confirmEvent() {
-
+      this.dialogShow = false
+      this.$refs.MidiDialog.show()
     },
     cancelEvent() {
       this.dialogShow = false
+      this.$refs['upload'].clearFiles()
     },
-    addListener() {
-      const input = document.getElementById('fileInput')
-      input.addEventListener('change', (file) => {
-        this.dialogShow = true
-        console.log('file:', file)
-        if (this.isNeedGenerate) {
-          this.dialogShow = true
-        }
-
-        const fileNameArr = file.name.split('.')
-        const type = fileNameArr[fileNameArr.length - 1]
-        if (type !== 'mid') {
-          Message.error('只能上传mid格式的文件～')
-          return
-        }
-        const size = file.size
-        if (size > 2147483648) {
-          Message.error('文件大小超过 2GB')
-          return
-        }
-        this.file = file.raw
-        this.$refs.MidiDialog.show()
-      })
+    midiCancelEvent() {
+      this.$refs['upload'].clearFiles()
     }
   }
 }
