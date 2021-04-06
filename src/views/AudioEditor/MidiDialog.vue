@@ -11,7 +11,7 @@
         v-model="it.select"
         @change="changeSelect($event, it)"
         >
-          音轨{{ index + 1 }}({{ it.length }}个音符)
+          音轨{{ index + 1 }} ({{ it.length }}个音符, D9-G9, Piano)
       </Radio>
     </div>
     <span slot="footer" class="dialog-footer">
@@ -80,13 +80,18 @@ export default {
 
 <style lang="less">
 .midi-tips {
-
+  margin: 0px 0 0 24px;
+  font-size: 14px;
+  color: #fff;
+  height: 44px;
+  line-height: 44px;
 }
 .midi-dialog {
   background: #323232;
   box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
   border-radius: 8px;
   width: 520px;
+  color: #fff;
   .el-dialog__title {
     font-family: PingFangSC-Medium;
     font-size: 16px;
@@ -110,6 +115,70 @@ export default {
     &:active {
       color: rgba(255, 255, 255, 0.8);
     }
+  }
+  .el-dialog__body {
+    padding: 24px 0;
+  }
+  .el-dialog__footer {
+    border-top: 1px solid rgba(0,0,0,0.07);
+    height: 72px;
+    line-height: 72px;
+    padding: 0;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+  .el-button {
+    height: 40px;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 80px;
+    color: rgba(255,255,255,0.80);
+    letter-spacing: 0;
+    text-align: center;
+    border: 0;
+  }
+  .el-button--default {
+    background: #1D1D1D;
+    padding: 0;
+    &:hover {
+      background: #292929;
+    }
+  }
+  .el-button--primary {
+    background: #179B30;
+    height: 40px !important;
+    border-radius: 8px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.80);
+    letter-spacing: 0;
+    text-align: center;
+    margin: 0 24px 0 16px;
+    border: 0;
+    &:hover {
+      background: #2ea545;
+    }
+  }
+  .el-radio__inner {
+    border-radius: 3px;
+    border: 1px solid #888888;
+    &:hover {
+      border-color: #888888;
+    }
+  }
+  .el-radio__input.is-checked .el-radio__inner {
+    border-color: #888888;
+    background: #009032;
+  }
+  .el-radio__input.is-checked+.el-radio__label  {
+    color: #ffffff;
+  }
+  .el-radio {
+    display: block;
+    height: 44px;
+    line-height: 44px;
+    margin: 0 24px;
+    color: #fff;
+    font-size: 14px;
   }
 }
 </style>
