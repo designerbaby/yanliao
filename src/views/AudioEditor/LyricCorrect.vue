@@ -2,9 +2,9 @@
   <Dialog
     title="拼音校正"
     :visible.sync="pinyinVisible"
-    width="400px">
-    <div :class="$style.pinyinInput">
-      <div :class="$style.list" v-for="(it, index) in correctSelectStagePitches" :key="index">
+    custom-class="correct-dialog">
+    <div class="pinyinInput">
+      <div class="list" v-for="(it, index) in correctSelectStagePitches" :key="index">
         {{ it.hanzi }}
         <template v-if="it.pinyinList.length > 1">
           [
@@ -95,26 +95,90 @@ export default {
 }
 </script>
 
-<style lang="less" module>
-.pinyinInput {
-  display: block;
-  resize: vertical;
-  padding: 5px 15px;
-  line-height: 1.5;
-  box-sizing: border-box;
-  width: 100%;
-  font-size: inherit;
-  color: #606266;
-  background-color: #FFF;
-  background-image: none;
-  border: 1px solid #DCDFE6;
-  border-radius: 4px;
-  transition: border-color .2s cubic-bezier(.645,.045,.355,1);
-  height: 120px;
-  overflow: scroll;
+<style lang="less">
+.correct-dialog {
+  width: 520px;
+  background: #2c2c2c;
+  box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
+  border-radius: 8px;
+  .el-dialog__title {
+    font-family: PingFangSC-Medium;
+    font-size: 16px;
+    color: #FFFFFF;
+  }
+  .el-dialog__header {
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    height: 64px;
+    text-align: center;
+    padding: 0;
+    line-height: 64px;
+  }
+  .pinyinInput {
+    display: block;
+    resize: vertical;
+    padding: 5px 8px;
+    line-height: 1.5;
+    box-sizing: border-box;
+    width: 100%;
+    font-size: 14px;
+    border: 2px solid rgba(255,255,255,0.15);
+    color: #FFFFFF;
+    background-image: none;
+    border-radius: 8px;
+    height: 149px;
+    overflow: scroll;
+  }
+  .list {
+    display: inline-block;
+  }
+  .el-dialog__footer {
+    border-top: 1px solid rgba(0,0,0,0.07);
+    height: 72px;
+    line-height: 72px;
+    padding: 0;
+  }
+  .el-button {
+    height: 40px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.80);
+    letter-spacing: 0;
+    text-align: center;
+    border: 0;
+  }
+  .el-button--default {
+    background: #1D1D1D;
+    &:hover {
+      background: #292929;
+    }
+  }
+  .el-button--primary {
+    background: #179B30;
+    height: 40px !important;
+    width: 80px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.80);
+    letter-spacing: 0;
+    text-align: center;
+    margin: 0 24px 0 16px;
+    border: 0;
+    &:hover {
+      background: #2ea545;
+    }
+  }
+  .el-radio__input.is-checked .el-radio__inner {
+    border-color: #179B30;
+    background: #179B30;
+  }
+  .el-radio__inner {
+    &:hover {
+      border-color: #179B30;
+    }
+  }
+  .el-radio__input.is-checked+.el-radio__label {
+    color: #179B30;
+  }
 }
-.list {
-  color: #606266;
-  display: inline-block;
-}
+
 </style>

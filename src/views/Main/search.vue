@@ -25,6 +25,7 @@
               <input :id="item.music_id" v-model="selected" type="radio" :value="item.music_id" hidden>
             </div>
             <div class="text">{{ item.name }} - {{ item.singer }}</div>
+            <div class="share" v-if="item.bus_type === 2">(shared by {{ item.upload_name }})</div>
           </div>
         </div>
         <Pagination
@@ -221,6 +222,11 @@ export default {
           border-bottom: 1px solid rgba(216, 216, 216, 0.3);
           .text {
             margin-left: 28px;
+          }
+          .share {
+            font-size: 13px;
+            color: #bbb9b9;
+            margin: 0 5px;
           }
           .radio {
             margin-left: 26px;

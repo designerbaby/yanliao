@@ -226,6 +226,7 @@ const store = new Vuex.Store({
       console.log(`[action] getPitchLine called`)
       if (getters.pitchList.length <= 0) {
         // Message.error('没有画音块，所以没音高线')
+        commit('changeStoreState', { f0AI: [], f0Draw: [] })
         return
       }
       for (let i = 0; i < state.stagePitches.length; i += 1) {

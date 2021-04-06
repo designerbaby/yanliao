@@ -9,8 +9,9 @@
         :on-change="uploadChange"
         :multiple="false"
         :limit="1"
-        action="/api/kuwa/user/uploadFile"
-        :on-success="uploadQupu">
+        :auto-upload="false"
+        :show-file-list="false"
+        action="/">
         <div :class="$style.common">
           <img src="@/assets/audioEditor/import.png"/>
           <div :class="$style.text">导入曲谱</div>
@@ -55,7 +56,7 @@
         <div :class="$style.text">生成音频</div>
       </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, $style.isActive]" 
+        <div :class="[$style.check, $style.isActive]"
           @mousedown="toScroll(0)"
           @mousemove="onMouseUp"
           @mouseup="onMouseUp"
@@ -63,7 +64,7 @@
           <img src="@/assets/audioEditor/left.png">
           <div :class="$style.text">左滑</div>
         </div>
-        <div :class="[$style.check, $style.right, $style.isActive]" 
+        <div :class="[$style.check, $style.right, $style.isActive]"
           @mousedown="toScroll(1)"
           @mousemove="onMouseUp"
           @mouseup="onMouseUp"
@@ -77,7 +78,13 @@
         <div :class="$style.text">更多信息</div>
       </div>
     </div>
-    <MidiDialog ref="MidiDialog"></MidiDialog>
+    <MidiDialog ref="MidiDialog" @midi-cancel="midiCancelEvent"></MidiDialog>
+    <CommonDialog
+      :show="dialogShow"
+      tip="是否放弃未保存的改动？"
+      confirmButtonText="放弃改动"
+      :confirmButtonEvent="confirmEvent"
+      :cancelButtonEvent="cancelEvent" />
   </div>
 
 </template>
@@ -87,10 +94,11 @@ import { Button, Message, Upload } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog'
+import CommonDialog from './Components/CommonDialog.vue'
 
 export default {
   name: 'BeatHeader',
-  props: ['isPlaying'],
+  props: ['isPlaying', 'isNeedGenerate'],
   data() {
     return {
       modeState: modeState,
@@ -98,7 +106,8 @@ export default {
       clickMouseStart: false,
       timer: null,
       file: '',
-      clickType: -1
+      clickType: -1,
+      dialogShow: false
     }
   },
   computed: {
@@ -118,7 +127,8 @@ export default {
   components: {
     Button,
     Upload,
-    MidiDialog
+    MidiDialog,
+    CommonDialog
   },
   watch: {
     clickMouseStart(oldValue) {
@@ -138,6 +148,9 @@ export default {
   },
   destroyed() {
     clearInterval(this.timer)
+  },
+  mounted() {
+    // this.$refs.MidiDialog.show()
   },
   methods: {
     toPlay() {
@@ -201,10 +214,15 @@ export default {
     },
     uploadChange(file) {
       console.log('uploadChange:', file)
+      if (this.isNeedGenerate) {
+        this.dialogShow = true
+        return
+      }
       const fileNameArr = file.name.split('.')
       const type = fileNameArr[fileNameArr.length - 1]
       if (type !== 'mid') {
         Message.error('只能上传mid格式的文件～')
+        this.$refs['upload'].clearFiles()
         return
       }
       const size = file.size
@@ -217,8 +235,16 @@ export default {
       console.log('this.file:', this.file)
       this.$refs.MidiDialog.show()
     },
-    uploadQupu() {
-      console.log('uploadQupu')
+    confirmEvent() {
+      this.dialogShow = false
+      this.$refs.MidiDialog.show()
+    },
+    cancelEvent() {
+      this.dialogShow = false
+      this.$refs['upload'].clearFiles()
+    },
+    midiCancelEvent() {
+      this.$refs['upload'].clearFiles()
     }
   }
 }
@@ -315,5 +341,13 @@ export default {
 .text {
   height: 20px;
   line-height: 20px;
+}
+
+.fileInput {
+  position: absolute;
+  height: 54px;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 </style>
