@@ -3,6 +3,7 @@
     <div :class="$style.panel" v-if="!userInfo" @click="checkLogin"></div>
     <BeatHeader
       :isPlaying="playState == 1"
+      :isNeedGenerate="isNeedGenerate()"
       @play="toPlay"
       @synthesize="toSynthesize"
       @openDrawer="toOpenDrawer"
@@ -69,7 +70,7 @@ export default {
       state => state.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
-        // console.log('changeStoreState isStagePitchesChanged true')
+        console.log('changeStoreState isStagePitchesChanged true')
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
       },
       {
@@ -214,7 +215,14 @@ export default {
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
         const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
-        const stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList, 'grid')
+        console.log('musicInfo:', musicInfo)
+        let stagePitches = []
+        if (musicInfo.bus_type === 1) { // 从正常的xml转过来，给的是格子数
+          stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList, 'grid')
+        } else { // 从我自己生成的曲谱过来，给的是时间
+          stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList)
+        }
+        // const stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList, 'grid')
         this.$store.dispatch('changeStoreState', {
           taskId: getParam('arrangeId') || musicxml2Json.task_id,
           musicId: musicId,
@@ -231,6 +239,13 @@ export default {
       this.$store.dispatch('adjustStageWidth')
     },
     isNeedGenerate() {
+      console.log(`
+        this.isStagePitchesChanged: ${this.isStagePitchesChanged}, 
+        this.$store.state.isPitchLineChanged: ${this.$store.state.isPitchLineChanged},
+        this.$store.state.isVolumeChanged: ${this.$store.state.isVolumeChanged},
+        this.$store.state.isTensionChanged: ${this.$store.state.isTensionChanged},
+        this.$store.state.isStagePitchElementChanged: ${this.$store.state.isStagePitchElementChanged},
+        !this.$store.state.onlineUrl: ${!this.$store.state.onlineUrl}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true

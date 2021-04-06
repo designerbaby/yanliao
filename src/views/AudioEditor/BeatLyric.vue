@@ -3,18 +3,18 @@
     title="编辑歌词"
     :visible.sync="lyricVisible"
     :close-on-click-modal="false"
-    width="400px">
+    custom-class="lyric-dialog">
     <Form :rules="rule" ref="lyricForm" :model="lyricForm">
       <FormItem prop="lyric">
         <Input type="textarea"
           placeholder="请输入歌词"
           v-model="lyricForm.lyric"
           :maxlength="maxlength"
-          :rows="5"
+          :rows="7"
           show-word-limit
         />
       </FormItem>
-      <span>注：输入“-”号，即表示延续之前的字的尾音</span>
+      <span class="text">注：输入“-”号，即表示延续之前的字的尾音</span>
     </Form>
     <span slot="footer" class="dialog-footer">
       <Button @click="toCorrect">拼音校正</Button>
@@ -91,7 +91,7 @@ export default {
       this.$refs.lyricForm.validate((valid) => {
         if (valid) {
           if (!this.checkPitch()) {
-            Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
+            // Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
           } else if (!this.checkFisrtPitch()) {
             Message.error('第一个音符不可以输入“-”')
           } else {
@@ -135,6 +135,7 @@ export default {
             const before = this.stagePitches.find((item, i) => i === idx - 1)
             const current = this.stagePitches.find((item, i) => i === idx)
             if (before.left + before.width !== current.left) {
+              Message.error(`第${idx}个字符是连音符“-”,请确保其前面有连续音符`)
               check = false
               return
             }
@@ -230,6 +231,87 @@ export default {
 }
 </script>
 
-<style lang="less" module>
-
+<style lang="less">
+.lyric-dialog {
+  width: 520px;
+  background: #2c2c2c;
+  box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
+  border-radius: 8px;
+  .el-dialog__title {
+    font-family: PingFangSC-Medium;
+    font-size: 16px;
+    color: #FFFFFF;
+  }
+  .el-dialog__headerbtn {
+    font-size: 20px;
+    color: #d0d0d0;
+  }
+  .el-dialog__close, .el-icon, .el-icon-close {
+    &:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    &:active {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+  .el-dialog__header {
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+  }
+  .el-textarea__inner {
+    border: 2px solid rgba(255,255,255,0.15);
+    font-size: 14px;
+    color: #FFFFFF;
+    font-family: PingFangSC-Regular;
+    background: #2c2c2c;
+    border-radius: 8px;
+    &:focus {
+      border-color: rgba(255,255,255,0.15);
+    }
+  }
+  .el-textarea .el-input__count {
+    background: #2c2c2c;
+    font-size: 12px;
+    color: rgba(255,255,255,0.40);
+  }
+  .el-form-item {
+    margin-bottom: 8px;
+  }
+  .text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.60);
+  }
+  .el-dialog__footer {
+    background: #2c2c2c;
+    border-top: 1px solid rgba(0,0,0,0.07);
+  }
+  .el-button {
+    height: 40px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.80);
+    letter-spacing: 0;
+    text-align: center;
+    border: 0;
+  }
+  .el-button--default {
+    background: #252525;
+    &:hover {
+      background: #2b2b2b;
+    }
+  }
+  .el-button--primary {
+    background: #179B30;
+    height: 40px !important;
+    width: 96px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.80);
+    letter-spacing: 0;
+    text-align: center;
+    border: 0;
+    &:hover {
+      background: #2ea545;
+    }
+  }
+}
 </style>

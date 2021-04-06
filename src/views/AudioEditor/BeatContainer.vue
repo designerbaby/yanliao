@@ -234,7 +234,7 @@ export default {
     },
     onPitchMouseDown(event, index){
       // 绿色块鼠标按下事件
-      console.log('onPitchMouseDown', event, index)
+      // console.log('onPitchMouseDown', event, index)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -333,7 +333,7 @@ export default {
     onPitchMouseUp(event) {
       if (this.movePitchStart) {
         this.mouseModalTarget.parentNode.removeChild(this.mouseModalTarget)
-        console.log(`onPitchMouseUp`, event)
+        // console.log(`onPitchMouseUp`, event)
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
         const { target, index, selectedPitches, selectedElements } = this.movePitchStart

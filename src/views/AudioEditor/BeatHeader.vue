@@ -2,20 +2,11 @@
   <div :class="$style.wrap">
     <div :class="$style.blank" v-if="isExceedHeader"></div>
     <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
-      <!-- <Upload
-        class="uploadQupu"
-        ref="upload"
-        accept=".mid"
-        :on-change="uploadChange"
-        :multiple="false"
-        :limit="1"
-        action="/api/kuwa/user/uploadFile"
-        :on-success="uploadQupu">
-        <div :class="$style.common">
-          <img src="@/assets/audioEditor/import.png"/>
-          <div :class="$style.text">导入曲谱</div>
-        </div>
-      </Upload> -->
+      <div :class="$style.common">
+        <img src="@/assets/audioEditor/import.png"/>
+        <div :class="$style.text">导入曲谱</div>
+        <input type="file" id="fileInput" :class="$style.fileInput" accept=".mid">
+      </div>
       <div :class="$style.linefu">
         <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
           <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
@@ -78,6 +69,12 @@
       </div>
     </div>
     <MidiDialog ref="MidiDialog"></MidiDialog>
+    <CommonDialog
+      :show="dialogShow"
+      tip="是否放弃未保存的改动？"
+      confirmButtonText="放弃改动"
+      :confirmButtonEvent="confirmEvent"
+      :cancelButtonEvent="cancelEvent" />
   </div>
 
 </template>
@@ -87,10 +84,11 @@ import { Button, Message, Upload } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog'
+import CommonDialog from './Components/CommonDialog.vue'
 
 export default {
   name: 'BeatHeader',
-  props: ['isPlaying'],
+  props: ['isPlaying', 'isNeedGenerate'],
   data() {
     return {
       modeState: modeState,
@@ -98,7 +96,8 @@ export default {
       clickMouseStart: false,
       timer: null,
       file: '',
-      clickType: -1
+      clickType: -1,
+      dialogShow: false
     }
   },
   computed: {
@@ -118,7 +117,8 @@ export default {
   components: {
     Button,
     Upload,
-    MidiDialog
+    MidiDialog,
+    CommonDialog
   },
   watch: {
     clickMouseStart(oldValue) {
@@ -138,6 +138,10 @@ export default {
   },
   destroyed() {
     clearInterval(this.timer)
+  },
+  mounted() {
+    // this.addListener()
+    // this.dialogShow = true
   },
   methods: {
     toPlay() {
@@ -199,26 +203,53 @@ export default {
     onMouseUp() {
       this.clickMouseStart = false
     },
-    uploadChange(file) {
-      console.log('uploadChange:', file)
-      const fileNameArr = file.name.split('.')
-      const type = fileNameArr[fileNameArr.length - 1]
-      if (type !== 'mid') {
-        Message.error('只能上传mid格式的文件～')
-        return
-      }
-      const size = file.size
-      if (size > 2147483648) {
-        Message.error('文件大小超过 2GB')
-        this.$refs['upload'].clearFiles()
-        return
-      }
-      this.file = file.raw
-      console.log('this.file:', this.file)
-      this.$refs.MidiDialog.show()
+    // uploadChange(file) {
+    //   console.log('uploadChange:', file)
+    //   const fileNameArr = file.name.split('.')
+    //   const type = fileNameArr[fileNameArr.length - 1]
+    //   if (type !== 'mid') {
+    //     Message.error('只能上传mid格式的文件～')
+    //     return
+    //   }
+    //   const size = file.size
+    //   if (size > 2147483648) {
+    //     Message.error('文件大小超过 2GB')
+    //     this.$refs['upload'].clearFiles()
+    //     return
+    //   }
+    //   this.file = file.raw
+    //   console.log('this.file:', this.file)
+    //   this.$refs.MidiDialog.show()
+    // }
+    confirmEvent() {
+
     },
-    uploadQupu() {
-      console.log('uploadQupu')
+    cancelEvent() {
+      this.dialogShow = false
+    },
+    addListener() {
+      const input = document.getElementById('fileInput')
+      input.addEventListener('change', (file) => {
+        this.dialogShow = true
+        console.log('file:', file)
+        if (this.isNeedGenerate) {
+          this.dialogShow = true
+        }
+
+        const fileNameArr = file.name.split('.')
+        const type = fileNameArr[fileNameArr.length - 1]
+        if (type !== 'mid') {
+          Message.error('只能上传mid格式的文件～')
+          return
+        }
+        const size = file.size
+        if (size > 2147483648) {
+          Message.error('文件大小超过 2GB')
+          return
+        }
+        this.file = file.raw
+        this.$refs.MidiDialog.show()
+      })
     }
   }
 }
@@ -315,5 +346,13 @@ export default {
 .text {
   height: 20px;
   line-height: 20px;
+}
+
+.fileInput {
+  position: absolute;
+  height: 54px;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 </style>
