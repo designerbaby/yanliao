@@ -3,7 +3,7 @@
     <div :class="$style.panel" v-if="!userInfo" @click="checkLogin"></div>
     <BeatHeader
       :isPlaying="playState == 1"
-      :isNeedGenerate="isNeedGenerate()"
+      :isNeedGenerate="isNeedGenerate('upload')"
       @play="toPlay"
       @synthesize="toSynthesize"
       @openDrawer="toOpenDrawer"
@@ -238,9 +238,9 @@ export default {
       }
       this.$store.dispatch('adjustStageWidth')
     },
-    isNeedGenerate() {
+    isNeedGenerate(type) {
       console.log(`
-        this.isStagePitchesChanged: ${this.isStagePitchesChanged}, 
+        this.isStagePitchesChanged: ${this.isStagePitchesChanged},
         this.$store.state.isPitchLineChanged: ${this.$store.state.isPitchLineChanged},
         this.$store.state.isVolumeChanged: ${this.$store.state.isVolumeChanged},
         this.$store.state.isTensionChanged: ${this.$store.state.isTensionChanged},
@@ -271,7 +271,7 @@ export default {
       }
 
       // 没有可播放的url
-      if (!this.$store.state.onlineUrl) {
+      if (!this.$store.state.onlineUrl && type !== 'upload') {
         return true
       }
 

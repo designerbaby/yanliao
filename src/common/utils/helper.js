@@ -1,3 +1,5 @@
+import CosAuth from '@/common/utils/cosAuth'
+
 export const reportEvent = (eventName, eventId, params='') => { // 数据上报事件
   console.log('reportEvent:', eventName, eventId, params)
   BeaconAction.onEvent(eventId || eventName, eventName, params)
@@ -152,8 +154,8 @@ export const generateUUID = () => {
   });
   return uuid;
 }
-
-export const divideArray = (n, arr) => { // 每隔n个分隔下数组
+// 每隔n个分隔下数组
+export const divideArray = (n, arr) => {
   const result = []
   for (let i = 0; i < arr.length;) {
     result.push(arr.slice(i, i += n))
@@ -161,6 +163,18 @@ export const divideArray = (n, arr) => { // 每隔n个分隔下数组
   return result
 }
 
+// 计算签名
+export const getAuthorization = (method, key, data) => {
+  return {
+    XCosSecurityToken: data.credentials.session_token,
+    Authorization: CosAuth({
+      SecretId: data.credentials.tmp_secret_id,
+      SecretKey: data.credentials.tmp_secret_key,
+      Method: method,
+      Pathname: `/${key}`
+    })
+  }
+}
 const UA = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCase()
 const isEdge = UA && UA.indexOf('edge/') > 0;
 export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge

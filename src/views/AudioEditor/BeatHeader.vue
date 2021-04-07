@@ -7,11 +7,15 @@
         ref="upload"
         accept=".mid"
         :on-change="uploadChange"
+        :on-exceed="uploadExcced"
         :on-success="uploadSuccess"
+        :auto-upload="false"
         :multiple="false"
         :limit="1"
         :show-file-list="false"
-        action="/api/kuwa/user/uploadFile">
+        :headers="headers"
+        :with-credentials="true"
+        :action="action">
         <div :class="$style.common">
           <img src="@/assets/audioEditor/import.png"/>
           <div :class="$style.text">导入曲谱</div>
@@ -92,9 +96,11 @@
 <script>
 import { Button, Message, Upload } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
-import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
+import { isDuplicated, reportEvent, getParam, getCookie, camSafeUrlEncode, getAuthorization } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog'
 import CommonDialog from './Components/CommonDialog.vue'
+import { getUserCredential } from '@/api/audioSource'
+import { mid2json } from '@/api/audio'
 
 export default {
   name: 'BeatHeader',
@@ -107,7 +113,12 @@ export default {
       timer: null,
       file: '',
       clickType: -1,
-      dialogShow: false
+      dialogShow: false,
+      headers: {
+        'Authorization': '',
+        'x-cos-security-token': ''
+      },
+      action: 'https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/'
     }
   },
   computed: {
@@ -149,12 +160,21 @@ export default {
   destroyed() {
     clearInterval(this.timer)
   },
-  mounted() {
-    // this.$refs.MidiDialog.show()
-  },
+  mounted() {},
   methods: {
     toPlay() {
       this.$emit('play')
+    },
+    async getUserCredential() {
+      const res = await getUserCredential()
+      return res.data
+    },
+    async mid2json(url) {
+      const res = await mid2json({
+        mid_url: url
+      })
+      console.log('mid2json:', res)
+      this.$refs.MidiDialog.show(res.data.data) // TODO 这里拿到url后传给后端，然后进行处理后再传回来。
     },
     selectMode(mode) {
       if (mode === modeState.StatePitch) {
@@ -213,11 +233,25 @@ export default {
       this.clickMouseStart = false
     },
     uploadChange(file) {
-      console.log('uploadChange:', file)
+      this.file = file.raw
+      console.log('this.file:', this.file)
       if (this.isNeedGenerate) {
         this.dialogShow = true
         return
       }
+      this.uploadMidi()
+    },
+    uploadSuccess(res) {
+      console.log('uploadSuccess:', res)
+    },
+    confirmEvent() {
+      // 放弃未保存的改动，确定
+      this.dialogShow = false
+      this.uploadMidi()
+    },
+    async uploadMidi() {
+      const file = this.file
+      console.log('file:', file)
       const fileNameArr = file.name.split('.')
       const type = fileNameArr[fileNameArr.length - 1]
       if (type !== 'mid') {
@@ -231,23 +265,57 @@ export default {
         this.$refs['upload'].clearFiles()
         return
       }
-      this.file = file.raw
-      console.log('this.file:', this.file)
-      this.$refs.MidiDialog.show()
+      const method = 'PUT'
+      const mxUid = getCookie('mx_uid')
+      Message.success('开始解析中')
+      const key = `file/${mxUid}/${this.file.name}`
+      const { data } = await this.getUserCredential()
+      const info = await getAuthorization(method, key, data)
+      const Authorization = info.Authorization   // 得到的签名
+      const XCosSecurityToken = info.XCosSecurityToken // 得到的sessionToken
+      this.uploadFile(method, key, Authorization, XCosSecurityToken, (err, data) => {
+        if (err) {
+          Message.error(err)
+        } else {
+          console.log('url:', data.url)
+          this.mid2json(data.url)
+        }
+      })
     },
-    uploadSuccess(res) {
-      console.log('uploadSuccess:', res)
-    },
-    confirmEvent() {
-      this.dialogShow = false
-      this.$refs.MidiDialog.show()
+    uploadFile(method, key, Authorization, XCosSecurityToken, callback) {
+      var url = `${this.action}${camSafeUrlEncode(key).replace(/%2F/g, '/')}`
+      var xhr = new XMLHttpRequest();
+      xhr.open(method, url, true);
+      xhr.setRequestHeader('Authorization', Authorization);
+      XCosSecurityToken && xhr.setRequestHeader('x-cos-security-token', XCosSecurityToken)
+      xhr.upload.onprogress = (e) => {
+        const percentage = parseFloat(Math.round(e.loaded / e.total * 10000) / 100)
+        console.log(`上传进度: ${percentage}%`)
+        Message.success(`解析进度${percentage}%`)
+      };
+      xhr.onload = () => {
+        if (/^2\d\d$/.test('' + xhr.status)) {
+          var ETag = xhr.getResponseHeader('etag')
+          callback(null, {url: url, ETag: ETag})
+        } else {
+          callback(`文件${key}上传失败，状态码：${xhr.status}`)
+        }
+      };
+      xhr.onerror = () => {
+        callback(`文件${key}上传失败，请检查是否没配置 CORS 跨域规则`)
+      };
+      xhr.send(this.file);
     },
     cancelEvent() {
+      // 放弃未保存的改动，取消
       this.dialogShow = false
       this.$refs['upload'].clearFiles()
     },
     midiCancelEvent() {
       this.$refs['upload'].clearFiles()
+    },
+    uploadExcced() {
+      Message.error('请勿重复上传')
     }
   }
 }
@@ -352,5 +420,16 @@ export default {
   width: 100%;
   opacity: 0;
   cursor: pointer;
+}
+
+</style>
+<style lang="less">
+.el-upload, .el-upload--text {
+  &:hover {
+    color: #b8b8b8;
+  }
+}
+.el-upload--picture-card:hover, .el-upload:focus {
+  color: #b8b8b8;
 }
 </style>

@@ -97,6 +97,15 @@ const getToneInfo = (data) => {
   })
 }
 
+// 获取midi文件信息
+const mid2json = (data) => {
+  return axios({
+    method: 'post',
+    url: '/cgi-bin/v1/yan/sdk_client/mid2json',
+    data: data
+  })
+}
+
 export {
   editorSynth,
   editorSynthStatus,
@@ -107,5 +116,6 @@ export {
   getYinsu,
   musicxml2Json,
   shareMusicScore,
-  getToneInfo
+  getToneInfo,
+  mid2json
 }

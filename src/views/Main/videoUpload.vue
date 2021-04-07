@@ -243,7 +243,7 @@ export default {
       border: none;
       line-height: 32px;
       padding: 0px;
-      margin: 100px auto 0px; 
+      margin: 100px auto 0px;
       display: block;
     }
     .el-upload__tip {
