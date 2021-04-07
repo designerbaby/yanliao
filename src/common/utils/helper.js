@@ -178,3 +178,30 @@ export const getAuthorization = (method, key, data) => {
 const UA = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCase()
 const isEdge = UA && UA.indexOf('edge/') > 0;
 export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
+
+export const pitchList2StagePitches = (pitchList, type, vm) => {
+  // type: grid 代表格子数，其他代表时间
+  let stagePitches = []
+  const noteWidth = vm.$store.state.noteWidth
+  const noteHeight = vm.$store.state.noteHeight
+  pitchList.forEach(item => {
+    stagePitches.push({
+      hanzi: item.hanzi,
+      pinyin: item.pinyin,
+      red: false,
+      height: noteHeight,
+      width: type === 'grid' ? item.duration * noteWidth : timeToPx(item.duration, noteWidth, pitchList[0].bpm),
+      left: type === 'grid' ? item.startTime * noteWidth : timeToPx(item.startTime, noteWidth, pitchList[0].bpm),
+      top: noteHeight * (vm.$store.getters.firstPitch - item.pitch),
+      pinyinList: item.pinyinList,
+      select: item.select,
+      preTime: item.preTime,
+      fu: item.fu,
+      yuan: item.yuan,
+      selected: false, // 表示是否选中了音块
+      uuid: generateUUID()
+    })
+  })
+  console.log('pitchList2StagePitches:', stagePitches)
+  return stagePitches
+}

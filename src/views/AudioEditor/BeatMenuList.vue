@@ -10,6 +10,9 @@
 
     <div :class="[$style.button, $style.top]" @click.stop="editLyric(-2)">编辑歌词</div>
     <div :class="[$style.button, $style.bottom]" @click.stop="editLyric(-1)">全量编辑歌词</div>
+
+    <!-- <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="cancelBreath" v-if="hasBreath">取消换气</div>
+    <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="insertBreath" v-else>插入换气</div> -->
   </div>
 </template>
 
@@ -23,7 +26,8 @@ export default {
   data() {
     return {
       left: 0,
-      top: 0
+      top: 0,
+      hasBreath: false
     }
   },
   computed: {
@@ -50,6 +54,33 @@ export default {
       const copyStagePitches = this.stagePitches.filter(v => v.selected);
       this.$store.dispatch('changeStoreState', { copyStagePitches })
       this.$store.dispatch('changeStoreState', { showMenuList: false })
+    },
+    insertBreath() {
+      for (let i = 0; i < this.stagePitches.length; i += 1) {
+        const current = this.stagePitches[i]
+        if (current.selected) {
+          const before = this.stagePitches[i - 1]
+          if (before.left + before.width === current.left) {
+            Message.error('所选音符的前面没有空格，不能插入换气～')
+            return
+          }
+        }
+      }
+      const selectStagePitches = this.stagePitches.filter(v => v.selected)
+      // console.log('selectStagePitches:', selectStagePitches)
+      selectStagePitches.forEach(item => {
+        item.breath = {
+          left: item.left - this.$store.state.noteWidth,
+          width: this.$store.state.noteWidth,
+          pinyin: 'br'
+        }
+      })
+    },
+    cancelBreath() {
+      const selectStagePitches = this.stagePitches.filter(v => v.selected)
+      selectStagePitches.forEach(item => {
+        item.breath = null
+      })
     }
   }
 }

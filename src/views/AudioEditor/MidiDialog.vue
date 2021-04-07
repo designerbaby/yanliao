@@ -5,17 +5,15 @@
     custom-class="midi-dialog">
     <div>
       <div :class="$style.tips">选择要导入的音轨</div>
-      <Radio v-for="(it, index) in pitchLists"
-        :key="index"
-        :label="index"
-        v-model="it.select"
-        @change="changeSelect($event, it)"
-        >
-          音轨{{ index + 1 }} ({{ it.length }}个音符, D9-G9, Piano)
-      </Radio>
-      <!-- <div :class="$style.radios">
-        <div :class="$style.select"></div>
-      </div> -->
+      <RadioGroup v-model="selectMid">
+        <Radio v-for="(it, index) in finalMidPitchList"
+          :key="index"
+          :label="index"
+          @change="changeSelect($event, it)"
+          >
+            音轨 {{ index + 1 }} ({{ it.pitchList.length }}个音符, {{ it.lowestPitchStr }}-{{ it.highestPitchStr }}, Piano)
+        </Radio>
+      </RadioGroup>
     </div>
     <span slot="footer" class="dialog-footer">
       <Button @click="cancel">取 消</Button>
@@ -25,7 +23,9 @@
 </template>
 
 <script>
-import { Dialog, Button, Message, Radio } from 'element-ui'
+import { Dialog, Button, Message, Radio, RadioGroup } from 'element-ui'
+import { pitchList } from '@/common/utils/const'
+import { pitchList2StagePitches } from '@/common/utils/helper'
 
 export default {
   name: 'MidiDialog',
@@ -33,18 +33,40 @@ export default {
     Dialog,
     Button,
     Message,
-    Radio
+    Radio,
+    RadioGroup
   },
   data() {
     return {
       midiVisible: false,
-      pitchLists: [[{}, {}], [{}, {}]]
+      midPitchList: [],
+      selectMid: 0,
+      fileName: ''
+    }
+  },
+  computed: {
+    finalMidPitchList() {
+      const midPitchList = this.midPitchList
+      for (let i = 0; i < midPitchList.length; i += 1) {
+        const item = midPitchList[i]
+        const pitchLists = item.pitchList
+        let lowestPitch = pitchLists[0].pitch
+        let highestPitch = pitchLists[0].pitch
+        for (let j = 0; j < pitchLists.length; j += 1) {
+          lowestPitch = Math.min(lowestPitch, pitchLists[j].pitch)
+          highestPitch = Math.max(highestPitch, pitchLists[j].pitch)
+        }
+        item.lowestPitchStr = pitchList.find(v => v.pitch === lowestPitch).str || 'C1'
+        item.highestPitchStr = pitchList.find(v => v.pitch === highestPitch).str || 'C1'
+      }
+      return midPitchList
     }
   },
   methods: {
-    show(data) {
+    show(data, fileName) {
       this.midiVisible = true
-      this.pitchLists = data
+      this.midPitchList = data.midPitchList
+      this.fileName = fileName
     },
     changeSelect(event, it) {
       console.log('changeSelect:', event, it)
@@ -55,6 +77,29 @@ export default {
     },
     submit() {
       console.log('submit')
+      const pitchList = this.midPitchList[this.selectMid].pitchList
+      console.log('pitchList:', pitchList)
+      const stagePitches = pitchList2StagePitches(pitchList, 'grid', this)
+      stagePitches.forEach(item => {
+        item.hanzi = '啦'
+        item.pinyinList = ['la']
+        item.fu = 'l'
+        item.yuan = 'a'
+      })
+      this.midiVisible = false
+      this.$store.dispatch('changeStoreState', {
+        taskId: 0,
+        bpm: pitchList[0].bpm,
+        toneName: pitchList[0].singer,
+        toneId: 1, // TODO 这里返回的音源ID不对
+        musicName: this.fileName,
+        stagePitches: stagePitches,
+        pitchChanged: true
+      })
+      this.$store.dispatch('getPitchLine')
+      this.$store.dispatch('saveFuYuan')
+      this.$store.dispatch('adjustStageWidth')
+      this.$emit('midi-cancel')
     }
   }
 }

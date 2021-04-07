@@ -51,7 +51,7 @@ const defaultState = {
   downUrl: '', // 下载的音频
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
-  typeContainerHeight: 250,
+  typeContainerHeight: 250, // 响度/张力面板的高度
   pitchChanged: false, // 是否全部重置
   showMenuList: false, // 音块的右键菜单列表
   showStageList: false, // 全局舞台的右键菜单列表
@@ -127,7 +127,7 @@ const store = new Vuex.Store({
           toneId: state.toneId,
           bpm: state.bpm,
           pinyinList: item.pinyinList,
-          select: item.select,
+          select: item.select, // 拼音多音字选择的第几项
           fu: item.fu,
           yuan: item.yuan,
           preTime: preTime
@@ -236,11 +236,6 @@ const store = new Vuex.Store({
         }
       }
       commit('changeStoreState', { isGetF0Data: true })
-      // const loadingInstance = Loading.service({
-      //   lock: true,
-      //   spinner: 'el-icon-loading',
-      //   background: 'rgba(0, 0, 0, 0.3)'
-      // })
       // 请求参数先深复制一份
       const reqData = deepAssign({}, { pitchList: getters.pitchList })
       if (beforeRequest) {
@@ -292,7 +287,6 @@ const store = new Vuex.Store({
         }
         item.pitchChanged = false
       }
-      // loadingInstance.close()
       commit('changeStoreState', { f0Draw, stagePitches, isPitchLineChanged: false, isGetF0Data: false, pitchChanged: false })
     },
     updateStageSize({ commit, state }) {

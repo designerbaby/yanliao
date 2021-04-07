@@ -8,7 +8,6 @@
         accept=".mid"
         :on-change="uploadChange"
         :on-exceed="uploadExcced"
-        :on-success="uploadSuccess"
         :auto-upload="false"
         :multiple="false"
         :limit="1"
@@ -174,7 +173,7 @@ export default {
         mid_url: url
       })
       console.log('mid2json:', res)
-      this.$refs.MidiDialog.show(res.data.data) // TODO 这里拿到url后传给后端，然后进行处理后再传回来。
+      this.$refs.MidiDialog.show(res.data.data, this.file.name) // TODO 这里拿到url后传给后端，然后进行处理后再传回来。
     },
     selectMode(mode) {
       if (mode === modeState.StatePitch) {
@@ -234,15 +233,11 @@ export default {
     },
     uploadChange(file) {
       this.file = file.raw
-      console.log('this.file:', this.file)
       if (this.isNeedGenerate) {
         this.dialogShow = true
         return
       }
       this.uploadMidi()
-    },
-    uploadSuccess(res) {
-      console.log('uploadSuccess:', res)
     },
     confirmEvent() {
       // 放弃未保存的改动，确定
@@ -251,7 +246,6 @@ export default {
     },
     async uploadMidi() {
       const file = this.file
-      console.log('file:', file)
       const fileNameArr = file.name.split('.')
       const type = fileNameArr[fileNameArr.length - 1]
       if (type !== 'mid') {
@@ -314,8 +308,10 @@ export default {
     midiCancelEvent() {
       this.$refs['upload'].clearFiles()
     },
-    uploadExcced() {
+    uploadExcced(file, fileList) {
+      console.log('uploadExcced:', file, fileList)
       Message.error('请勿重复上传')
+      this.$refs['upload'].clearFiles()
     }
   }
 }

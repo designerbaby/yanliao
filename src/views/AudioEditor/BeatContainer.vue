@@ -38,6 +38,7 @@
               {{ it.hanzi }}
               <Arrow :pitch="it" direction="left" @move-end="onArrowMoveEnd($event, index)"/>
               <Arrow :pitch="it" direction="right" @move-end="onArrowMoveEnd($event, index)"/>
+              <Breath v-if="it.breath" :it="it" :index="index"></Breath>
             </div>
           </template>
           <BeatMenuList
@@ -74,6 +75,7 @@ import BeatMenuList from './BeatMenuList.vue'
 import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
 import StatusBar from './StatusBar.vue'
+import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 
 export default {
@@ -92,7 +94,8 @@ export default {
     BeatMenuList,
     Parameters,
     StatusBar,
-    PitchElement
+    PitchElement,
+    Breath
   },
   data() {
     return {
