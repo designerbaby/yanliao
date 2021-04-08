@@ -1,4 +1,35 @@
 export const pitchListBefore = [
+  // 1 代表黑键，0 代表白键
+  {
+    pitch: 40,
+    str: 'E2',
+    type: 0,
+    show: 1
+  },
+  {
+    pitch: 41,
+    str: 'F2',
+    type: 0,
+    show: 1
+  },
+  {
+    pitch: 42,
+    str: 'F2#',
+    type: 1,
+    show: 0
+  },
+  {
+    pitch: 43,
+    str: 'G2',
+    type: 0,
+    show: 1
+  },
+  {
+    pitch: 44,
+    str: 'G2#',
+    type: 1,
+    show: 0
+  },
   {
     pitch: 45,
     str: 'A2',

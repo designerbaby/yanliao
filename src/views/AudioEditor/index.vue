@@ -149,29 +149,6 @@ export default {
       const res = await musicxml2Json(xml2JsonReq)
       return res.data.data
     },
-    // pitchList2StagePitches(pitchList, type) {
-    //   let stagePitches = []
-    //   pitchList.forEach(item => {
-    //     stagePitches.push({
-    //       hanzi: item.hanzi,
-    //       pinyin: item.pinyin,
-    //       red: false,
-    //       height: this.noteHeight,
-    //       width: type === 'grid' ? item.duration * this.noteWidth : timeToPx(item.duration, this.noteWidth, pitchList[0].bpm),
-    //       left: type === 'grid' ? item.startTime * this.noteWidth : timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
-    //       top: this.noteHeight * (this.firstPitch - item.pitch),
-    //       pinyinList: item.pinyinList,
-    //       select: item.select,
-    //       preTime: item.preTime,
-    //       fu: item.fu,
-    //       yuan: item.yuan,
-    //       selected: false, // 表示是否选中了音块
-    //       uuid: generateUUID()
-    //     })
-    //   })
-    //   console.log('pitchList2StagePitches:', stagePitches)
-    //   return stagePitches
-    // },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       const musicId = getParam('musicId') || 0
@@ -334,7 +311,7 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()

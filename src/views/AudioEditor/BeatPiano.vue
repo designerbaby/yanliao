@@ -71,7 +71,7 @@ export default {
     background: rgb(20, 155, 49);
   }
   &:last-child {
-    height: 38px;
+    height: 35px;
   }
   &:first-child {
     height: 30px;

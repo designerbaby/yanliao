@@ -3,7 +3,6 @@
     <div :class="$style.blank" v-if="isExceedHeader"></div>
     <div :class="[$style.header, isExceedHeader ? $style.isFloat : '']">
       <Upload
-        class="uploadQupu"
         ref="upload"
         accept=".mid"
         :on-change="uploadChange"
@@ -12,12 +11,13 @@
         :multiple="false"
         :limit="1"
         :show-file-list="false"
-        :headers="headers"
         :with-credentials="true"
         :action="action">
-        <div :class="$style.common">
-          <img src="@/assets/audioEditor/import.png"/>
-          <div :class="$style.text">导入曲谱</div>
+        <div id="uploadQupuWrap">
+          <div :class="$style.common" @click="uploadQupu">
+            <img src="@/assets/audioEditor/import.png"/>
+            <div :class="$style.text">导入曲谱</div>
+          </div>
         </div>
       </Upload>
       <div :class="$style.linefu">
@@ -113,10 +113,6 @@ export default {
       file: '',
       clickType: -1,
       dialogShow: false,
-      headers: {
-        'Authorization': '',
-        'x-cos-security-token': ''
-      },
       action: 'https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/'
     }
   },
@@ -173,7 +169,7 @@ export default {
         mid_url: url
       })
       console.log('mid2json:', res)
-      this.$refs.MidiDialog.show(res.data.data, this.file.name) // TODO 这里拿到url后传给后端，然后进行处理后再传回来。
+      this.$refs.MidiDialog.show(res.data.data, this.file.name)
     },
     selectMode(mode) {
       if (mode === modeState.StatePitch) {
@@ -233,16 +229,30 @@ export default {
     },
     uploadChange(file) {
       this.file = file.raw
+      this.uploadMidi()
+    },
+    uploadQupu(event) {
       if (this.isNeedGenerate) {
         this.dialogShow = true
-        return
+        event.stopPropagation()
       }
-      this.uploadMidi()
     },
     confirmEvent() {
       // 放弃未保存的改动，确定
       this.dialogShow = false
-      this.uploadMidi()
+      document.getElementById('uploadQupuWrap').click()
+    },
+    cancelEvent() {
+      // 放弃未保存的改动，取消
+      this.dialogShow = false
+    },
+    midiCancelEvent() {
+      this.$refs['upload'].clearFiles()
+    },
+    uploadExcced(file, fileList) {
+      console.log('uploadExcced:', file, fileList)
+      Message.error('请勿重复上传')
+      this.$refs['upload'].clearFiles()
     },
     async uploadMidi() {
       const file = this.file
@@ -299,19 +309,6 @@ export default {
         callback(`文件${key}上传失败，请检查是否没配置 CORS 跨域规则`)
       };
       xhr.send(this.file);
-    },
-    cancelEvent() {
-      // 放弃未保存的改动，取消
-      this.dialogShow = false
-      this.$refs['upload'].clearFiles()
-    },
-    midiCancelEvent() {
-      this.$refs['upload'].clearFiles()
-    },
-    uploadExcced(file, fileList) {
-      console.log('uploadExcced:', file, fileList)
-      Message.error('请勿重复上传')
-      this.$refs['upload'].clearFiles()
     }
   }
 }

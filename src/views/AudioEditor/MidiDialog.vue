@@ -6,7 +6,7 @@
     <div>
       <div :class="$style.tips">选择要导入的音轨</div>
       <RadioGroup v-model="selectMid">
-        <Radio v-for="(it, index) in finalMidPitchList"
+        <Radio v-for="(it, index) in midPitchList"
           :key="index"
           :label="index"
           @change="changeSelect($event, it)"
@@ -44,9 +44,8 @@ export default {
       fileName: ''
     }
   },
-  computed: {
-    finalMidPitchList() {
-      const midPitchList = this.midPitchList
+  methods: {
+    handleMidPitchList(midPitchList) {
       for (let i = 0; i < midPitchList.length; i += 1) {
         const item = midPitchList[i]
         const pitchLists = item.pitchList
@@ -56,16 +55,28 @@ export default {
           lowestPitch = Math.min(lowestPitch, pitchLists[j].pitch)
           highestPitch = Math.max(highestPitch, pitchLists[j].pitch)
         }
-        item.lowestPitchStr = pitchList.find(v => v.pitch === lowestPitch).str || 'C1'
-        item.highestPitchStr = pitchList.find(v => v.pitch === highestPitch).str || 'C1'
+        console.log('lowestPitch:', lowestPitch)
+        console.log('highestPitch:', highestPitch)
+        console.log('pitchList[pitchList.length - 1].pitch:', pitchList[pitchList.length - 1].pitch)
+        console.log('pitchList[0].pitch:', pitchList[0].pitch)
+        if (lowestPitch < pitchList[pitchList.length - 1].pitch) {
+          Message.error('最低音小于现在的音域')
+          this.$emit('midi-cancel')
+          return
+        }
+        if (highestPitch > pitchList[0].pitch) {
+          Message.error('最高音大于现在的音域')
+          this.$emit('midi-cancel')
+          return
+        }
+        item.lowestPitchStr = pitchList.find(v => v.pitch === lowestPitch).str
+        item.highestPitchStr = pitchList.find(v => v.pitch === highestPitch).str
       }
-      return midPitchList
-    }
-  },
-  methods: {
-    show(data, fileName) {
+      this.midPitchList = midPitchList
       this.midiVisible = true
-      this.midPitchList = data.midPitchList
+    },
+    show(data, fileName) {
+      this.handleMidPitchList(data.midPitchList)
       this.fileName = fileName
     },
     changeSelect(event, it) {
@@ -76,22 +87,14 @@ export default {
       this.$emit('midi-cancel')
     },
     submit() {
-      console.log('submit')
       const pitchList = this.midPitchList[this.selectMid].pitchList
-      console.log('pitchList:', pitchList)
       const stagePitches = pitchList2StagePitches(pitchList, 'grid', this)
-      stagePitches.forEach(item => {
-        item.hanzi = '啦'
-        item.pinyinList = ['la']
-        item.fu = 'l'
-        item.yuan = 'a'
-      })
       this.midiVisible = false
       this.$store.dispatch('changeStoreState', {
         taskId: 0,
         bpm: pitchList[0].bpm,
         toneName: pitchList[0].singer,
-        toneId: 1, // TODO 这里返回的音源ID不对
+        toneId: pitchList[0].toneId,
         musicName: this.fileName,
         stagePitches: stagePitches,
         pitchChanged: true
@@ -100,6 +103,7 @@ export default {
       this.$store.dispatch('saveFuYuan')
       this.$store.dispatch('adjustStageWidth')
       this.$emit('midi-cancel')
+      Message.success('导入成功～')
     }
   }
 }
