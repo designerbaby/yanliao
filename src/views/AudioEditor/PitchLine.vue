@@ -113,7 +113,7 @@ export default {
       return classifyDraw
     },
     handleData(data) {
-      console.time(`handleData`)
+      // console.time(`handleData`)
       let result = []
       const pw = this.pitchWidth
       const fp = this.firstPitch
@@ -127,7 +127,7 @@ export default {
           y
         })
       }
-      console.timeEnd(`handleData`)
+      // console.timeEnd(`handleData`)
       return this.toDrawSvg(result)
     },
     toDrawSvg(arr) {

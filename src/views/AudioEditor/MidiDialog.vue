@@ -8,9 +8,7 @@
       <RadioGroup v-model="selectMid">
         <Radio v-for="(it, index) in midPitchList"
           :key="index"
-          :label="index"
-          @change="changeSelect($event, it)"
-          >
+          :label="index">
             音轨 {{ index + 1 }} ({{ it.pitchList.length }}个音符, {{ it.lowestPitchStr }}-{{ it.highestPitchStr }}, Piano)
         </Radio>
       </RadioGroup>
@@ -55,10 +53,10 @@ export default {
           lowestPitch = Math.min(lowestPitch, pitchLists[j].pitch)
           highestPitch = Math.max(highestPitch, pitchLists[j].pitch)
         }
-        console.log('lowestPitch:', lowestPitch)
-        console.log('highestPitch:', highestPitch)
-        console.log('pitchList[pitchList.length - 1].pitch:', pitchList[pitchList.length - 1].pitch)
-        console.log('pitchList[0].pitch:', pitchList[0].pitch)
+        // console.log('lowestPitch:', lowestPitch)
+        // console.log('highestPitch:', highestPitch)
+        // console.log('pitchList[pitchList.length - 1].pitch:', pitchList[pitchList.length - 1].pitch)
+        // console.log('pitchList[0].pitch:', pitchList[0].pitch)
         if (lowestPitch < pitchList[pitchList.length - 1].pitch) {
           Message.error('最低音小于现在的音域')
           this.$emit('midi-cancel')
@@ -79,9 +77,6 @@ export default {
       this.handleMidPitchList(data.midPitchList)
       this.fileName = fileName
     },
-    changeSelect(event, it) {
-      console.log('changeSelect:', event, it)
-    },
     cancel() {
       this.midiVisible = false
       this.$emit('midi-cancel')
@@ -97,7 +92,11 @@ export default {
         toneId: pitchList[0].toneId,
         musicName: this.fileName,
         stagePitches: stagePitches,
-        pitchChanged: true
+        pitchChanged: true,
+        f0Draw: [],
+        volumeMap: [],
+        tensionMap: [],
+        changedLineMap: {}
       })
       this.$store.dispatch('getPitchLine')
       this.$store.dispatch('saveFuYuan')
