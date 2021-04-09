@@ -1,12 +1,14 @@
 <template>
   <Dialog
     :visible.sync="show"
-    width="400px"
     custom-class="editor-dialog"
     :before-close="beforeClose"
     top="15%"
+    :title="title"
   >
-    <div class="editor-tip">{{ tip }}</div>
+    <div class="editor-wrap">
+      <div class="editor-tip">{{ tip }}</div>
+    </div>
     <div class="editor-footer">
       <button class="editor-button editor-confirm-button" @click="confirmButtonEvent">{{ confirmButtonText }}</button>
       <button class="editor-button editor-cancel-button" @click="cancelButtonEvent">{{ cancelButtonText }}</button>
@@ -26,8 +28,13 @@ export default {
       type: Boolean,
       required: true,
     },
+    title: {
+      type: String,
+      default: '标题'
+    },
     tip: {
-      type: String
+      type: String,
+      default: '提示'
     },
     confirmButtonText: {
       type: String,
@@ -61,12 +68,27 @@ export default {
   background: #2c2c2c;
   box-shadow: -8px 0 32px 0 rgba(0,0,0,0.30);
   border-radius: 8px;
+  width: 520px;
+  .el-dialog__title {
+    font-family: PingFangSC-Medium;
+    font-size: 16px;
+    color: #FFFFFF;
+    margin-left: 20px;
+  }
+  .el-dialog__header {
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    height: 64px;
+    // text-align: center;
+    padding: 0;
+    line-height: 64px;
+  }
+  .editor-wrap {
+    height: 124px;
+  }
   .editor-tip {
     font-size: 14px;
     color: #fff;
-    text-align: center;
-    height: 100px;
-    line-height: 100px;
+    margin: 24px 0 0 24px;
   }
   .editor-footer {
     height: 72px;

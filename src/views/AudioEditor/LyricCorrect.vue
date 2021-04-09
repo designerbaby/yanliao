@@ -105,11 +105,12 @@ export default {
     font-family: PingFangSC-Medium;
     font-size: 16px;
     color: #FFFFFF;
+    margin-left: 20px;
   }
   .el-dialog__header {
     border-bottom: 1px solid rgba(0,0,0,0.07);
     height: 64px;
-    text-align: center;
+    // text-align: center;
     padding: 0;
     line-height: 64px;
   }

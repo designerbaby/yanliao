@@ -119,11 +119,11 @@ export default {
     font-family: PingFangSC-Medium;
     font-size: 16px;
     color: #FFFFFF;
+    margin-left: 20px;
   }
   .el-dialog__header {
     height: 64px;
     line-height: 64px;
-    text-align: center;
     padding: 0;
     border-bottom: 1px solid rgba(0,0,0,0.07);
   }

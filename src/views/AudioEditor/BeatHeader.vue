@@ -84,6 +84,7 @@
     <MidiDialog ref="MidiDialog" @midi-cancel="midiCancelEvent"></MidiDialog>
     <CommonDialog
       :show="dialogShow"
+      title="导入Midi"
       tip="是否放弃未保存的改动？"
       confirmButtonText="放弃改动"
       :confirmButtonEvent="confirmEvent"
