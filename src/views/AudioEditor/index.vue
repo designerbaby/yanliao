@@ -124,7 +124,7 @@ export default {
       if (event.keyCode === 32) {
         this.toPlay()
         event.preventDefault()
-      } else if (event.keyCode === 8) {
+      } else if (event.keyCode === 8 || event.keyCode === 46) { // delete or return
         const stagePitches = this.stagePitches.filter(({ selected }) => !selected)
         this.$store.dispatch('changeStoreState', { stagePitches })
         event.stopPropagation()
