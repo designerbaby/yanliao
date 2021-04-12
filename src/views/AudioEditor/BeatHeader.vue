@@ -6,10 +6,8 @@
         ref="upload"
         accept=".mid"
         :on-change="uploadChange"
-        :on-exceed="uploadExcced"
         :auto-upload="false"
         :multiple="false"
-        :limit="1"
         :show-file-list="false"
         :with-credentials="true"
         :action="action">
@@ -233,6 +231,10 @@ export default {
       this.uploadMidi()
     },
     uploadQupu(event) {
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       if (this.isNeedGenerate) {
         this.dialogShow = true
         event.stopPropagation()
@@ -250,11 +252,11 @@ export default {
     midiCancelEvent() {
       this.$refs['upload'].clearFiles()
     },
-    uploadExcced(file, fileList) {
-      console.log('uploadExcced:', file, fileList)
-      Message.error('请勿重复上传')
-      this.$refs['upload'].clearFiles()
-    },
+    // uploadExcced(file, fileList) {
+    //   console.log('uploadExcced:', file, fileList)
+    //   Message.error('请勿重复上传')
+    //   this.$refs['upload'].clearFiles()
+    // },
     async uploadMidi() {
       const file = this.file
       const fileNameArr = file.name.split('.')

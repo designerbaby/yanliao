@@ -7,6 +7,7 @@
           <BeatStageBg></BeatStageBg>
           <BeatLine></BeatLine>
           <div
+            id="drawStage"
             ref="drawStage"
             @mousedown="onMouseDown"
             @mousemove="onMouseMove"
@@ -145,6 +146,7 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
+    this.$refs.drawStage.addEventListener
   },
   methods: {
     doSelectUUID(uuid) {

@@ -78,9 +78,8 @@ export default {
       }
     )
     this.$store.dispatch('updateStageSize')
-    // if (isChrome) {
-    //   this.dialogShow = true
-    // }
+    await this.$nextTick()
+    document.addEventListener('keydown', this.keyDownListener)
   },
   destroyed() {
     if (this.audio) {
@@ -88,6 +87,7 @@ export default {
     }
     this.storeStagePitchesWatcher()
     this.resetStoreState()
+    document.removeEventListener('keydown', this.keyDownListener)
   },
   computed: {
     noteWidth() {
@@ -119,6 +119,17 @@ export default {
     }
   },
   methods: {
+    keyDownListener(event) {
+      if (event.target !== document.body) return
+      if (event.keyCode === 32) {
+        this.toPlay()
+        event.preventDefault()
+      } else if (event.keyCode === 8) {
+        const stagePitches = this.stagePitches.filter(({ selected }) => !selected)
+        this.$store.dispatch('changeStoreState', { stagePitches })
+        event.stopPropagation()
+      }
+    },
     closeDialogShow() {
       this.dialogShow = false
     },
