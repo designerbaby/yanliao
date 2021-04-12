@@ -252,11 +252,6 @@ export default {
     midiCancelEvent() {
       this.$refs['upload'].clearFiles()
     },
-    // uploadExcced(file, fileList) {
-    //   console.log('uploadExcced:', file, fileList)
-    //   Message.error('请勿重复上传')
-    //   this.$refs['upload'].clearFiles()
-    // },
     async uploadMidi() {
       const file = this.file
       const fileNameArr = file.name.split('.')
