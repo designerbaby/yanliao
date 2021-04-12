@@ -52,7 +52,9 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### TODO
 
 - 1、要把doPlay的判断改成状态机
-
+- 1、插入换气的操作
+- 2、分享
+- 4、音高线如何开发
 ## 难点
 - 1、用svg画音高线的时候出现锯齿
 - 2、整体数据规划

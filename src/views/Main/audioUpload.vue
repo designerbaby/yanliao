@@ -29,7 +29,7 @@
       </FormItem>
       <FormItem label="音源名称" required>
         <Input
-          placeholder="请输入音源名称" 
+          placeholder="请输入音源名称"
           v-model="form.audio_source_name"
           maxlength="10"
           show-word-limit>
@@ -60,8 +60,7 @@ import {
   Progress
 } from 'element-ui'
 import { addAudioSource, getUserCredential } from '@/api/audioSource'
-import { getCookie, camSafeUrlEncode } from '@/common/utils/helper'
-import CosAuth from '@/common/utils/cosAuth'
+import { getCookie, camSafeUrlEncode, getAuthorization } from '@/common/utils/helper'
 
 export default {
   name: 'audioUpload',
@@ -134,9 +133,9 @@ export default {
       const mxUid = getCookie('mx_uid')
       Message.success('上传中')
       this.loading = true
-      const key = `file/${mxUid}/${this.form.file.name}` 
+      const key = `file/${mxUid}/${this.form.file.name}`
       const { data } = await this.getUserCredential()
-      const info = await this.getAuthorization(method, key, data)
+      const info = await getAuthorization(method, key, data)
       const Authorization = info.Authorization   // 得到的签名
       const XCosSecurityToken = info.XCosSecurityToken // 得到的sessionToken
       this.uploadFile(method, key, Authorization, XCosSecurityToken, (err, data) => {
@@ -159,7 +158,6 @@ export default {
         const percentage = parseFloat(Math.round(e.loaded / e.total * 10000) / 100)
         this.percentage = percentage
         console.log(`上传进度: ${this.percentage}%`)
-        // Message.success(`上传进度${progress}%`)
       };
       xhr.onload = () => {
         if (/^2\d\d$/.test('' + xhr.status)) {
@@ -173,18 +171,6 @@ export default {
         callback(`文件${key}上传失败，请检查是否没配置 CORS 跨域规则`)
       };
       xhr.send(this.form.file);
-    },
-    // 计算签名
-    getAuthorization(method, key, data) {
-      return {
-        XCosSecurityToken: data.credentials.session_token,
-        Authorization: CosAuth({
-          SecretId: data.credentials.tmp_secret_id,
-          SecretKey: data.credentials.tmp_secret_key,
-          Method: method,
-          Pathname: `/${key}`
-        })
-      }
     },
     async addAudioSource(url) {
       if (!this.form.audio_source_name) {
@@ -222,7 +208,7 @@ export default {
     border: none;
     line-height: 32px;
     padding: 0px;
-    margin: 100px auto 0px; 
+    margin: 100px auto 0px;
     display: block;
     &:active {
       opacity: 0.8;

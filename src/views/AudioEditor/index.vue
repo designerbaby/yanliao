@@ -3,7 +3,7 @@
     <div :class="$style.panel" v-if="!userInfo" @click="checkLogin"></div>
     <BeatHeader
       :isPlaying="playState == 1"
-      :isNeedGenerate="isNeedGenerate()"
+      :isNeedGenerate="isNeedGenerate('upload')"
       @play="toPlay"
       @synthesize="toSynthesize"
       @openDrawer="toOpenDrawer"
@@ -32,7 +32,7 @@ import StatusBar from './StatusBar.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, generateUUID, isChrome } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, generateUUID, isChrome, pitchList2StagePitches } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
 import CommonDialog from '@/common/components/CommonDialog'
 
@@ -78,9 +78,8 @@ export default {
       }
     )
     this.$store.dispatch('updateStageSize')
-    // if (isChrome) {
-    //   this.dialogShow = true
-    // }
+    await this.$nextTick()
+    document.addEventListener('keydown', this.keyDownListener)
   },
   destroyed() {
     if (this.audio) {
@@ -88,6 +87,7 @@ export default {
     }
     this.storeStagePitchesWatcher()
     this.resetStoreState()
+    document.removeEventListener('keydown', this.keyDownListener)
   },
   computed: {
     noteWidth() {
@@ -119,6 +119,17 @@ export default {
     }
   },
   methods: {
+    keyDownListener(event) {
+      if (event.target !== document.body) return
+      if (event.keyCode === 32) {
+        this.toPlay()
+        event.preventDefault()
+      } else if (event.keyCode === 8) {
+        const stagePitches = this.stagePitches.filter(({ selected }) => !selected)
+        this.$store.dispatch('changeStoreState', { stagePitches })
+        event.stopPropagation()
+      }
+    },
     closeDialogShow() {
       this.dialogShow = false
     },
@@ -149,29 +160,6 @@ export default {
       const res = await musicxml2Json(xml2JsonReq)
       return res.data.data
     },
-    pitchList2StagePitches(pitchList, type) {
-      let stagePitches = []
-      pitchList.forEach(item => {
-        stagePitches.push({
-          hanzi: item.hanzi,
-          pinyin: item.pinyin,
-          red: false,
-          height: this.noteHeight,
-          width: type === 'grid' ? item.duration * this.noteWidth : timeToPx(item.duration, this.noteWidth, pitchList[0].bpm),
-          left: type === 'grid' ? item.startTime * this.noteWidth : timeToPx(item.startTime, this.noteWidth, pitchList[0].bpm),
-          top: this.noteHeight * (this.firstPitch - item.pitch),
-          pinyinList: item.pinyinList,
-          select: item.select,
-          preTime: item.preTime,
-          fu: item.fu,
-          yuan: item.yuan,
-          selected: false, // 表示是否选中了音块
-          uuid: generateUUID()
-        })
-      })
-      console.log('pitchList2StagePitches:', stagePitches)
-      return stagePitches
-    },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       const musicId = getParam('musicId') || 0
@@ -180,7 +168,7 @@ export default {
         const res = await editorDetail({ task_id: taskId })
         const data = res.data.data
         const pitchList = data.pitchList
-        const stagePitches = this.pitchList2StagePitches(pitchList)
+        const stagePitches = pitchList2StagePitches(pitchList, '', this)
         await this.$store.dispatch('changeStoreState', {
           taskId: data.task_id,
           downUrl: data.down_url,
@@ -218,11 +206,10 @@ export default {
         console.log('musicInfo:', musicInfo)
         let stagePitches = []
         if (musicInfo.bus_type === 1) { // 从正常的xml转过来，给的是格子数
-          stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList, 'grid')
+          stagePitches = pitchList2StagePitches(musicxml2Json.pitchList, 'grid', this)
         } else { // 从我自己生成的曲谱过来，给的是时间
-          stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList)
+          stagePitches = pitchList2StagePitches(musicxml2Json.pitchList, '', this)
         }
-        // const stagePitches = this.pitchList2StagePitches(musicxml2Json.pitchList, 'grid')
         this.$store.dispatch('changeStoreState', {
           taskId: getParam('arrangeId') || musicxml2Json.task_id,
           musicId: musicId,
@@ -238,9 +225,8 @@ export default {
       }
       this.$store.dispatch('adjustStageWidth')
     },
-    isNeedGenerate() {
-      console.log(`
-        this.isStagePitchesChanged: ${this.isStagePitchesChanged}, 
+    isNeedGenerate(type) {
+      console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
         this.$store.state.isPitchLineChanged: ${this.$store.state.isPitchLineChanged},
         this.$store.state.isVolumeChanged: ${this.$store.state.isVolumeChanged},
         this.$store.state.isTensionChanged: ${this.$store.state.isTensionChanged},
@@ -271,7 +257,7 @@ export default {
       }
 
       // 没有可播放的url
-      if (!this.$store.state.onlineUrl) {
+      if (!this.$store.state.onlineUrl && type !== 'upload') {
         return true
       }
 
@@ -336,7 +322,7 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition()

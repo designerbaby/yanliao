@@ -7,6 +7,7 @@
           <BeatStageBg></BeatStageBg>
           <BeatLine></BeatLine>
           <div
+            id="drawStage"
             ref="drawStage"
             @mousedown="onMouseDown"
             @mousemove="onMouseMove"
@@ -38,6 +39,7 @@
               {{ it.hanzi }}
               <Arrow :pitch="it" direction="left" @move-end="onArrowMoveEnd($event, index)"/>
               <Arrow :pitch="it" direction="right" @move-end="onArrowMoveEnd($event, index)"/>
+              <Breath v-if="it.breath" :it="it" :index="index"></Breath>
             </div>
           </template>
           <BeatMenuList
@@ -74,6 +76,7 @@ import BeatMenuList from './BeatMenuList.vue'
 import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
 import StatusBar from './StatusBar.vue'
+import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 
 export default {
@@ -92,7 +95,8 @@ export default {
     BeatMenuList,
     Parameters,
     StatusBar,
-    PitchElement
+    PitchElement,
+    Breath
   },
   data() {
     return {
@@ -142,6 +146,7 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
+    this.$refs.drawStage.addEventListener
   },
   methods: {
     doSelectUUID(uuid) {
@@ -234,7 +239,7 @@ export default {
     },
     onPitchMouseDown(event, index){
       // 绿色块鼠标按下事件
-      // console.log('onPitchMouseDown', event, index)
+      console.log('onPitchMouseDown', event, index)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -244,26 +249,28 @@ export default {
         return
       }
 
-      const { left, top } = event.target.getBoundingClientRect()
-      this.mouseModalTarget = document.createElement('div')
-      const mouseModalTarget = this.mouseModalTarget
-      mouseModalTarget.style.zIndex = 99999
-      mouseModalTarget.style.position = `absolute`
-      mouseModalTarget.style.width = '200px'
-      mouseModalTarget.style.height = '200px'
-      mouseModalTarget.style.left = `${left - 100}px`
-      mouseModalTarget.style.top = `${top - 100}px`
-      mouseModalTarget.style.opacity = 0  // 蒙层的透明度
-      mouseModalTarget.style.cursor = 'move'
-      mouseModalTarget.style.background = 'red'
-      mouseModalTarget.addEventListener('mouseup', this.onPitchMouseUp)
-      this.$refs.rightArea.appendChild(mouseModalTarget)
-
       this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
       const target = event.target
       target.style.opacity = 0.8
-      // 都有的dom元素
 
+      // 起个蒙层防止鼠标移出
+      if (event.button !== 2 && !event.shiftKey) { // 只有不是鼠标右键并且没按住shift键的时候，才出现这个蒙层
+        this.mouseModalTarget = document.createElement('div')
+        const mouseModalTarget = this.mouseModalTarget
+        mouseModalTarget.style.zIndex = 99999
+        mouseModalTarget.style.position = `absolute`
+        mouseModalTarget.style.width = '200px'
+        mouseModalTarget.style.height = '200px'
+        mouseModalTarget.style.left = `${target.dataset.left - 100}px`
+        mouseModalTarget.style.top = `${target.dataset.top - 100}px`
+        mouseModalTarget.style.opacity = 0  // 蒙层的透明度
+        mouseModalTarget.style.cursor = 'move'
+        mouseModalTarget.style.background = 'red'
+        mouseModalTarget.addEventListener('mouseup', this.onPitchMouseUp)
+        this.$refs.stage.appendChild(mouseModalTarget)
+      }
+
+      // 都有的dom元素
       const allElements = [...this.$el.querySelectorAll('[data-ref="pitch"]')]
       const selectedElements = []
       const selectedPitches = []
@@ -276,7 +283,7 @@ export default {
             selectedPitches.push(v)
           }
         })
-      } else { // 当前点击的项没有选中，则值操作当前点的项
+      } else { // 当前点击的项没有选中，则只操作当前点的项
         this.$store.dispatch('resetStagePitchesSelect')
         selectedElements.push(target)
         selectedPitches.push(this.stagePitches[index])
@@ -304,8 +311,8 @@ export default {
       // 绿色块鼠标移动事件
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
-        this.mouseModalTarget.style.left = `${event.clientX - 100}px`
-        this.mouseModalTarget.style.top = `${event.clientY - 100}px`
+        this.mouseModalTarget.style.left = `${event.target.dataset.left - 100}px`
+        this.mouseModalTarget.style.top = `${event.target.dataset.top - 100}px`
 
         const { target, selectedPitches, selectedElements } = this.movePitchStart
 
@@ -333,8 +340,11 @@ export default {
     },
     onPitchMouseUp(event) {
       if (this.movePitchStart) {
-        this.mouseModalTarget.parentNode.removeChild(this.mouseModalTarget)
         // console.log(`onPitchMouseUp`, event)
+        if (this.mouseModalTarget) {
+          this.$refs.stage.removeChild(this.mouseModalTarget)
+          this.mouseModalTarget = null
+        }
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
         const { target, index, selectedPitches, selectedElements } = this.movePitchStart

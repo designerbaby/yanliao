@@ -78,7 +78,7 @@ export default {
   },
   methods: {
     handleDivideDraw(data) {
-      console.time('handleDivideDraw')
+      // console.time('handleDivideDraw')
       let result = []
       const pw = this.pitchWidth
       const fp = this.firstPitch
@@ -96,11 +96,11 @@ export default {
           })
         // }
       }
-      console.timeEnd('handleDivideDraw')
+      // console.timeEnd('handleDivideDraw')
       // 每隔100个分段显示
       const divide = divideArray(99, result)
       let classifyDraw = []
-      console.time(`toDrawSvg`)
+      // console.time(`toDrawSvg`)
       for (let i = 0; i < divide.length; i += 1) {
         const item = divide[i]
         // 这里分段后，最后一个插入下一个的第一个值，这样就可以看起来连续了
@@ -109,11 +109,11 @@ export default {
         }
         classifyDraw.push(this.toDrawSvg(item))
       }
-      console.timeEnd(`toDrawSvg`)
+      // console.timeEnd(`toDrawSvg`)
       return classifyDraw
     },
     handleData(data) {
-      console.time(`handleData`)
+      // console.time(`handleData`)
       let result = []
       const pw = this.pitchWidth
       const fp = this.firstPitch
@@ -127,7 +127,7 @@ export default {
           y
         })
       }
-      console.timeEnd(`handleData`)
+      // console.timeEnd(`handleData`)
       return this.toDrawSvg(result)
     },
     toDrawSvg(arr) {

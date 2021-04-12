@@ -10,6 +10,9 @@
 
     <div :class="[$style.button, $style.top]" @click.stop="editLyric(-2)">编辑歌词</div>
     <div :class="[$style.button, $style.bottom]" @click.stop="editLyric(-1)">全量编辑歌词</div>
+
+    <!-- <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="cancelBreath" v-if="showBreath === 'cancel'">取消换气</div>
+    <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="insertBreath" v-if="showBreath === 'insert'">插入换气</div> -->
   </div>
 </template>
 
@@ -29,6 +32,33 @@ export default {
   computed: {
     stagePitches() {
       return this.$store.state.stagePitches
+    },
+    showBreath() {
+      let show = ''
+      const selectStagePitches = this.stagePitches.filter(v => v.selected)
+      if (selectStagePitches.length === 1 && selectStagePitches[0].breath) {
+        // 只选择了一个，而且这个选择的有换气的内容，就显示取消换气
+        show = 'cancel'
+      }
+      let selectHasPosition = false
+      for (let i = 0; i < this.stagePitches.length; i += 1) {
+        const current = this.stagePitches[i]
+        if (current.selected) {
+          if (i === 0) {
+            selectHasPosition = true
+          } else { // i > 0
+            const before = this.stagePitches[i - 1]
+            if (before.left + before.width !== current.left) {
+              selectHasPosition = true
+            }
+          }
+        }
+      }
+      if (selectStagePitches.length === 1 && !selectStagePitches[0].breath && selectHasPosition) {
+        // 只选择了一个，而且这个选择的没有换气的内容，而且前面有空格，就显示换气的按钮
+        show = 'insert'
+      }
+      return show
     }
   },
   methods: {
@@ -50,6 +80,23 @@ export default {
       const copyStagePitches = this.stagePitches.filter(v => v.selected);
       this.$store.dispatch('changeStoreState', { copyStagePitches })
       this.$store.dispatch('changeStoreState', { showMenuList: false })
+    },
+    insertBreath() {
+      const selectStagePitches = this.stagePitches.filter(v => v.selected)
+      // console.log('selectStagePitches:', selectStagePitches)
+      selectStagePitches.forEach(item => {
+        item.breath = {
+          left: item.left - this.$store.state.noteWidth,
+          width: this.$store.state.noteWidth,
+          pinyin: 'br'
+        }
+      })
+    },
+    cancelBreath() {
+      const selectStagePitches = this.stagePitches.filter(v => v.selected)
+      selectStagePitches.forEach(item => {
+        item.breath = null
+      })
     }
   }
 }
