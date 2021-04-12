@@ -9,10 +9,10 @@
     <div :class="[$style.button, $style.line]" @click.stop="copy">复制</div>
 
     <div :class="[$style.button, $style.top]" @click.stop="editLyric(-2)">编辑歌词</div>
-    <div :class="[$style.button, $style.bottom]" @click.stop="editLyric(-1)">全量编辑歌词</div>
+    <div :class="[$style.button, $style.bottom, $style.line]" @click.stop="editLyric(-1)">全量编辑歌词</div>
 
-    <!-- <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="cancelBreath" v-if="showBreath === 'cancel'">取消换气</div>
-    <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="insertBreath" v-if="showBreath === 'insert'">插入换气</div> -->
+    <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="cancelBreath" v-if="showBreath === 'cancel'">取消换气</div>
+    <div :class="[$style.button, $style.top, $style.bottom]" @click.stop="insertBreath" v-if="showBreath === 'insert'">插入换气</div>
   </div>
 </template>
 
@@ -83,7 +83,6 @@ export default {
     },
     insertBreath() {
       const selectStagePitches = this.stagePitches.filter(v => v.selected)
-      // console.log('selectStagePitches:', selectStagePitches)
       selectStagePitches.forEach(item => {
         item.breath = {
           left: item.left - this.$store.state.noteWidth,

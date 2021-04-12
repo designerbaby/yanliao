@@ -29,7 +29,7 @@ export default {
   mounted() {},
   methods: {
     play(it) {
-      console.log('play', it.pitch)
+      // console.log('play', it.pitch)
       playPiano(it.pitch)
     }
   }

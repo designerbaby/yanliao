@@ -19,7 +19,7 @@ export default {
     Dragger,
     Message
   },
-  props: ['pitch', 'index'],
+  props: ['pitch', 'index', 'canMove'],
   data() {
     return {
       isActive: false,
@@ -48,19 +48,27 @@ export default {
         width: this.pitch.breath.width,
         clientX: event.clientX
       }
+      // console.log('moveArrowBreathStart:', JSON.stringify(this.moveArrowBreathStart))
     },
     onMove(event) {
       if (this.moveArrowBreathStart) {
+        const parentNode = this.$el.parentNode
         const startX = this.moveArrowBreathStart.clientX
         const endX = event.clientX
 
         const movePx = startX - endX
-        const newLeft = this.moveArrowBreathStart.left + movePx
+        const newLeft = this.moveArrowBreathStart.left - movePx
         const newWidth = this.moveArrowBreathStart.width + movePx
+        const move = this.canMove(newLeft)
+        if (!move) {
+          return
+        }
         this.moveArrowBreathEnd = {
           left: newLeft,
-          width: newWidth
+          width: newWidth,
+          target: parentNode
         }
+        // console.log('moveArrowBreathEnd:', JSON.stringify(this.moveArrowBreathEnd))
         this.$emit('move', {
           ...this.moveArrowBreathEnd
         })

@@ -1,14 +1,12 @@
 <template>
   <div :class="[$style.breath, it.selected ? $style.isActive : '']"
-    :style="{
-      width: `${it.breath.width}px`,
-      height: `${it.height}px`
-    }"
+    :style="getStyle(it)"
   >
     {{ it.breath.pinyin }}
     <ArrowBreath
       :pitch="it"
       :index="index"
+      :canMove="canMove"
       @move="onArrowBreathMove($event, index)"
       @move-end="onArrowBreathMoveEnd($event, index)"
     />
@@ -36,14 +34,38 @@ export default {
     }
   },
   methods: {
-    onArrowBreathMove({ left, width }, index) {
-      console.log('onArrowBreathMove:', index)
+    getStyle(it) {
+      return {
+        width: `${it.breath.width}px`,
+        height: `${it.height}px`,
+        left: `${it.breath.left - it.left}px`
+      }
     },
-    onArrowBreathMoveEnd({ left, width }, index) {
-      console.log('onArrowBreathMoveEnd:', index)
+    onArrowBreathMove({ left, width, target }, index) {
       const pitch = this.stagePitches[index]
       pitch.breath.left = left
       pitch.breath.width = width
+      const styles = this.getStyle(pitch)
+      Object.keys(styles).forEach(k => {
+        target.style[k] = styles[k]
+      })
+    },
+    onArrowBreathMoveEnd({ left, width }, index) {
+      console.log(`onArrowBreathMoveEnd: ${index}, left: ${left}, width: ${width}`)
+      const pitch = this.stagePitches[index]
+      pitch.breath.left = left
+      pitch.breath.width = width
+    },
+    canMove(newLeft) {
+      if (newLeft > (this.it.left - this.$store.state.noteWidth)) { // 最小只能移动到剩下1个32分音符
+        return false
+      }
+      const before = this.stagePitches[this.index - 1]
+      const beforeEnd = before.left + before.width
+      if (newLeft <= beforeEnd) {
+        return false
+      }
+      return true
     }
   }
 }
@@ -58,7 +80,7 @@ export default {
   border-top-left-radius: 3px;
   border-bottom-left-radius: 3px;
   top: 0;
-  left: -20px;
+  left: 0;
   padding-left: 5px;
   &.isActive {
     background: #159430;
