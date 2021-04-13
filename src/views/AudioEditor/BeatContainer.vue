@@ -362,6 +362,9 @@ export default {
           if (pitch.left !== newLeft || pitch.top !== newTop) { // left和top有变动
             pitchHasChanged = true
           }
+          if (pitch.breath) {
+            pitch.breath.width = newLeft - pitch.breath.left
+          }
 
           eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
           eleDom.dataset.left = newLeft
@@ -554,6 +557,9 @@ export default {
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
       pitch.pitchChanged = true // 有改变的话，需要去拉取元辅音
+      if (pitch.breath) {
+        pitch.breath.width = pitch.left - pitch.breath.left
+      }
       console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
       if (!this.canMoveUpPitch(pitch)) {
         Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')

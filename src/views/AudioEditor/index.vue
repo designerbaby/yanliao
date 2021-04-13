@@ -32,7 +32,7 @@ import StatusBar from './StatusBar.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, generateUUID, isChrome, pitchList2StagePitches } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, pitchList2StagePitches } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
 import CommonDialog from '@/common/components/CommonDialog'
 
@@ -160,6 +160,23 @@ export default {
       const res = await musicxml2Json(xml2JsonReq)
       return res.data.data
     },
+    saveF0DrawChange(f0Ai, f0Draw) {
+      const changed = {}
+      const pitchWidth = this.$store.getters.pitchWidth
+      // 比较元数据和AI数据，如果不一样表示是修改过的，下次生成新的时候不能覆盖
+      for (let i = 0; i < f0Ai.length; i += 1) {
+        if (f0Ai[i] !== f0Draw[i]) {
+          const value = f0Draw[i]
+          const x = Math.round(pitchWidth * i)
+          const xEnd = Math.round(pitchWidth * (i + 1))
+          // console.log(`有改变的数据：pitchWidth:${pitchWidth}, index:${i}, value:${value}, x:${x}, xEnd:${xEnd}`)
+          for (let j = x; j <= xEnd; j +=1) {
+            changed[j] = value
+          }
+        }
+      }
+      this.$store.state.changedLineMap = changed
+    },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       const musicId = getParam('musicId') || 0
@@ -185,21 +202,7 @@ export default {
           musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
           musicName: data.music_name
         })
-        const changed = {}
-        const pitchWidth = this.$store.getters.pitchWidth
-        // 比较元数据和AI数据，如果不一样表示是修改过的，下次生成新的时候不能覆盖
-        for (let i = 0; i < data.f0_ai.length; i += 1) {
-          if (data.f0_ai[i] !== data.f0_draw[i]) {
-            const value = data.f0_draw[i]
-            const x = Math.round(pitchWidth * i)
-            const xEnd = Math.round(pitchWidth * (i + 1))
-            // console.log(`有改变的数据：pitchWidth:${pitchWidth}, index:${i}, value:${value}, x:${x}, xEnd:${xEnd}`)
-            for (let j = x; j <= xEnd; j +=1) {
-              changed[j] = value
-            }
-          }
-        }
-        this.$store.state.changedLineMap = changed
+        this.saveF0DrawChange(data.f0_ai, data.f0_draw)
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
         const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
@@ -210,6 +213,12 @@ export default {
         } else { // 从我自己生成的曲谱过来，给的是时间
           stagePitches = pitchList2StagePitches(musicxml2Json.pitchList, '', this)
         }
+        // 重置F0Draw
+        let f0Draw = musicxml2Json.f0_draw
+        const resetF0Draw = parseInt(getParam('resetF0Draw'), 10)
+        if (musicInfo.bus_type === 2 && resetF0Draw === 1) {
+          f0Draw = []
+        }
         this.$store.dispatch('changeStoreState', {
           taskId: getParam('arrangeId') || musicxml2Json.task_id,
           musicId: musicId,
@@ -218,8 +227,14 @@ export default {
           toneId: musicxml2Json.pitchList[0].toneId,
           musicName: `${musicInfo.name}填词`,
           stagePitches: stagePitches,
+          f0AI: musicxml2Json.f0_ai,
+          f0Draw: f0Draw,
+          volumeMap: this.convertXyMap(musicxml2Json.volume_xy),
+          tensionMap: this.convertXyMap(musicxml2Json.tension_xy),
+          f0Xy: musicxml2Json.f0_xy,
           pitchChanged: true // 标记音块改动了，这样才能重新拉到辅音
         })
+        this.saveF0DrawChange(musicxml2Json.f0_ai, f0Draw)
         this.$store.dispatch('getPitchLine')
         this.$store.dispatch('saveFuYuan')
       }
@@ -440,7 +455,6 @@ export default {
       let lastPitchDuration = 0
       const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
       this.stagePitches.forEach(item => {
-        // console.log('getLinePosition this.stagePitches item:', item)
         const right = item.left + item.width
         let left = item.left
         if (item.hasOwnProperty('preTime')) {
@@ -495,13 +509,11 @@ export default {
         })
       }
       for (let i = 0; i < volumeXy.length; i += pitchWidth) {
-        // console.log('volumeXy[Math.round(i)]', volumeXy[Math.round(i)])
         if (volumeXy[Math.round(i)]) {
           f0Volume.push(parseInt(volumeXy[Math.round(i)].y, 10))
         }
       }
       for (let i = 0; i < tensionXy.length; i += pitchWidth) {
-        // console.log('tensionXy[Math.round(i)]', tensionXy[Math.round(i)])
         if (tensionXy[Math.round(i)]) {
           f0Tension.push(parseInt(tensionXy[Math.round(i)].y, 10))
         }
@@ -514,6 +526,10 @@ export default {
       }
     },
     async toSynthesize(callback) {
+      if (this.$store.state.isGetF0Data) {
+        Message.error(`网络不好，请稍后重试~`)
+        return
+      }
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
       const synthesizeStart = Date.now()
       const handleData = this.handleVolumeTension()
