@@ -526,6 +526,10 @@ export default {
       }
     },
     async toSynthesize(callback) {
+      if (this.$store.state.isGetF0Data) {
+        Message.error(`网络不好，请稍后重试~`)
+        return
+      }
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
       const synthesizeStart = Date.now()
       const handleData = this.handleVolumeTension()
