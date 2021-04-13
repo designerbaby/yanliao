@@ -86,15 +86,13 @@ export default {
           const newX = x + distanceX
           let newPitch = pitch + (pitchPerPx * distanceY)
           const highestPitch = this.$store.getters.firstPitch
-          if (newPitch > highestPitch * 100) {
+          if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
             newPitch = highestPitch * 100
           }
           const lowestPitch = pitchList[pitchList.length - 1].pitch
-          // console.log('lowestPitch:', lowestPitch)
-          if (newPitch < lowestPitch * 100) {
+          if (newPitch < lowestPitch * 100) { // 小于最小的pitch取最小的
             newPitch = lowestPitch * 100
           }
-          // console.log(`pitch: ${pitch}, pitchPerPx: ${pitchPerPx}, distanceY: ${distanceY}, newPitch: ${newPitch}`)
           newLineMap[newX] = newPitch
         })
 

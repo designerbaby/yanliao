@@ -179,8 +179,6 @@ export default {
       maxTone: 0, // 最大的曲调
       minTone: 0, // 最小的曲调
       melodySelectorDisable: true, // 曲调是否可编辑
-      // defaultValue: {},
-      // showMelodyTips: false,
       singleToneId: null,
       validateResult: {
         contents: [],
@@ -202,7 +200,11 @@ export default {
       oldLyricList: [],
       toneList: [],
       toneId: 0,
-      wantAddDraft: true // 是否想要添加草稿箱
+      wantAddDraft: true, // 是否想要添加草稿箱
+      oldBpmTone: {
+        bpm: 50,
+        melody: 0
+      }
     }
   },
   watch:{
@@ -330,7 +332,8 @@ export default {
       } else if (this.arrangeId) {
         type = 'edit'
       }
-      console.log('initFormData data, type', data, type)
+      console.log(`initFormData type: ${type}, data:`, data)
+
       const m = {
         'normal': () => {
           this.oldLyricList = data.lyric_list
@@ -340,6 +343,10 @@ export default {
           this.melody = 0
           this.musicId = data.music_id
           this.countAdjust = data.count_adjust || []
+          this.oldBpmTone = {
+            bpm: data.avg_bpm,
+            melody: 0
+          }
           this.initLyricData()
         },
         'edit': () => {
@@ -352,6 +359,10 @@ export default {
           this.toneType = editInfo.tone_type
           this.oldLyricList = data.lyric_list
           this.countAdjust = data.count_adjust || []
+          this.oldBpmTone = {
+            bpm: editInfo.bpm,
+            melody: editInfo.up_down_tone
+          }
           this.initLyricData(editInfo)
         },
         'draft': () => {
@@ -363,6 +374,10 @@ export default {
           this.minTone = draftDetail.min_tone
           this.oldLyricList = draftDetail.new_lyric_list.map(item => item.content)
           const musicId = this.musicId
+          this.oldBpmTone = {
+            bpm: draftDetail.bpm,
+            melody: draftDetail.up_down_tone
+          }
           songDetail(musicId).then((response) => {
             this.oldLyricList = response.data.data.lyric_list
             this.initvalidateData()
@@ -450,7 +465,6 @@ export default {
         })
       }
       this.melodyOptions = melodyOptions
-      console.log(`initMelodyOption, this.maxTone: ${this.maxTone}, this.minTone: ${this.minTone}, this.melody: ${this.melody}this.melodyOptions`, melodyOptions)
     },
     /* 数据初始化 end */
 
@@ -469,15 +483,6 @@ export default {
       this.minTone = data.data.tone_min
       this.initMelodyOption()
       this.melody = 0
-      // melodyConfig(musicId, toneId).then((response) => {
-      //   this.melodySelectorDisable = false
-      //   const { data } = response.data
-      //   this.maxTone = parseInt(data.tone_max)
-      //   this.minTone = parseInt(data.tone_min)
-      //   this.initMelodyOption()
-      //   // this.melody = parseInt((this.maxTone + this.minTone) / 2)
-      //   this.melody = 0
-      // })
     },
 
     /* 事件监听 start */
@@ -573,23 +578,32 @@ export default {
           const { data } = response.data
           xml2JsonReq.fix_pinyin_list = this.handlePolyphonicList(data.polyphonic_list)
           xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
+          const toneBpmChange = this.judgeToneBpmChange()
           if (this.arrangeId) {
             xml2JsonReq.arrange_id = this.arrangeId
-            this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1&arrangeId=${this.arrangeId}`)
+            this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1&arrangeId=${this.arrangeId}&resetF0Draw=${toneBpmChange}`)
           } else {
-            this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1`)
+            this.$router.push(`/audioEditor?musicId=${this.musicId}&index=1&resetF0Draw=${toneBpmChange}`)
           }
           sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
-          // this.deleteDraft()
         }).then((response) => {
           if (!response) {
             return
           }
         })
       } else {
-        // this.$refs.CompleteDialog.show('请校验歌词格式正确')
         this.$refs.CompleteDialog.show('请先完善信息后再进行下一步')
       }
+    },
+    judgeToneBpmChange() {
+      console.log(`this.oldBpmTone: ${this.oldBpmTone}, this.bpm: ${this.bpm}, this.melody: ${this.melody}`)
+      if (this.oldBpmTone.bpm !== this.bpm) {
+        return 1
+      }
+      if (this.oldBpmTone.melody !== this.melody) {
+        return 1
+      }
+      return 0
     },
     // 确认按钮点击
     confirmButtonClick() {
@@ -731,7 +745,7 @@ export default {
       Object.keys(validateResult).forEach((k) => {
         const value = validateResult[k]
         const type = Object.prototype.toString.call(value)
-        // console.log(`k: ${k}, value: ${value}, type: ${type}`)
+        console.log(`k: ${k}, value: ${value}, type: ${type}`)
         if (type === '[object Array]') {
           // 数组
           for (let i = 0; i < value.length; i++) {

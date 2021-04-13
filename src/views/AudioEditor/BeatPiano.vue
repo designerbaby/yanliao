@@ -29,7 +29,6 @@ export default {
   mounted() {},
   methods: {
     play(it) {
-      // console.log('play', it.pitch)
       playPiano(it.pitch)
     }
   }
@@ -39,7 +38,6 @@ export default {
 <style lang="less" module>
 .container {
   position: relative;
-  // margin-top: 25px;
   z-index: 1001;
 }
 
