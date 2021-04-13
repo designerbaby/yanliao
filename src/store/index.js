@@ -116,7 +116,6 @@ const store = new Vuex.Store({
         }
 
         let breath = null
-        console.log('item.breath:', item.breath)
         if (item.breath) {
           breath = {
             duration: pxToTime(item.breath.width, state.noteWidth, state.bpm),

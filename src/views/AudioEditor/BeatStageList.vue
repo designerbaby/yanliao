@@ -12,6 +12,7 @@
 <script>
 import { Message } from "element-ui"
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
+import { pitchList } from '@/common/utils/const'
 
 export default {
   name: 'BeatStageList',
@@ -58,11 +59,49 @@ export default {
           selected: true,
           uuid: generateUUID()
         }
-        this.stagePitches.push(Object.assign({}, item, newItem))
+
+
+        const finalItem = Object.assign({}, item, newItem)
+        this.stagePitches.push(finalItem)
+        this.copyPitchLine(item, finalItem)
       }
-      // console.log('this.stagePitches:', this.stagePitches)
+
       this.$store.dispatch('changeStoreState', { showStageList: false })
       this.$store.dispatch('afterChangePitchAndHandle')
+    },
+    copyPitchLine(fromItem, toItem) {
+      const distanceY = fromItem.top - toItem.top
+      const distanceX = toItem.left - fromItem.left
+      const [fromX0, toX0] = [ fromItem.left, toItem.left]
+      const [fromX1, toX1] = [ fromItem.left + fromItem.width, toItem.left + toItem.width]
+
+      const changedLineMap = this.$store.state.changedLineMap
+      const pitchPerPx = 100 / this.$store.state.noteHeight // 100是因为后台加了乘以100了
+      const newLineMap = {}
+      Object.keys(changedLineMap)
+        .map(Number)
+        .filter(x => x >= fromX0 && x <= fromX1)
+        .forEach(x => {
+          const pitch = changedLineMap[x]
+          const newX = x + distanceX
+          let newPitch = pitch + (pitchPerPx * distanceY)
+          const highestPitch = this.$store.getters.firstPitch
+          if (newPitch > highestPitch * 100) {
+            newPitch = highestPitch * 100
+          }
+          const lowestPitch = pitchList[pitchList.length - 1].pitch
+          // console.log('lowestPitch:', lowestPitch)
+          if (newPitch < lowestPitch * 100) {
+            newPitch = lowestPitch * 100
+          }
+          // console.log(`pitch: ${pitch}, pitchPerPx: ${pitchPerPx}, distanceY: ${distanceY}, newPitch: ${newPitch}`)
+          newLineMap[newX] = newPitch
+        })
+
+      this.$store.state.changedLineMap = {
+        ...changedLineMap,
+        ...newLineMap
+      }
     }
   }
 }

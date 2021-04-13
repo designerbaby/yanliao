@@ -218,8 +218,28 @@ export default {
           toneId: musicxml2Json.pitchList[0].toneId,
           musicName: `${musicInfo.name}填词`,
           stagePitches: stagePitches,
+          f0AI: musicxml2Json.f0_ai,
+          f0Draw: musicxml2Json.f0_draw,
+          volumeMap: this.convertXyMap(musicxml2Json.volume_xy),
+          tensionMap: this.convertXyMap(musicxml2Json.tension_xy),
+          f0Xy: musicxml2Json.f0_xy,
           pitchChanged: true // 标记音块改动了，这样才能重新拉到辅音
         })
+        const changed = {}
+        const pitchWidth = this.$store.getters.pitchWidth
+        // 比较元数据和AI数据，如果不一样表示是修改过的，下次生成新的时候不能覆盖
+        for (let i = 0; i < musicxml2Json.f0_ai.length; i += 1) {
+          if (musicxml2Json.f0_ai[i] !== musicxml2Json.f0_draw[i]) {
+            const value = musicxml2Json.f0_draw[i]
+            const x = Math.round(pitchWidth * i)
+            const xEnd = Math.round(pitchWidth * (i + 1))
+            // console.log(`有改变的数据：pitchWidth:${pitchWidth}, index:${i}, value:${value}, x:${x}, xEnd:${xEnd}`)
+            for (let j = x; j <= xEnd; j +=1) {
+              changed[j] = value
+            }
+          }
+        }
+        this.$store.state.changedLineMap = changed
         this.$store.dispatch('getPitchLine')
         this.$store.dispatch('saveFuYuan')
       }
