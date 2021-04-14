@@ -11,8 +11,8 @@
 
 <script>
 import { Message } from "element-ui"
-import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
-import { pitchList } from '@/common/utils/const'
+import { amendTop, amendLeft, generateUUID, transformChangeLineMap } from '@/common/utils/helper'
+// import { pitchList } from '@/common/utils/const'
 
 export default {
   name: 'BeatStageList',
@@ -35,11 +35,8 @@ export default {
       this.pos = pos
     },
     toPaste() {
-
       this.$store.dispatch('resetStagePitchesSelect')
       const copyStagePitches = this.$store.state.copyStagePitches
-      // console.log('粘贴 copyStagePitches', copyStagePitches, this.pos)
-
       if (copyStagePitches.length === 0) {
         Message.error('没有复制东西，快去复制把~')
         return
@@ -48,6 +45,7 @@ export default {
       const firstItem = copyStagePitches[0]
       const offsetLeft = this.pos.x - firstItem.left
       const offsetTop = this.pos.y - firstItem.top
+      const moveList = []
       for (let i = 0; i < copyStagePitches.length; i += 1) {
         const item = copyStagePitches[i]
         const newLeft = amendLeft(item.left + offsetLeft, this.$store.state.noteWidth)
@@ -57,49 +55,25 @@ export default {
           left: newLeft,
           top: newTop,
           selected: true,
-          uuid: generateUUID()
+          uuid: generateUUID(),
+          breath: item.breath ? {
+            left: amendLeft(item.breath.left + offsetLeft, this.$store.state.noteWidth),
+            width: item.breath.width,
+            pinyin: 'br'
+          } : item.breath
         }
 
-
         const finalItem = Object.assign({}, item, newItem)
+        moveList.push({
+          before: item,
+          after: finalItem
+        })
         this.stagePitches.push(finalItem)
-        this.copyPitchLine(item, finalItem)
       }
+      transformChangeLineMap(this, moveList)
 
       this.$store.dispatch('changeStoreState', { showStageList: false })
       this.$store.dispatch('afterChangePitchAndHandle')
-    },
-    copyPitchLine(fromItem, toItem) {
-      const distanceY = fromItem.top - toItem.top
-      const distanceX = toItem.left - fromItem.left
-      const [fromX0, toX0] = [ fromItem.left, toItem.left]
-      const [fromX1, toX1] = [ fromItem.left + fromItem.width, toItem.left + toItem.width]
-
-      const changedLineMap = this.$store.state.changedLineMap
-      const pitchPerPx = 100 / this.$store.state.noteHeight // 100是因为后台加了乘以100了
-      const newLineMap = {}
-      Object.keys(changedLineMap)
-        .map(Number)
-        .filter(x => x >= fromX0 && x <= fromX1)
-        .forEach(x => {
-          const pitch = changedLineMap[x]
-          const newX = x + distanceX
-          let newPitch = pitch + (pitchPerPx * distanceY)
-          const highestPitch = this.$store.getters.firstPitch
-          if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
-            newPitch = highestPitch * 100
-          }
-          const lowestPitch = pitchList[pitchList.length - 1].pitch
-          if (newPitch < lowestPitch * 100) { // 小于最小的pitch取最小的
-            newPitch = lowestPitch * 100
-          }
-          newLineMap[newX] = newPitch
-        })
-
-      this.$store.state.changedLineMap = {
-        ...changedLineMap,
-        ...newLineMap
-      }
     }
   }
 }

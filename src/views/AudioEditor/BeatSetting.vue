@@ -38,7 +38,7 @@
     <div :class="[$style.text, $style.qusu]">当前曲速</div>
     <div :class="$style.setting">
       <InputNumber :class="$style.bpmInput"
-        :value="$store.state.bpm" 
+        :value="$store.state.bpm"
         @change="bpmChangeChange"
         controls-position="right"
         :min="50" :max="200"

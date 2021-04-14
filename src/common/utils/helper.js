@@ -1,4 +1,5 @@
 import CosAuth from '@/common/utils/cosAuth'
+import { pitchList } from '@/common/utils/const'
 
 export const reportEvent = (eventName, eventId, params='') => { // 数据上报事件
   console.log('reportEvent:', eventName, eventId, params)
@@ -100,6 +101,12 @@ export const camSafeUrlEncode = (str) => {
     .replace(/\*/g, '%2A')
 }
 
+const getPitchLeftPosition = (pitch) => {
+  return pitch.breath ? pitch.breath.left : pitch.left
+}
+const getPitchFullWidth = (pitch) => {
+  return pitch.breath ? pitch.breath.width + pitch.width : pitch.width
+}
 // 检查音符块有没重叠
 export const checkPitchDuplicated = (stagePitches) => {
   const pitches = stagePitches
@@ -111,8 +118,9 @@ export const checkPitchDuplicated = (stagePitches) => {
       if (i !== j) {
         let leftPitch = null
         let rightPitch = null
-
-        if (pitch1.left < pitch2.left) {
+        const p1Left = getPitchLeftPosition(pitch1)
+        const p2Left = getPitchLeftPosition(pitch2)
+        if (p1Left < p2Left) {
           leftPitch = pitch1
           rightPitch = pitch2
         } else {
@@ -120,7 +128,7 @@ export const checkPitchDuplicated = (stagePitches) => {
           rightPitch = pitch1
         }
 
-        const isRed = leftPitch.left + leftPitch.width > rightPitch.left
+        const isRed = getPitchLeftPosition(leftPitch) + getPitchFullWidth(leftPitch) > getPitchLeftPosition(rightPitch)
         if (isRed) {
           pitch1.red = isRed
         }
@@ -132,13 +140,13 @@ export const checkPitchDuplicated = (stagePitches) => {
 }
 
 export const findLastIndex = (array, cb) => {
-    for (let i = array.length-1; i >=0; i--) {
-      const element = array[i];
-      if (cb.call(null, element, i, array)) {
-        return i
-      }
+  for (let i = array.length-1; i >=0; i--) {
+    const element = array[i];
+    if (cb.call(null, element, i, array)) {
+      return i
     }
-    return -1
+  }
+  return -1
 }
 
 
@@ -179,12 +187,23 @@ const UA = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCa
 const isEdge = UA && UA.indexOf('edge/') > 0;
 export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
 
+// pitchList 转换成 stagePitches
 export const pitchList2StagePitches = (pitchList, type, vm) => {
   // type: grid 代表格子数，其他代表时间
   let stagePitches = []
   const noteWidth = vm.$store.state.noteWidth
   const noteHeight = vm.$store.state.noteHeight
   pitchList.forEach(item => {
+    let breath = {}
+    if (item.breath && item.breath.pinyin === '') {
+      breath = null
+    } else {
+      breath = {
+        left: timeToPx(item.breath.startTime, noteWidth, pitchList[0].bpm),
+        width: timeToPx(item.breath.duration, noteWidth, pitchList[0].bpm),
+        pinyin: 'br'
+      }
+    }
     stagePitches.push({
       hanzi: item.hanzi,
       pinyin: item.pinyin,
@@ -198,10 +217,55 @@ export const pitchList2StagePitches = (pitchList, type, vm) => {
       preTime: item.preTime,
       fu: item.fu,
       yuan: item.yuan,
+      breath: breath,
       selected: false, // 表示是否选中了音块
       uuid: generateUUID()
     })
   })
   console.log('pitchList2StagePitches:', stagePitches)
   return stagePitches
+}
+
+// 修改音高线编辑过的部分
+export const transformChangeLineMap = (vm, moveList, reset) => {
+  const changedLineMap = { ...vm.$store.state.changedLineMap }
+  const deleteLinePoints = new Set()
+  const newLinePointsMap = {}
+  for (const { before, after } of moveList) {
+    const distanceY = before.top - after.top
+    const distanceX = after.left - before.left
+    const [fromX0, toX0] = [ before.left, after.left]
+    const [fromX1, toX1] = [ before.left + before.width, after.left + after.width]
+
+    const pitchPerPx = 100 / vm.$store.state.noteHeight // 100是因为后台加了乘以100了
+
+    Object.keys(changedLineMap)
+      .map(Number)
+      .filter(x => x >= fromX0 && x <= fromX1)
+      .forEach(x => {
+        const pitch = changedLineMap[x]
+        const newX = x + distanceX
+        let newPitch = pitch + (pitchPerPx * distanceY)
+        const highestPitch = vm.$store.getters.firstPitch
+        if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
+          newPitch = highestPitch * 100
+        }
+        const lowestPitch = pitchList[pitchList.length - 1].pitch
+        if (newPitch < lowestPitch * 100) { // 小于最小的pitch取最小的
+          newPitch = lowestPitch * 100
+        }
+        deleteLinePoints.add(x)
+        newLinePointsMap[newX] = newPitch
+      })
+  }
+  if (reset) {
+    deleteLinePoints.forEach(v => {
+      delete changedLineMap[v]
+    })
+  }
+
+  vm.$store.state.changedLineMap = {
+    ...changedLineMap,
+    ...newLinePointsMap
+  }
 }
