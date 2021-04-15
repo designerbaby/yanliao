@@ -18,7 +18,7 @@ const defaultState = {
   matter: 30,    // 总共有多少个小节
   noteWidth: 20, // 32分音符占据的最小像素单位
   noteHeight: 25, // 32分音符的占据的最小高度
-  bpm: 90,       // 音调
+  bpm: 90,       // 曲速
   toneId: 1, // 选择的toneId
   auditUrl: '', // 选择的播放的url
   taskId: 0, // 正在编辑的taskId

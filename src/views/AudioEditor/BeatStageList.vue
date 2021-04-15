@@ -11,7 +11,7 @@
 
 <script>
 import { Message } from "element-ui"
-import { amendTop, amendLeft, generateUUID, transformChangeLineMap } from '@/common/utils/helper'
+import { amendTop, amendLeft, generateUUID, turnChangeLineMap } from '@/common/utils/helper'
 // import { pitchList } from '@/common/utils/const'
 
 export default {
@@ -57,7 +57,7 @@ export default {
           selected: true,
           uuid: generateUUID(),
           breath: item.breath ? {
-            left: amendLeft(item.breath.left + offsetLeft, this.$store.state.noteWidth),
+            left: newLeft - item.breath.width,
             width: item.breath.width,
             pinyin: 'br'
           } : item.breath
@@ -70,7 +70,7 @@ export default {
         })
         this.stagePitches.push(finalItem)
       }
-      transformChangeLineMap(this, moveList)
+      turnChangeLineMap(this, moveList)
 
       this.$store.dispatch('changeStoreState', { showStageList: false })
       this.$store.dispatch('afterChangePitchAndHandle')

@@ -195,7 +195,9 @@ export const pitchList2StagePitches = (pitchList, type, vm) => {
   const noteHeight = vm.$store.state.noteHeight
   pitchList.forEach(item => {
     let breath = {}
-    if (item.breath && item.breath.pinyin === '') {
+    if (!item.breath) {
+      breath = null
+    } else if (item.breath && item.breath.pinyin === '') {
       breath = null
     } else {
       breath = {
@@ -226,38 +228,46 @@ export const pitchList2StagePitches = (pitchList, type, vm) => {
   return stagePitches
 }
 
-// 修改音高线编辑过的部分
-export const transformChangeLineMap = (vm, moveList, reset) => {
+export const turnChangeLineMap = (vm, moveList, reset) => {
   const changedLineMap = { ...vm.$store.state.changedLineMap }
   const deleteLinePoints = new Set()
   const newLinePointsMap = {}
-  for (const { before, after } of moveList) {
-    const distanceY = before.top - after.top
-    const distanceX = after.left - before.left
-    const [fromX0, toX0] = [ before.left, after.left]
-    const [fromX1, toX1] = [ before.left + before.width, after.left + after.width]
+  const pitchPerPx = 100 / vm.$store.state.noteHeight // 100是因为后台加了乘以100了
 
-    const pitchPerPx = 100 / vm.$store.state.noteHeight // 100是因为后台加了乘以100了
+  const before = moveList[0].before
+  const after = moveList[0].after
+  const distanceY = before.top - after.top
+  const distanceX = after.left - before.left
 
-    Object.keys(changedLineMap)
-      .map(Number)
-      .filter(x => x >= fromX0 && x <= fromX1)
-      .forEach(x => {
-        const pitch = changedLineMap[x]
-        const newX = x + distanceX
-        let newPitch = pitch + (pitchPerPx * distanceY)
-        const highestPitch = vm.$store.getters.firstPitch
-        if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
-          newPitch = highestPitch * 100
-        }
-        const lowestPitch = pitchList[pitchList.length - 1].pitch
-        if (newPitch < lowestPitch * 100) { // 小于最小的pitch取最小的
-          newPitch = lowestPitch * 100
-        }
-        deleteLinePoints.add(x)
-        newLinePointsMap[newX] = newPitch
-      })
+
+  let fromX0 = before.left
+  let fromX1 = before.left + before.width
+  let minFromX0 = fromX0
+  let MaxFromX1 = fromX1
+
+  for (const { before } of moveList) {
+    minFromX0 = Math.min(minFromX0, before.left)
+    MaxFromX1 = Math.max(MaxFromX1, before.left + before.width)
   }
+
+  Object.keys(changedLineMap)
+    .map(Number)
+    .filter(x => x >= minFromX0 && x <= MaxFromX1)
+    .forEach(x => {
+      const pitch = changedLineMap[x]
+      const newX = x + distanceX
+      let newPitch = pitch + (pitchPerPx * distanceY)
+      const highestPitch = vm.$store.getters.firstPitch
+      if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
+        newPitch = highestPitch * 100
+      }
+      const lowestPitch = pitchList[pitchList.length - 1].pitch
+      if (newPitch < lowestPitch * 100) { // 小于最小的pitch取最小的
+        newPitch = lowestPitch * 100
+      }
+      deleteLinePoints.add(x)
+      newLinePointsMap[newX] = newPitch
+    })
   if (reset) {
     deleteLinePoints.forEach(v => {
       delete changedLineMap[v]

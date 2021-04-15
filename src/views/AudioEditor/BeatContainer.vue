@@ -77,7 +77,7 @@ import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
 import StatusBar from './StatusBar.vue'
 import Breath from './Breath.vue'
-import { amendTop, amendLeft, generateUUID, transformChangeLineMap } from '@/common/utils/helper'
+import { amendTop, amendLeft, generateUUID, turnChangeLineMap } from '@/common/utils/helper'
 
 export default {
   name: "BeatContainer",
@@ -393,7 +393,7 @@ export default {
           }
         }
 
-        transformChangeLineMap(this, moveList, true)
+        turnChangeLineMap(this, moveList, true)
 
         this.movePitchStart = null
         if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
