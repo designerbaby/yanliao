@@ -243,10 +243,11 @@ this.form.tags.splice(index, 1);
   .visible-tag {
     position: absolute;
     z-index: 1;
-    width: 222px;
+    width: 220px;
   }
   .hide-tag {
     opacity: 0;
+    width: 220px;
   }
   .add-span {
     display: inline-block;
