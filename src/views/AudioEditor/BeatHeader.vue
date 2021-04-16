@@ -18,6 +18,10 @@
           </div>
         </div>
       </Upload>
+      <!-- <div :class="$style.common" @click="clickArrange">
+        <img src="@/assets/audioEditor/track-arrange.png">
+        <div :class="$style.text">编曲</div>
+      </div> -->
       <div :class="$style.linefu">
         <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
           <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
@@ -74,7 +78,6 @@
           <div :class="$style.text">右滑</div>
         </div>
       </div>
-      <!-- <div id="waveform" style="width: 200px"></div> -->
       <div :class="[$style.common, $style.set]" @click="toSet">
         <img src="@/assets/audioEditor/setting.png" :class="$style.icon"/>
         <div :class="$style.text">更多信息</div>
@@ -100,7 +103,6 @@ import MidiDialog from './MidiDialog'
 import CommonDialog from './Components/CommonDialog.vue'
 import { getUserCredential } from '@/api/audioSource'
 import { mid2json } from '@/api/audio'
-// import WaveSurfer from 'wavesurfer.js'
 
 export default {
   name: 'BeatHeader',
@@ -157,19 +159,13 @@ export default {
     clearInterval(this.timer)
   },
   mounted() {
-    // var wavesurfer = WaveSurfer.create({
-    //   container: '#waveform',
-    //   waveColor: 'violet',
-    //   progressColor: 'purple'
-    // });
-    // wavesurfer.load('https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/kuwa-wav/cdb9df7547db4a278d95a792a3a6839a.wav');
-    // wavesurfer.on('ready', function () {
-    //   wavesurfer.play();
-    // });
   },
   methods: {
     toPlay() {
       this.$emit('play')
+    },
+    clickArrange() {
+      this.$store.dispatch('changeStoreState', { showArrange: !this.$store.state.showArrange })
     },
     async getUserCredential() {
       const res = await getUserCredential()

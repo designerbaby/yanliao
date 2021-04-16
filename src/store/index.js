@@ -57,7 +57,8 @@ const defaultState = {
   showStageList: false, // 全局舞台的右键菜单列表
   copyStagePitches: [], // 复制的内容
   musicId: 0, // 从主流程过来的选中的歌曲id
-  musicName: '编辑器填词' // 歌曲名称
+  musicName: '编辑器填词', // 歌曲名称
+  showArrange: false // 是否展开编曲
 }
 
 const store = new Vuex.Store({
