@@ -110,7 +110,7 @@ export default {
         Message.error('音频合成中，暂不可编辑')
         return
       }
-      this.$router.push(`/audioEditor?taskId=${row.arrange_id}&index=5`)
+      this.$router.push(`/audioEditor?taskId=${row.arrange_id}&index=3`)
     },
     getList() {
       const p = {
