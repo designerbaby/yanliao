@@ -77,7 +77,8 @@ import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
 import StatusBar from './StatusBar.vue'
 import Breath from './Breath.vue'
-import { amendTop, amendLeft, generateUUID, turnChangeLineMap } from '@/common/utils/helper'
+import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
+import { turnChangeLineMap } from '@/common/utils/common'
 
 export default {
   name: "BeatContainer",
@@ -263,7 +264,7 @@ export default {
         mouseModalTarget.style.height = '200px'
         mouseModalTarget.style.left = `${target.dataset.left - 100}px`
         mouseModalTarget.style.top = `${target.dataset.top - 100}px`
-        mouseModalTarget.style.opacity = 0  // 蒙层的透明度
+        mouseModalTarget.style.opacity = 0 // 蒙层的透明度
         mouseModalTarget.style.cursor = 'move'
         mouseModalTarget.style.background = 'red'
         mouseModalTarget.addEventListener('mouseup', this.onPitchMouseUp)

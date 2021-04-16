@@ -14,10 +14,6 @@ if (context.decodeAudioData.length !== 1) {
 const $audio = document.createElement("audio");
 let extension = '';
 
-// 声音地址
-// mp4: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.mp4
-// wav: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.wav 
-// webm: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.webm
 if ($audio.canPlayType('audio/webm; codecs=vorbis')) {
   extension = 'webm';
 } else if ($audio.canPlayType('audio/mp4; codecs=mp4a.40.5')) {
@@ -25,6 +21,8 @@ if ($audio.canPlayType('audio/webm; codecs=vorbis')) {
 } else if ($audio.canPlayType('audio/wav; codecs=1')) {
   extension = 'wav';
 }
+
+const url = `https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.${extension}`
 
 function loadSample(url) {
   return fetch(url)
@@ -40,20 +38,7 @@ function playSample(sample, note) {
   source.start(0);
 }
 
-let sample = null
-function toloadSample () {
-  const url = `https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.${extension}`
-  loadSample(url).then(sam => {
-    sample = sam
-  })
-}
-toloadSample()
-// 这里主要是为了去缓存下sample
+let sample = loadSample(url)
 export const playPiano = (pitch) => {
-  if (!sample) {
-    toloadSample()
-    playSample(sample, pitch); 
-  } else {
-    playSample(sample, pitch); 
-  }
+  sample.then(s => playSample(s, pitch))
 }

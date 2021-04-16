@@ -18,6 +18,7 @@
 
 <script>
 import { Message } from "element-ui"
+import { deleteStagePitches } from '@/common/utils/common'
 
 export default {
   name: 'BeatMenuList',
@@ -67,9 +68,8 @@ export default {
       this.top = top
     },
     deletePitch() {
-      const stagePitches = this.stagePitches.filter(({ selected }) => !selected)
-      this.$store.dispatch('changeStoreState', { showMenuList: false, stagePitches })
-      this.$store.dispatch('afterChangePitchAndHandle')
+      deleteStagePitches(this)
+      this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     editLyric(type) {
       this.$emit('editLyric', type)

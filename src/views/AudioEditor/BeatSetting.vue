@@ -129,6 +129,7 @@ export default {
           this.$store.state.bpm = this.inputBpmValue
         }
       })
+      // this.$store.dispatch('getPitchLine')
     },
     playerButtonClick() {
       this.toneList.forEach(item => {

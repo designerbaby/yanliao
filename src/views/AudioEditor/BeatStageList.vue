@@ -11,7 +11,8 @@
 
 <script>
 import { Message } from "element-ui"
-import { amendTop, amendLeft, generateUUID, turnChangeLineMap } from '@/common/utils/helper'
+import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
+import { turnChangeLineMap } from '@/common/utils/common'
 // import { pitchList } from '@/common/utils/const'
 
 export default {
