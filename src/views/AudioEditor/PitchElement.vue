@@ -111,7 +111,7 @@ export default {
       })
     },
     canMove(startPreTime, newPreTime, index) {
-      if (newPreTime <= 20) { // 最小只能移动到30
+      if (newPreTime <= 20) { // 最小只能移动到20
         return false
       }
       if (index <= 0) {

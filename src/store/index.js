@@ -92,7 +92,6 @@ const store = new Vuex.Store({
         const startTime = pxToTime(item.left, state.noteWidth, state.bpm)
         let preTime = state.pitchChanged || item.pitchChanged ? 0 : item.preTime
         const before = stagePitches[i - 1]
-
         // 首个的辅音最短不能小于0
         if ((startTime - preTime) < 0) {
           preTime = 0
@@ -116,6 +115,18 @@ const store = new Vuex.Store({
           }
         }
 
+        let breath = null
+        if (item.breath) {
+          breath = {
+            duration: pxToTime(item.breath.width, state.noteWidth, state.bpm),
+            pitch: pitch,
+            singer: state.toneName,
+            startTime: pxToTime(item.breath.left, state.noteWidth, state.bpm),
+            pinyin: item.breath.pinyin,
+            preTime: 0
+          }
+        }
+
         const pitchItem = {
           duration: duration,
           pitch: pitch,
@@ -130,7 +141,8 @@ const store = new Vuex.Store({
           select: item.select, // 拼音多音字选择的第几项
           fu: item.fu,
           yuan: item.yuan,
-          preTime: preTime
+          preTime: preTime,
+          breath: breath // 换气的字段
         }
         pitches.push(pitchItem)
       }

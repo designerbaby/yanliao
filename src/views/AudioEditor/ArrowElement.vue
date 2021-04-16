@@ -11,7 +11,7 @@
 <script>
 import { Message } from 'element-ui'
 import { playState } from '@/common/utils/const'
-import { pxToTime, timeToPx } from '@/common/utils/helper'
+import { pxToTime } from '@/common/utils/helper'
 import Dragger from './Components/Dragger.vue'
 
 export default {
