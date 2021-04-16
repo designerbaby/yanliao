@@ -1,5 +1,5 @@
 <template>
-  <div class="video-upload-page">
+  <div class="matter-upload-page">
     <div class="title">
       <span>发布视频素材</span>
     </div>
@@ -34,14 +34,18 @@
                maxlength="50"
                show-word-limit />
       </FormItem>
-      <FormItem label="素材标签"
-                prop="tag">
-        <Select v-model="form.tag"
-                allow-create
+      <FormItem :label=" index ? '' : '素材标签'" :prop="`tags[${index}].value`" :rules="rules.tag" v-for="(tag, index) in form.tags" :key="index">
+        <Input class="visible-tag"
+               placeholder="请输入标签"
+               v-model="tag.value"
+               maxlength="5"
+               show-word-limit
+               @input="inputTag(...arguments, index)" />
+        <Select class="hide-tag" ref="$select" v-model="tag.value"
                 filterable
                 remote
                 reserve-keyword
-                placeholder="请输入关键词"
+                placeholder="请输入标签"
                 :remote-method="remoteMethod"
                 :loading="loading">
           <Option v-for="item in tagOptions"
@@ -49,6 +53,15 @@
                   :label="item"
                   :value="item"></Option>
         </Select>
+        <span class="minus-span" v-if="index" @click="minusTag(index)">
+          <Icon class="el-icon-remove-outline"></Icon>
+        </span>
+      </FormItem>
+      <FormItem>
+        <div class="add-span" :class="{ disable: form.tags.length === 3 }" @click="addTag">
+          <Icon class="el-icon-plus"></Icon>
+          <span>新增标签</span>
+        </div>
       </FormItem>
     </Form>
     <Button :loading="loading"
@@ -60,7 +73,7 @@
 // @ is an alias to /src
 import TcVod from 'vod-js-sdk-v6'
 import { reportEvent } from '@/common/utils/helper'
-import { Input, Form, FormItem, Upload, Message, Button, Checkbox, Select, Option } from 'element-ui'
+import { Input, Icon, Form, FormItem, Upload, Message, Button, Checkbox, Select, Option } from 'element-ui'
 import { search } from '@/api/api'
 import { fetchSign, associateTag } from '@/api/matter'
 
@@ -68,6 +81,7 @@ export default {
   name: 'MatterUpload',
   components: {
     Input,
+    Icon,
     Form,
     FormItem,
     Upload,
@@ -82,23 +96,28 @@ export default {
       form: {
         file: null,
         desc: '',
-        tag: undefined
+        tag: undefined,
+        tags: [{ value: ''}]
       },
       rules: {
         file: [{ required: true, message: '请上传', trigger: 'change' }],
         desc: [{ required: true, message: '请输入', trigger: 'blur' }],
-        tag: [{ required: true, message: '请输入', trigger: 'blur' }]
+        tag: [
+          { required: true, message: '请输入', trigger: 'blur' },
+          { pattern: /^[A-Za-z0-9\u4e00-\u9fa5]+$/, message: '只支持输入中英文和数字' },
+        ],
       },
       tagOptions: []
     }
   },
-  mounted() {},
+  mounted() {
+  },
   methods: {
     getSignature() {
       const f = {
         filesize: this.form.file.size,
         desc: this.form.desc,
-        tags: [this.form.tag]
+        tags: this.form.tags.map(n => (n.value))
       }
       return fetchSign(f).then(response => {
         return response.data.data.sign
@@ -178,15 +197,27 @@ export default {
       const {
         data: { data }
       } = await associateTag({ name: query })
-      console.log(data)
       this.tagOptions = data.list || []
+    },
+    addTag() {
+      if (this.form.tags.length >= 3) { return; }
+      this.form.tags = [...this.form.tags, { value: '' }]
+    },
+    minusTag(index) {
+this.form.tags.splice(index, 1);
+    },
+    // el-input覆盖el-select，输入时自动触发el-select下拉选项
+    inputTag(value, index) {
+      this.$refs.$select[index].visible = true;
+      this.$refs.$select[index].previousQuery = '';
+      this.$refs.$select[index].handleQueryChange(value);
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
-.video-upload-page {
+.matter-upload-page {
   padding-left: 110px;
   .title {
     font-size: 34px;
@@ -207,16 +238,37 @@ export default {
           width: 240px;
         }
       }
-      // .el-form-item + .el-form-item {
-      //   margin-left: 20px;
-      // }
     }
+  }
+  .visible-tag {
+    position: absolute;
+    z-index: 1;
+    width: 222px;
+  }
+  .hide-tag {
+    opacity: 0;
+  }
+  .add-span {
+    display: inline-block;
+    font-size: 16px;
+    color: #409eff;
+    cursor: pointer;
+
+    &.disable {
+      color: #c8c9cc;
+      cursor: not-allowed;
+    }
+  }
+  .minus-span {
+    cursor: pointer;
+    font-size: 20px;
+    padding-left: 10px;
   }
 }
 </style>
 
 <style lang="less">
-.video-upload-page {
+.matter-upload-page {
   .el-form-item__label {
     font-weight: 500;
     font-size: 16px;
