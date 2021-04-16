@@ -18,6 +18,10 @@
           </div>
         </div>
       </Upload>
+      <!-- <div :class="$style.common" @click="clickArrange">
+        <img src="@/assets/audioEditor/track-arrange.png">
+        <div :class="$style.text">编曲</div>
+      </div> -->
       <div :class="$style.linefu">
         <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
           <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
@@ -154,10 +158,14 @@ export default {
   destroyed() {
     clearInterval(this.timer)
   },
-  mounted() {},
+  mounted() {
+  },
   methods: {
     toPlay() {
       this.$emit('play')
+    },
+    clickArrange() {
+      this.$store.dispatch('changeStoreState', { showArrange: !this.$store.state.showArrange })
     },
     async getUserCredential() {
       const res = await getUserCredential()

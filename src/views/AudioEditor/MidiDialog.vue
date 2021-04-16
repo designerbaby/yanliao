@@ -23,7 +23,7 @@
 <script>
 import { Dialog, Button, Message, Radio, RadioGroup } from 'element-ui'
 import { pitchList } from '@/common/utils/const'
-import { pitchList2StagePitches } from '@/common/utils/helper'
+import { pitchList2StagePitches } from '@/common/utils/common'
 
 export default {
   name: 'MidiDialog',

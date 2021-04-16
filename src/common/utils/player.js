@@ -8,8 +8,8 @@ export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onE
   if (audio) {
     audio.parentNode.removeChild(audio)
   }
-  
-  audio = document.createElement('audio') //生成一个audio元素 
+
+  audio = document.createElement('audio')
   audio.controls = true
   audio.src = url
   audio.id = eleId
@@ -33,9 +33,6 @@ export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onE
   })
 
   document.body.appendChild(audio)
-
-  // audio.play()
-  // audio.currentTime = startTime
 
   return audio
 }

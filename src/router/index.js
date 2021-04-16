@@ -76,6 +76,13 @@ const routes = [
     component: () => import('../views/Main/videoUpload.vue')
   },
   {
+    path: '/matterUpload', // 素材上传
+    name: 'MatterUpload',
+    meta: {
+    },
+    component: () => import('../views/Main/matterUpload.vue')
+  },
+  {
     path: '/audioUpload', // 音源上传
     name: 'AudioUpload',
     component: () => import('../views/Main/audioUpload.vue')

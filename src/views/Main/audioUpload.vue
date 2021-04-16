@@ -186,7 +186,7 @@ export default {
       if (res.data.ret_code === 0) {
         this.loading = false
         Message.success('添加音源成功')
-        this.$router.push('/profile?index=4')
+        this.$router.push('/profile?index=6')
       } else {
         this.loading = false
         Message.error('上传失败, 请重试')

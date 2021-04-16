@@ -78,6 +78,7 @@ import Parameters from './Parameters.vue'
 import StatusBar from './StatusBar.vue'
 import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
+import { turnChangeLineMap } from '@/common/utils/common'
 
 export default {
   name: "BeatContainer",
@@ -199,7 +200,7 @@ export default {
       // 绿色块鼠标+shift事件
       console.log('绿色块鼠标+shift事件 onShiftClickPitch:', event, index)
       this.$store.dispatch('changeStoreState', { showStageList: false })
-      this.doSelectUUID(this.stagePitches[index].uuid)
+      // this.doSelectUUID(this.stagePitches[index].uuid)
       let start = this.stagePitches.findIndex(v => v.uuid === this.selectedUUID)
       start = start === -1 ? index : start
 
@@ -252,7 +253,7 @@ export default {
       this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
       const target = event.target
       target.style.opacity = 0.8
-
+      this.doSelectUUID(this.stagePitches[index].uuid)
       // 起个蒙层防止鼠标移出
       if (event.button !== 2 && !event.shiftKey) { // 只有不是鼠标右键并且没按住shift键的时候，才出现这个蒙层
         this.mouseModalTarget = document.createElement('div')
@@ -263,7 +264,7 @@ export default {
         mouseModalTarget.style.height = '200px'
         mouseModalTarget.style.left = `${target.dataset.left - 100}px`
         mouseModalTarget.style.top = `${target.dataset.top - 100}px`
-        mouseModalTarget.style.opacity = 0  // 蒙层的透明度
+        mouseModalTarget.style.opacity = 0 // 蒙层的透明度
         mouseModalTarget.style.cursor = 'move'
         mouseModalTarget.style.background = 'red'
         mouseModalTarget.addEventListener('mouseup', this.onPitchMouseUp)
@@ -311,9 +312,11 @@ export default {
       // 绿色块鼠标移动事件
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
-        this.mouseModalTarget.style.left = `${event.target.dataset.left - 100}px`
-        this.mouseModalTarget.style.top = `${event.target.dataset.top - 100}px`
-
+        console.log('this.mouseModalTarget:', this.mouseModalTarget)
+        if (this.mouseModalTarget) {
+          this.mouseModalTarget.style.left = `${event.target.dataset.left - 100}px`
+          this.mouseModalTarget.style.top = `${event.target.dataset.top - 100}px`
+        }
         const { target, selectedPitches, selectedElements } = this.movePitchStart
 
         const moveX = event.clientX - this.movePitchStart.clientX
@@ -349,9 +352,10 @@ export default {
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
         const { target, index, selectedPitches, selectedElements } = this.movePitchStart
         let pitchHasChanged = false
-
+        const moveList = []
         for (let i = 0; i < selectedPitches.length; i ++) {
           const pitch = selectedPitches[i]
+          const beforePitch = Object.assign({}, selectedPitches[i])
           const eleDom = selectedElements[i]
           // 移动结束时的位置
           const left = parseInt(eleDom.dataset.left, 10)
@@ -359,11 +363,12 @@ export default {
           // 修正位置，自动吸附
           const newLeft = amendLeft(left, this.noteWidth)
           const newTop = amendTop(top, this.noteHeight)
-          if (pitch.left !== newLeft || pitch.top !== newTop) { // left和top有变动
+          // left和top有变动
+          if (pitch.left !== newLeft || pitch.top !== newTop) {
             pitchHasChanged = true
           }
           if (pitch.breath) {
-            pitch.breath.width = newLeft - pitch.breath.left
+            pitch.breath.left = newLeft - pitch.breath.width
           }
 
           eleDom.style.transform = `translate(${newLeft}px, ${newTop}px)`
@@ -374,6 +379,10 @@ export default {
           pitch.left = newLeft
           pitch.top = newTop
 
+          moveList.push({
+            before: beforePitch,
+            after: pitch
+          })
           // 当他是连字符的时候，他前面不能有空格
           if (!this.canMoveUpPitch(pitch)) {
             Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
@@ -386,6 +395,8 @@ export default {
             return
           }
         }
+
+        turnChangeLineMap(this, moveList, true)
 
         this.movePitchStart = null
         if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
@@ -533,6 +544,7 @@ export default {
         pitchChanged: true,
         uuid: generateUUID()
       });
+      this.doSelectUUID(this.stagePitches[this.stagePitches.length - 1].uuid)
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
       this.$store.dispatch('afterChangePitchAndHandle')
     },
@@ -558,7 +570,7 @@ export default {
       target.style.width = `${pitch.width}px`
       pitch.pitchChanged = true // 有改变的话，需要去拉取元辅音
       if (pitch.breath) {
-        pitch.breath.width = pitch.left - pitch.breath.left
+        pitch.breath.left = pitch.left - pitch.breath.width
       }
       console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
       if (!this.canMoveUpPitch(pitch)) {
@@ -584,8 +596,6 @@ export default {
       this.$refs.LyricCorrect.showLyric(selectStagePitches)
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
-      // console.log('toCheckOverStage:x', x)
-      // console.log('this.stageWidth:', this.stageWidth)
       while ((x + 500) >= this.stageWidth) {
         this.$store.dispatch('updateMatter', 15)
       }

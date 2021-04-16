@@ -40,6 +40,7 @@ export default {
 .fixed {
   position: fixed;
   top: 78px;
+  // top: 222px;
   z-index: 2000;
 }
 </style>

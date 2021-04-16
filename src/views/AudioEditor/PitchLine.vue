@@ -237,17 +237,16 @@ export default {
         // console.log('this.cache:', this.cache)
       }
     },
+    // 补帧
     patchValue(startX, startY, endX, endY) {
       const dx = endX - startX
       const dy = endY - startY
       const step = dy / Math.abs(dx)
       if (dx > 1) {
-        // console.log(`patchValue dx>1:`, startX, startY, endX, endY, `dx:${dx},dy:${dy},step:${step}`)
         for (let i = startX; i < endX ; i+= 1) {
           this.changeF0Value(i, startY + step)
         }
       } else if( dx < -1) {
-        // console.log(`patchValue dx<-1:`, startX, startY, endX, endY, step, `dx:${dx},dy:${dy}`)
         for (let i = endX; i < startX ; i+= 1) {
           this.changeF0Value(i, startY + step)
         }

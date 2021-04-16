@@ -52,7 +52,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### TODO
 
 - 1、要把doPlay的判断改成状态机
-- 2、分享
 
 ## 难点
 - 1、用svg画音高线的时候出现锯齿
@@ -68,3 +67,8 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 分母：一个拍由哪种音符构成
 - 分子：一个小节有多少拍
 - 1/4音符是由8个32分音符组成的，是音符的一种，1/4拍是一种节拍类型，代表一个4分音符为1拍，1小节有1拍
+
+## 声音地址
+- mp4: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.mp4
+- wav: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.wav
+- webm: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.webm

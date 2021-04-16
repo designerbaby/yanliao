@@ -1,5 +1,5 @@
 <template>
-  <div :class="[$style.breath, it.selected ? $style.isActive : '']"
+  <div :class="[$style.breath, it.selected ? $style.isActive : '', it.red ? $style.isRed: '']"
     :style="getStyle(it)"
   >
     {{ it.breath.pinyin }}
@@ -61,7 +61,10 @@ export default {
         return false
       }
       const before = this.stagePitches[this.index - 1]
-      const beforeEnd = before.left + before.width
+      let beforeEnd = 0
+      if (before) {
+        beforeEnd = before.left + before.width
+      }
       if (newLeft <= beforeEnd) {
         return false
       }
@@ -84,6 +87,11 @@ export default {
   padding-left: 5px;
   &.isActive {
     background: #159430;
+  }
+  &.isRed {
+    top: -1px;
+    border: 1px solid red;
+    border-right: 0;
   }
 }
 </style>

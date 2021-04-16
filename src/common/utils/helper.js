@@ -100,6 +100,12 @@ export const camSafeUrlEncode = (str) => {
     .replace(/\*/g, '%2A')
 }
 
+const getPitchLeftPosition = (pitch) => {
+  return pitch.breath ? pitch.breath.left : pitch.left
+}
+const getPitchFullWidth = (pitch) => {
+  return pitch.breath ? pitch.breath.width + pitch.width : pitch.width
+}
 // 检查音符块有没重叠
 export const checkPitchDuplicated = (stagePitches) => {
   const pitches = stagePitches
@@ -111,8 +117,9 @@ export const checkPitchDuplicated = (stagePitches) => {
       if (i !== j) {
         let leftPitch = null
         let rightPitch = null
-
-        if (pitch1.left < pitch2.left) {
+        const p1Left = getPitchLeftPosition(pitch1)
+        const p2Left = getPitchLeftPosition(pitch2)
+        if (p1Left < p2Left) {
           leftPitch = pitch1
           rightPitch = pitch2
         } else {
@@ -120,7 +127,7 @@ export const checkPitchDuplicated = (stagePitches) => {
           rightPitch = pitch1
         }
 
-        const isRed = leftPitch.left + leftPitch.width > rightPitch.left
+        const isRed = getPitchLeftPosition(leftPitch) + getPitchFullWidth(leftPitch) > getPitchLeftPosition(rightPitch)
         if (isRed) {
           pitch1.red = isRed
         }
@@ -132,13 +139,13 @@ export const checkPitchDuplicated = (stagePitches) => {
 }
 
 export const findLastIndex = (array, cb) => {
-    for (let i = array.length-1; i >=0; i--) {
-      const element = array[i];
-      if (cb.call(null, element, i, array)) {
-        return i
-      }
+  for (let i = array.length-1; i >=0; i--) {
+    const element = array[i];
+    if (cb.call(null, element, i, array)) {
+      return i
     }
-    return -1
+  }
+  return -1
 }
 
 
@@ -178,30 +185,3 @@ export const getAuthorization = (method, key, data) => {
 const UA = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCase()
 const isEdge = UA && UA.indexOf('edge/') > 0;
 export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
-
-export const pitchList2StagePitches = (pitchList, type, vm) => {
-  // type: grid 代表格子数，其他代表时间
-  let stagePitches = []
-  const noteWidth = vm.$store.state.noteWidth
-  const noteHeight = vm.$store.state.noteHeight
-  pitchList.forEach(item => {
-    stagePitches.push({
-      hanzi: item.hanzi,
-      pinyin: item.pinyin,
-      red: false,
-      height: noteHeight,
-      width: type === 'grid' ? item.duration * noteWidth : timeToPx(item.duration, noteWidth, pitchList[0].bpm),
-      left: type === 'grid' ? item.startTime * noteWidth : timeToPx(item.startTime, noteWidth, pitchList[0].bpm),
-      top: noteHeight * (vm.$store.getters.firstPitch - item.pitch),
-      pinyinList: item.pinyinList,
-      select: item.select,
-      preTime: item.preTime,
-      fu: item.fu,
-      yuan: item.yuan,
-      selected: false, // 表示是否选中了音块
-      uuid: generateUUID()
-    })
-  })
-  console.log('pitchList2StagePitches:', stagePitches)
-  return stagePitches
-}

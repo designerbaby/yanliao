@@ -9,6 +9,7 @@
       @openDrawer="toOpenDrawer"
       @toScroll="toScroll"
     ></BeatHeader>
+    <!-- <Arrange></Arrange> -->
     <StatusBar></StatusBar>
     <BeatContainer
       ref="BeatContainer"
@@ -29,10 +30,12 @@ import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
 import StatusBar from './StatusBar.vue'
+// import Arrange from './Arrange.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, pitchList2StagePitches } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
+import { pitchList2StagePitches, deleteStagePitches } from '@/common/utils/common'
 import { PlayAudio } from '@/common/utils/player'
 import CommonDialog from '@/common/components/CommonDialog'
 
@@ -44,6 +47,7 @@ export default {
     BeatHeader,
     BeatSetting,
     StatusBar,
+    // Arrange,
     CommonDialog
   },
   data() {
@@ -125,8 +129,7 @@ export default {
         this.toPlay()
         event.preventDefault()
       } else if (event.keyCode === 8 || event.keyCode === 46) { // delete or return
-        const stagePitches = this.stagePitches.filter(({ selected }) => !selected)
-        this.$store.dispatch('changeStoreState', { stagePitches })
+        deleteStagePitches(this)
         event.stopPropagation()
       }
     },
@@ -241,12 +244,6 @@ export default {
       this.$store.dispatch('adjustStageWidth')
     },
     isNeedGenerate(type) {
-      console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
-        this.$store.state.isPitchLineChanged: ${this.$store.state.isPitchLineChanged},
-        this.$store.state.isVolumeChanged: ${this.$store.state.isVolumeChanged},
-        this.$store.state.isTensionChanged: ${this.$store.state.isTensionChanged},
-        this.$store.state.isStagePitchElementChanged: ${this.$store.state.isStagePitchElementChanged},
-        !this.$store.state.onlineUrl: ${!this.$store.state.onlineUrl}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true
@@ -301,7 +298,6 @@ export default {
       console.log(`Click play button, current state: ${this.playState}`)
 
       const taskId = getParam('taskId')
-      // TODO 状态太多，后续要改成状态机
       // 如果当前是默认状态
       if (this.playState === playState.StateNone) {
         if (this.isNeedGenerate()) {
@@ -386,12 +382,6 @@ export default {
     },
     toPlayAudio(url) {
       clearInterval(this.timerId)
-      const ticker = (timestamp) => {
-        if (this.playState === playState.StatePlaying){
-          // this.$store.dispatch('changeStoreState', { lineLeft: this.playLine.current })
-          window.requestAnimationFrame(ticker);
-        }
-      }
       this.audio = PlayAudio({
         url,
         onPlay: (audio) => {
@@ -402,17 +392,14 @@ export default {
               const restDuration = duration - this.playStartTime
               const msDuration = restDuration * 1000
 
-              // console.log(`开始播放，音频长度为：${audio.duration}, 剩余长度：${restDuration},当前进度：${audio.currentTime}`)
               const length = this.playLine.end - this.playLine.start
               const times = msDuration / 16
               const step = length / times
-              // console.log(audio, `duration`, duration, `times`, times, `step`, step)
 
               this.playLine.current += step
               this.changeLinePosition(this.playLine.current, true)
             }
           }, 16)
-          window.requestAnimationFrame(ticker);
         },
         onPause: (dom) => {
           clearInterval(this.timerId)
@@ -424,7 +411,6 @@ export default {
           this.playLine.current = this.playLine.start
         }
       })
-
     },
     changeLinePosition(left, autoScroll = false) {
       if (autoScroll) {
