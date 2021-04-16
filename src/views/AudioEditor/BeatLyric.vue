@@ -135,7 +135,7 @@ export default {
             const before = this.stagePitches.find((item, i) => i === idx - 1)
             const current = this.stagePitches.find((item, i) => i === idx)
             if (before.left + before.width !== current.left) {
-              Message.error(`第${idx}个字符是连音符“-”,请确保其前面有连续音符`)
+              Message.error(`第${idx+1}个字符是连音符“-”,请确保其前面有连续音符`)
               check = false
               return
             }

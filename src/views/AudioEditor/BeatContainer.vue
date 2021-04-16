@@ -200,7 +200,7 @@ export default {
       // 绿色块鼠标+shift事件
       console.log('绿色块鼠标+shift事件 onShiftClickPitch:', event, index)
       this.$store.dispatch('changeStoreState', { showStageList: false })
-      this.doSelectUUID(this.stagePitches[index].uuid)
+      // this.doSelectUUID(this.stagePitches[index].uuid)
       let start = this.stagePitches.findIndex(v => v.uuid === this.selectedUUID)
       start = start === -1 ? index : start
 
@@ -253,7 +253,7 @@ export default {
       this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
       const target = event.target
       target.style.opacity = 0.8
-
+      this.doSelectUUID(this.stagePitches[index].uuid)
       // 起个蒙层防止鼠标移出
       if (event.button !== 2 && !event.shiftKey) { // 只有不是鼠标右键并且没按住shift键的时候，才出现这个蒙层
         this.mouseModalTarget = document.createElement('div')
@@ -312,9 +312,11 @@ export default {
       // 绿色块鼠标移动事件
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
-        this.mouseModalTarget.style.left = `${event.target.dataset.left - 100}px`
-        this.mouseModalTarget.style.top = `${event.target.dataset.top - 100}px`
-
+        console.log('this.mouseModalTarget:', this.mouseModalTarget)
+        if (this.mouseModalTarget) {
+          this.mouseModalTarget.style.left = `${event.target.dataset.left - 100}px`
+          this.mouseModalTarget.style.top = `${event.target.dataset.top - 100}px`
+        }
         const { target, selectedPitches, selectedElements } = this.movePitchStart
 
         const moveX = event.clientX - this.movePitchStart.clientX
@@ -542,6 +544,7 @@ export default {
         pitchChanged: true,
         uuid: generateUUID()
       });
+      this.doSelectUUID(this.stagePitches[this.stagePitches.length - 1].uuid)
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
       this.$store.dispatch('afterChangePitchAndHandle')
     },

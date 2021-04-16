@@ -9,6 +9,7 @@
       @openDrawer="toOpenDrawer"
       @toScroll="toScroll"
     ></BeatHeader>
+    <!-- <Arrange></Arrange> -->
     <StatusBar></StatusBar>
     <BeatContainer
       ref="BeatContainer"
@@ -29,6 +30,7 @@ import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
 import StatusBar from './StatusBar.vue'
+// import Arrange from './Arrange.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
@@ -45,6 +47,7 @@ export default {
     BeatHeader,
     BeatSetting,
     StatusBar,
+    // Arrange,
     CommonDialog
   },
   data() {
