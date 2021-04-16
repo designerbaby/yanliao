@@ -5,18 +5,19 @@
         <Menu :default-active="activeIndex" class="el-menu" mode="horizontal" @select="menuSelect">
           <MenuItem index="1">我的作品</MenuItem>
           <MenuItem index="2">我的草稿</MenuItem>
-          <MenuItem index="5">我的曲谱</MenuItem>
-          <MenuItem index="3">我的视频</MenuItem>
-          <MenuItem index="4">我的音源</MenuItem>
+          <MenuItem index="3">我的曲谱</MenuItem>
+          <MenuItem index="4">我的视频</MenuItem>
+          <MenuItem index="5">我的素材</MenuItem>
+          <MenuItem index="6">我的音源</MenuItem>
         </Menu>
         <div class="control">
           <button class="add-button" @click="uploadVideoButtonClick">
             <span class="el-icon-plus"></span>
             <span>发布视频</span>
           </button>
-          <button class="add-button" @click="newWorksButtonClick">
+          <button class="add-button" @click="matterButtonClick">
             <span class="el-icon-plus"></span>
-            <span>新建作品</span>
+            <span>发布素材</span>
           </button>
         </div>
       </div>
@@ -27,14 +28,18 @@
         <DraftTable />
       </div>
       <div v-if="activeIndex === '3'">
-        <VideoTable />
-      </div>
-      <div v-if="activeIndex === '4'">
-        <AudioSourceTable />
-      </div>
-      <div v-if="activeIndex === '5'">
         <OperaTable />
       </div>
+      <div v-if="activeIndex === '4'">
+        <VideoTable />
+      </div>
+      <div v-if="activeIndex === '5'">
+        <MatterTable />
+      </div>
+      <div v-if="activeIndex === '6'">
+        <AudioSourceTable />
+      </div>
+      
     </div>
   </div>
 </template>
@@ -49,6 +54,7 @@ import {
 } from 'element-ui'
 import Header from '@/common/components/Header'
 import DraftTable from './DraftTable.vue'
+import MatterTable from './MatterTable.vue'
 import VideoTable from './VideoTable.vue'
 import WorkTable from './WorkTable.vue'
 import AudioSourceTable from './AudioSourceTable.vue'
@@ -63,6 +69,7 @@ export default {
     Header,
     WorkTable,
     DraftTable,
+    MatterTable,
     VideoTable,
     OperaTable,
     AudioSourceTable
@@ -88,14 +95,12 @@ export default {
         query: Object.assign({}, this.$route.query, { _: +new Date() }, {index,})
       })
     },
-    newWorksButtonClick() {
-      // this.$vnode.parent.componentInstance.cache = {}
-      sessionStorage.setItem('draftId', '')
-      this.$router.push('/search')
-    },
     uploadVideoButtonClick() {
       reportEvent('person-page-uovideo-button')
       this.$router.push('/videoUpload')
+    },
+    matterButtonClick() {
+      this.$router.push('/matterUpload')
     }
   },
 }
