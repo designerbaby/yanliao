@@ -183,7 +183,7 @@ export default {
             setTimeout(() => {
               this.loading = false
               Message.success('上传成功')
-              this.$router.push('/profile?index=3')
+              this.$router.push('/profile?index=4')
             }, 3000)
           }).catch((error) => {
             this.loading = false

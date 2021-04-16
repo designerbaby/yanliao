@@ -69,7 +69,7 @@ export default {
     show(row) {
       console.log('VideoDialog show:', row)
       this.videoDialogShow = true
-      this.currentVideoUrl = row.play_info[0].url
+      this.currentVideoUrl = row.url || row.play_info[0].url
       this.$nextTick(() => {
         this.$refs.dialogVideo.play()
       })

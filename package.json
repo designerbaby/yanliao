@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "start": "npm run serve",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "build:test": "npm run build && bash shell/upload_test.sh",
+    "build:prod": "npm run build && bash shell/upload_prod.sh",
     "lint": "vue-cli-service lint",
     "lint-fix": "vue-cli-service lint --fix"
   },
   "dependencies": {
     "axios": "^0.20.0",
+    "babel-polyfill": "^6.26.0",
     "cos-js-sdk-v5": "^1.2.2",
     "element-ui": "^2.13.2",
     "object-assign-deep": "^0.4.0",
