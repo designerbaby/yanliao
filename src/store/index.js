@@ -58,7 +58,29 @@ const defaultState = {
   copyStagePitches: [], // 复制的内容
   musicId: 0, // 从主流程过来的选中的歌曲id
   musicName: '编辑器填词', // 歌曲名称
-  showArrange: false // 是否展开编曲
+  showArrange: true, // 是否展开编曲
+  trackList: [
+    {
+      name: '干音音轨',
+      current: 23,
+      total: 100,
+      play: true,
+      type: 1 // type 1代表干音音轨, 2代表伴奏音轨
+    },
+    {
+      name: '伴奏音轨',
+      current: 10,
+      total: 100,
+      play: false,
+      type: 2
+    }
+  ], // 音轨列表，后续多音轨要改这里的数据
+  arrangeStage: { // 音轨舞台
+    width: 0,
+    height: 0,
+    scrollLeft: 0,
+    scrollTop: 0
+  }
 }
 
 const store = new Vuex.Store({

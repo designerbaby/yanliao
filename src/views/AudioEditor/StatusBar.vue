@@ -1,7 +1,8 @@
 <template>
   <div :class="$style.container">
     <div :class="$style.holder" v-if="isFixed"></div>
-    <div :class="[$style.main, {[$style.fixed]: isFixed}]">
+    <div
+      :class="[$style.main, isFixed && !showArrange ? $style.fixed : '', isFixed && showArrange ? $style.openFixed : '']">
       <Beat></Beat>
       <BeatTop></BeatTop>
     </div>
@@ -18,7 +19,10 @@ export default {
   computed: {
     ...mapState({
       isFixed: 'isExceedHeader'
-    })
+    }),
+    showArrange() {
+      return this.$store.state.showArrange
+    }
   }
 }
 </script>
@@ -36,11 +40,15 @@ export default {
   background-color: #373736;
   width: 100%;
   display: flex;
+  z-index: 2000;
 }
 .fixed {
   position: fixed;
-  top: 78px;
-  // top: 222px;
-  z-index: 2000;
+  top: 110px;
+}
+
+.openFixed {
+  position: fixed;
+  top: 237px;
 }
 </style>

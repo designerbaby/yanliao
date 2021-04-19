@@ -52,6 +52,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### TODO
 
 - 1、要把doPlay的判断改成状态机
+- 2、修改音量拖动不是那么流畅
 
 ## 难点
 - 1、用svg画音高线的时候出现锯齿
