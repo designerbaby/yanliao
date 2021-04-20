@@ -9,11 +9,9 @@
       @openDrawer="toOpenDrawer"
       @toScroll="toScroll"
     ></BeatHeader>
-    <Arrange></Arrange>
+    <!-- <Arrange ref="Arrange"></Arrange> -->
     <StatusBar></StatusBar>
-    <BeatContainer
-      ref="BeatContainer"
-    ></BeatContainer>
+    <BeatContainer ref="BeatContainer"></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
     <CommonDialog
       :show="dialogShow"
@@ -30,7 +28,7 @@ import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
 import StatusBar from './StatusBar.vue'
-import Arrange from './Arrange'
+// import Arrange from './Arrange/index.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
@@ -47,7 +45,7 @@ export default {
     BeatHeader,
     BeatSetting,
     StatusBar,
-    Arrange,
+    // Arrange,
     CommonDialog
   },
   data() {
@@ -415,15 +413,26 @@ export default {
     changeLinePosition(left, autoScroll = false) {
       if (autoScroll) {
         const { width, scrollLeft } = this.$store.state.stage
-        const max = scrollLeft + width // 滚动滚动的大小加上容器的大小就是容器最右边的位置
+        const max = scrollLeft + width // 滚动的大小加上容器的大小就是容器最右边的位置
         if (left > max) {
           this.$refs.BeatContainer.scrollTo(max)
         } else if  (left < scrollLeft) { // 线的位置小于滚动条的滚动位置说明线在左边看不到
           this.$refs.BeatContainer.scrollTo(left)
         }
+        this.scrollArrange(left)
       }
 
       this.$store.dispatch('changeStoreState', { lineLeft: left })
+    },
+    scrollArrange(left) {
+      const { width, scrollLeft } = this.$store.state.arrangeStage
+      const max = scrollLeft + width
+      const arrangeLeft = left / 10
+      if (arrangeLeft > max) {
+        this.$refs.Arrange.scrollTo(max)
+      } else if (arrangeLeft < scrollLeft) {
+        this.$refs.Arrange.scrollTo(arrangeLeft)
+      }
     },
     toScroll(left) {
       this.$refs.BeatContainer.scrollTo(left)

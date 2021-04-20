@@ -1,6 +1,5 @@
 <template>
   <div :class="[$style.arrange, {[$style.fixed]: isFixed}]">
-    <!-- <div id="waveform" style="width: 200px"></div> -->
     <div :class="$style.container" v-if="$store.state.showArrange">
       <ArrangeTitle></ArrangeTitle>
       <ArrangeBar></ArrangeBar>
@@ -13,22 +12,8 @@
             :style="{
               transform: `translateX(${$store.state.lineLeft / 10}px)`
             }"></div>
-          <div
-            :class="$style.stage"
-            id="arrageStage"
-            :style="{ width: `${$store.getters.stageWidth / 10}px`, height: `${$store.getters.stageHeight / 20}px`}">
-          </div>
-          <template v-for="(it, index) in $store.state.stagePitches">
-            <div
-              :class="[$style.pitch, it.red ? $style.isRed: '']"
-              :key="index"
-              :style="{
-                width: `${it.width / 10}px`,
-                height: `${it.height / 20}px`,
-                transform: `translate(${it.left / 10}px, ${it.top / 20}px)`
-              }"
-            ></div>
-          </template>
+          <ArrangeStage></ArrangeStage>
+          <ArrangeObbligato></ArrangeObbligato>
         </div>
       </div>
     </div>
@@ -37,11 +22,12 @@
 </template>
 
 <script>
-// import WaveSurfer from 'wavesurfer.js'
 import ArrangeBar from './ArrangeBar.vue'
 import ArrangeTitle from './ArrangeTitle.vue'
 import ArrangeTrack from './ArrangeTrack.vue'
+import ArrangeStage from './ArrangeStage.vue'
 import ArrangeStageBg from './ArrangeStageBg.vue'
+import ArrangeObbligato from './ArrangeObbligato.vue'
 import { mapState } from 'vuex'
 
 export default {
@@ -50,7 +36,9 @@ export default {
     ArrangeBar,
     ArrangeTitle,
     ArrangeTrack,
-    ArrangeStageBg
+    ArrangeStage,
+    ArrangeStageBg,
+    ArrangeObbligato
   },
   computed: {
     ...mapState({
@@ -70,7 +58,8 @@ export default {
     updateStageOffset() {
       const scrollLeft = this.$refs.rightArea.scrollLeft
       const scrollTop = this.$refs.rightArea.scrollTop
-
+      // const arrangeStageWidth = this.$store.getters.stageWidth / 10
+      // const progress = scrollLeft / arrangeStageWidth * this.$store.getters.stageWidth
       this.$store.dispatch('changeStoreState', {
         arrangeStage: {
           ...this.$store.state.arrangeStage,
@@ -79,19 +68,8 @@ export default {
         }
       })
     },
-    showWaveSurfer() {
-        // var wavesurfer = WaveSurfer.create({
-      //   container: '#waveform',
-      //   waveColor: 'violet',
-      //   progressColor: 'purple'
-      // });
-      // wavesurfer.load('https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/kuwa-wav/cdb9df7547db4a278d95a792a3a6839a.wav');
-      // wavesurfer.on('ready', function () {
-      //   wavesurfer.play();
-      // });
-    },
-    changeVolume(index) {
-      console.log('changeVolume:', index)
+    scrollTo(left) {
+      this.$refs.rightArea.scrollLeft = left
     }
   }
 }
@@ -112,9 +90,6 @@ export default {
   top: 78px;
   z-index: 2000;
   width: 100%;
-}
-.show {
-  transform: rotate(0deg);
 }
 
 .container {
@@ -178,21 +153,4 @@ export default {
   }
 }
 
-.stage {
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-bottom: 1px solid #1d1d1d;
-}
-
-.pitch {
-  background: #57673b;
-  border-radius: 1.5px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  &.isRed {
-    border: 0.5px solid red;
-  }
-}
 </style>

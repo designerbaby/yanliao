@@ -26,13 +26,14 @@ export default {
   display: flex;
   align-items: center;
   width: 100%;
+  img {
+    width: 12px;
+    height: 12px;
+    margin: 0 6px 0 16px;
+  }
 }
 
-img {
-  width: 12px;
-  height: 12px;
-  margin: 0 6px 0 16px;
-}
+
 
 .isRight {
   transform: rotate(270deg);

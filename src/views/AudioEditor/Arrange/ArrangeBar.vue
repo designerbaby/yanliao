@@ -18,9 +18,6 @@
 export default {
   name: 'ArrangeBar',
   computed: {
-    // beatWidth() {
-    //   return this.$store.getters.beatWidth / 10
-    // },
     style() {
       return {
         width: `${this.$store.getters.stageWidth / 10}px`,

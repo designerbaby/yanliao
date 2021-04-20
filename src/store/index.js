@@ -62,7 +62,7 @@ const defaultState = {
   trackList: [
     {
       name: '干音音轨',
-      current: 23,
+      current: 50,
       total: 100,
       play: true,
       type: 1 // type 1代表干音音轨, 2代表伴奏音轨
@@ -327,10 +327,15 @@ const store = new Vuex.Store({
     updateStageSize({ commit, state }) {
       const windowWidth = window.innerWidth
       const width = windowWidth - 50
+      const arrangeStageWidth = windowWidth - 216
       commit('changeStoreState', {
         stage: {
           ...state.stage,
           width
+        },
+        arrangeStage: {
+          ...state.arrangeStage,
+          width: arrangeStageWidth
         }
       })
     },

@@ -2,7 +2,7 @@
   <div :class="$style.container">
     <div :class="$style.holder" v-if="isFixed"></div>
     <div
-      :class="[$style.main, isFixed && !showArrange ? $style.fixed : '', isFixed && showArrange ? $style.openFixed : '']">
+      :class="[$style.main, isFixed ? $style.fixed : '']">
       <Beat></Beat>
       <BeatTop></BeatTop>
     </div>
@@ -10,6 +10,7 @@
 </template>
 
 <script>
+// :class="[$style.main, isFixed && !showArrange ? $style.fixed : '', isFixed && showArrange ? $style.openFixed : '']">
 import { mapState } from 'vuex'
 import Beat from './Beat.vue'
 import BeatTop from './BeatTop.vue'
@@ -44,7 +45,8 @@ export default {
 }
 .fixed {
   position: fixed;
-  top: 110px;
+  top: 78px;
+  // top: 110px;
 }
 
 .openFixed {
