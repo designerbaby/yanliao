@@ -19,7 +19,8 @@
         </div>
       </Upload>
       <!-- <div :class="$style.common" @click="clickArrange">
-        <img src="@/assets/audioEditor/track-arrange.png">
+        <img src="@/assets/audioEditor/track-arrange.png" v-if="$store.state.showArrange">
+        <img src="@/assets/audioEditor/track-normal.png" v-else>
         <div :class="$style.text">编曲</div>
       </div> -->
       <div :class="$style.linefu">
@@ -131,6 +132,9 @@ export default {
     },
     isExceedHeader() {
       return this.$store.state.isExceedHeader
+    },
+    showArrange() {
+      return this.$store.state.showArrange
     }
   },
   components: {
@@ -327,6 +331,10 @@ export default {
 .blank {
   width: 100%;
   height: 78px;
+}
+.blankTop {
+  width: 100%;
+  height: 237px;
 }
 .header {
   width: 100%;

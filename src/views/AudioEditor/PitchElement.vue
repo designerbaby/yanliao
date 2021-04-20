@@ -34,6 +34,9 @@ import { modeState } from '@/common/utils/const'
 
 export default {
   name: 'PitchElement',
+  components: {
+    ArrowElement
+  },
   data() {
     return {
     }
@@ -142,9 +145,6 @@ export default {
       pitch.preTime = preTime
       this.$store.dispatch('changeStoreState', { isStagePitchElementChanged: true })
     }
-  },
-  components: {
-    ArrowElement
   }
 }
 </script>
