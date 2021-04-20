@@ -2,7 +2,7 @@
   <div ref="container" :class="$style.container">
     <div :class="$style.main">
       <BeatPiano></BeatPiano>
-      <div :class="$style.right" ref="rightArea">
+      <div :class="$style.right" ref="rightArea" id="rightArea">
         <div ref="stage" :class="$style.stage" id="audioStage">
           <BeatStageBg></BeatStageBg>
           <BeatLine></BeatLine>
@@ -312,7 +312,6 @@ export default {
       // 绿色块鼠标移动事件
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
-        console.log('this.mouseModalTarget:', this.mouseModalTarget)
         if (this.mouseModalTarget) {
           this.mouseModalTarget.style.left = `${event.target.dataset.left - 100}px`
           this.mouseModalTarget.style.top = `${event.target.dataset.top - 100}px`

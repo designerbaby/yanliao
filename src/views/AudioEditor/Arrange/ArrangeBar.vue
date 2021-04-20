@@ -33,7 +33,18 @@ export default {
       const stage = document.querySelector('#arrageStage')
       const rect = stage.getBoundingClientRect()
       const left = event.clientX - rect.left
-      this.$store.dispatch('changeStoreState', { lineLeft: left * 10 })
+      const lineLeft = left * 10
+      // TODO 这里的修改下面主筐的位置，不太准确
+      const { width, scrollLeft } = this.$store.state.stage
+      const max = scrollLeft + width
+      const stageRightArea = document.getElementById('rightArea')
+      if (lineLeft > max) {
+        stageRightArea.scrollLeft = max
+      } else if (lineLeft < scrollLeft) {
+        stageRightArea.scrollLeft = lineLeft
+      }
+
+      this.$store.dispatch('changeStoreState', { lineLeft })
     }
   }
 }

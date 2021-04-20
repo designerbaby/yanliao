@@ -9,7 +9,7 @@
       @openDrawer="toOpenDrawer"
       @toScroll="toScroll"
     ></BeatHeader>
-    <!-- <Arrange ref="Arrange"></Arrange> -->
+    <Arrange ref="Arrange"></Arrange>
     <StatusBar></StatusBar>
     <BeatContainer ref="BeatContainer"></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
@@ -28,7 +28,7 @@ import BeatContainer from './BeatContainer.vue'
 import BeatHeader from './BeatHeader.vue'
 import BeatSetting from './BeatSetting.vue'
 import StatusBar from './StatusBar.vue'
-// import Arrange from './Arrange/index.vue'
+import Arrange from './Arrange/index.vue'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
@@ -45,7 +45,7 @@ export default {
     BeatHeader,
     BeatSetting,
     StatusBar,
-    // Arrange,
+    Arrange,
     CommonDialog
   },
   data() {
@@ -72,7 +72,7 @@ export default {
       state => state.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
-        console.log('changeStoreState isStagePitchesChanged true')
+        // console.log('changeStoreState isStagePitchesChanged true')
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
       },
       {

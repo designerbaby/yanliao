@@ -5,7 +5,7 @@
       <ArrangeBar></ArrangeBar>
       <div :class="$style.wrap">
         <ArrangeTrack></ArrangeTrack>
-        <div :class="$style.right" ref="rightArea">
+        <div :class="$style.right" ref="rightArea" id="arrangeRightArea">
           <ArrangeStageBg></ArrangeStageBg>
           <div
             :class="$style.line"

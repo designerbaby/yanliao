@@ -14,7 +14,15 @@
           height: `${it.height / 20}px`,
           transform: `translate(${it.left / 10}px, ${it.top / 20}px)`
         }"
-      ></div>
+      >
+        <div :class="[$style.breath, it.selected ? $style.isActive : '', it.red ? $style.isRed: '']"
+          v-if="it.breath"
+          :style="{
+            width: `${it.breath.width / 10}px`,
+            height: `${it.height / 20}px`,
+            left: `${(it.breath.left - it.left) / 10}px`
+          }"></div>
+      </div>
     </template>
   </div>
 </template>
@@ -49,6 +57,20 @@ export default {
   }
   &.isRed {
     border: 0.5px solid red;
+  }
+}
+
+.breath {
+  position: absolute;
+  background: #0f6d23;
+  border-radius: 1.5px;
+  &.isActive {
+    background: #159430;
+  }
+  &.isRed {
+    border: 0.5px solid red;
+    border-right: 0;
+    top: -1px;
   }
 }
 
