@@ -52,7 +52,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### TODO
 
 - 1、要把doPlay的判断改成状态机
-- 2、修改音量拖动不是那么流畅
 - 4、修改音轨区的播放条，下面的滚动区域也要随之改变
 - 5、将上传文件独立出一个文件出来
 

@@ -11,15 +11,10 @@
           :auto-upload="false"
           :limit="1"
           :drag="true"
-          :action="action"
+          action="/"
           :multiple="false"
-          :headers="headers"
           :with-credentials="true"
         >
-          <input id="key" name="key" type="hidden" value="">
-          <input id="Signature" name="Signature" type="hidden" value="">
-          <input name="Content-Type" type="hidden" value="">
-          <input id="x-cos-security-token" name="x-cos-security-token" type="hidden" value="">
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
           <div class="el-upload__tip" slot="tip">只能上传zip或rar格式的文件</div>
@@ -59,8 +54,8 @@ import {
   Checkbox,
   Progress
 } from 'element-ui'
-import { addAudioSource, getUserCredential } from '@/api/audioSource'
-import { getCookie, camSafeUrlEncode, getAuthorization } from '@/common/utils/helper'
+import { addAudioSource } from '@/api/audioSource'
+import { uploadFile } from '@/common/utils/upload'
 
 export default {
   name: 'audioUpload',
@@ -73,12 +68,7 @@ export default {
         audio_source_name: '',
         read: false
       },
-      fileDownloadUrl: '',
-      headers: {
-        'Authorization': '',
-        'x-cos-security-token': ''
-      },
-      action: 'https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/',
+      fileDownloadUrl: ''
     }
   },
   components: {
@@ -89,8 +79,6 @@ export default {
     Button,
     Checkbox,
     Progress
-  },
-  destroyed() {
   },
   methods: {
     uploadChange(file) {
@@ -104,10 +92,6 @@ export default {
     },
     uploadExcced(files, fileList) {
       Message.error('请勿重复上传')
-    },
-    async getUserCredential() {
-      const res = await getUserCredential()
-      return res.data
     },
     async uploadAudio() {
       if (!this.form.file) {
@@ -129,48 +113,11 @@ export default {
         Message.error('未勾选已阅读上传音源须知')
         return
       }
-      const method = 'PUT'
-      const mxUid = getCookie('mx_uid')
-      Message.success('上传中')
-      this.loading = true
-      const key = `file/${mxUid}/${this.form.file.name}`
-      const { data } = await this.getUserCredential()
-      const info = await getAuthorization(method, key, data)
-      const Authorization = info.Authorization   // 得到的签名
-      const XCosSecurityToken = info.XCosSecurityToken // 得到的sessionToken
-      this.uploadFile(method, key, Authorization, XCosSecurityToken, (err, data) => {
-        if (err) {
-          Message.error(err)
-        } else {
-          this.addAudioSource(data.url)
-          this.fileDownloadUrl = data.url
-          console.log('url:', this.fileDownloadUrl)
-        }
+      uploadFile(this.form.file, 'upload', (url) => {
+        // Message.success('上传成功～')
+        this.addAudioSource(url)
+        this.fileDownloadUrl = url
       })
-    },
-    uploadFile(method, key, Authorization, XCosSecurityToken, callback) {
-      var url = `${this.action}${camSafeUrlEncode(key).replace(/%2F/g, '/')}`
-      var xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.setRequestHeader('Authorization', Authorization);
-      XCosSecurityToken && xhr.setRequestHeader('x-cos-security-token', XCosSecurityToken)
-      xhr.upload.onprogress = (e) => {
-        const percentage = parseFloat(Math.round(e.loaded / e.total * 10000) / 100)
-        this.percentage = percentage
-        console.log(`上传进度: ${this.percentage}%`)
-      };
-      xhr.onload = () => {
-        if (/^2\d\d$/.test('' + xhr.status)) {
-          var ETag = xhr.getResponseHeader('etag')
-          callback(null, {url: url, ETag: ETag})
-        } else {
-          callback(`文件${key}上传失败，状态码：${xhr.status}`)
-        }
-      };
-      xhr.onerror = () => {
-        callback(`文件${key}上传失败，请检查是否没配置 CORS 跨域规则`)
-      };
-      xhr.send(this.form.file);
     },
     async addAudioSource(url) {
       if (!this.form.audio_source_name) {

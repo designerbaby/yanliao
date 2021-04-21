@@ -34,16 +34,11 @@ export default {
       const rect = stage.getBoundingClientRect()
       const left = event.clientX - rect.left
       const lineLeft = left * 10
-      // TODO 这里的修改下面主筐的位置，不太准确
-      const { width, scrollLeft } = this.$store.state.stage
-      const max = scrollLeft + width
+      const { width } = this.$store.state.stage
       const stageRightArea = document.getElementById('rightArea')
-      if (lineLeft > max) {
-        stageRightArea.scrollLeft = max
-      } else if (lineLeft < scrollLeft) {
-        stageRightArea.scrollLeft = lineLeft
-      }
-
+      const scrollLeft = lineLeft - width / 2
+      this.$store.state.stage.scrollLeft = scrollLeft
+      stageRightArea.scrollLeft = scrollLeft
       this.$store.dispatch('changeStoreState', { lineLeft })
     }
   }

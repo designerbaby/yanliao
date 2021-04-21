@@ -12,14 +12,15 @@
       </div>
       <div :class="$style.progress">
         <div :class="$style.inner" :style="{ width: `${(it.current / it.total) * 100}%` }"></div>
-        <div
-          :class="$style.select"
-          :style="{ left: `${(it.current / it.total) * 100}%` }"
-          @mousedown="onMouseDown($event, index)"
-          @mousemove="onMouseMove($event, index)"
-          @mouseup="onMouseUp"
-          @mouseleave="onMouseUp"
-        ></div>
+        <Dragger
+          :className="$style.select"
+          :styles="{ left: `${(it.current / it.total) * 100}%` }"
+          @on-start="onStart($event, index)"
+          @on-move="onMove($event, index)"
+          @on-end="onEnd"
+          >
+          <img src="@/assets/audioEditor/arrow-right.png">
+        </Dragger>
         <div
           :class="$style.bubble"
           :style="{ left: `${(it.current / it.total) * 100}%` }"
@@ -31,8 +32,11 @@
 </template>
 
 <script>
+import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
+
 export default {
   name: 'ArrangeTrack',
+  components: { Dragger },
   data() {
     return {
       isChangeVolume: -1, // 要开始修改音量了
@@ -46,23 +50,26 @@ export default {
     }
   },
   methods: {
-    onMouseDown(event, index) {
+    onStart(event, index) {
       this.isChangeVolume = index
       this.startVolume = {
         left: this.trackList[index].current,
         x: event.clientX
       }
     },
-    onMouseMove(event, index) {
+    onMove(event, index) {
       if (this.isChangeVolume >= 0) {
         const pos = {
           x: event.clientX
         }
         const moveX = pos.x - this.startVolume.x
+        if (this.startVolume.left + moveX < 0 || this.startVolume.left + moveX > 100) {
+          return
+        }
         this.trackList[index].current = this.startVolume.left + moveX
       }
     },
-    onMouseUp() {
+    onEnd() {
       if (this.isChangeVolume >= 0) {
         this.isChangeVolume = -1
       }

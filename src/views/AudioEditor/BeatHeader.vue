@@ -10,7 +10,7 @@
         :multiple="false"
         :show-file-list="false"
         :with-credentials="true"
-        :action="action">
+        action="/">
         <div id="uploadQupuWrap">
           <div :class="$style.common" @click="uploadQupu">
             <img src="@/assets/audioEditor/import.png"/>
@@ -99,11 +99,11 @@
 <script>
 import { Button, Message, Upload } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
-import { isDuplicated, reportEvent, getParam, getCookie, camSafeUrlEncode, getAuthorization } from '@/common/utils/helper'
+import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog'
 import CommonDialog from './Components/CommonDialog.vue'
-import { getUserCredential } from '@/api/audioSource'
 import { mid2json } from '@/api/audio'
+import { uploadFile } from '@/common/utils/upload'
 
 export default {
   name: 'BeatHeader',
@@ -116,8 +116,7 @@ export default {
       timer: null,
       file: '',
       clickType: -1,
-      dialogShow: false,
-      action: 'https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/'
+      dialogShow: false
     }
   },
   computed: {
@@ -170,10 +169,6 @@ export default {
     },
     clickArrange() {
       this.$store.dispatch('changeStoreState', { showArrange: !this.$store.state.showArrange })
-    },
-    async getUserCredential() {
-      const res = await getUserCredential()
-      return res.data
     },
     async mid2json(url) {
       const res = await mid2json({
@@ -238,9 +233,26 @@ export default {
     onMouseUp() {
       this.clickMouseStart = false
     },
-    uploadChange(file) {
-      this.file = file.raw
-      this.uploadMidi()
+    uploadChange(originalFile) {
+      this.file = originalFile.raw
+      const file = originalFile.raw
+      const fileNameArr = file.name.split('.')
+      const type = fileNameArr[fileNameArr.length - 1]
+      if (type !== 'mid') {
+        Message.error('只能上传mid格式的文件～')
+        this.$refs['upload'].clearFiles()
+        return
+      }
+      const size = file.size
+      if (size > 2147483648) {
+        Message.error('文件大小超过 2GB')
+        this.$refs['upload'].clearFiles()
+        return
+      }
+      uploadFile(file, 'analyze', (url) => {
+        Message.success('解析成功～')
+        this.mid2json(url)
+      })
     },
     uploadQupu(event) {
       if (this.playState === playState.StatePlaying) {
@@ -263,62 +275,6 @@ export default {
     },
     midiCancelEvent() {
       this.$refs['upload'].clearFiles()
-    },
-    async uploadMidi() {
-      const file = this.file
-      const fileNameArr = file.name.split('.')
-      const type = fileNameArr[fileNameArr.length - 1]
-      if (type !== 'mid') {
-        Message.error('只能上传mid格式的文件～')
-        this.$refs['upload'].clearFiles()
-        return
-      }
-      const size = file.size
-      if (size > 2147483648) {
-        Message.error('文件大小超过 2GB')
-        this.$refs['upload'].clearFiles()
-        return
-      }
-      const method = 'PUT'
-      const mxUid = getCookie('mx_uid')
-      Message.success('开始解析中')
-      const key = `file/${mxUid}/${this.file.name}`
-      const { data } = await this.getUserCredential()
-      const info = await getAuthorization(method, key, data)
-      const Authorization = info.Authorization   // 得到的签名
-      const XCosSecurityToken = info.XCosSecurityToken // 得到的sessionToken
-      this.uploadFile(method, key, Authorization, XCosSecurityToken, (err, data) => {
-        if (err) {
-          Message.error(err)
-        } else {
-          console.log('url:', data.url)
-          this.mid2json(data.url)
-        }
-      })
-    },
-    uploadFile(method, key, Authorization, XCosSecurityToken, callback) {
-      var url = `${this.action}${camSafeUrlEncode(key).replace(/%2F/g, '/')}`
-      var xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.setRequestHeader('Authorization', Authorization);
-      XCosSecurityToken && xhr.setRequestHeader('x-cos-security-token', XCosSecurityToken)
-      xhr.upload.onprogress = (e) => {
-        const percentage = parseFloat(Math.round(e.loaded / e.total * 10000) / 100)
-        console.log(`上传进度: ${percentage}%`)
-        Message.success(`解析进度${percentage}%`)
-      };
-      xhr.onload = () => {
-        if (/^2\d\d$/.test('' + xhr.status)) {
-          var ETag = xhr.getResponseHeader('etag')
-          callback(null, {url: url, ETag: ETag})
-        } else {
-          callback(`文件${key}上传失败，状态码：${xhr.status}`)
-        }
-      };
-      xhr.onerror = () => {
-        callback(`文件${key}上传失败，请检查是否没配置 CORS 跨域规则`)
-      };
-      xhr.send(this.file);
     }
   }
 }

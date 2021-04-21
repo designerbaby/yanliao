@@ -12,14 +12,25 @@
     }">
     <div
       id="waveform"
-      :class="$style.waveform"
+      ref="WaveForm"
+      :class="[$style.waveform, isWaveMouseDown ? $style.isActive : '']"
       :style="{
         width: `${this.waveWidth}px`,
         height: `${$store.getters.stageHeight / 20}px`,
-        left: `${mousePos.x}px`
+        transform: `translateX(${mousePos.x}px)`
       }"
+      @mousedown="onWaveMouseDown"
+      @mousemove="onWaveMouseMove"
+      @mouseup="onWaveMouseUp"
+      @mouseleave="onWaveMouseUp"
       @click.right.stop.prevent.exact="onRightClickWave"
-    ></div>
+    >
+      <div
+        :class="$style.delete"
+        v-if="showDelete"
+        @click="deleteObbligato"
+      >删除</div>
+    </div>
     <div
       :class="$style.list"
       v-if="showMenu"
@@ -37,24 +48,18 @@
       :multiple="false"
       :show-file-list="false"
       :with-credentials="true"
-      :action="action">
+      action="/">
       <div id="uploadBanzou"></div>
     </Upload>
-
-    <div
-      :class="$style.delete"
-      v-if="showDelete"
-      @click="deleteObbligato"
-    >删除</div>
   </div>
 </template>
 
 <script>
 import WaveSurfer from 'wavesurfer.js'
 import { Upload, Message } from 'element-ui'
-import { timeToPx, getCookie, getAuthorization, camSafeUrlEncode } from '@/common/utils/helper'
-import { getUserCredential } from '@/api/audioSource'
+import { timeToPx } from '@/common/utils/helper'
 import { PlayAudio } from '@/common/utils/player'
+import { uploadFile } from '@/common/utils/upload'
 
 export default {
   name: 'ArrangeObbligato',
@@ -70,10 +75,11 @@ export default {
         x: 0,
         y: 0
       },
-      action: 'https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/',
-      file: '',
       audio: null,
-      waveWidth: 0
+      waveWidth: 0,
+      isWaveMouseDown: false,
+      waveStartPos: null,
+      wavesurfer: null
     }
   },
   mounted() {
@@ -84,12 +90,12 @@ export default {
   },
   methods: {
     showWaveSurfer(url) {
-      var wavesurfer = WaveSurfer.create({
+      this.wavesurfer = WaveSurfer.create({
         container: '#waveform',
-        backgroundColor: 'rgba(255,255,255,0.07)'
+        backgroundColor: 'rgba(255,255,255,0.07)',
+        height: 56
       })
-
-      wavesurfer.load(url);
+      this.wavesurfer.load(url);
       this.audio = PlayAudio({
         url,
         onPlay: (audio) => {
@@ -107,9 +113,9 @@ export default {
         this.waveWidth = timeToPx(this.audio.duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
         console.log('this.waveWidth:', this.waveWidth)
       })
-      wavesurfer.on('ready', function () {
-        wavesurfer.play()
-      })
+      // wavesurfer.on('ready', function () {
+      //   wavesurfer.play()
+      // })
     },
     onRightClickStage(event) {
       const rect = this.$refs.Obbligato.getBoundingClientRect()
@@ -122,60 +128,48 @@ export default {
     onRightClickWave() {
       this.showDelete = true
     },
+    onWaveMouseDown(event) {
+      this.isWaveMouseDown = true
+      const rect = this.$refs.WaveForm.getBoundingClientRect()
+
+      this.waveStartPos = {
+        x: event.clientX - rect.left
+      }
+      event.target.style.opacity = 0.8
+      document.addEventListener('mousemove', this.onWaveMouseMove)
+      document.addEventListener('mouseleave', this.onWaveMouseUp)
+    },
+    onWaveMouseMove(event) {
+      if (this.waveStartPos) {
+        const moveX = event.clientX - this.waveStartPos.clientX
+        const target = event.target
+        const newLeft = target.left + moveX
+        target.style.transform = `translateX(${newLeft}px)`
+        target.dataset.left = newLeft
+      }
+    },
+    onWaveMouseUp(event) {
+      if (this.waveStartPos) {
+
+      }
+      event.target.style.opacity = 1
+      document.removeEventListener('mousemove', this.onWaveMouseMove)
+      document.removeEventListener('mouseleave', this.onWaveMouseUp)
+    },
     deleteObbligato() {
       console.log('deleteObbligato')
+      this.wavesurfer.destroy()
     },
     selectObbligato() {
       document.getElementById('uploadBanzou').click()
     },
-    async getUserCredential() {
-      const res = await getUserCredential()
-      return res.data
-    },
     async uploadChange(file) {
-      console.log('file:', file)
+      console.log('uploadChange file:', file)
       this.showMenu = false
-      this.file = file.raw
-      const method = 'PUT'
-      const mxUid = getCookie('mx_uid')
-      Message.success('开始解析伴奏中')
-      const key = `file/${mxUid}/${this.file.name}`
-      const { data } = await this.getUserCredential()
-      const info = await getAuthorization(method, key, data)
-      const Authorization = info.Authorization   // 得到的签名
-      const XCosSecurityToken = info.XCosSecurityToken // 得到的sessionToken
-      this.uploadFile(method, key, Authorization, XCosSecurityToken, (err, data) => {
-        if (err) {
-          Message.error(err)
-        } else {
-          console.log('url:', data.url)
-          this.showWaveSurfer(data.url)
-        }
+      uploadFile(file.raw, 'analyze', (url) => {
+        Message.success('解析成功～')
+        this.showWaveSurfer(url)
       })
-    },
-    uploadFile(method, key, Authorization, XCosSecurityToken, callback) {
-      var url = `${this.action}${camSafeUrlEncode(key).replace(/%2F/g, '/')}`
-      var xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.setRequestHeader('Authorization', Authorization);
-      XCosSecurityToken && xhr.setRequestHeader('x-cos-security-token', XCosSecurityToken)
-      xhr.upload.onprogress = (e) => {
-        const percentage = parseFloat(Math.round(e.loaded / e.total * 10000) / 100)
-        console.log(`解析进度: ${percentage}%`)
-        // Message.success(`解析进度${percentage}%`)
-      };
-      xhr.onload = () => {
-        if (/^2\d\d$/.test('' + xhr.status)) {
-          var ETag = xhr.getResponseHeader('etag')
-          callback(null, {url: url, ETag: ETag})
-        } else {
-          callback(`文件${key}上传失败，状态码：${xhr.status}`)
-        }
-      };
-      xhr.onerror = () => {
-        callback(`文件${key}上传失败，请检查是否没配置 CORS 跨域规则`)
-      };
-      xhr.send(this.file);
     },
     onStageMouseDown() {
       this.showMenu = false
@@ -195,9 +189,16 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
-  height: 56px;
+  height: 50px;
   width: 0;
+  &.isActive {
+    background: rgba(255,255,255,0.07);
+    border-radius: 5px;
+    border: 2px solid #6C6C6C;
+  }
 }
+
+
 .list {
   width: 96px;
   height: 26px;

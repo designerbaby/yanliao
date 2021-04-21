@@ -132,8 +132,10 @@ export default {
     // 删除草稿数据
     deleteDraft() {
       const draftId = sessionStorage.getItem('draftId')
-      deleteDraft(draftId)
-      sessionStorage.setItem('draftId', '')
+      if (draftId) {
+        deleteDraft(draftId)
+        sessionStorage.setItem('draftId', '')
+      }
     },
     // 获取表单数据
     getFormData() {
