@@ -15,9 +15,9 @@
       ref="WaveForm"
       :class="[$style.waveform, isWaveMouseDown ? $style.isActive : '']"
       :style="{
-        width: `${this.waveWidth}px`,
+        width: `${waveWidth}px`,
         height: `${$store.getters.stageHeight / 20}px`,
-        transform: `translateX(${mousePos.x}px)`
+        transform: `translateX(${waveformStyle.left}px)`
       }"
       @mousedown="onWaveMouseDown"
       @mousemove="onWaveMouseMove"
@@ -25,21 +25,26 @@
       @mouseleave="onWaveMouseUp"
       @click.right.stop.prevent.exact="onRightClickWave"
     >
-      <div
-        :class="$style.delete"
-        v-if="showDelete"
-        @click="deleteObbligato"
-      >删除</div>
     </div>
+    <div
+      :class="$style.delete"
+      v-if="showDelete"
+      @click="deleteObbligato"
+      :style="{
+        top: `${waveMousePos.y}px`,
+        left: `${waveMousePos.x}px`
+      }"
+    >删除</div>
     <div
       :class="$style.list"
       v-if="showMenu"
       :style="{
-        top: `${mousePos.y}px`,
-        left: `${mousePos.x}px`
+        top: `${stageMousePos.y}px`,
+        left: `${stageMousePos.x}px`
       }"
       @click="selectObbligato"
     >选择伴奏文件</div>
+    <!-- diaplay none -->
     <Upload
       ref="upload"
       :accept="'*'"
@@ -58,7 +63,6 @@
 import WaveSurfer from 'wavesurfer.js'
 import { Upload, Message } from 'element-ui'
 import { timeToPx } from '@/common/utils/helper'
-import { PlayAudio } from '@/common/utils/player'
 import { uploadFile } from '@/common/utils/upload'
 
 export default {
@@ -71,15 +75,20 @@ export default {
     return {
       showMenu: false,
       showDelete: false,
-      mousePos: {
+      stageMousePos: { // 伴奏轨的位置
         x: 0,
         y: 0
       },
-      audio: null,
       waveWidth: 0,
+      waveMousePos: null, // 伴奏音波鼠标右键的位置
+      // audio: null,
       isWaveMouseDown: false,
+      waveformStyle: {
+        left: 0,
+        top: 0
+      },
       waveStartPos: null,
-      wavesurfer: null
+      waveEndPos: null
     }
   },
   mounted() {
@@ -88,88 +97,103 @@ export default {
       return false
     }
   },
+  computed: {
+    trackList() {
+      return this.$store.state.trackList
+    }
+  },
   methods: {
-    showWaveSurfer(url) {
-      this.wavesurfer = WaveSurfer.create({
-        container: '#waveform',
-        backgroundColor: 'rgba(255,255,255,0.07)',
-        height: 56
-      })
-      this.wavesurfer.load(url);
-      this.audio = PlayAudio({
-        url,
-        onPlay: (audio) => {
-          console.log('playing')
-        },
-        onPause: (dom) => {
-          console.log('pause')
-        },
-        onEnd: () => {
-          console.log('end')
-        }
-      })
-      this.audio.addEventListener('canplay', () => {
-        console.log('audio.duration:', this.audio.duration)
-        this.waveWidth = timeToPx(this.audio.duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
-        console.log('this.waveWidth:', this.waveWidth)
-      })
-      // wavesurfer.on('ready', function () {
-      //   wavesurfer.play()
-      // })
-    },
-    onRightClickStage(event) {
-      const rect = this.$refs.Obbligato.getBoundingClientRect()
-      this.mousePos = {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top
-      }
-      this.showMenu = true
-    },
-    onRightClickWave() {
-      this.showDelete = true
-    },
-    onWaveMouseDown(event) {
-      this.isWaveMouseDown = true
-      const rect = this.$refs.WaveForm.getBoundingClientRect()
-
-      this.waveStartPos = {
-        x: event.clientX - rect.left
-      }
-      event.target.style.opacity = 0.8
-      document.addEventListener('mousemove', this.onWaveMouseMove)
-      document.addEventListener('mouseleave', this.onWaveMouseUp)
-    },
-    onWaveMouseMove(event) {
-      if (this.waveStartPos) {
-        const moveX = event.clientX - this.waveStartPos.clientX
-        const target = event.target
-        const newLeft = target.left + moveX
-        target.style.transform = `translateX(${newLeft}px)`
-        target.dataset.left = newLeft
-      }
-    },
-    onWaveMouseUp(event) {
-      if (this.waveStartPos) {
-
-      }
-      event.target.style.opacity = 1
-      document.removeEventListener('mousemove', this.onWaveMouseMove)
-      document.removeEventListener('mouseleave', this.onWaveMouseUp)
-    },
-    deleteObbligato() {
-      console.log('deleteObbligato')
-      this.wavesurfer.destroy()
-    },
-    selectObbligato() {
-      document.getElementById('uploadBanzou').click()
-    },
     async uploadChange(file) {
-      console.log('uploadChange file:', file)
       this.showMenu = false
       uploadFile(file.raw, 'analyze', (url) => {
         Message.success('解析成功～')
         this.showWaveSurfer(url)
       })
+    },
+    showWaveSurfer(url) {
+      this.$store.state.wavesurfer = WaveSurfer.create({
+        container: '#waveform',
+        backgroundColor: 'rgba(255,255,255,0.07)',
+        height: 56,
+        pixelRatio: 1,
+        audioRate: (this.$store.state.bpm / 150).toFixed(2)
+      })
+      this.$store.state.wavesurfer.load(url);
+      this.$store.state.wavesurfer.on('ready', () => {
+        const duration = this.$store.state.wavesurfer.getDuration()
+        this.waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
+        console.log('duration:', duration)
+      })
+      this.waveformStyle.left = this.stageMousePos.x
+    },
+    onRightClickStage(event) {
+      // 伴奏音轨鼠标右键
+      console.log('onRightClickStage:', event)
+      const rect = this.$refs.Obbligato.getBoundingClientRect()
+      this.stageMousePos = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      }
+      this.showMenu = true
+    },
+    onRightClickWave(event) {
+      // 音波鼠标右键
+      console.log('onRightClickWave:', event)
+      this.waveMousePos = {
+        x: event.layerX,
+        y: event.layerY
+      }
+      console.log('waveMousePos:', this.waveMousePos)
+      this.showDelete = true
+    },
+    onWaveMouseDown(event) {
+      console.log('onWaveMouseDown:', event)
+      this.$refs.WaveForm.style.height = '48px'
+      this.$store.state.wavesurfer.setHeight(48)
+      this.isWaveMouseDown = true
+      const rect = this.$refs.WaveForm.getBoundingClientRect()
+
+      this.waveStartPos = {
+        x: event.clientX - rect.left,
+        left: this.waveformStyle.left
+      }
+      this.$refs.WaveForm.style.opacity = 0.8
+      document.addEventListener('mousemove', this.onWaveMouseMove)
+      document.addEventListener('mouseleave', this.onWaveMouseUp)
+    },
+    onWaveMouseMove(event) {
+      if (this.isWaveMouseDown) {
+        const rect = this.$refs.WaveForm.getBoundingClientRect()
+        console.log('onWaveMouseMove', event)
+        this.waveEndPos = {
+          x: event.clientX - rect.left
+        }
+        const moveX = this.waveEndPos.x - this.waveStartPos.x
+
+        let newLeft = this.waveformStyle.left + moveX
+
+        if (newLeft < 0) {
+          newLeft = 0
+        }
+        this.waveformStyle.left = newLeft
+      }
+    },
+    onWaveMouseUp(event) {
+      console.log('onWaveMouseUp', event)
+      if (this.isWaveMouseDown) {
+        this.isWaveMouseDown = false
+      }
+      this.$refs.WaveForm.style.opacity = 1
+      document.removeEventListener('mousemove', this.onWaveMouseMove)
+      document.removeEventListener('mouseleave', this.onWaveMouseUp)
+    },
+    deleteObbligato() {
+      this.showDelete = false
+      this.waveWidth = 0
+      this.$store.state.wavesurfer.destroy()
+    },
+    selectObbligato() {
+      document.getElementById('uploadBanzou').click()
     },
     onStageMouseDown() {
       this.showMenu = false
@@ -195,6 +219,8 @@ export default {
     background: rgba(255,255,255,0.07);
     border-radius: 5px;
     border: 2px solid #6C6C6C;
+    // border: 1px solid red;
+    height: 46px;
   }
 }
 

@@ -15,7 +15,6 @@ export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onE
   audio.id = eleId
   audio.type ="audio/wav"
   audio.style.display = 'none'
-
   audio.addEventListener("timeupdate", (event) => {
     const time = event.target.currentTime
     onProgress && onProgress(time)
@@ -33,6 +32,5 @@ export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onE
   })
 
   document.body.appendChild(audio)
-
   return audio
 }

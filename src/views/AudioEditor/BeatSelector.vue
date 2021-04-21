@@ -70,8 +70,12 @@ export default {
     },
     toUpdateStage() { // 根据内外舞台的框进行比较
       const stageConWidth = this.$store.state.stage.width
+      const arrangeStageConWidth = this.$store.state.arrangeStage.width
       console.log(`stageConWidth: ${stageConWidth}, this.stageWidth: ${this.stageWidth}`)
       while (stageConWidth > this.stageWidth) { // 外框比里框更大
+        this.$store.dispatch('updateMatter', 15)
+      }
+      while (arrangeStageConWidth > this.stageWidth / 10) { // 音轨页面的宽高比里面舞台需要的大
         this.$store.dispatch('updateMatter', 15)
       }
       this.$store.dispatch('adjustStageWidth')

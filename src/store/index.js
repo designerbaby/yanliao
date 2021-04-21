@@ -62,17 +62,19 @@ const defaultState = {
   trackList: [
     {
       name: '干音音轨',
-      current: 50,
+      current: 100,
       total: 100,
       play: true,
-      type: 1 // type 1代表干音音轨, 2代表伴奏音轨
+      type: 1, // type 1代表干音音轨, 2代表伴奏音轨
+      audio: null // audio
     },
     {
       name: '伴奏音轨',
-      current: 10,
+      current: 100,
       total: 100,
-      play: false,
-      type: 2
+      play: true,
+      type: 2,
+      audio: null
     }
   ], // 音轨列表，后续多音轨要改这里的数据
   arrangeStage: { // 音轨舞台
@@ -80,7 +82,8 @@ const defaultState = {
     height: 0,
     scrollLeft: 0,
     scrollTop: 0
-  }
+  },
+  wavesurfer: null // 伴奏音轨的
 }
 
 const store = new Vuex.Store({

@@ -52,8 +52,8 @@ export default {
     return {
       userInfo: sessionStorage.getItem('userInfo'),
       timerId: 0,
-      audio: null,
-      linePosition: null, // 播放时，线所在的位置播放
+      // audio: null,
+      // linePosition: null, // 播放时，线所在的位置播放
 
       // 播放线
       playLine: {
@@ -84,9 +84,15 @@ export default {
     document.addEventListener('keydown', this.keyDownListener)
   },
   destroyed() {
-    if (this.audio) {
-      this.audio.pause() // 要把播放的暂停了
+    if (this.trackList[0].audio) {
+      this.trackList[0].audio.pause() // 要把播放的暂停了
     }
+    if (this.$store.state.wavesurfer) {
+      this.$store.state.wavesurfer.pause()
+    }
+    // if (this.audio) {
+    //   this.audio.pause()
+    // }
     this.storeStagePitchesWatcher()
     this.resetStoreState()
     document.removeEventListener('keydown', this.keyDownListener)
@@ -118,6 +124,9 @@ export default {
     },
     stagePitches() {
       return this.$store.state.stagePitches
+    },
+    trackList() {
+      return this.$store.state.trackList
     }
   },
   methods: {
@@ -310,7 +319,9 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       } else if (this.playState === playState.StatePlaying) {
-        this.audio.pause()
+        // this.audio.pause()
+        this.trackList[0].audio.pause()
+        this.$store.state.wavesurfer.pause()
         this.changePlayState(playState.StatePaused)
       } else if (this.playState === playState.StatePaused) {
         if (this.isNeedGenerate()) {
@@ -355,13 +366,16 @@ export default {
         }
         this.playStartTime = startTime
         this.toPlayAudio(onlineUrl)
-        this.audio.currentTime = startTime
-        this.audio.play()
+        // this.audio.currentTime = startTime
+        this.trackList[0].audio.currentTime = startTime
+        // this.audio.play()
+        this.trackList[0].audio.play()
       } else {
         if (isContinue) {
           console.log(`play continue with start: ${this.playStartTime}`)
-          // this.audio.currentTime = this.playStartTime
-          this.audio.play()
+          // this.audio.play()
+          this.trackList[0].audio.play()
+          this.$store.state.wavesurfer.play()
         } else {
           this.playLine = {
             current: start,
@@ -372,15 +386,17 @@ export default {
           // 百分比不能为负数，最小为0
           // const startTime = percent * duration
           this.playStartTime = startTime
-          this.audio.currentTime = startTime
-          this.audio.play()
+          // this.audio.currentTime = startTime
+          // this.audio.play()
+          this.trackList[0].audio.currentTime = startTime
+          this.trackList[0].audio.play()
+          this.$store.state.wavesurfer.play()
         }
-
       }
     },
     toPlayAudio(url) {
       clearInterval(this.timerId)
-      this.audio = PlayAudio({
+      this.trackList[0].audio = PlayAudio({
         url,
         onPlay: (audio) => {
           this.timerId = setInterval(() => {
@@ -409,6 +425,7 @@ export default {
           this.playLine.current = this.playLine.start
         }
       })
+      this.trackList[0].audio.volume = this.trackList[0].current / 100
     },
     changeLinePosition(left, autoScroll = false) {
       if (autoScroll) {

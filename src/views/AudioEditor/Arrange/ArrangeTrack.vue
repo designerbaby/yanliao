@@ -67,6 +67,17 @@ export default {
           return
         }
         this.trackList[index].current = this.startVolume.left + moveX
+        if (this.trackList[index].current === 0) {
+          this.trackList[index].play = false
+        } else {
+          this.trackList[index].play = true
+        }
+        if (index === 0 && this.trackList[0].audio) {
+          this.trackList[0].audio.volume = this.trackList[0].current / 100
+        }
+        if (index === 1 && this.$store.state.wavesurfer) {
+          this.$store.state.wavesurfer.setVolume(this.trackList[1].current / 100)
+        }
       }
     },
     onEnd() {
