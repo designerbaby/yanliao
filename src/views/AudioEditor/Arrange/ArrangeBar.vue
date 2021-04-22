@@ -14,6 +14,7 @@
 </template>
 
 <script>
+import { pxToTime } from '@/common/utils/helper'
 
 export default {
   name: 'ArrangeBar',
@@ -34,12 +35,23 @@ export default {
       const rect = stage.getBoundingClientRect()
       const left = event.clientX - rect.left
       const lineLeft = left * 10
+      this.$store.dispatch('changeStoreState', { lineLeft })
+      // 改变音轨区播放线的位置顺便移动下面主舞台
       const { width } = this.$store.state.stage
       const stageRightArea = document.getElementById('rightArea')
       const scrollLeft = lineLeft - width / 2
       this.$store.state.stage.scrollLeft = scrollLeft
       stageRightArea.scrollLeft = scrollLeft
-      this.$store.dispatch('changeStoreState', { lineLeft })
+      // 修改伴奏轨的播放进度
+      if (this.$store.state.wavesurfer) {
+        const wavesurferLeft = left - this.$store.state.waveformStyle.left
+        let time = pxToTime(wavesurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
+        if (time < 0) {
+          time = 0
+        }
+        console.log(`wavesurferLeft: ${wavesurferLeft}, time: ${time}`)
+        this.$store.state.wavesurfer.setCurrentTime(time)
+      }
     }
   }
 }

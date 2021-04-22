@@ -52,8 +52,9 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### TODO
 
 - 1、要把doPlay的判断改成状态机
-- 4、修改音轨区的播放条，下面的滚动区域也要随之改变
-- 5、将上传文件独立出一个文件出来
+- 2、设置静音，只播放要播放的轨
+- 3、播放进度对齐
+- 4、
 
 ## 难点
 - 1、用svg画音高线的时候出现锯齿

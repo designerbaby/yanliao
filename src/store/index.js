@@ -83,7 +83,11 @@ const defaultState = {
     scrollLeft: 0,
     scrollTop: 0
   },
-  wavesurfer: null // 伴奏音轨的
+  wavesurfer: null, // 音波对象
+  waveWidth: 0, // 音波长度
+  waveformStyle: { // 伴奏轨的距离
+    left: 0
+  }
 }
 
 const store = new Vuex.Store({

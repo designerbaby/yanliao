@@ -86,7 +86,7 @@ export default {
       }
     },
     play(index) {
-      this.trackList[index].play = !this.trackList[index].play
+      // this.trackList[index].play = !this.trackList[index].play
     }
   }
 }

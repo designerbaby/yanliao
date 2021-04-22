@@ -54,6 +54,7 @@
 import { Select, Option, InputNumber, Input, Button } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
+import { timeToPx } from '@/common/utils/helper'
 
 export default {
   name: 'BeatSetting',
@@ -116,6 +117,14 @@ export default {
         this.inputBpmValue = this.$store.state.bpm
       }
       console.log('confirmBpm:', this.inputBpmValue)
+      // 有伴奏的话，要相应修改伴奏的长度
+      if (this.$store.state.wavesurfer) {
+        const duration = this.$store.state.wavesurfer.getDuration()
+        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
+
+        this.$store.dispatch('changeStoreState', { waveWidth })
+      }
+
       // 为了修复，bpm改变的时候，曲线闪一下的bug,这里特殊处理。
       const oldBpm = this.$store.state.bpm
       this.$store.dispatch('changeStoreState', { bpm: this.inputBpmValue, pitchChanged: true })

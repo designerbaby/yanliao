@@ -15,9 +15,9 @@
       ref="WaveForm"
       :class="[$style.waveform, isWaveMouseDown ? $style.isActive : '']"
       :style="{
-        width: `${waveWidth}px`,
+        width: `${$store.state.waveWidth}px`,
         height: `${$store.getters.stageHeight / 20}px`,
-        transform: `translateX(${waveformStyle.left}px)`
+        transform: `translateX(${$store.state.waveformStyle.left}px)`
       }"
       @mousedown="onWaveMouseDown"
       @mousemove="onWaveMouseMove"
@@ -64,6 +64,7 @@ import WaveSurfer from 'wavesurfer.js'
 import { Upload, Message } from 'element-ui'
 import { timeToPx } from '@/common/utils/helper'
 import { uploadFile } from '@/common/utils/upload'
+import { playState } from "@/common/utils/const"
 
 export default {
   name: 'ArrangeObbligato',
@@ -79,14 +80,14 @@ export default {
         x: 0,
         y: 0
       },
-      waveWidth: 0,
+      // waveWidth: 0,
       waveMousePos: null, // 伴奏音波鼠标右键的位置
       // audio: null,
       isWaveMouseDown: false,
-      waveformStyle: {
-        left: 0,
-        top: 0
-      },
+      // waveformStyle: {
+      //   left: 0,
+      //   top: 0
+      // },
       waveStartPos: null,
       waveEndPos: null
     }
@@ -100,6 +101,9 @@ export default {
   computed: {
     trackList() {
       return this.$store.state.trackList
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   methods: {
@@ -110,21 +114,30 @@ export default {
         this.showWaveSurfer(url)
       })
     },
+    // audioRate为44100hz === 2,646,000bpm
     showWaveSurfer(url) {
       this.$store.state.wavesurfer = WaveSurfer.create({
         container: '#waveform',
-        backgroundColor: 'rgba(255,255,255,0.07)',
-        height: 56,
-        pixelRatio: 1,
-        audioRate: (this.$store.state.bpm / 150).toFixed(2)
+        backgroundColor: 'rgba(255,255,255,0.07)', // 音波的背景颜色
+        height: 56,     // 音波的高度
+        pixelRatio: 1  // 渲染的更快
+        // interact: false // 是否可以通过鼠标来调整音波的播放位置
       })
       this.$store.state.wavesurfer.load(url);
       this.$store.state.wavesurfer.on('ready', () => {
         const duration = this.$store.state.wavesurfer.getDuration()
-        this.waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
-        console.log('duration:', duration)
+         console.log('wavesurfer duration:', duration)
+        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
+        const waveformStyle = {
+          left: this.stageMousePos.x
+        }
+        this.$store.dispatch('changeStoreState', { waveWidth, waveformStyle })
       })
-      this.waveformStyle.left = this.stageMousePos.x
+      this.$store.state.wavesurfer.on('play', () => {
+        const currentTime = this.$store.state.wavesurfer.getCurrentTime()
+        const duration = this.$store.state.wavesurfer.getDuration()
+        console.log(`wavesurfer currentTime:${currentTime}, duration: ${duration}`)
+      })
     },
     onRightClickStage(event) {
       // 伴奏音轨鼠标右键
@@ -147,7 +160,11 @@ export default {
       this.showDelete = true
     },
     onWaveMouseDown(event) {
-      console.log('onWaveMouseDown:', event)
+      // console.log('onWaveMouseDown:', event)
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       this.$refs.WaveForm.style.height = '48px'
       this.$store.state.wavesurfer.setHeight(48)
       this.isWaveMouseDown = true
@@ -155,7 +172,7 @@ export default {
 
       this.waveStartPos = {
         x: event.clientX - rect.left,
-        left: this.waveformStyle.left
+        left: this.$store.state.waveformStyle.left
       }
       this.$refs.WaveForm.style.opacity = 0.8
       document.addEventListener('mousemove', this.onWaveMouseMove)
@@ -164,32 +181,39 @@ export default {
     onWaveMouseMove(event) {
       if (this.isWaveMouseDown) {
         const rect = this.$refs.WaveForm.getBoundingClientRect()
-        console.log('onWaveMouseMove', event)
+        // console.log('onWaveMouseMove', event)
         this.waveEndPos = {
           x: event.clientX - rect.left
         }
         const moveX = this.waveEndPos.x - this.waveStartPos.x
 
-        let newLeft = this.waveformStyle.left + moveX
-
+        let newLeft = this.$store.state.waveformStyle.left + moveX
         if (newLeft < 0) {
           newLeft = 0
         }
-        this.waveformStyle.left = newLeft
+        const arrangeStageWidth = this.$store.getters.stageWidth / 10
+        if (newLeft + this.$store.state.waveWidth > arrangeStageWidth) {
+          newLeft = arrangeStageWidth - this.$store.state.waveWidth
+        }
+        const waveformStyle = {
+          left: newLeft
+        }
+        this.$store.state.waveformStyle = waveformStyle
       }
     },
     onWaveMouseUp(event) {
-      console.log('onWaveMouseUp', event)
+      // console.log('onWaveMouseUp', event)
       if (this.isWaveMouseDown) {
         this.isWaveMouseDown = false
       }
       this.$refs.WaveForm.style.opacity = 1
+
       document.removeEventListener('mousemove', this.onWaveMouseMove)
       document.removeEventListener('mouseleave', this.onWaveMouseUp)
     },
     deleteObbligato() {
       this.showDelete = false
-      this.waveWidth = 0
+      this.$store.dispatch('changeStoreState', { waveWidth: 0 })
       this.$store.state.wavesurfer.destroy()
     },
     selectObbligato() {

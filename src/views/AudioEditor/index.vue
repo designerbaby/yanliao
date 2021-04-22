@@ -321,7 +321,9 @@ export default {
       } else if (this.playState === playState.StatePlaying) {
         // this.audio.pause()
         this.trackList[0].audio.pause()
-        this.$store.state.wavesurfer.pause()
+        if (this.$store.state.wavesurfer) {
+          this.$store.state.wavesurfer.pause()
+        }
         this.changePlayState(playState.StatePaused)
       } else if (this.playState === playState.StatePaused) {
         if (this.isNeedGenerate()) {
@@ -351,7 +353,13 @@ export default {
       // 百分比不能为负数，最小为0
       const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
       const startTime = percent * duration / 1000
-      console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
+      const waveStartLeft = start / 10 - this.$store.state.waveformStyle.left
+      let waveStartTime = pxToTime(waveStartLeft, this.noteWidth / 10, this.bpm) / 1000
+      if (waveStartTime < 0) {
+        waveStartTime = 0
+      }
+      const canPlayWave = this.$store.state.lineLeft / 10 > this.$store.state.waveformStyle.left
+      console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}, waveStartTime: ${waveStartTime}`)
       if (generator) {
         const { onlineUrl, downUrl } = await this.toSynthesize()
         // 每次生成新的都存起来
@@ -370,12 +378,21 @@ export default {
         this.trackList[0].audio.currentTime = startTime
         // this.audio.play()
         this.trackList[0].audio.play()
+        if (this.$store.state.wavesurfer && canPlayWave) {
+          this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
+          this.$store.state.wavesurfer.play()
+        }
       } else {
         if (isContinue) {
           console.log(`play continue with start: ${this.playStartTime}`)
           // this.audio.play()
           this.trackList[0].audio.play()
-          this.$store.state.wavesurfer.play()
+          // const start = pxToTime(this.$store.state.lineLeft / 10, this.noteWidth / 10, this.bpm)
+          // const end = pxToTime(this.$store.state.waveWidth, this.noteWidth, this.bpm)
+          if (this.$store.state.wavesurfer && canPlayWave) {
+            this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
+            this.$store.state.wavesurfer.play()
+          }
         } else {
           this.playLine = {
             current: start,
@@ -390,7 +407,10 @@ export default {
           // this.audio.play()
           this.trackList[0].audio.currentTime = startTime
           this.trackList[0].audio.play()
-          this.$store.state.wavesurfer.play()
+          if (this.$store.state.wavesurfer && canPlayWave) {
+            this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
+            this.$store.state.wavesurfer.play()
+          }
         }
       }
     },
@@ -423,6 +443,11 @@ export default {
           this.changePlayState(playState.StateEnded)
           this.changeLinePosition(this.playLine.start, true)
           this.playLine.current = this.playLine.start
+          if (this.$store.state.wavesurfer) {
+            const currentTime = pxToTime(this.playLine.current / 10, this.noteWidth / 10, this.bpm) / 1000
+            this.$store.state.wavesurfer.setCurrentTime(currentTime)
+            this.$store.state.wavesurfer.pause()
+          }
         }
       })
       this.trackList[0].audio.volume = this.trackList[0].current / 100
