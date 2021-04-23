@@ -17,7 +17,7 @@
       :style="{
         width: `${$store.state.waveWidth}px`,
         height: `${$store.getters.stageHeight / 20}px`,
-        transform: `translateX(${$store.state.waveformStyle.left}px)`
+        transform: `translateX(${trackList[1].offset}px)`
       }"
       @mousedown="onWaveMouseDown"
       @mousemove="onWaveMouseMove"
@@ -84,10 +84,6 @@ export default {
       waveMousePos: null, // 伴奏音波鼠标右键的位置
       // audio: null,
       isWaveMouseDown: false,
-      // waveformStyle: {
-      //   left: 0,
-      //   top: 0
-      // },
       waveStartPos: null,
       waveEndPos: null
     }
@@ -109,11 +105,10 @@ export default {
   methods: {
     async uploadChange(file) {
       this.showMenu = false
-      // uploadFile(file.raw, 'analyze', (url) => {
-      //   Message.success('解析成功～')
-      //   this.showWaveSurfer(url)
-      // })
       this.showWaveSurfer(file.raw)
+      uploadFile(file.raw, 'analyze', (url) => {
+        this.$store.state.trackList[1].file = url
+      })
     },
     // audioRate为44100hz === 2,646,000bpm
     showWaveSurfer(file) {
@@ -128,10 +123,8 @@ export default {
         const duration = this.$store.state.wavesurfer.getDuration()
          console.log('wavesurfer duration:', duration)
         const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
-        const waveformStyle = {
-          left: this.stageMousePos.x
-        }
-        this.$store.dispatch('changeStoreState', { waveWidth, waveformStyle })
+        this.$store.state.trackList[1].offset = this.stageMousePos.x
+        this.$store.dispatch('changeStoreState', { waveWidth })
       })
       this.$store.state.wavesurfer.on('play', () => {
         const currentTime = this.$store.state.wavesurfer.getCurrentTime()
@@ -173,7 +166,7 @@ export default {
 
       this.waveStartPos = {
         x: event.clientX - rect.left,
-        left: this.$store.state.waveformStyle.left
+        left: this.trackList[1].offset
       }
       this.$refs.WaveForm.style.opacity = 0.8
       document.addEventListener('mousemove', this.onWaveMouseMove)
@@ -188,7 +181,7 @@ export default {
         }
         const moveX = this.waveEndPos.x - this.waveStartPos.x
 
-        let newLeft = this.$store.state.waveformStyle.left + moveX
+        let newLeft = this.trackList[1].offset + moveX
         if (newLeft < 0) {
           newLeft = 0
         }
@@ -196,10 +189,7 @@ export default {
         if (newLeft + this.$store.state.waveWidth > arrangeStageWidth) {
           newLeft = arrangeStageWidth - this.$store.state.waveWidth
         }
-        const waveformStyle = {
-          left: newLeft
-        }
-        this.$store.state.waveformStyle = waveformStyle
+        this.$store.state.trackList[1].offset = newLeft
       }
     },
     onWaveMouseUp(event) {

@@ -84,8 +84,8 @@ export default {
     document.addEventListener('keydown', this.keyDownListener)
   },
   destroyed() {
-    if (this.trackList[0].audio) {
-      this.trackList[0].audio.pause() // 要把播放的暂停了
+    if (this.$store.state.ganAudio) {
+      this.$store.state.ganAudio.pause() // 要把播放的暂停了
     }
     if (this.$store.state.wavesurfer) {
       this.$store.state.wavesurfer.pause()
@@ -129,7 +129,7 @@ export default {
       return this.$store.state.trackList
     },
     canPlayWave() { // 播放线超过音波的最左边的位置才能播
-      return this.$store.state.lineLeft / 10 > this.$store.state.waveformStyle.left
+      return this.$store.state.lineLeft / 10 > this.trackList[1].offset
     }
   },
   methods: {
@@ -280,28 +280,28 @@ export default {
         return true
       }
 
-
       return false
     },
     async toPlay() {
-      const ganPlay = this.trackList[0].play
-      const banPlay = this.trackList[1].play
-      console.log(`ganPlay: ${ganPlay}, banPlay: ${banPlay}`)
-      if (!ganPlay && !banPlay) {
+      const ganIsSil = this.trackList[0].is_sil
+      const banIsSil = this.trackList[1].is_sil
+      console.log(`ganIsSil: ${ganIsSil}, banIsSil: ${banIsSil}`)
+      if (ganIsSil === 2 && banIsSil === 2) {
         Message.error('都设置静音了,不播放了～')
         return
       }
 
       // TODO 这里要保证播放的进度
-      if (!ganPlay && banPlay) {
-        this.toPlayWaver()
+      if (ganIsSil === 2 && banIsSil === 1) {
+        this.toPlayWaver() // 播放伴奏
         return
       }
-      if (ganPlay && !banPlay) {
-        this.toPlayDryVoice()
+      if (ganIsSil === 1 && banIsSil === 2) {
+        this.toPlayDryVoice() // 播放干声
         return
       }
-      if (ganPlay && banPlay) {
+      if (ganIsSil === 1 && ganIsSil === 1) {
+        // 干声和伴奏一起播放
         this.toPlayDryVoice()
         return
       }
@@ -353,7 +353,7 @@ export default {
         this.changePlayState(playState.StatePlaying)
       } else if (this.playState === playState.StatePlaying) {
         // this.audio.pause()
-        this.trackList[0].audio.pause()
+        this.$store.state.ganAudio.pause()
         if (this.$store.state.wavesurfer) {
           this.$store.state.wavesurfer.pause()
         }
@@ -386,7 +386,7 @@ export default {
       // 百分比不能为负数，最小为0
       const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
       const startTime = percent * duration / 1000
-      const waveStartLeft = start / 10 - this.$store.state.waveformStyle.left
+      const waveStartLeft = start / 10 - this.trackList[1].offset
       let waveStartTime = pxToTime(waveStartLeft, this.noteWidth / 10, this.bpm) / 1000
       if (waveStartTime < 0) {
         waveStartTime = 0
@@ -406,9 +406,9 @@ export default {
         this.playStartTime = startTime
         this.toPlayAudio(onlineUrl)
         // this.audio.currentTime = startTime
-        this.trackList[0].audio.currentTime = startTime
+        this.$store.state.ganAudio.currentTime = startTime
         // this.audio.play()
-        this.trackList[0].audio.play()
+        this.$store.state.ganAudio.play()
         if (this.$store.state.wavesurfer && this.canPlayWave) {
           this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
           this.$store.state.wavesurfer.play()
@@ -417,7 +417,7 @@ export default {
         if (isContinue) {
           console.log(`play continue with start: ${this.playStartTime}`)
           // this.audio.play()
-          this.trackList[0].audio.play()
+          this.$store.state.ganAudio.play()
           // const start = pxToTime(this.$store.state.lineLeft / 10, this.noteWidth / 10, this.bpm)
           // const end = pxToTime(this.$store.state.waveWidth, this.noteWidth, this.bpm)
           if (this.$store.state.wavesurfer && this.canPlayWave) {
@@ -436,8 +436,8 @@ export default {
           this.playStartTime = startTime
           // this.audio.currentTime = startTime
           // this.audio.play()
-          this.trackList[0].audio.currentTime = startTime
-          this.trackList[0].audio.play()
+          this.$store.state.ganAudio.currentTime = startTime
+          this.$store.state.ganAudio.play()
           if (this.$store.state.wavesurfer && this.canPlayWave) {
             this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
             this.$store.state.wavesurfer.play()
@@ -447,7 +447,7 @@ export default {
     },
     toPlayAudio(url) {
       clearInterval(this.timerId)
-      this.trackList[0].audio = PlayAudio({
+      this.$store.state.ganAudio = PlayAudio({
         url,
         onPlay: (audio) => {
           this.timerId = setInterval(() => {
@@ -481,7 +481,7 @@ export default {
           }
         }
       })
-      this.trackList[0].audio.volume = this.trackList[0].current / 100
+      this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
     },
     changeLinePosition(left, autoScroll = false) {
       if (autoScroll) {
@@ -593,6 +593,11 @@ export default {
         f0Tension: f0Tension
       }
     },
+    handleAcInfo() {
+      let acInfo = []
+      this.trackList[0].file = this.$store.state.onlineUrl
+      return this.trackList
+    },
     async toSynthesize(callback) {
       if (this.$store.state.isGetF0Data) {
         Message.error(`网络不好，请稍后重试~`)
@@ -601,6 +606,7 @@ export default {
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
       const synthesizeStart = Date.now()
       const handleData = this.handleVolumeTension()
+      const acInfo = this.handleAcInfo()
       const req = {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.$store.state.f0AI,
@@ -611,7 +617,9 @@ export default {
         volume_xy: handleData.volumeXy,
         tension_xy: handleData.tensionXy,
         music_id: this.$store.state.musicId,
-        music_name: this.$store.state.musicName
+        music_name: this.$store.state.musicName,
+        ac_info: acInfo,
+        is_add_ac: this.$store.state.isAddAc
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)

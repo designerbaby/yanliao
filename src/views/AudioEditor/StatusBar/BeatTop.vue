@@ -43,7 +43,7 @@ export default {
 
       // 修改伴奏轨的播放进度
       if (this.$store.state.wavesurfer) {
-        const wavesurferLeft = left / 10 - this.$store.state.waveformStyle.left
+        const wavesurferLeft = left / 10 - this.$store.state.trackList[1].offset
         let time = pxToTime(wavesurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
         if (time < 0) {
           time = 0

@@ -4,17 +4,17 @@
       <div :class="$style.top">
         <img src="@/assets/audioEditor/track-people.png" v-if="it.type === 1">
         <img src="@/assets/audioEditor/track-music.png" v-else>
-        <div :class="$style.name">{{ it.name }}</div>
+        <div :class="$style.name">{{ getName(it.type) }}</div>
         <div @click="play(index)">
-          <img src="@/assets/audioEditor/track-play.png" v-if="it.play">
+          <img src="@/assets/audioEditor/track-play.png" v-if="it.is_sil === 1">
           <img src="@/assets/audioEditor/track-mute.png" v-else>
         </div>
       </div>
       <div :class="$style.progress">
-        <div :class="$style.inner" :style="{ width: `${(it.current / it.total) * 100}%` }"></div>
+        <div :class="$style.inner" :style="{ width: `${(it.volume / 100) * 100}%` }"></div>
         <Dragger
           :className="$style.select"
-          :styles="{ left: `${(it.current / it.total) * 100}%` }"
+          :styles="{ left: `${(it.volume / 100) * 100}%` }"
           @on-start="onStart($event, index)"
           @on-move="onMove($event, index)"
           @on-end="onEnd"
@@ -23,9 +23,9 @@
         </Dragger>
         <div
           :class="$style.bubble"
-          :style="{ left: `${(it.current / it.total) * 100}%` }"
+          :style="{ left: `${(it.volume / 100) * 100}%` }"
           v-if="isChangeVolume === index"
-        >{{ it.current }}</div>
+        >{{ it.volume }}</div>
       </div>
     </div>
   </div>
@@ -50,10 +50,17 @@ export default {
     }
   },
   methods: {
+    getName(type) {
+      if (type === 1) {
+        return '干音音轨'
+      } else {
+        return '伴奏音轨'
+      }
+    },
     onStart(event, index) {
       this.isChangeVolume = index
       this.startVolume = {
-        left: this.trackList[index].current,
+        left: this.trackList[index].volume,
         x: event.clientX
       }
     },
@@ -66,17 +73,17 @@ export default {
         if (this.startVolume.left + moveX < 0 || this.startVolume.left + moveX > 100) {
           return
         }
-        this.trackList[index].current = this.startVolume.left + moveX
-        if (this.trackList[index].current === 0) {
-          this.trackList[index].play = false
+        this.trackList[index].volume = this.startVolume.left + moveX
+        if (this.trackList[index].volume === 0) {
+          this.trackList[index].is_sil = 2
         } else {
-          this.trackList[index].play = true
+          this.trackList[index].is_sil = 1
         }
-        if (index === 0 && this.trackList[0].audio) {
-          this.trackList[0].audio.volume = this.trackList[0].current / 100
+        if (index === 0 && this.$store.state.ganAudio) {
+          this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
         }
         if (index === 1 && this.$store.state.wavesurfer) {
-          this.$store.state.wavesurfer.setVolume(this.trackList[1].current / 100)
+          this.$store.state.wavesurfer.setVolume(this.trackList[1].volume / 100)
         }
       }
     },
@@ -86,13 +93,13 @@ export default {
       }
     },
     play(index) {
-      if (this.trackList[index].play) {
-        this.trackList[index].current = 0
+      if (this.trackList[index].is_sil === 1) {
+        this.trackList[index].volume = 0
+        this.trackList[index].is_sil = 2
       } else {
-        this.trackList[index].current = 100
+        this.trackList[index].volume = 100
+        this.trackList[index].is_sil = 1
       }
-      this.trackList[index].play = !this.trackList[index].play
-
     }
   }
 }

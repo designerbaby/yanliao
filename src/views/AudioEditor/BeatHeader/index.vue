@@ -138,9 +138,9 @@ export default {
     status() {
       let status = 'normal'
       const trackList = this.$store.state.trackList
-      if (!trackList[0].play && !trackList[1].play) {
+      if (trackList[0].is_sil === 2 && trackList[1].is_sil === 2) {
         status = 'notPlay'
-      } else if (!trackList[0].play && trackList[1].play) {
+      } else if (trackList[0].is_sil === 2 && trackList[1].is_sil === 1) {
         status = 'notGenerate'
       }
       return status
@@ -208,17 +208,18 @@ export default {
     },
     async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
-      const ganPlay = this.$store.state.trackList[0].play
-      const banPlay = this.$store.state.trackList[1].play
-      console.log(`ganPlay: ${ganPlay}, banPlay: ${banPlay}`)
-      if (!ganPlay && !banPlay) {
+      const ganIsSil = this.$store.state.trackList[0].is_sil
+      const banIsSil = this.$store.state.trackList[1].is_sil
+      console.log(`ganIsSil: ${ganIsSil}, banIsSil: ${banIsSil}`)
+      if (ganIsSil === 2 && banIsSil === 2) {
         Message.error('都设置静音了,不播放了～')
         return
       }
-      if (banPlay && !ganPlay) {
+      if (ganIsSil === 2 && banIsSil === 1) {
         Message.error('只播伴奏就不生成音频了～')
         return
       }
+
       if (this.playState === playState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return

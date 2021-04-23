@@ -44,7 +44,7 @@ export default {
       stageRightArea.scrollLeft = scrollLeft
       // 修改伴奏轨的播放进度
       if (this.$store.state.wavesurfer) {
-        const wavesurferLeft = left - this.$store.state.waveformStyle.left
+        const wavesurferLeft = left - this.$store.state.trackList[1].offset
         let time = pxToTime(wavesurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
         if (time < 0) {
           time = 0
