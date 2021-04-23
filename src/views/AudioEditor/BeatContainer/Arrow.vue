@@ -11,7 +11,7 @@
 <script>
 import { Message } from 'element-ui'
 import { playState } from '@/common/utils/const'
-import Dragger from './Components/Dragger.vue'
+import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
 
 export default {
   name: 'Arrow',

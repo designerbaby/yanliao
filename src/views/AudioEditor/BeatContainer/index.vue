@@ -63,7 +63,6 @@
 <script>
 import { pitchList, playState, modeState, typeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
-import BeatTop from './BeatTop.vue'
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
@@ -75,7 +74,6 @@ import LyricCorrect from './LyricCorrect.vue'
 import BeatMenuList from './BeatMenuList.vue'
 import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
-import StatusBar from './StatusBar.vue'
 import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
@@ -83,7 +81,6 @@ import { turnChangeLineMap } from '@/common/utils/common'
 export default {
   name: "BeatContainer",
   components: {
-    BeatTop,
     Message,
     BeatPiano,
     BeatStageBg,
@@ -95,7 +92,6 @@ export default {
     LyricCorrect,
     BeatMenuList,
     Parameters,
-    StatusBar,
     PitchElement,
     Breath
   },

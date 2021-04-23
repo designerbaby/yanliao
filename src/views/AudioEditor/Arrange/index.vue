@@ -1,6 +1,6 @@
 <template>
   <div :class="[$style.arrange, {[$style.fixed]: isFixed}]">
-    <div :class="$style.container" v-if="$store.state.showArrange">
+    <div :class="$style.container" v-show="$store.state.showArrange">
       <ArrangeTitle></ArrangeTitle>
       <ArrangeBar></ArrangeBar>
       <div :class="$style.wrap">
@@ -17,7 +17,7 @@
         </div>
       </div>
     </div>
-    <ArrangeTitle v-else :type="'right'"></ArrangeTitle>
+    <ArrangeTitle v-if="!$store.state.showArrange" :type="'right'"></ArrangeTitle>
   </div>
 </template>
 

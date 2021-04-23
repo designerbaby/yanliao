@@ -109,13 +109,14 @@ export default {
   methods: {
     async uploadChange(file) {
       this.showMenu = false
-      uploadFile(file.raw, 'analyze', (url) => {
-        Message.success('解析成功～')
-        this.showWaveSurfer(url)
-      })
+      // uploadFile(file.raw, 'analyze', (url) => {
+      //   Message.success('解析成功～')
+      //   this.showWaveSurfer(url)
+      // })
+      this.showWaveSurfer(file.raw)
     },
     // audioRate为44100hz === 2,646,000bpm
-    showWaveSurfer(url) {
+    showWaveSurfer(file) {
       this.$store.state.wavesurfer = WaveSurfer.create({
         container: '#waveform',
         backgroundColor: 'rgba(255,255,255,0.07)', // 音波的背景颜色
@@ -123,7 +124,6 @@ export default {
         pixelRatio: 1  // 渲染的更快
         // interact: false // 是否可以通过鼠标来调整音波的播放位置
       })
-      this.$store.state.wavesurfer.load(url);
       this.$store.state.wavesurfer.on('ready', () => {
         const duration = this.$store.state.wavesurfer.getDuration()
          console.log('wavesurfer duration:', duration)
@@ -138,6 +138,7 @@ export default {
         const duration = this.$store.state.wavesurfer.getDuration()
         console.log(`wavesurfer currentTime:${currentTime}, duration: ${duration}`)
       })
+      this.$store.state.wavesurfer.loadBlob(file);
     },
     onRightClickStage(event) {
       // 伴奏音轨鼠标右键

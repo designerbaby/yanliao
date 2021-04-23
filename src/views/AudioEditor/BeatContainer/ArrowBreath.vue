@@ -1,9 +1,9 @@
 <template>
-  <Dragger :class="[$style.ArrowElement, isActive ? $style.isActive : '']"
+  <Dragger :class="[$style.breath, isActive ? $style.isActive : '']"
     @on-start="onStart"
     @on-move="onMove"
     @on-end="onEnd"
-    >
+  >
     <img src="@/assets/audioEditor/arrow-right.png">
   </Dragger>
 </template>
@@ -11,26 +11,25 @@
 <script>
 import { Message } from 'element-ui'
 import { playState } from '@/common/utils/const'
-import { pxToTime } from '@/common/utils/helper'
-import Dragger from './Components/Dragger.vue'
+import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
 
 export default {
-  name: 'ArrowElement',
-  components: { Dragger, Message },
+  name: 'Breath',
+  components: {
+    Dragger,
+    Message
+  },
   props: ['pitch', 'index', 'canMove'],
   data() {
     return {
       isActive: false,
-      moveArrowEleStart: null,
-      moveArrowEleEnd: null
+      moveArrowBreathStart: null,
+      moveArrowBreathEnd: null
     }
   },
   computed: {
     playState() {
       return this.$store.state.playState
-    },
-    stagePitches() {
-      return this.$store.state.stagePitches
     }
   },
   methods: {
@@ -44,45 +43,44 @@ export default {
         return
       }
       this.isActive = true
-      // console.log('onArrowEleMouseDown this.pitch:', this.pitch)
-      const preTime = this.pitch.preTime
-      this.moveArrowEleStart = {
-        preTime,
+      this.moveArrowBreathStart = {
+        left: this.pitch.breath.left,
+        width: this.pitch.breath.width,
         clientX: event.clientX
       }
-      console.log('moveArrowEleStart:', JSON.stringify(this.moveArrowEleStart))
+      // console.log('moveArrowBreathStart:', JSON.stringify(this.moveArrowBreathStart))
     },
     onMove(event) {
-      if (this.moveArrowEleStart) {
-        // const parentNode = this.$el.parentNode
-        const startX = this.moveArrowEleStart.clientX
+      if (this.moveArrowBreathStart) {
+        const parentNode = this.$el.parentNode
+        const startX = this.moveArrowBreathStart.clientX
         const endX = event.clientX
+
         const movePx = startX - endX
-
-        const moveTime = pxToTime(movePx, this.$store.state.noteWidth, this.$store.state.bpm)
-        const newPreTime = this.moveArrowEleStart.preTime + moveTime
-
-        const move = this.canMove(this.moveArrowEleStart.preTime, newPreTime, this.index)
+        const newLeft = this.moveArrowBreathStart.left - movePx
+        const newWidth = this.moveArrowBreathStart.width + movePx
+        const move = this.canMove(newLeft)
         if (!move) {
           return
         }
-        this.moveArrowEleEnd = {
-          preTime: newPreTime
+        this.moveArrowBreathEnd = {
+          left: newLeft,
+          width: newWidth,
+          target: parentNode
         }
-
-        this.$emit('move',  {
-          ...this.moveArrowEleEnd
+        // console.log('moveArrowBreathEnd:', JSON.stringify(this.moveArrowBreathEnd))
+        this.$emit('move', {
+          ...this.moveArrowBreathEnd
         })
       }
     },
     onEnd(event) {
-      console.log('onArrowEleLeave')
-      if (this.moveArrowEleStart) {
-        this.moveArrowEleStart = null
+      if (this.moveArrowBreathStart) {
+        this.moveArrowBreathStart = null
         this.isActive = false
 
         this.$emit('move-end', {
-          ...this.moveArrowEleEnd
+          ...this.moveArrowBreathEnd
         })
       }
     }
@@ -91,12 +89,12 @@ export default {
 </script>
 
 <style lang="less" module>
-.ArrowElement{
+.breath{
   position: absolute;
   height: 25px;
   width: 7px;
   opacity: 0;
-  background: #33735c;
+  background: #0a601a;
   border-top-left-radius: 3px;
   border-bottom-left-radius: 3px;
   top: 0;

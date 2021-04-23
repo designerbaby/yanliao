@@ -53,8 +53,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 - 1、要把doPlay的判断改成状态机
 - 2、设置静音，只播放要播放的轨
-- 3、播放进度对齐
-- 4、
 
 ## 难点
 - 1、用svg画音高线的时候出现锯齿

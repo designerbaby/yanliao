@@ -24,11 +24,11 @@
 
 <script>
 import { Message } from 'element-ui'
-import BeatContainer from './BeatContainer.vue'
-import BeatHeader from './BeatHeader.vue'
+import BeatContainer from './BeatContainer'
+import BeatHeader from './BeatHeader'
 import BeatSetting from './BeatSetting.vue'
-import StatusBar from './StatusBar.vue'
-import Arrange from './Arrange/index.vue'
+import StatusBar from './StatusBar'
+import Arrange from './Arrange'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { processStatus, statusMap, playState } from '@/common/utils/const'
@@ -127,6 +127,9 @@ export default {
     },
     trackList() {
       return this.$store.state.trackList
+    },
+    canPlayWave() { // 播放线超过音波的最左边的位置才能播
+      return this.$store.state.lineLeft / 10 > this.$store.state.waveformStyle.left
     }
   },
   methods: {
@@ -283,6 +286,38 @@ export default {
       return false
     },
     async toPlay() {
+      const ganPlay = this.trackList[0].play
+      const banPlay = this.trackList[1].play
+      console.log(`ganPlay: ${ganPlay}, banPlay: ${banPlay}`)
+      if (!ganPlay && !banPlay) {
+        Message.error('都设置静音了,不播放了～')
+        return
+      }
+
+      // TODO 这里要保证播放的进度
+      if (!ganPlay && banPlay) {
+        this.toPlayWaver()
+        return
+      }
+      if (ganPlay && !banPlay) {
+        this.toPlayDryVoice()
+        return
+      }
+      if (ganPlay && banPlay) {
+        this.toPlayDryVoice()
+        return
+      }
+    },
+    toPlayWaver() {
+      // 只播伴奏
+      if (this.$store.state.wavesurfer && this.canPlayWave) {
+        this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
+        this.$store.state.wavesurfer.play()
+      } else {
+
+      }
+    },
+    toPlayDryVoice() {
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,请耐心等待~')
         return
@@ -358,7 +393,6 @@ export default {
       if (waveStartTime < 0) {
         waveStartTime = 0
       }
-      const canPlayWave = this.$store.state.lineLeft / 10 > this.$store.state.waveformStyle.left
       console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}, waveStartTime: ${waveStartTime}`)
       if (generator) {
         const { onlineUrl, downUrl } = await this.toSynthesize()
@@ -378,7 +412,7 @@ export default {
         this.trackList[0].audio.currentTime = startTime
         // this.audio.play()
         this.trackList[0].audio.play()
-        if (this.$store.state.wavesurfer && canPlayWave) {
+        if (this.$store.state.wavesurfer && this.canPlayWave) {
           this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
           this.$store.state.wavesurfer.play()
         }
@@ -389,7 +423,7 @@ export default {
           this.trackList[0].audio.play()
           // const start = pxToTime(this.$store.state.lineLeft / 10, this.noteWidth / 10, this.bpm)
           // const end = pxToTime(this.$store.state.waveWidth, this.noteWidth, this.bpm)
-          if (this.$store.state.wavesurfer && canPlayWave) {
+          if (this.$store.state.wavesurfer && this.canPlayWave) {
             this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
             this.$store.state.wavesurfer.play()
           }
@@ -407,7 +441,7 @@ export default {
           // this.audio.play()
           this.trackList[0].audio.currentTime = startTime
           this.trackList[0].audio.play()
-          if (this.$store.state.wavesurfer && canPlayWave) {
+          if (this.$store.state.wavesurfer && this.canPlayWave) {
             this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
             this.$store.state.wavesurfer.play()
           }

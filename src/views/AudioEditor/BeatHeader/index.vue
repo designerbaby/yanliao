@@ -52,12 +52,12 @@
           <div :class="$style.text">张力</div>
         </div>
       </div>
-      <div :class="$style.common" @click="toPlay">
+      <div :class="[$style.common, status === 'notPlay' ? $style.disabled : '']" @click="toPlay">
         <img src="@/assets/audioEditor/pause.png" v-if="isPlaying" :class="$style.icon"/>
         <img src="@/assets/audioEditor/play.png" v-else :class="$style.icon"/>
         <div :class="$style.text">播放控制</div>
       </div>
-      <div :class="$style.common" @click="toGenerateAudio">
+      <div :class="[$style.common, status === 'notPlay' || status === 'notGenerate' ? $style.disabled : '']" @click="toGenerateAudio">
         <img src="@/assets/audioEditor/export.png" :class="$style.icon"/>
         <div :class="$style.text">生成音频</div>
       </div>
@@ -100,8 +100,8 @@
 import { Button, Message, Upload } from 'element-ui'
 import { playState, modeState, typeModeState } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
-import MidiDialog from './MidiDialog'
-import CommonDialog from './Components/CommonDialog.vue'
+import MidiDialog from './MidiDialog.vue'
+import CommonDialog from '@/views/AudioEditor/Components/CommonDialog.vue'
 import { mid2json } from '@/api/audio'
 import { uploadFile } from '@/common/utils/upload'
 
@@ -134,6 +134,16 @@ export default {
     },
     showArrange() {
       return this.$store.state.showArrange
+    },
+    status() {
+      let status = 'normal'
+      const trackList = this.$store.state.trackList
+      if (!trackList[0].play && !trackList[1].play) {
+        status = 'notPlay'
+      } else if (!trackList[0].play && trackList[1].play) {
+        status = 'notGenerate'
+      }
+      return status
     }
   },
   components: {
@@ -198,6 +208,17 @@ export default {
     },
     async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
+      const ganPlay = this.$store.state.trackList[0].play
+      const banPlay = this.$store.state.trackList[1].play
+      console.log(`ganPlay: ${ganPlay}, banPlay: ${banPlay}`)
+      if (!ganPlay && !banPlay) {
+        Message.error('都设置静音了,不播放了～')
+        return
+      }
+      if (banPlay && !ganPlay) {
+        Message.error('只播伴奏就不生成音频了～')
+        return
+      }
       if (this.playState === playState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
@@ -383,6 +404,11 @@ export default {
   width: 100%;
   opacity: 0;
   cursor: pointer;
+}
+
+.disabled {
+  filter: grayscale(100%);
+  transform: translate3d(0, 0, 0);
 }
 
 </style>

@@ -86,7 +86,13 @@ export default {
       }
     },
     play(index) {
-      // this.trackList[index].play = !this.trackList[index].play
+      if (this.trackList[index].play) {
+        this.trackList[index].current = 0
+      } else {
+        this.trackList[index].current = 100
+      }
+      this.trackList[index].play = !this.trackList[index].play
+
     }
   }
 }

@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import Drawable from './Components/Drawable.vue'
+import Drawable from '@/views/AudioEditor/Components/Drawable.vue'
 import { typeModeState } from '@/common/utils/const'
 
 export default {
