@@ -33,6 +33,8 @@
 
 <script>
 import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
+import { playState } from "@/common/utils/const"
+import { Message } from 'element-ui'
 
 export default {
   name: 'ArrangeTrack',
@@ -47,6 +49,9 @@ export default {
   computed: {
     trackList() {
       return this.$store.state.trackList
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   methods: {
@@ -58,6 +63,10 @@ export default {
       }
     },
     onStart(event, index) {
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       this.isChangeVolume = index
       this.startVolume = {
         left: this.trackList[index].volume,
@@ -93,11 +102,13 @@ export default {
       }
     },
     play(index) {
+      if (this.playState === playState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       if (this.trackList[index].is_sil === 1) {
-        this.trackList[index].volume = 0
         this.trackList[index].is_sil = 2
       } else {
-        this.trackList[index].volume = 100
         this.trackList[index].is_sil = 1
       }
     }

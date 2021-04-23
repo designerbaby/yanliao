@@ -212,11 +212,12 @@ export default {
       const banIsSil = this.$store.state.trackList[1].is_sil
       console.log(`ganIsSil: ${ganIsSil}, banIsSil: ${banIsSil}`)
       if (ganIsSil === 2 && banIsSil === 2) {
-        Message.error('都设置静音了,不播放了～')
+        Message.error('静音状态下不可合成')
         return
       }
       if (ganIsSil === 2 && banIsSil === 1) {
-        Message.error('只播伴奏就不生成音频了～')
+        Message.error('干音在静音状态下不可合成')
+        this.toSave()
         return
       }
 
@@ -234,7 +235,11 @@ export default {
         Message.error('没有音符！！')
         return
       }
-      this.$emit('synthesize', () => {
+      let isAddAc = 1  // 是否需要合成伴奏,0为不需要，1为需要
+      if (ganIsSil === 1 && banIsSil === 2) {
+        isAddAc = 0
+      }
+      this.$emit('synthesize', isAddAc, () => {
         const index = getParam('index')
         this.$router.push(`/profile?index=${index}`)
       })

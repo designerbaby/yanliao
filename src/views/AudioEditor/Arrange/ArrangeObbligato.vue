@@ -116,8 +116,8 @@ export default {
         container: '#waveform',
         backgroundColor: 'rgba(255,255,255,0.07)', // 音波的背景颜色
         height: 56,     // 音波的高度
-        pixelRatio: 1  // 渲染的更快
-        // interact: false // 是否可以通过鼠标来调整音波的播放位置
+        pixelRatio: 1,  // 渲染的更快
+        interact: false // 是否可以通过鼠标来调整音波的播放位置
       })
       this.$store.state.wavesurfer.on('ready', () => {
         const duration = this.$store.state.wavesurfer.getDuration()
@@ -151,6 +151,7 @@ export default {
         y: event.layerY
       }
       console.log('waveMousePos:', this.waveMousePos)
+      this.showMenu = false
       this.showDelete = true
     },
     onWaveMouseDown(event) {
@@ -190,6 +191,7 @@ export default {
           newLeft = arrangeStageWidth - this.$store.state.waveWidth
         }
         this.$store.state.trackList[1].offset = newLeft
+        this.$store.dispatch('changeStoreState', { isObbligatoChanged: true })
       }
     },
     onWaveMouseUp(event) {

@@ -53,7 +53,6 @@ export default {
       userInfo: sessionStorage.getItem('userInfo'),
       timerId: 0,
       // audio: null,
-      // linePosition: null, // 播放时，线所在的位置播放
 
       // 播放线
       playLine: {
@@ -62,7 +61,8 @@ export default {
         current: 0 // 当前的位置, px
       },
       playStartTime: 0, // 从第几秒开始播放
-      dialogShow: false
+      dialogShow: false,
+      isAddAc: 1
     }
   },
   async mounted() {
@@ -90,9 +90,6 @@ export default {
     if (this.$store.state.wavesurfer) {
       this.$store.state.wavesurfer.pause()
     }
-    // if (this.audio) {
-    //   this.audio.pause()
-    // }
     this.storeStagePitchesWatcher()
     this.resetStoreState()
     document.removeEventListener('keydown', this.keyDownListener)
@@ -127,9 +124,6 @@ export default {
     },
     trackList() {
       return this.$store.state.trackList
-    },
-    canPlayWave() { // 播放线超过音波的最左边的位置才能播
-      return this.$store.state.lineLeft / 10 > this.trackList[1].offset
     }
   },
   methods: {
@@ -275,6 +269,11 @@ export default {
         return true
       }
 
+      // 伴奏修改了
+      if (this.$store.state.isObbligatoChanged) {
+        return true
+      }
+
       // 没有可播放的url
       if (!this.$store.state.onlineUrl && type !== 'upload') {
         return true
@@ -285,7 +284,6 @@ export default {
     async toPlay() {
       const ganIsSil = this.trackList[0].is_sil
       const banIsSil = this.trackList[1].is_sil
-      console.log(`ganIsSil: ${ganIsSil}, banIsSil: ${banIsSil}`)
       if (ganIsSil === 2 && banIsSil === 2) {
         Message.error('都设置静音了,不播放了～')
         return
@@ -293,29 +291,47 @@ export default {
 
       // TODO 这里要保证播放的进度
       if (ganIsSil === 2 && banIsSil === 1) {
-        this.toPlayWaver() // 播放伴奏
+        console.log('只播放伴奏')
+        this.toPlayWaver()
         return
       }
       if (ganIsSil === 1 && banIsSil === 2) {
-        this.toPlayDryVoice() // 播放干声
+        console.log('播放干声,不合成伴奏')
+        this.isAddAc = 0
+        this.toPlayVoice()
         return
       }
       if (ganIsSil === 1 && ganIsSil === 1) {
-        // 干声和伴奏一起播放
-        this.toPlayDryVoice()
+        console.log('干声和伴奏一起播放,也合成伴奏')
+        this.isAddAc = 1
+        this.toPlayVoice()
         return
       }
     },
     toPlayWaver() {
       // 只播伴奏
-      if (this.$store.state.wavesurfer && this.canPlayWave) {
-        this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
-        this.$store.state.wavesurfer.play()
+      if (this.$store.state.wavesurfer) {
+        if (this.$store.state.wavesurfer.isPlaying()) {
+          this.changePlayState(playState.StatePaused)
+        } else {
+          this.changePlayState(playState.StatePlaying)
+        }
+        this.$store.state.wavesurfer.playPause()
+        const waveOffset = this.trackList[1].offset
+        this.$store.state.wavesurfer.on('audioprocess', (process) => {
+          const left = timeToPx(process * 1000, this.noteWidth / 10, this.bpm)
+          this.$store.dispatch('changeStoreState', { lineLeft: (left + waveOffset) * 10 })
+        })
+        this.$store.state.wavesurfer.on('finish', () => {
+          this.$store.dispatch('changeStoreState', { lineLeft: waveOffset * 10 })
+          this.$store.state.wavesurfer.setCurrentTime(0)
+          this.changePlayState(playState.StatePaused)
+        })
       } else {
-
+        Message.error('伴奏音轨没有伴奏哦~')
       }
     },
-    toPlayDryVoice() {
+    toPlayVoice() {
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,请耐心等待~')
         return
@@ -352,11 +368,10 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       } else if (this.playState === playState.StatePlaying) {
-        // this.audio.pause()
         this.$store.state.ganAudio.pause()
-        if (this.$store.state.wavesurfer) {
-          this.$store.state.wavesurfer.pause()
-        }
+        // if (this.$store.state.wavesurfer) {
+        //   this.$store.state.wavesurfer.pause()
+        // }
         this.changePlayState(playState.StatePaused)
       } else if (this.playState === playState.StatePaused) {
         if (this.isNeedGenerate()) {
@@ -377,23 +392,23 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
-      const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
+      const { start, end, minStart, maxEnd, duration } = this.getLinePosition() // TODO 这里要加上伴奏的长度
       console.log(`doPlay generator:${generator}, isContinue:${isContinue}, start: ${start}, end: ${end}, minStart:${minStart}, maxEnd: ${maxEnd}, duration:${duration}`)
 
       // 百分比不能为负数，最小为0
       const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
       const startTime = percent * duration / 1000
-      const waveStartLeft = start / 10 - this.trackList[1].offset
-      let waveStartTime = pxToTime(waveStartLeft, this.noteWidth / 10, this.bpm) / 1000
-      if (waveStartTime < 0) {
-        waveStartTime = 0
-      }
-      console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}, waveStartTime: ${waveStartTime}`)
+      // const waveStartLeft = start / 10 - this.trackList[1].offset
+      // let waveStartTime = pxToTime(waveStartLeft, this.noteWidth / 10, this.bpm) / 1000
+      // if (waveStartTime < 0) {
+      //   waveStartTime = 0
+      // }
+      console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
       if (generator) {
-        const { onlineUrl } = await this.toSynthesize()
+        const { onlineUrl } = await this.toSynthesize(this.isAddAc)
         // 每次生成新的都存起来
         this.$store.dispatch('changeStoreState', {
           onlineUrl,
@@ -405,25 +420,22 @@ export default {
         }
         this.playStartTime = startTime
         this.toPlayAudio(onlineUrl)
-        // this.audio.currentTime = startTime
         this.$store.state.ganAudio.currentTime = startTime
-        // this.audio.play()
         this.$store.state.ganAudio.play()
-        if (this.$store.state.wavesurfer && this.canPlayWave) {
-          this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
-          this.$store.state.wavesurfer.play()
-        }
+        // if (this.$store.state.wavesurfer && this.canPlayWave) {
+        //   this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
+        //   this.$store.state.wavesurfer.play()
+        // }
       } else {
         if (isContinue) {
           console.log(`play continue with start: ${this.playStartTime}`)
-          // this.audio.play()
           this.$store.state.ganAudio.play()
           // const start = pxToTime(this.$store.state.lineLeft / 10, this.noteWidth / 10, this.bpm)
           // const end = pxToTime(this.$store.state.waveWidth, this.noteWidth, this.bpm)
-          if (this.$store.state.wavesurfer && this.canPlayWave) {
-            this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
-            this.$store.state.wavesurfer.play()
-          }
+          // if (this.$store.state.wavesurfer && this.canPlayWave) {
+          //   this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
+          //   this.$store.state.wavesurfer.play()
+          // }
         } else {
           this.playLine = {
             current: start,
@@ -434,14 +446,12 @@ export default {
           // 百分比不能为负数，最小为0
           // const startTime = percent * duration
           this.playStartTime = startTime
-          // this.audio.currentTime = startTime
-          // this.audio.play()
           this.$store.state.ganAudio.currentTime = startTime
           this.$store.state.ganAudio.play()
-          if (this.$store.state.wavesurfer && this.canPlayWave) {
-            this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
-            this.$store.state.wavesurfer.play()
-          }
+          // if (this.$store.state.wavesurfer && this.canPlayWave) {
+          //   this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
+          //   this.$store.state.wavesurfer.play()
+          // }
         }
       }
     },
@@ -474,11 +484,11 @@ export default {
           this.changePlayState(playState.StateEnded)
           this.changeLinePosition(this.playLine.start, true)
           this.playLine.current = this.playLine.start
-          if (this.$store.state.wavesurfer) {
-            const currentTime = pxToTime(this.playLine.current / 10, this.noteWidth / 10, this.bpm) / 1000
-            this.$store.state.wavesurfer.setCurrentTime(currentTime)
-            this.$store.state.wavesurfer.pause()
-          }
+          // if (this.$store.state.wavesurfer) {
+          //   const currentTime = pxToTime(this.playLine.current / 10, this.noteWidth / 10, this.bpm) / 1000
+          //   this.$store.state.wavesurfer.setCurrentTime(currentTime)
+          //   this.$store.state.wavesurfer.pause()
+          // }
         }
       })
       this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
@@ -594,17 +604,20 @@ export default {
       }
     },
     handleAcInfo() {
-      let acInfo = []
-      this.trackList[0].file = this.$store.state.onlineUrl
-      return this.trackList
+      let acInfo = JSON.parse(JSON.stringify(this.trackList))
+      acInfo[0].file = this.$store.state.onlineUrl
+      acInfo[0].offset = this.$store.getters.pitchList[0].startTime
+      acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
+      return acInfo
     },
-    async toSynthesize(callback) {
+    async toSynthesize(isAddAc, callback) {
+      // isAddAc 是否合成伴奏 0 不合成 1合成
       if (this.$store.state.isGetF0Data) {
         Message.error(`网络不好，请稍后重试~`)
         return
       }
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
-      const synthesizeStart = Date.now()
+      const sStart = Date.now()
       const handleData = this.handleVolumeTension()
       const acInfo = this.handleAcInfo()
       const req = {
@@ -619,7 +632,7 @@ export default {
         music_id: this.$store.state.musicId,
         music_name: this.$store.state.musicName,
         ac_info: acInfo,
-        is_add_ac: this.$store.state.isAddAc
+        is_add_ac: isAddAc  // 是否需要合成伴奏,0为不需要，1为需要
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -655,9 +668,10 @@ export default {
           Message.success(`算法努力合成音频中(${processStatus[data.data.status]}%)`)
         }
         await sleep(3000)
-        const synthesizeEnd = Date.now()
-        console.log(`synthesizeEnd - synthesizeStart: ${synthesizeEnd - synthesizeStart}, synthesizeStart: ${synthesizeStart}, synthesizeEnd: ${synthesizeEnd}`)
-        if ((synthesizeEnd - synthesizeStart) > 60 * 1000) {
+        const sEnd = Date.now()
+        const duration = sEnd - sStart
+        console.log(`duration: ${duration}, start: ${sStart}, end: ${sEnd}`)
+        if (duration > 60 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
           this.$store.dispatch('changeStoreState', { isSynthetizing: false })
           this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来

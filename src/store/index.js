@@ -40,7 +40,7 @@ const defaultState = {
   isVolumeChanged: false,             // 响度是否有改变
   isTensionChanged: false,            // 张力是否有改变
   isStagePitchElementChanged: false,  // 元辅音是否有改变
-  // isObbligatoChanged: false,       // 伴奏是否有改变
+  isObbligatoChanged: false,       // 伴奏是否有改变
   pitchChanged: false, // 是否全部重置
   f0AI: [],           // 音高线虚线部分
   f0Draw: [],         // 音高线实线部分
@@ -58,9 +58,6 @@ const defaultState = {
   musicId: 0, // 从主流程过来的选中的歌曲id
   musicName: '编辑器填词', // 歌曲名称
   showArrange: true, // 是否展开编曲
-  // waveformStyle: { // 伴奏轨的距离
-  //   left: 0
-  // },
   wavesurfer: null, // 音波对象
   waveWidth: 0, // 音波长度
   ganAudio: null,
@@ -85,8 +82,7 @@ const defaultState = {
     height: 0,
     scrollLeft: 0,
     scrollTop: 0
-  },
-  isAddAc: 0,          // 是否需要合成伴奏
+  }
 }
 
 const store = new Vuex.Store({
