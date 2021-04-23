@@ -201,7 +201,6 @@ export default {
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
         await this.$store.dispatch('changeStoreState', {
           taskId: data.task_id,
-          downUrl: data.down_url,
           onlineUrl: data.online_url,
           f0AI: data.f0_ai,
           f0Draw: data.f0_draw,
@@ -211,7 +210,6 @@ export default {
           stagePitches: stagePitches,
           volumeMap: this.convertXyMap(data.volume_xy),
           tensionMap: this.convertXyMap(data.tension_xy),
-          f0Xy: data.f0_xy,
           musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
           musicName: data.music_name
         })
@@ -244,7 +242,6 @@ export default {
           f0Draw: f0Draw,
           volumeMap: this.convertXyMap(musicxml2Json.volume_xy),
           tensionMap: this.convertXyMap(musicxml2Json.tension_xy),
-          f0Xy: musicxml2Json.f0_xy,
           pitchChanged: true // 标记音块改动了，这样才能重新拉到辅音
         })
         this.saveF0DrawChange(musicxml2Json.f0_ai, f0Draw)
@@ -282,6 +279,7 @@ export default {
       if (!this.$store.state.onlineUrl && type !== 'upload') {
         return true
       }
+
 
       return false
     },
@@ -395,10 +393,9 @@ export default {
       }
       console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}, waveStartTime: ${waveStartTime}`)
       if (generator) {
-        const { onlineUrl, downUrl } = await this.toSynthesize()
+        const { onlineUrl } = await this.toSynthesize()
         // 每次生成新的都存起来
         this.$store.dispatch('changeStoreState', {
-          downUrl,
           onlineUrl,
         })
         this.playLine = {
@@ -613,7 +610,6 @@ export default {
         tension_data: handleData.f0Tension,
         volume_xy: handleData.volumeXy,
         tension_xy: handleData.tensionXy,
-        f0_xy: this.$store.state.f0Xy,
         music_id: this.$store.state.musicId,
         music_name: this.$store.state.musicName
       }
@@ -631,7 +627,6 @@ export default {
       // Message.success('开始合成音频中~')
 
       let onlineUrl = ''
-      let downUrl = ''
 
       for (let i = 0; i < 20 ;i ++) {
         const { data } = await editorSynthStatus(paramId, taskId)
@@ -645,7 +640,6 @@ export default {
             console.log('editorSynthResult:', data)
             if (resp.data.ret_code === 0 && resp.data.data.state === 2 ) {
               onlineUrl = resp.data.data.online_url
-              downUrl = resp.data.data.down_url
               Message.success('音频合成成功~')
               break
             }
@@ -668,8 +662,7 @@ export default {
         callback()
       }
       return {
-        onlineUrl,
-        downUrl
+        onlineUrl
       }
     }
   }
