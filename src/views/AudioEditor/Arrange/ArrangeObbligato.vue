@@ -15,7 +15,7 @@
       ref="WaveForm"
       :class="[$style.waveform, isWaveMouseDown ? $style.isActive : '']"
       :style="{
-        width: `${$store.state.waveWidth}px`,
+        width: `${waveWidth}px`,
         height: `${$store.getters.stageHeight / 20}px`,
         transform: `translateX(${trackList[1].offset}px)`
       }"
@@ -76,11 +76,6 @@ export default {
     return {
       showMenu: false,
       showDelete: false,
-      // stageMousePos: {
-      //   x: 0,
-      //   y: 0
-      // },
-      // waveWidth: 0,
       waveMousePos: null, // 伴奏音波鼠标右键的位置
       // audio: null,
       isWaveMouseDown: false,
@@ -100,6 +95,9 @@ export default {
     },
     playState() {
       return this.$store.state.playState
+    },
+    waveWidth() {
+      return this.$store.state.waveWidth
     }
   },
   methods: {
@@ -164,8 +162,8 @@ export default {
           newLeft = 0
         }
         const arrangeStageWidth = this.$store.getters.stageWidth / 10
-        if (newLeft + this.$store.state.waveWidth > arrangeStageWidth) {
-          newLeft = arrangeStageWidth - this.$store.state.waveWidth
+        if (newLeft + this.waveWidth > arrangeStageWidth) {
+          newLeft = arrangeStageWidth - this.waveWidth
         }
         this.$store.state.trackList[1].offset = newLeft
         this.$store.dispatch('changeStoreState', { isObbligatoChanged: true })

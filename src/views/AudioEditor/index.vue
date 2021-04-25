@@ -487,11 +487,9 @@ export default {
               const duration = audio.duration // 音频总长度
               const restDuration = duration - this.playStartTime
               const msDuration = restDuration * 1000
-
               const length = this.playLine.end - this.playLine.start
               const times = msDuration / 16
               const step = length / times
-              // console.log('this.$store.state.ganAudio.currentTime:', this.$store.state.ganAudio.currentTime)
 
               this.playLine.current += step
               this.changeLinePosition(this.playLine.current, true)
