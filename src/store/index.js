@@ -3,9 +3,10 @@ import Vuex from 'vuex'
 import profile from './profile'
 import { pitchList, playState, modeState, typeModeState } from '@/common/utils/const'
 import { getF0Data, getYinsu } from '@/api/audio'
-import { pxToTime, checkPitchDuplicated } from '@/common/utils/helper'
+import { pxToTime, timeToPx, checkPitchDuplicated } from '@/common/utils/helper'
 import { Message } from 'element-ui'
 import deepAssign from 'object-assign-deep'
+import WaveSurfer from 'wavesurfer.js'
 
 Vue.use(Vuex)
 
@@ -82,6 +83,10 @@ const defaultState = {
     height: 0,
     scrollLeft: 0,
     scrollTop: 0
+  },
+  stageMousePos: {  // 伴奏轨的位置
+    x: 0,
+    y: 0
   }
 }
 
@@ -371,6 +376,32 @@ const store = new Vuex.Store({
         Vue.set(item, 'yuan', y)
       }
       commit('changeStoreState', { stagePitches })
+    },
+    showWaveSurfer({ commit, state }, { file, type }) {
+      state.wavesurfer = WaveSurfer.create({
+        container: '#waveform',
+        backgroundColor: 'rgba(255,255,255,0.07)', // 音波的背景颜色
+        height: 56,     // 音波的高度
+        pixelRatio: 1,  // 渲染的更快
+        interact: false // 是否可以通过鼠标来调整音波的播放位置
+      })
+      state.wavesurfer.on('ready', () => {
+        const duration = state.wavesurfer.getDuration()
+        console.log('wavesurfer duration:', duration)
+        const waveWidth = timeToPx(duration * 1000, state.noteWidth / 10, state.bpm)
+        state.trackList[1].offset = state.stageMousePos.x
+        commit('changeStoreState', { waveWidth })
+      })
+      state.wavesurfer.on('play', () => {
+        const currentTime = state.wavesurfer.getCurrentTime()
+        const duration = state.wavesurfer.getDuration()
+        console.log(`wavesurfer currentTime:${currentTime}, duration: ${duration}`)
+      })
+      if (type === 'blob') {
+        state.wavesurfer.loadBlob(file)
+      } else {
+        state.wavesurfer.load(file)
+      }
     }
   },
   modules: {

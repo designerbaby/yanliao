@@ -184,6 +184,13 @@ export default {
       }
       this.$store.state.changedLineMap = changed
     },
+    acInfo2TrackList(acInfo) {
+      const trackList = JSON.parse(JSON.stringify(acInfo))
+      trackList.forEach(item => {
+        item.offset = timeToPx(item.offset, this.noteWidth / 10, this.bpm)
+      })
+      return trackList
+    },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       const musicId = getParam('musicId') || 0
@@ -193,6 +200,7 @@ export default {
         const data = res.data.data
         const pitchList = data.pitchList
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
+        const trackList = this.acInfo2TrackList(data.ac_info)
         await this.$store.dispatch('changeStoreState', {
           taskId: data.task_id,
           onlineUrl: data.online_url,
@@ -205,9 +213,11 @@ export default {
           volumeMap: this.convertXyMap(data.volume_xy),
           tensionMap: this.convertXyMap(data.tension_xy),
           musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
-          musicName: data.music_name
+          musicName: data.music_name,
+          trackList: trackList
         })
         this.saveF0DrawChange(data.f0_ai, data.f0_draw)
+        this.$store.dispatch('showWaveSurfer', { file: trackList[1].file, type: 'url' })
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
         const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
@@ -470,6 +480,7 @@ export default {
               const length = this.playLine.end - this.playLine.start
               const times = msDuration / 16
               const step = length / times
+              // console.log('this.$store.state.ganAudio.currentTime:', this.$store.state.ganAudio.currentTime)
 
               this.playLine.current += step
               this.changeLinePosition(this.playLine.current, true)
@@ -531,6 +542,8 @@ export default {
       let firstPitchStartTime = 0
       let lastPitchStartTime = 0
       let lastPitchDuration = 0
+      const banOffset = this.trackList[1].offset
+      const banEnd = this.trackList[1].offset + this.$store.state.waveWidth
       const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
       this.stagePitches.forEach(item => {
         const right = item.left + item.width
@@ -539,8 +552,8 @@ export default {
           left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
         }
         if (left >= lineLeft || right >= lineLeft) {
-          lineStartX = Math.min(lineStartX, left)
-          lineEndX = Math.max(lineEndX, right)
+          lineStartX = Math.min(lineStartX, left, banOffset)
+          lineEndX = Math.max(lineEndX, right, banEnd)
         }
 
         maxEnd = Math.max(maxEnd, right)

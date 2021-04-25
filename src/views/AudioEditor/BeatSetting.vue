@@ -132,13 +132,18 @@ export default {
         beforeRequest: () => {
           // 请求函数之前把bpm改回旧的，这样曲线就不会变动
           this.$store.state.bpm = oldBpm
+          if (this.$store.state.wavesurfer) {
+            this.$store.dispatch('changeStoreState', { waveWidth: 0 })
+            this.$store.state.wavesurfer.destroy()
+          }
         },
         afterRequest: () => {
           // 数据请求回来之后，把bpm改成真正修改后的值，这样f0和bpm都是新的，曲线重新绘制
           this.$store.state.bpm = this.inputBpmValue
+          // 修改伴奏
+          this.$store.dispatch('showWaveSurfer', { file: this.$store.state.trackList[1].file, type: 'url' })
         }
       })
-      // this.$store.dispatch('getPitchLine')
     },
     playerButtonClick() {
       this.toneList.forEach(item => {

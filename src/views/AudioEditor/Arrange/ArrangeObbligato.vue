@@ -39,8 +39,8 @@
       :class="$style.list"
       v-if="showMenu"
       :style="{
-        top: `${stageMousePos.y}px`,
-        left: `${stageMousePos.x}px`
+        top: `${$store.state.stageMousePos.y}px`,
+        left: `${$store.state.stageMousePos.x}px`
       }"
       @click="selectObbligato"
     >选择伴奏文件</div>
@@ -76,10 +76,10 @@ export default {
     return {
       showMenu: false,
       showDelete: false,
-      stageMousePos: { // 伴奏轨的位置
-        x: 0,
-        y: 0
-      },
+      // stageMousePos: {
+      //   x: 0,
+      //   y: 0
+      // },
       // waveWidth: 0,
       waveMousePos: null, // 伴奏音波鼠标右键的位置
       // audio: null,
@@ -105,39 +105,38 @@ export default {
   methods: {
     async uploadChange(file) {
       this.showMenu = false
-      this.showWaveSurfer(file.raw)
+      this.$store.dispatch('showWaveSurfer', { file: file.raw, type: 'blob' })
       uploadFile(file.raw, 'analyze', (url) => {
         this.$store.state.trackList[1].file = url
       })
     },
-    // audioRate为44100hz === 2,646,000bpm
-    showWaveSurfer(file) {
-      this.$store.state.wavesurfer = WaveSurfer.create({
-        container: '#waveform',
-        backgroundColor: 'rgba(255,255,255,0.07)', // 音波的背景颜色
-        height: 56,     // 音波的高度
-        pixelRatio: 1,  // 渲染的更快
-        interact: false // 是否可以通过鼠标来调整音波的播放位置
-      })
-      this.$store.state.wavesurfer.on('ready', () => {
-        const duration = this.$store.state.wavesurfer.getDuration()
-         console.log('wavesurfer duration:', duration)
-        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
-        this.$store.state.trackList[1].offset = this.stageMousePos.x
-        this.$store.dispatch('changeStoreState', { waveWidth })
-      })
-      this.$store.state.wavesurfer.on('play', () => {
-        const currentTime = this.$store.state.wavesurfer.getCurrentTime()
-        const duration = this.$store.state.wavesurfer.getDuration()
-        console.log(`wavesurfer currentTime:${currentTime}, duration: ${duration}`)
-      })
-      this.$store.state.wavesurfer.loadBlob(file);
-    },
+    // showWaveSurfer(file) {
+      // this.$store.state.wavesurfer = WaveSurfer.create({
+      //   container: '#waveform',
+      //   backgroundColor: 'rgba(255,255,255,0.07)', // 音波的背景颜色
+      //   height: 56,     // 音波的高度
+      //   pixelRatio: 1,  // 渲染的更快
+      //   interact: false // 是否可以通过鼠标来调整音波的播放位置
+      // })
+      // this.$store.state.wavesurfer.on('ready', () => {
+      //   const duration = this.$store.state.wavesurfer.getDuration()
+      //    console.log('wavesurfer duration:', duration)
+      //   const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
+      //   this.$store.state.trackList[1].offset = this.stageMousePos.x
+      //   this.$store.dispatch('changeStoreState', { waveWidth })
+      // })
+      // this.$store.state.wavesurfer.on('play', () => {
+      //   const currentTime = this.$store.state.wavesurfer.getCurrentTime()
+      //   const duration = this.$store.state.wavesurfer.getDuration()
+      //   console.log(`wavesurfer currentTime:${currentTime}, duration: ${duration}`)
+      // })
+      // this.$store.state.wavesurfer.loadBlob(file);
+    // },
     onRightClickStage(event) {
       // 伴奏音轨鼠标右键
       console.log('onRightClickStage:', event)
       const rect = this.$refs.Obbligato.getBoundingClientRect()
-      this.stageMousePos = {
+      this.$store.state.stageMousePos = {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       }
