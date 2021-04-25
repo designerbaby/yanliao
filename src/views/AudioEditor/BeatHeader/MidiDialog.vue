@@ -94,10 +94,15 @@ export default {
         tensionMap: [],
         changedLineMap: {}
       })
-      this.$store.dispatch('getPitchLine')
+      this.$store.dispatch('afterChangePitchAndHandle')
       this.$store.dispatch('saveFuYuan')
       this.$store.dispatch('adjustStageWidth')
       this.$emit('midi-cancel')
+      // 有伴奏的话，清空伴奏
+      if (this.$store.state.wavesurfer) {
+        this.$store.dispatch('changeStoreState', { waveWidth: 0 })
+        this.$store.state.wavesurfer.destroy()
+      }
       Message.success('导入成功～')
     }
   }

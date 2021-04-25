@@ -52,7 +52,6 @@ export default {
     return {
       userInfo: sessionStorage.getItem('userInfo'),
       timerId: 0,
-      // audio: null,
 
       // 播放线
       playLine: {
@@ -310,7 +309,6 @@ export default {
         return
       }
 
-      // TODO 这里要保证播放的进度
       if (ganIsSil === 2 && banIsSil === 1) {
         console.log('只播放伴奏')
         this.toPlayWaver()
@@ -390,9 +388,6 @@ export default {
         this.changePlayState(playState.StatePlaying)
       } else if (this.playState === playState.StatePlaying) {
         this.$store.state.ganAudio.pause()
-        // if (this.$store.state.wavesurfer) {
-        //   this.$store.state.wavesurfer.pause()
-        // }
         this.changePlayState(playState.StatePaused)
       } else if (this.playState === playState.StatePaused) {
         if (this.isNeedGenerate()) {
@@ -422,11 +417,6 @@ export default {
       // 百分比不能为负数，最小为0
       const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
       const startTime = percent * duration / 1000
-      // const waveStartLeft = start / 10 - this.trackList[1].offset
-      // let waveStartTime = pxToTime(waveStartLeft, this.noteWidth / 10, this.bpm) / 1000
-      // if (waveStartTime < 0) {
-      //   waveStartTime = 0
-      // }
       console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
       if (generator) {
         const { onlineUrl } = await this.toSynthesize(this.isAddAc)
@@ -443,20 +433,10 @@ export default {
         this.toPlayAudio(onlineUrl)
         this.$store.state.ganAudio.currentTime = startTime
         this.$store.state.ganAudio.play()
-        // if (this.$store.state.wavesurfer && this.canPlayWave) {
-        //   this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
-        //   this.$store.state.wavesurfer.play()
-        // }
       } else {
         if (isContinue) {
           console.log(`play continue with start: ${this.playStartTime}`)
           this.$store.state.ganAudio.play()
-          // const start = pxToTime(this.$store.state.lineLeft / 10, this.noteWidth / 10, this.bpm)
-          // const end = pxToTime(this.$store.state.waveWidth, this.noteWidth, this.bpm)
-          // if (this.$store.state.wavesurfer && this.canPlayWave) {
-          //   this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
-          //   this.$store.state.wavesurfer.play()
-          // }
         } else {
           this.playLine = {
             current: start,
@@ -469,10 +449,6 @@ export default {
           this.playStartTime = startTime
           this.$store.state.ganAudio.currentTime = startTime
           this.$store.state.ganAudio.play()
-          // if (this.$store.state.wavesurfer && this.canPlayWave) {
-          //   this.$store.state.wavesurfer.setCurrentTime(waveStartTime)
-          //   this.$store.state.wavesurfer.play()
-          // }
         }
       }
     },
@@ -487,6 +463,7 @@ export default {
               const duration = audio.duration // 音频总长度
               const restDuration = duration - this.playStartTime
               const msDuration = restDuration * 1000
+
               const length = this.playLine.end - this.playLine.start
               const times = msDuration / 16
               const step = length / times
@@ -504,11 +481,6 @@ export default {
           this.changePlayState(playState.StateEnded)
           this.changeLinePosition(this.playLine.start, true)
           this.playLine.current = this.playLine.start
-          // if (this.$store.state.wavesurfer) {
-          //   const currentTime = pxToTime(this.playLine.current / 10, this.noteWidth / 10, this.bpm) / 1000
-          //   this.$store.state.wavesurfer.setCurrentTime(currentTime)
-          //   this.$store.state.wavesurfer.pause()
-          // }
         }
       })
       this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
@@ -552,8 +524,8 @@ export default {
       let lastPitchStartTime = 0
       let lastPitchDuration = 0
       const banOffset = this.trackList[1].offset
-      const banEnd = this.trackList[1].offset + this.$store.state.waveWidth
-      const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
+      const banEnd = this.trackList[1].offset + this.$store.state.waveWidth * 10
+      // const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
       this.stagePitches.forEach(item => {
         const right = item.left + item.width
         let left = item.left
@@ -563,6 +535,7 @@ export default {
         if (left >= lineLeft || right >= lineLeft) {
           lineStartX = Math.min(lineStartX, left, banOffset)
           lineEndX = Math.max(lineEndX, right, banEnd)
+          console.log('lineEndX:', lineEndX)
         }
 
         maxEnd = Math.max(maxEnd, right)
@@ -582,10 +555,10 @@ export default {
       const totalDuration = lastPitchStartTime - firstPitchStartTime + lastPitchDuration
       return {
         start: lineStartX,
-        end: lineEndX + full, // full代表sdk补的宽度
+        end: lineEndX, // full代表sdk补的宽度
         minStart,
-        maxEnd: maxEnd + full, // full代表sdk补的宽度
-        duration: totalDuration + 500 // 补了50个数据，一个数据10ms,总共500ms
+        maxEnd: maxEnd, // full代表sdk补的宽度
+        duration: totalDuration // 补了50个数据，一个数据10ms,总共500ms
       }
     },
     handleVolumeTension() {

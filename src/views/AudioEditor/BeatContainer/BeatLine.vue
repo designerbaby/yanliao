@@ -45,11 +45,11 @@ export default {
       const showArrange = this.$store.state.showArrange
       const appScrollTop = this.$store.state.appScrollTop
       if (isExceedHeader && !showArrange) {
-        // 48为头部的高度, 2为修正高度, 34为编曲合起来的高度
+        // 48为头部的高度, 4为修正高度, 34为编曲合起来的高度
         return appScrollTop - 48 - 4 + 34
       } else if (isExceedHeader && showArrange) {
         // 157为编曲展开的高度
-        return appScrollTop - 48 - 2 + 157
+        return appScrollTop - 48 + 157
       }
       return 0
     },
