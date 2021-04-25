@@ -24,6 +24,9 @@ export default {
         width: `${this.$store.getters.stageWidth / 10}px`,
         left: `${-this.$store.state.arrangeStage.scrollLeft}px`
       }
+    },
+    trackList() {
+      return this.$store.state.trackList
     }
   },
   data() {
@@ -43,8 +46,8 @@ export default {
       this.$store.state.stage.scrollLeft = scrollLeft
       stageRightArea.scrollLeft = scrollLeft
       // 修改伴奏轨的播放进度
-      if (this.$store.state.wavesurfer) {
-        const wavesurferLeft = left - this.$store.state.trackList[1].offset
+      if (this.$store.state.wavesurfer && this.trackList[0].is_sil === 2 && this.trackList[1].is_sil === 1) {
+        const wavesurferLeft = left - this.trackList[1].offset
         let time = pxToTime(wavesurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
         if (time < 0) {
           time = 0

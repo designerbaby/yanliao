@@ -110,28 +110,6 @@ export default {
         this.$store.state.trackList[1].file = url
       })
     },
-    // showWaveSurfer(file) {
-      // this.$store.state.wavesurfer = WaveSurfer.create({
-      //   container: '#waveform',
-      //   backgroundColor: 'rgba(255,255,255,0.07)', // 音波的背景颜色
-      //   height: 56,     // 音波的高度
-      //   pixelRatio: 1,  // 渲染的更快
-      //   interact: false // 是否可以通过鼠标来调整音波的播放位置
-      // })
-      // this.$store.state.wavesurfer.on('ready', () => {
-      //   const duration = this.$store.state.wavesurfer.getDuration()
-      //    console.log('wavesurfer duration:', duration)
-      //   const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.$store.state.bpm)
-      //   this.$store.state.trackList[1].offset = this.stageMousePos.x
-      //   this.$store.dispatch('changeStoreState', { waveWidth })
-      // })
-      // this.$store.state.wavesurfer.on('play', () => {
-      //   const currentTime = this.$store.state.wavesurfer.getCurrentTime()
-      //   const duration = this.$store.state.wavesurfer.getDuration()
-      //   console.log(`wavesurfer currentTime:${currentTime}, duration: ${duration}`)
-      // })
-      // this.$store.state.wavesurfer.loadBlob(file);
-    // },
     onRightClickStage(event) {
       // 伴奏音轨鼠标右键
       console.log('onRightClickStage:', event)

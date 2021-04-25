@@ -18,11 +18,11 @@ const defaultState = {
   lineLeft: 6,   // 播放线的左边距
   matter: 30,    // 总共有多少个小节
   noteWidth: 20, // 32分音符占据的最小像素单位
-  noteHeight: 25, // 32分音符的占据的最小高度
+  noteHeight: 25,// 32分音符的占据的最小高度
   bpm: 90,       // 曲速
-  toneId: 1,    // 选择的toneId
-  auditUrl: '', // 选择的播放的url
-  taskId: 0,    // 正在编辑的taskId
+  toneId: 1,     // 选择的toneId
+  auditUrl: '',  // 选择的播放的url
+  taskId: 0,     // 正在编辑的taskId
   toneName: 'luoxiang', // 选择的toneName
   stage: {
     width: 0,     // 舞台容器宽度
@@ -33,7 +33,7 @@ const defaultState = {
   mode: modeState.StatePitch,        // 模式
   typeMode: typeModeState.StateNone, // 附加模式类型
   playState: playState.StateNone,    // 播放状态
-  stagePitches: [], // 舞台音块
+  stagePitches: [],      // 舞台音块
   isSynthetizing: false, // 是否在合成音频中
   isGetF0Data: false,    // 是否在获取f0中
   isStagePitchesChanged: false,       // 舞台音块是否有改变
@@ -41,11 +41,12 @@ const defaultState = {
   isVolumeChanged: false,             // 响度是否有改变
   isTensionChanged: false,            // 张力是否有改变
   isStagePitchElementChanged: false,  // 元辅音是否有改变
-  isObbligatoChanged: false,       // 伴奏是否有改变
+  isObbligatoChanged: false,          // 伴奏是否有改变
+  isTrackChanged: false,              // 干音和伴奏是否有改变
   pitchChanged: false, // 是否全部重置
-  f0AI: [],           // 音高线虚线部分
-  f0Draw: [],         // 音高线实线部分
-  changedLineMap: {}, // 音高线改变的信息
+  f0AI: [],            // 音高线虚线部分
+  f0Draw: [],          // 音高线实线部分
+  changedLineMap: {},  // 音高线改变的信息
   volumeMap: [],  // 响度原始map数据
   tensionMap: [], // 张力原始map数据
   pinyinList: [], // 当前用户输入的字里面包括的多音字列表

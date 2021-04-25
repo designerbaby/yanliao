@@ -201,6 +201,10 @@ export default {
         const pitchList = data.pitchList
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
         const trackList = this.acInfo2TrackList(data.ac_info)
+        const stageMousePos = {
+          x: trackList[1].offset,
+          y: 0
+        }
         await this.$store.dispatch('changeStoreState', {
           taskId: data.task_id,
           onlineUrl: data.online_url,
@@ -214,7 +218,8 @@ export default {
           tensionMap: this.convertXyMap(data.tension_xy),
           musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
           musicName: data.music_name,
-          trackList: trackList
+          trackList: trackList,
+          stageMousePos: stageMousePos
         })
         this.saveF0DrawChange(data.f0_ai, data.f0_draw)
         this.$store.dispatch('showWaveSurfer', { file: trackList[1].file, type: 'url' })
@@ -279,8 +284,13 @@ export default {
         return true
       }
 
-      // 伴奏修改了
+      // 伴奏改变了
       if (this.$store.state.isObbligatoChanged) {
+        return true
+      }
+
+      // 静音播放改变了
+      if (this.$store.state.isTrackChanged) {
         return true
       }
 
@@ -288,6 +298,7 @@ export default {
       if (!this.$store.state.onlineUrl && type !== 'upload') {
         return true
       }
+
 
       return false
     },
@@ -402,7 +413,7 @@ export default {
         }
         this.changePlayState(playState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false, isTrackChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { start, end, minStart, maxEnd, duration } = this.getLinePosition() // TODO 这里要加上伴奏的长度

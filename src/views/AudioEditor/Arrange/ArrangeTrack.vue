@@ -111,6 +111,7 @@ export default {
       } else {
         this.trackList[index].is_sil = 1
       }
+      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
     }
   }
 }
