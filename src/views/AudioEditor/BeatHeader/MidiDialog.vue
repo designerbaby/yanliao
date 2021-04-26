@@ -24,6 +24,7 @@
 import { Dialog, Button, Message, Radio, RadioGroup } from 'element-ui'
 import { pitchList } from '@/common/utils/const'
 import { pitchList2StagePitches } from '@/common/utils/common'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'MidiDialog',
@@ -94,10 +95,16 @@ export default {
         tensionMap: [],
         changedLineMap: {}
       })
-      this.$store.dispatch('getPitchLine')
+      this.$store.dispatch('afterChangePitchAndHandle')
       this.$store.dispatch('saveFuYuan')
       this.$store.dispatch('adjustStageWidth')
       this.$emit('midi-cancel')
+      // 有伴奏的话，清空伴奏
+      const waveSurferObj = waveSurfer.getWaveSurfer()
+      if (waveSurfer) {
+        this.$store.dispatch('changeStoreState', { waveWidth: 0 })
+        waveSurfer.clearWaveSurfer()
+      }
       Message.success('导入成功～')
     }
   }

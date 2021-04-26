@@ -297,6 +297,13 @@ export const playState = {
   StateEnded: 3 // 播放完成
 }
 
+export const TrackMode = {
+  TrackModeNone: 0, // 都静音
+  TrackModeBan: 1, // 只播放伴奏
+  TrackModeGan: 2, // 只播放干声
+  TrackModeAll: 3  // 都播放
+}
+
 export const modeState = {
   StatePitch: 0, // 音符模式
   StateLine: 1,  // 音高线模式

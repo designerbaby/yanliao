@@ -33,7 +33,8 @@
 
 <script>
 import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
-import { playState } from "@/common/utils/const"
+import { getWaveSurfer } from '@/common/utils/waveSurfer'
+import { playState, TrackMode } from "@/common/utils/const"
 import { Message } from 'element-ui'
 
 export default {
@@ -88,11 +89,13 @@ export default {
         } else {
           this.trackList[index].is_sil = 1
         }
-        if (index === 0 && this.$store.state.ganAudio) {
-          this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
-        }
-        if (index === 1 && this.$store.state.wavesurfer) {
-          this.$store.state.wavesurfer.setVolume(this.trackList[1].volume / 100)
+        // if (index === 0 && this.$store.state.ganAudio) {
+        //   this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
+        // }
+        const waveSurfer = getWaveSurfer()
+        const trackMode = this.$store.getters.trackMode
+        if (index === 1 && waveSurfer && trackMode === TrackMode.TrackModeBan) {
+          waveSurfer.setVolume(this.trackList[1].volume / 100)
         }
       }
     },
@@ -100,6 +103,7 @@ export default {
       if (this.isChangeVolume >= 0) {
         this.isChangeVolume = -1
       }
+      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
     },
     play(index) {
       if (this.playState === playState.StatePlaying) {
@@ -111,6 +115,7 @@ export default {
       } else {
         this.trackList[index].is_sil = 1
       }
+      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
     }
   }
 }

@@ -98,12 +98,13 @@
 
 <script>
 import { Button, Message, Upload } from 'element-ui'
-import { playState, modeState, typeModeState } from "@/common/utils/const"
+import { playState, modeState, typeModeState, TrackMode } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog.vue'
 import CommonDialog from '@/views/AudioEditor/Components/CommonDialog.vue'
 import { mid2json } from '@/api/audio'
 import { uploadFile } from '@/common/utils/upload'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatHeader',
@@ -135,12 +136,15 @@ export default {
     showArrange() {
       return this.$store.state.showArrange
     },
+    trackMode() {
+      return this.$store.getters.trackMode
+    },
     status() {
       let status = 'normal'
-      const trackList = this.$store.state.trackList
-      if (trackList[0].is_sil === 2 && trackList[1].is_sil === 2) {
+      const trackMode = this.trackMode
+      if (trackMode === TrackMode.TrackModeNone) {
         status = 'notPlay'
-      } else if (trackList[0].is_sil === 2 && trackList[1].is_sil === 1) {
+      } else if (trackMode === TrackMode.TrackModeBan) {
         status = 'notGenerate'
       }
       return status
@@ -208,14 +212,12 @@ export default {
     },
     async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
-      const ganIsSil = this.$store.state.trackList[0].is_sil
-      const banIsSil = this.$store.state.trackList[1].is_sil
-      console.log(`ganIsSil: ${ganIsSil}, banIsSil: ${banIsSil}`)
-      if (ganIsSil === 2 && banIsSil === 2) {
+      const trackMode = this.trackMode
+      if (trackMode === TrackMode.TrackModeNone) {
         Message.error('静音状态下不可合成')
         return
       }
-      if (ganIsSil === 2 && banIsSil === 1) {
+      if (trackMode === TrackMode.TrackModeBan) {
         Message.error('干音在静音状态下不可合成')
         this.toSave()
         return
@@ -236,7 +238,7 @@ export default {
         return
       }
       let isAddAc = 1  // 是否需要合成伴奏,0为不需要，1为需要
-      if (ganIsSil === 1 && banIsSil === 2) {
+      if (trackMode === TrackMode.TrackModeGan || !waveSurfer.getWaveSurfer()) {
         isAddAc = 0
       }
       this.$emit('synthesize', isAddAc, () => {

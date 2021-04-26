@@ -55,6 +55,7 @@ import { Select, Option, InputNumber, Input, Button } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
 import { timeToPx } from '@/common/utils/helper'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatSetting',
@@ -117,14 +118,6 @@ export default {
         this.inputBpmValue = this.$store.state.bpm
       }
       console.log('confirmBpm:', this.inputBpmValue)
-      // 有伴奏的话，要相应修改伴奏的长度
-      if (this.$store.state.wavesurfer) {
-        const duration = this.$store.state.wavesurfer.getDuration()
-        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
-
-        this.$store.dispatch('changeStoreState', { waveWidth })
-      }
-
       // 为了修复，bpm改变的时候，曲线闪一下的bug,这里特殊处理。
       const oldBpm = this.$store.state.bpm
       this.$store.dispatch('changeStoreState', { bpm: this.inputBpmValue, pitchChanged: true })
@@ -138,7 +131,16 @@ export default {
           this.$store.state.bpm = this.inputBpmValue
         }
       })
-      // this.$store.dispatch('getPitchLine')
+       // 有伴奏的话，要相应修改伴奏的长度
+      const waveSurferObj = waveSurfer.getWaveSurfer()
+      if (waveSurferObj) {
+        const oldWaveWidth = this.$store.state.waveWidth
+        const duration = waveSurferObj.getDuration()
+        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
+        this.$store.dispatch('changeStoreState', { waveWidth })
+        const zoom = waveWidth / duration
+        waveSurferObj.zoom(zoom)
+      }
     },
     playerButtonClick() {
       this.toneList.forEach(item => {

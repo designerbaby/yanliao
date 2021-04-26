@@ -1,11 +1,12 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import profile from './profile'
-import { pitchList, playState, modeState, typeModeState } from '@/common/utils/const'
+import { pitchList, playState, modeState, typeModeState, TrackMode } from '@/common/utils/const'
 import { getF0Data, getYinsu } from '@/api/audio'
-import { pxToTime, checkPitchDuplicated } from '@/common/utils/helper'
+import { pxToTime, timeToPx, checkPitchDuplicated } from '@/common/utils/helper'
 import { Message } from 'element-ui'
 import deepAssign from 'object-assign-deep'
+import { createWaveSurfer } from '@/common/utils/waveSurfer.js'
 
 Vue.use(Vuex)
 
@@ -17,11 +18,11 @@ const defaultState = {
   lineLeft: 6,   // 播放线的左边距
   matter: 30,    // 总共有多少个小节
   noteWidth: 20, // 32分音符占据的最小像素单位
-  noteHeight: 25, // 32分音符的占据的最小高度
+  noteHeight: 25,// 32分音符的占据的最小高度
   bpm: 90,       // 曲速
-  toneId: 1,    // 选择的toneId
-  auditUrl: '', // 选择的播放的url
-  taskId: 0,    // 正在编辑的taskId
+  toneId: 1,     // 选择的toneId
+  auditUrl: '',  // 选择的播放的url
+  taskId: 0,     // 正在编辑的taskId
   toneName: 'luoxiang', // 选择的toneName
   stage: {
     width: 0,     // 舞台容器宽度
@@ -32,7 +33,7 @@ const defaultState = {
   mode: modeState.StatePitch,        // 模式
   typeMode: typeModeState.StateNone, // 附加模式类型
   playState: playState.StateNone,    // 播放状态
-  stagePitches: [], // 舞台音块
+  stagePitches: [],      // 舞台音块
   isSynthetizing: false, // 是否在合成音频中
   isGetF0Data: false,    // 是否在获取f0中
   isStagePitchesChanged: false,       // 舞台音块是否有改变
@@ -40,11 +41,12 @@ const defaultState = {
   isVolumeChanged: false,             // 响度是否有改变
   isTensionChanged: false,            // 张力是否有改变
   isStagePitchElementChanged: false,  // 元辅音是否有改变
-  isObbligatoChanged: false,       // 伴奏是否有改变
+  isObbligatoChanged: false,          // 伴奏是否有改变
+  isTrackChanged: false,              // 干音和伴奏是否有改变
   pitchChanged: false, // 是否全部重置
-  f0AI: [],           // 音高线虚线部分
-  f0Draw: [],         // 音高线实线部分
-  changedLineMap: {}, // 音高线改变的信息
+  f0AI: [],            // 音高线虚线部分
+  f0Draw: [],          // 音高线实线部分
+  changedLineMap: {},  // 音高线改变的信息
   volumeMap: [],  // 响度原始map数据
   tensionMap: [], // 张力原始map数据
   pinyinList: [], // 当前用户输入的字里面包括的多音字列表
@@ -58,7 +60,6 @@ const defaultState = {
   musicId: 0, // 从主流程过来的选中的歌曲id
   musicName: '编辑器填词', // 歌曲名称
   showArrange: true, // 是否展开编曲
-  wavesurfer: null, // 音波对象
   waveWidth: 0, // 音波长度
   ganAudio: null,
   trackList: [ // 音轨列表，!!!后续多音轨要改这里的数据
@@ -82,6 +83,10 @@ const defaultState = {
     height: 0,
     scrollLeft: 0,
     scrollTop: 0
+  },
+  stageMousePos: {  // 伴奏轨的位置
+    x: 0,
+    y: 0
   }
 }
 
@@ -106,6 +111,21 @@ const store = new Vuex.Store({
       // 10是因为数据的每一项间隔10ms
       console.log('state.bpm:', state.bpm)
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
+    },
+    trackMode: state => {
+      const ganIsSil = state.trackList[0].is_sil
+      const banIsSil = state.trackList[1].is_sil
+      if (ganIsSil === 2 && banIsSil === 2) {
+        return TrackMode.TrackModeNone
+      } else if (ganIsSil === 2 && banIsSil === 1) {
+        return TrackMode.TrackModeBan
+      } else if (ganIsSil === 1 && banIsSil === 2) {
+        return TrackMode.TrackModeGan
+      } else if (ganIsSil === 1 && ganIsSil === 1) {
+        return TrackMode.TrackModeAll
+      } else {
+        return TrackMode.TrackModeNone
+      }
     },
     pitchList: (state, getters) =>  {
       const stagePitches = state.stagePitches
@@ -353,7 +373,11 @@ const store = new Vuex.Store({
         const right = item.left + item.width
         maxPitchRight = Math.max(maxPitchRight, right)
       })
+      const banEndX = state.trackList[1].offset * 10 + state.waveWidth * 10 // 伴奏的最尾端
       while (maxPitchRight > getters.stageWidth) {
+        dispatch('updateMatter', 15)
+      }
+      while (banEndX > getters.stageWidth) {
         dispatch('updateMatter', 15)
       }
     },
@@ -371,6 +395,26 @@ const store = new Vuex.Store({
         Vue.set(item, 'yuan', y)
       }
       commit('changeStoreState', { stagePitches })
+    },
+    showWaveSurfer({ commit, state, dispatch }, { file, type }) {
+      const waveSurfer = createWaveSurfer(file, type)
+      waveSurfer.on('ready', () => {
+        const duration = waveSurfer.getDuration()
+        console.log('waveSurfer duration:', duration)
+        const waveWidth = timeToPx(duration * 1000, state.noteWidth / 10, state.bpm)
+        state.trackList[1].offset = state.stageMousePos.x
+        console.log('waveWidth / duration:', waveWidth / duration)
+        waveSurfer.zoom(waveWidth / duration)
+        waveSurfer.setVolume(state.trackList[1].volume / 100)
+        commit('changeStoreState', { waveWidth })
+        dispatch('adjustStageWidth')
+      })
+      // waveSurfer.on('play', () => {
+      //   const currentTime = waveSurfer.getCurrentTime()
+      //   const duration = waveSurfer.getDuration()
+      //   console.log(`waveSurfer currentTime:${currentTime}, duration: ${duration}`)
+      // })
+      commit('changeStoreState', { isObbligatoChanged: true })
     }
   },
   modules: {
