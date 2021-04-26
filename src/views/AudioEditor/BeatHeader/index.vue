@@ -104,6 +104,7 @@ import MidiDialog from './MidiDialog.vue'
 import CommonDialog from '@/views/AudioEditor/Components/CommonDialog.vue'
 import { mid2json } from '@/api/audio'
 import { uploadFile } from '@/common/utils/upload'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatHeader',
@@ -237,7 +238,7 @@ export default {
         return
       }
       let isAddAc = 1  // 是否需要合成伴奏,0为不需要，1为需要
-      if (trackMode === TrackMode.TrackModeGan) {
+      if (trackMode === TrackMode.TrackModeGan || !waveSurfer.getWaveSurfer()) {
         isAddAc = 0
       }
       this.$emit('synthesize', isAddAc, () => {

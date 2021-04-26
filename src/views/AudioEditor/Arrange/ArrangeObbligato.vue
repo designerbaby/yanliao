@@ -16,7 +16,7 @@
       :class="[$style.waveform, showWaveBorder ? $style.isActive : '']"
       :style="{
         width: `${waveWidth}px`,
-        height: `${$store.getters.stageHeight / 20}px`,
+        height: '48px',
         transform: `translateX(${trackList[1].offset}px)`
       }"
       @mousedown="onWaveMouseDown"
@@ -147,8 +147,7 @@ export default {
       }
       this.showWaveBorder = true
       this.isWaveMouseDown = true
-      this.$refs.WaveForm.style.height = '48px'
-      waveSurfer.getWaveSurfer().setHeight(48)
+
       const rect = this.$refs.WaveForm.getBoundingClientRect()
 
       this.waveStartPos = {

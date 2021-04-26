@@ -399,19 +399,21 @@ const store = new Vuex.Store({
     showWaveSurfer({ commit, state, dispatch }, { file, type }) {
       const waveSurfer = createWaveSurfer(file, type)
       waveSurfer.on('ready', () => {
-        // waveSurfer.play()
         const duration = waveSurfer.getDuration()
         console.log('waveSurfer duration:', duration)
         const waveWidth = timeToPx(duration * 1000, state.noteWidth / 10, state.bpm)
         state.trackList[1].offset = state.stageMousePos.x
+        console.log('waveWidth / duration:', waveWidth / duration)
+        waveSurfer.zoom(waveWidth / duration)
+        waveSurfer.setVolume(state.trackList[1].volume / 100)
         commit('changeStoreState', { waveWidth })
         dispatch('adjustStageWidth')
       })
-      waveSurfer.on('play', () => {
-        const currentTime = waveSurfer.getCurrentTime()
-        const duration = waveSurfer.getDuration()
-        console.log(`waveSurfer currentTime:${currentTime}, duration: ${duration}`)
-      })
+      // waveSurfer.on('play', () => {
+      //   const currentTime = waveSurfer.getCurrentTime()
+      //   const duration = waveSurfer.getDuration()
+      //   console.log(`waveSurfer currentTime:${currentTime}, duration: ${duration}`)
+      // })
       commit('changeStoreState', { isObbligatoChanged: true })
     }
   },

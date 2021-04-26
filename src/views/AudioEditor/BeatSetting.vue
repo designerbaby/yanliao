@@ -134,11 +134,12 @@ export default {
        // 有伴奏的话，要相应修改伴奏的长度
       const waveSurferObj = waveSurfer.getWaveSurfer()
       if (waveSurferObj) {
-        waveSurfer.clearWaveSurfer()
-        this.$store.dispatch('showWaveSurfer', { file: this.$store.state.trackList[1].file, type: 'url' })
-        const duration = waveSurfer.getWaveSurfer().getDuration()
+        const oldWaveWidth = this.$store.state.waveWidth
+        const duration = waveSurferObj.getDuration()
         const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
         this.$store.dispatch('changeStoreState', { waveWidth })
+        const zoom = waveWidth / duration
+        waveSurferObj.zoom(zoom)
       }
     },
     playerButtonClick() {
