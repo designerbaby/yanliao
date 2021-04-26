@@ -55,7 +55,7 @@ import { Select, Option, InputNumber, Input, Button } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
 import { timeToPx } from '@/common/utils/helper'
-import { getWaveSurfer } from '@/common/utils/waveSurfer'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatSetting',
@@ -118,15 +118,6 @@ export default {
         this.inputBpmValue = this.$store.state.bpm
       }
       console.log('confirmBpm:', this.inputBpmValue)
-      // 有伴奏的话，要相应修改伴奏的长度
-      const waveSurfer = getWaveSurfer()
-      if (waveSurfer) {
-        const duration = waveSurfer.getDuration()
-        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
-
-        this.$store.dispatch('changeStoreState', { waveWidth })
-      }
-
       // 为了修复，bpm改变的时候，曲线闪一下的bug,这里特殊处理。
       const oldBpm = this.$store.state.bpm
       this.$store.dispatch('changeStoreState', { bpm: this.inputBpmValue, pitchChanged: true })
@@ -134,18 +125,21 @@ export default {
         beforeRequest: () => {
           // 请求函数之前把bpm改回旧的，这样曲线就不会变动
           this.$store.state.bpm = oldBpm
-          if (waveSurfer) {
-            this.$store.dispatch('changeStoreState', { waveWidth: 0 })
-            waveSurfer.destroy()
-          }
         },
         afterRequest: () => {
           // 数据请求回来之后，把bpm改成真正修改后的值，这样f0和bpm都是新的，曲线重新绘制
           this.$store.state.bpm = this.inputBpmValue
-          // 修改伴奏
-          this.$store.dispatch('showWaveSurfer', { file: this.$store.state.trackList[1].file, type: 'url' })
         }
       })
+       // 有伴奏的话，要相应修改伴奏的长度
+      const waveSurferObj = waveSurfer.getWaveSurfer()
+      if (waveSurferObj) {
+        waveSurfer.clearWaveSurfer()
+        this.$store.dispatch('showWaveSurfer', { file: this.$store.state.trackList[1].file, type: 'url' })
+        const duration = waveSurfer.getWaveSurfer().getDuration()
+        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
+        this.$store.dispatch('changeStoreState', { waveWidth })
+      }
     },
     playerButtonClick() {
       this.toneList.forEach(item => {

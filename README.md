@@ -50,8 +50,9 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - https://growth.tencent.com/kh37dyui2j/data_management/Source_Event/4889/user_event
 
 ### TODO
-
-- 1、要把doPlay的判断改成状态机
+- 1、音量修改拖动不灵敏
+- 2、当伴奏轨在后面干音后面的时候，这里要拿到当前left的最小值,不然就有问题
+- 3、播放进度条放在某位置，点击播放，期望是从选择的位置开始播放，但是现在都会从头播放
 
 ## 难点
 - 1、用svg画音高线的时候出现锯齿

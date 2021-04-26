@@ -24,7 +24,7 @@
 import { Dialog, Button, Message, Radio, RadioGroup } from 'element-ui'
 import { pitchList } from '@/common/utils/const'
 import { pitchList2StagePitches } from '@/common/utils/common'
-import { getWaveSurfer } from '@/common/utils/waveSurfer'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'MidiDialog',
@@ -100,10 +100,10 @@ export default {
       this.$store.dispatch('adjustStageWidth')
       this.$emit('midi-cancel')
       // 有伴奏的话，清空伴奏
-      const waveSurfer = getWaveSurfer()
+      const waveSurferObj = waveSurfer.getWaveSurfer()
       if (waveSurfer) {
         this.$store.dispatch('changeStoreState', { waveWidth: 0 })
-        waveSurfer.destroy()
+        waveSurfer.clearWaveSurfer()
       }
       Message.success('导入成功～')
     }

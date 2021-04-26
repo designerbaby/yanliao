@@ -40,12 +40,14 @@ export default {
       const left = event.clientX - rect.left
       const lineLeft = left * 10
       this.$store.dispatch('changeStoreState', { lineLeft })
+
       // 改变音轨区播放线的位置顺便移动下面主舞台
       const { width } = this.$store.state.stage
       const stageRightArea = document.getElementById('rightArea')
       const scrollLeft = lineLeft - width / 2
       this.$store.state.stage.scrollLeft = scrollLeft
       stageRightArea.scrollLeft = scrollLeft
+
       // 修改伴奏轨的播放进度
       if (waveSurfer.getWaveSurfer() && this.$store.getters.trackMode === TrackMode.TrackModeBan) {
         const waveSurferLeft = left - this.trackList[1].offset

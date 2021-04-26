@@ -8,9 +8,9 @@
 
 <script>
 import { Message } from "element-ui"
-import { playState } from "@/common/utils/const"
+import { playState, TrackMode } from "@/common/utils/const"
 import { pxToTime } from '@/common/utils/helper'
-import { getWaveSurfer } from '@/common/utils/waveSurfer'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatTop',
@@ -32,6 +32,7 @@ export default {
   },
   methods: {
     changeLine(event) {
+      console.log('changeLine:', event)
       if (this.$store.state.playState === playState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
@@ -43,8 +44,7 @@ export default {
       this.$store.dispatch("changeStoreState", { lineLeft: left })
 
       // 修改伴奏轨的播放进度
-      const waveSurfer = getWaveSurfer()
-      if (waveSurfer) {
+      if (waveSurfer.getWaveSurfer() && this.$store.getters.trackMode === TrackMode.TrackModeBan) {
         const waveSurferLeft = left / 10 - this.$store.state.trackList[1].offset
         let time = pxToTime(waveSurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
         if (time < 0) {

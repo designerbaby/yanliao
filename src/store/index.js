@@ -60,7 +60,6 @@ const defaultState = {
   musicId: 0, // 从主流程过来的选中的歌曲id
   musicName: '编辑器填词', // 歌曲名称
   showArrange: true, // 是否展开编曲
-  // wavesurfer: null, // 音波对象
   waveWidth: 0, // 音波长度
   ganAudio: null,
   trackList: [ // 音轨列表，!!!后续多音轨要改这里的数据
@@ -374,7 +373,11 @@ const store = new Vuex.Store({
         const right = item.left + item.width
         maxPitchRight = Math.max(maxPitchRight, right)
       })
+      const banEndX = state.trackList[1].offset * 10 + state.waveWidth * 10 // 伴奏的最尾端
       while (maxPitchRight > getters.stageWidth) {
+        dispatch('updateMatter', 15)
+      }
+      while (banEndX > getters.stageWidth) {
         dispatch('updateMatter', 15)
       }
     },
@@ -393,20 +396,23 @@ const store = new Vuex.Store({
       }
       commit('changeStoreState', { stagePitches })
     },
-    showWaveSurfer({ commit, state }, { file, type }) {
+    showWaveSurfer({ commit, state, dispatch }, { file, type }) {
       const waveSurfer = createWaveSurfer(file, type)
       waveSurfer.on('ready', () => {
+        // waveSurfer.play()
         const duration = waveSurfer.getDuration()
         console.log('waveSurfer duration:', duration)
         const waveWidth = timeToPx(duration * 1000, state.noteWidth / 10, state.bpm)
         state.trackList[1].offset = state.stageMousePos.x
         commit('changeStoreState', { waveWidth })
+        dispatch('adjustStageWidth')
       })
       waveSurfer.on('play', () => {
         const currentTime = waveSurfer.getCurrentTime()
         const duration = waveSurfer.getDuration()
         console.log(`waveSurfer currentTime:${currentTime}, duration: ${duration}`)
       })
+      commit('changeStoreState', { isObbligatoChanged: true })
     }
   },
   modules: {

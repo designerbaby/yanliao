@@ -13,7 +13,7 @@
     <div
       id="waveform"
       ref="WaveForm"
-      :class="[$style.waveform, isWaveMouseDown ? $style.isActive : '']"
+      :class="[$style.waveform, showWaveBorder ? $style.isActive : '']"
       :style="{
         width: `${waveWidth}px`,
         height: `${$store.getters.stageHeight / 20}px`,
@@ -47,7 +47,7 @@
     <!-- diaplay none -->
     <Upload
       ref="upload"
-      :accept="'*'"
+      accept=".wav, .mp3"
       :on-change="uploadChange"
       :auto-upload="false"
       :multiple="false"
@@ -60,9 +60,7 @@
 </template>
 
 <script>
-// import WaveSurfer from 'wavesurfer.js'
 import { Upload, Message } from 'element-ui'
-import { timeToPx } from '@/common/utils/helper'
 import { uploadFile } from '@/common/utils/upload'
 import { playState } from "@/common/utils/const"
 import * as waveSurfer from '@/common/utils/waveSurfer'
@@ -78,7 +76,7 @@ export default {
       showMenu: false,
       showDelete: false,
       waveMousePos: null, // 伴奏音波鼠标右键的位置
-      // audio: null,
+      showWaveBorder: false,
       isWaveMouseDown: false,
       waveStartPos: null,
       waveEndPos: null
@@ -103,6 +101,14 @@ export default {
   },
   methods: {
     async uploadChange(file) {
+      const fileNameArr = file.raw.name.split('.')
+      const type = fileNameArr[fileNameArr.length - 1]
+      const allowType = ['mp3', 'wav']
+
+      if (allowType.indexOf(type) === -1) {
+        Message.error('只能上传mp3或wav的文件～')
+        return
+      }
       this.showMenu = false
       this.$store.dispatch('showWaveSurfer', { file: file.raw, type: 'blob' })
       uploadFile(file.raw, 'analyze', (url) => {
@@ -120,13 +126,14 @@ export default {
       this.showMenu = true
     },
     onRightClickWave(event) {
-      // 音波鼠标右键
+      // 鼠标右键在伴奏上
       console.log('onRightClickWave:', event)
       this.waveMousePos = {
         x: event.layerX,
         y: event.layerY
       }
-      console.log('waveMousePos:', this.waveMousePos)
+      // console.log('waveMousePos:', this.waveMousePos)
+      this.showWaveBorder = true
       this.showMenu = false
       this.showDelete = true
     },
@@ -138,9 +145,10 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      this.$refs.WaveForm.style.height = '48px'
-      waveSurfer.getWaveSurfer()?.setHeight(48)
+      this.showWaveBorder = true
       this.isWaveMouseDown = true
+      this.$refs.WaveForm.style.height = '48px'
+      waveSurfer.getWaveSurfer().setHeight(48)
       const rect = this.$refs.WaveForm.getBoundingClientRect()
 
       this.waveStartPos = {
@@ -153,14 +161,18 @@ export default {
     },
     onWaveMouseMove(event) {
       if (this.isWaveMouseDown) {
-        const rect = this.$refs.WaveForm.getBoundingClientRect()
         // console.log('onWaveMouseMove', event)
+        this.showWaveBorder = true
+
+        const rect = this.$refs.WaveForm.getBoundingClientRect()
+
         this.waveEndPos = {
           x: event.clientX - rect.left
         }
         const moveX = this.waveEndPos.x - this.waveStartPos.x
 
         let newLeft = this.trackList[1].offset + moveX
+
         if (newLeft < 0) {
           newLeft = 0
         }
@@ -168,6 +180,7 @@ export default {
         if (newLeft + this.waveWidth > arrangeStageWidth) {
           newLeft = arrangeStageWidth - this.waveWidth
         }
+
         this.$store.state.trackList[1].offset = newLeft
         this.$store.dispatch('changeStoreState', { isObbligatoChanged: true })
       }
@@ -182,17 +195,26 @@ export default {
       document.removeEventListener('mousemove', this.onWaveMouseMove)
       document.removeEventListener('mouseleave', this.onWaveMouseUp)
     },
-    deleteObbligato() {
-      this.showDelete = false
-      this.$store.dispatch('changeStoreState', { waveWidth: 0 })
-      waveSurfer.getWaveSurfer()?.destroy()
-    },
-    selectObbligato() {
-      document.getElementById('uploadBanzou').click()
-    },
     onStageMouseDown() {
+      // 鼠标点击伴奏舞台
+      this.showWaveBorder = false
       this.showMenu = false
       this.showDelete = false
+    },
+    deleteObbligato() {
+      this.showDelete = false
+      this.showWaveBorder = false
+      waveSurfer.clearWaveSurfer()
+      this.$store.dispatch('changeStoreState', { waveWidth: 0, isObbligatoChanged: true })
+    },
+    selectObbligato() {
+      this.showMenu = false
+      const waveSurferObj = waveSurfer.getWaveSurfer()
+      if (waveSurferObj) {
+        Message.error('最多只能添加一个音频')
+        return
+      }
+      document.getElementById('uploadBanzou').click()
     }
   }
 }

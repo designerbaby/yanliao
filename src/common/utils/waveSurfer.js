@@ -11,6 +11,15 @@ export const waveSurferIsReady = () => {
   return isReady
 }
 
+export const clearWaveSurfer = () => {
+  waveSurfer.destroy()
+  waveSurfer = null
+}
+
+export const setCurrentTime = (time) => {
+  waveSurfer.setCurrentTime(time)
+}
+
 export const createWaveSurfer = (file, type) => {
   waveSurfer = WaveSurfer.create({
     container: '#waveform',
@@ -29,9 +38,5 @@ export const createWaveSurfer = (file, type) => {
     waveSurfer.load(file)
   }
   return waveSurfer
-}
-
-export const setCurrentTime = (time) => {
-  waveSurfer.setCurrentTime(time)
 }
 
