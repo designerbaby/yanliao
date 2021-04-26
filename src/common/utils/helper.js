@@ -185,3 +185,4 @@ export const getAuthorization = (method, key, data) => {
 const UA = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCase()
 const isEdge = UA && UA.indexOf('edge/') > 0;
 export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
+

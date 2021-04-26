@@ -1,12 +1,12 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import profile from './profile'
-import { pitchList, playState, modeState, typeModeState } from '@/common/utils/const'
+import { pitchList, playState, modeState, typeModeState, TrackMode } from '@/common/utils/const'
 import { getF0Data, getYinsu } from '@/api/audio'
 import { pxToTime, timeToPx, checkPitchDuplicated } from '@/common/utils/helper'
 import { Message } from 'element-ui'
 import deepAssign from 'object-assign-deep'
-import WaveSurfer from 'wavesurfer.js'
+import { createWaveSurfer } from '@/common/utils/waveSurfer.js'
 
 Vue.use(Vuex)
 
@@ -60,7 +60,7 @@ const defaultState = {
   musicId: 0, // 从主流程过来的选中的歌曲id
   musicName: '编辑器填词', // 歌曲名称
   showArrange: true, // 是否展开编曲
-  wavesurfer: null, // 音波对象
+  // wavesurfer: null, // 音波对象
   waveWidth: 0, // 音波长度
   ganAudio: null,
   trackList: [ // 音轨列表，!!!后续多音轨要改这里的数据
@@ -112,6 +112,21 @@ const store = new Vuex.Store({
       // 10是因为数据的每一项间隔10ms
       console.log('state.bpm:', state.bpm)
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
+    },
+    trackMode: state => {
+      const ganIsSil = state.trackList[0].is_sil
+      const banIsSil = state.trackList[1].is_sil
+      if (ganIsSil === 2 && banIsSil === 2) {
+        return TrackMode.TrackModeNone
+      } else if (ganIsSil === 2 && banIsSil === 1) {
+        return TrackMode.TrackModeBan
+      } else if (ganIsSil === 1 && banIsSil === 2) {
+        return TrackMode.TrackModeGan
+      } else if (ganIsSil === 1 && ganIsSil === 1) {
+        return TrackMode.TrackModeAll
+      } else {
+        return TrackMode.TrackModeNone
+      }
     },
     pitchList: (state, getters) =>  {
       const stagePitches = state.stagePitches
@@ -379,30 +394,19 @@ const store = new Vuex.Store({
       commit('changeStoreState', { stagePitches })
     },
     showWaveSurfer({ commit, state }, { file, type }) {
-      state.wavesurfer = WaveSurfer.create({
-        container: '#waveform',
-        backgroundColor: 'rgba(255,255,255,0.07)', // 音波的背景颜色
-        height: 56,     // 音波的高度
-        pixelRatio: 1,  // 渲染的更快
-        interact: false // 是否可以通过鼠标来调整音波的播放位置
-      })
-      state.wavesurfer.on('ready', () => {
-        const duration = state.wavesurfer.getDuration()
-        console.log('wavesurfer duration:', duration)
+      const waveSurfer = createWaveSurfer(file, type)
+      waveSurfer.on('ready', () => {
+        const duration = waveSurfer.getDuration()
+        console.log('waveSurfer duration:', duration)
         const waveWidth = timeToPx(duration * 1000, state.noteWidth / 10, state.bpm)
         state.trackList[1].offset = state.stageMousePos.x
         commit('changeStoreState', { waveWidth })
       })
-      state.wavesurfer.on('play', () => {
-        const currentTime = state.wavesurfer.getCurrentTime()
-        const duration = state.wavesurfer.getDuration()
-        console.log(`wavesurfer currentTime:${currentTime}, duration: ${duration}`)
+      waveSurfer.on('play', () => {
+        const currentTime = waveSurfer.getCurrentTime()
+        const duration = waveSurfer.getDuration()
+        console.log(`waveSurfer currentTime:${currentTime}, duration: ${duration}`)
       })
-      if (type === 'blob') {
-        state.wavesurfer.loadBlob(file)
-      } else {
-        state.wavesurfer.load(file)
-      }
     }
   },
   modules: {

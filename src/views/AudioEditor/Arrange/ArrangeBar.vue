@@ -15,7 +15,8 @@
 
 <script>
 import { pxToTime } from '@/common/utils/helper'
-
+import { TrackMode } from '@/common/utils/const'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 export default {
   name: 'ArrangeBar',
   computed: {
@@ -46,14 +47,14 @@ export default {
       this.$store.state.stage.scrollLeft = scrollLeft
       stageRightArea.scrollLeft = scrollLeft
       // 修改伴奏轨的播放进度
-      if (this.$store.state.wavesurfer && this.trackList[0].is_sil === 2 && this.trackList[1].is_sil === 1) {
-        const wavesurferLeft = left - this.trackList[1].offset
-        let time = pxToTime(wavesurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
+      if (waveSurfer.getWaveSurfer() && this.$store.getters.trackMode === TrackMode.TrackModeBan) {
+        const waveSurferLeft = left - this.trackList[1].offset
+        let time = pxToTime(waveSurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
         if (time < 0) {
           time = 0
         }
-        console.log(`wavesurferLeft: ${wavesurferLeft}, time: ${time}`)
-        this.$store.state.wavesurfer.setCurrentTime(time)
+        console.log(`waveSurferLeft: ${waveSurferLeft}, time: ${time}`)
+        waveSurfer.setCurrentTime(time)
       }
     }
   }

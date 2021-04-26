@@ -55,6 +55,7 @@ import { Select, Option, InputNumber, Input, Button } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
 import { timeToPx } from '@/common/utils/helper'
+import { getWaveSurfer } from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatSetting',
@@ -118,8 +119,9 @@ export default {
       }
       console.log('confirmBpm:', this.inputBpmValue)
       // 有伴奏的话，要相应修改伴奏的长度
-      if (this.$store.state.wavesurfer) {
-        const duration = this.$store.state.wavesurfer.getDuration()
+      const waveSurfer = getWaveSurfer()
+      if (waveSurfer) {
+        const duration = waveSurfer.getDuration()
         const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
 
         this.$store.dispatch('changeStoreState', { waveWidth })
@@ -132,9 +134,9 @@ export default {
         beforeRequest: () => {
           // 请求函数之前把bpm改回旧的，这样曲线就不会变动
           this.$store.state.bpm = oldBpm
-          if (this.$store.state.wavesurfer) {
+          if (waveSurfer) {
             this.$store.dispatch('changeStoreState', { waveWidth: 0 })
-            this.$store.state.wavesurfer.destroy()
+            waveSurfer.destroy()
           }
         },
         afterRequest: () => {

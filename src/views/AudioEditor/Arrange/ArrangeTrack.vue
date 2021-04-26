@@ -33,6 +33,7 @@
 
 <script>
 import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
+import { getWaveSurfer } from '@/common/utils/waveSurfer'
 import { playState } from "@/common/utils/const"
 import { Message } from 'element-ui'
 
@@ -91,8 +92,9 @@ export default {
         if (index === 0 && this.$store.state.ganAudio) {
           this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
         }
-        if (index === 1 && this.$store.state.wavesurfer) {
-          this.$store.state.wavesurfer.setVolume(this.trackList[1].volume / 100)
+        const waveSurfer = getWaveSurfer()
+        if (index === 1 && waveSurfer) {
+          waveSurfer.setVolume(this.trackList[1].volume / 100)
         }
       }
     },

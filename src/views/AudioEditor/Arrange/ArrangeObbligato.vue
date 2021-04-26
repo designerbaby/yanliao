@@ -60,11 +60,12 @@
 </template>
 
 <script>
-import WaveSurfer from 'wavesurfer.js'
+// import WaveSurfer from 'wavesurfer.js'
 import { Upload, Message } from 'element-ui'
 import { timeToPx } from '@/common/utils/helper'
 import { uploadFile } from '@/common/utils/upload'
 import { playState } from "@/common/utils/const"
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'ArrangeObbligato',
@@ -130,13 +131,15 @@ export default {
       this.showDelete = true
     },
     onWaveMouseDown(event) {
+      this.showMenu = false
+      this.showDelete = false
       // console.log('onWaveMouseDown:', event)
       if (this.playState === playState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
       this.$refs.WaveForm.style.height = '48px'
-      this.$store.state.wavesurfer.setHeight(48)
+      waveSurfer.getWaveSurfer()?.setHeight(48)
       this.isWaveMouseDown = true
       const rect = this.$refs.WaveForm.getBoundingClientRect()
 
@@ -182,7 +185,7 @@ export default {
     deleteObbligato() {
       this.showDelete = false
       this.$store.dispatch('changeStoreState', { waveWidth: 0 })
-      this.$store.state.wavesurfer.destroy()
+      waveSurfer.getWaveSurfer()?.destroy()
     },
     selectObbligato() {
       document.getElementById('uploadBanzou').click()

@@ -31,12 +31,14 @@ import StatusBar from './StatusBar'
 import Arrange from './Arrange'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
-import { processStatus, statusMap, playState } from '@/common/utils/const'
+import { processStatus, statusMap, playState, TrackMode } from '@/common/utils/const'
 import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
 import { pitchList2StagePitches, deleteStagePitches } from '@/common/utils/common'
 import { PlayAudio } from '@/common/utils/player'
 import CommonDialog from '@/common/components/CommonDialog'
+import { getWaveSurfer } from '@/common/utils/waveSurfer'
 
+const waveSurfer = getWaveSurfer()
 export default {
   name: 'AudioEditor',
   components: {
@@ -86,8 +88,8 @@ export default {
     if (this.$store.state.ganAudio) {
       this.$store.state.ganAudio.pause() // 要把播放的暂停了
     }
-    if (this.$store.state.wavesurfer) {
-      this.$store.state.wavesurfer.pause()
+    if (waveSurfer) {
+      waveSurfer.pause()
     }
     this.storeStagePitchesWatcher()
     this.resetStoreState()
@@ -221,7 +223,9 @@ export default {
           stageMousePos: stageMousePos
         })
         this.saveF0DrawChange(data.f0_ai, data.f0_draw)
-        this.$store.dispatch('showWaveSurfer', { file: trackList[1].file, type: 'url' })
+        if (trackList[1].file) {
+          this.$store.dispatch('showWaveSurfer', { file: trackList[1].file, type: 'url' })
+        }
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
         const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
@@ -298,29 +302,27 @@ export default {
         return true
       }
 
-
       return false
     },
     async toPlay() {
-      const ganIsSil = this.trackList[0].is_sil
-      const banIsSil = this.trackList[1].is_sil
-      if (ganIsSil === 2 && banIsSil === 2) {
+      const trackMode = this.$store.getters.trackMode
+      if (trackMode === TrackMode.TrackModeNone) {
         Message.error('都设置静音了,不播放了～')
         return
       }
 
-      if (ganIsSil === 2 && banIsSil === 1) {
+      if (trackMode === TrackMode.TrackModeBan) {
         console.log('只播放伴奏')
         this.toPlayWaver()
         return
       }
-      if (ganIsSil === 1 && banIsSil === 2) {
+      if (trackMode === TrackMode.TrackModeGan) {
         console.log('播放干声,不合成伴奏')
         this.isAddAc = 0
         this.toPlayVoice()
         return
       }
-      if (ganIsSil === 1 && ganIsSil === 1) {
+      if (trackMode === TrackMode.TrackModeAll) {
         console.log('干声和伴奏一起播放,也合成伴奏')
         this.isAddAc = 1
         this.toPlayVoice()
@@ -329,21 +331,21 @@ export default {
     },
     toPlayWaver() {
       // 只播伴奏
-      if (this.$store.state.wavesurfer) {
-        if (this.$store.state.wavesurfer.isPlaying()) {
+      if (waveSurfer) {
+        if (waveSurfer.isPlaying()) {
           this.changePlayState(playState.StatePaused)
         } else {
           this.changePlayState(playState.StatePlaying)
         }
-        this.$store.state.wavesurfer.playPause()
+        waveSurfer.playPause()
         const waveOffset = this.trackList[1].offset
-        this.$store.state.wavesurfer.on('audioprocess', (process) => {
+        waveSurfer.on('audioprocess', (process) => {
           const left = timeToPx(process * 1000, this.noteWidth / 10, this.bpm)
           this.$store.dispatch('changeStoreState', { lineLeft: (left + waveOffset) * 10 })
         })
-        this.$store.state.wavesurfer.on('finish', () => {
+        waveSurfer.on('finish', () => {
           this.$store.dispatch('changeStoreState', { lineLeft: waveOffset * 10 })
-          this.$store.state.wavesurfer.setCurrentTime(0)
+          waveSurfer.setCurrentTime(0)
           this.changePlayState(playState.StatePaused)
         })
       } else {
@@ -514,6 +516,8 @@ export default {
     },
     getLinePosition() {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
+      const trackMode = this.$store.getters.trackMode
+
       const excessPitches = []
       let lineStartX = 10000000
       let lineEndX = 0
@@ -523,9 +527,9 @@ export default {
       let firstPitchStartTime = 0
       let lastPitchStartTime = 0
       let lastPitchDuration = 0
-      const banOffset = this.trackList[1].offset
-      const banEnd = this.trackList[1].offset + this.$store.state.waveWidth * 10
-      // const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
+      const banOffset = this.trackList[1].offset * 10
+      const banEndX = this.trackList[1].offset * 10 + this.$store.state.waveWidth * 10
+      const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
       this.stagePitches.forEach(item => {
         const right = item.left + item.width
         let left = item.left
@@ -533,12 +537,17 @@ export default {
           left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
         }
         if (left >= lineLeft || right >= lineLeft) {
-          lineStartX = Math.min(lineStartX, left, banOffset)
-          lineEndX = Math.max(lineEndX, right, banEnd)
-          console.log('lineEndX:', lineEndX)
+          if (trackMode === TrackMode.TrackModeGan) {
+            lineStartX = Math.min(lineStartX, left)
+            lineEndX = Math.max(lineEndX, right)
+          } else if (trackMode === TrackMode.TrackModeAll) {
+            lineStartX = Math.min(lineStartX, left, banOffset)
+            lineEndX = Math.max(lineEndX, right, banEndX)
+          }
+          // console.log('lineEndX:', lineEndX)
         }
 
-        maxEnd = Math.max(maxEnd, right)
+        maxEnd = Math.max(maxEnd, right, banEndX)
         const duration = pxToTime(item.width, this.noteWidth, this.bpm)
         const startTime = pxToTime(item.left, this.noteWidth, this.bpm) - item.preTime
 
@@ -553,12 +562,13 @@ export default {
       })
 
       const totalDuration = lastPitchStartTime - firstPitchStartTime + lastPitchDuration
+      console.log(`totalDuration: ${totalDuration}, lastPitchStartTime: ${lastPitchStartTime}, firstPitchStartTime: ${firstPitchStartTime}, lastPitchDuration: ${lastPitchDuration}`)
       return {
         start: lineStartX,
-        end: lineEndX, // full代表sdk补的宽度
+        end: lineEndX + full,
         minStart,
-        maxEnd: maxEnd, // full代表sdk补的宽度
-        duration: totalDuration // 补了50个数据，一个数据10ms,总共500ms
+        maxEnd: maxEnd + full,
+        duration: totalDuration + 500
       }
     },
     handleVolumeTension() {

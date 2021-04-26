@@ -10,6 +10,7 @@
 import { Message } from "element-ui"
 import { playState } from "@/common/utils/const"
 import { pxToTime } from '@/common/utils/helper'
+import { getWaveSurfer } from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatTop',
@@ -42,14 +43,15 @@ export default {
       this.$store.dispatch("changeStoreState", { lineLeft: left })
 
       // 修改伴奏轨的播放进度
-      if (this.$store.state.wavesurfer) {
-        const wavesurferLeft = left / 10 - this.$store.state.trackList[1].offset
-        let time = pxToTime(wavesurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
+      const waveSurfer = getWaveSurfer()
+      if (waveSurfer) {
+        const waveSurferLeft = left / 10 - this.$store.state.trackList[1].offset
+        let time = pxToTime(waveSurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
         if (time < 0) {
           time = 0
         }
-        console.log(`wavesurferLeft: ${wavesurferLeft}, time: ${time}`)
-        this.$store.state.wavesurfer.setCurrentTime(time)
+        console.log(`waveSurferLeft: ${waveSurferLeft}, time: ${time}`)
+        waveSurfer.setCurrentTime(time)
       }
     }
   }
