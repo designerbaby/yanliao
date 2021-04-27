@@ -6,7 +6,7 @@
           :class="$style.fenzi"
           v-for="m in $store.state.beatForm.fenzi"
           :key="m"
-          :style="{ width: `${fenziWidth}px` }"
+          :style="{ width: `${$store.getters.arrangeFenziWidth}px` }"
         ></div>
       </div>
     </div>
@@ -17,9 +17,9 @@
 export default {
   name: 'ArrangeStageBg',
   computed: {
-    fenziWidth() {
-      return this.$store.state.noteWidth * (32 / this.$store.state.beatForm.fenmu) / 10
-    }
+    // fenziWidth() {
+    //   return this.$store.state.noteWidth * (32 / this.$store.state.beatForm.fenmu) / 10
+    // }
   }
 }
 </script>

@@ -1,4 +1,4 @@
-// import {Howl, Howler} from 'howler';
+// import {Howl} from 'howler';
 // https://github.com/goldfire/howler.js
 
 export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onEnd}) => {
@@ -34,3 +34,5 @@ export const PlayAudio = ({ url, startTime = 0, onProgress, onPlay, onPause, onE
   document.body.appendChild(audio)
   return audio
 }
+
+

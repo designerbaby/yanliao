@@ -56,8 +56,6 @@ export default {
 
       // 播放线
       playLine: {
-        start: 0,
-        end: 0,
         current: 0 // 当前的位置, px
       },
       playStartTime: 0, // 从第几秒开始播放
@@ -202,7 +200,7 @@ export default {
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
         const trackList = this.acInfo2TrackList(data.ac_info)
         const stageMousePos = {
-          x: trackList[1].offset,
+          x: trackList[1]?.offset,
           y: 0
         }
         await this.$store.dispatch('changeStoreState', {
@@ -223,7 +221,7 @@ export default {
         })
         this.saveF0DrawChange(data.f0_ai, data.f0_draw)
         if (trackList[1].file) {
-          this.$store.dispatch('showWaveSurfer', { file: trackList[1].file, type: 'url' })
+          this.$store.dispatch('showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
         }
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
@@ -420,41 +418,24 @@ export default {
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false, isTrackChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
-      const { start, end, minStart, maxEnd, duration } = this.getLinePosition() // TODO 这里要加上伴奏的长度
-      console.log(`doPlay generator:${generator}, isContinue:${isContinue}, start: ${start}, end: ${end}, minStart:${minStart}, maxEnd: ${maxEnd}, duration:${duration}`)
+      const { startTime } = this.getLinePosition() // TODO 这里要加上伴奏的长度
+      console.log(`doPlay generator:${generator}, isContinue:${isContinue}, startTime: ${startTime}`)
 
-      // 百分比不能为负数，最小为0
-      const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
-      const startTime = percent * duration / 1000
-      console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
       if (generator) {
         const { onlineUrl } = await this.toSynthesize(this.isAddAc)
         // 每次生成新的都存起来
         this.$store.dispatch('changeStoreState', {
           onlineUrl,
         })
-        this.playLine = {
-          current: start,
-          start,
-          end
-        }
-        this.playStartTime = startTime
         this.toPlayAudio(onlineUrl)
+        this.playStartTime = startTime
         this.$store.state.ganAudio.currentTime = startTime
         this.$store.state.ganAudio.play()
       } else {
         if (isContinue) {
-          console.log(`play continue with start: ${this.playStartTime}`)
+          console.log(`play continue with start}`)
           this.$store.state.ganAudio.play()
         } else {
-          this.playLine = {
-            current: start,
-            start,
-            end
-          }
-          // const duration = this.audio.duration
-          // 百分比不能为负数，最小为0
-          // const startTime = percent * duration
           this.playStartTime = startTime
           this.$store.state.ganAudio.currentTime = startTime
           this.$store.state.ganAudio.play()
@@ -466,6 +447,17 @@ export default {
       this.$store.state.ganAudio = PlayAudio({
         url,
         onPlay: (audio) => {
+          const ticker = () => {
+            if (this.playState === playState.StatePlaying) {
+              if (audio.duration) {
+                const currentPosition = timeToPx(audio.currentTime * 1000, this.noteWidth, this.bpm)
+                console.log(`ticker: duration:${audio.duration}, currentTime:${audio.currentTime}, currentPosition`, currentPosition)
+                this.changeLinePosition(currentPosition, true)
+              }
+              requestAnimationFrame(ticker)
+            }
+          }
+          /* 废弃
           this.timerId = setInterval(() => {
             if (audio.duration) {
               // 需要播放的音频长度，如果移动了线，则可能从中间位置开始播
@@ -481,6 +473,9 @@ export default {
               this.changeLinePosition(this.playLine.current, true)
             }
           }, 16)
+          */
+
+          requestAnimationFrame(ticker)
         },
         onPause: (dom) => {
           clearInterval(this.timerId)
@@ -488,11 +483,13 @@ export default {
         onEnd: () => {
           clearInterval(this.timerId)
           this.changePlayState(playState.StateEnded)
-          this.changeLinePosition(this.playLine.start, true)
-          this.playLine.current = this.playLine.start
+          // 回到开始播放的位置
+          const resumePosition = timeToPx(this.playStartTime * 1000, this.noteWidth, this.bpm)
+          // console.log(`resumePosition`, resumePosition, this.playStartTime)
+          this.changeLinePosition(resumePosition, true)
+          // this.playLine.current = this.playLine.start
         }
       })
-      this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
     },
     changeLinePosition(left, autoScroll = false) {
       if (autoScroll) {
@@ -505,7 +502,7 @@ export default {
         }
         this.scrollArrange(left)
       }
-
+      this.playLine.current = left
       this.$store.dispatch('changeStoreState', { lineLeft: left })
     },
     scrollArrange(left) {
@@ -521,66 +518,57 @@ export default {
     toScroll(left) {
       this.$refs.BeatContainer.scrollTo(left)
     },
+    getStagePitchLeftPosition(item) {
+      const right = item.left + item.width
+      let left = item.left
+      // 有preTime表示是因素模式，因此要加上这个长度
+      // if (item.hasOwnProperty('preTime')) {
+      //   left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
+      // }
+      return left
+    },
+    getStagePitchRightPosition(item) {
+      return item.left + item.width
+    },
     getLinePosition() {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
       const trackMode = this.$store.getters.trackMode
 
-      let lineStartX = 10000000
-      let lineEndX = 0
-      let minStart = 0
-      let maxEnd = 0
-
-      let firstPitchStartTime = 0
-      let lastPitchStartTime = 0
-      let lastPitchDuration = 0
-      const banOffset = this.trackList[1].offset * 10
-      const banEndX = this.trackList[1].offset * 10 + this.$store.state.waveWidth * 10
-      const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
-      this.stagePitches.forEach(item => {
-        const right = item.left + item.width
-        let left = item.left
-        if (item.hasOwnProperty('preTime')) {
-          left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
+      let lineStartX = null
+      let isLineInStagePitchRange = false
+      // 音块的最左边和最右边
+      let minLeft, maxRight
+      this.stagePitches.forEach((item, idx) => {
+        const right = this.getStagePitchRightPosition(item)
+        if (lineLeft < right) {
+          isLineInStagePitchRange = true
         }
-        // TODO 当伴奏轨在后面干音后面的时候，这里要拿到当前left的最小值
-        // TODO 干音的播放线
-        if (left >= lineLeft || right >= lineLeft) {
-          if (trackMode === TrackMode.TrackModeGan) {
-            lineStartX = Math.min(lineStartX, left)
-            lineEndX = Math.max(lineEndX, right)
-          } else if (trackMode === TrackMode.TrackModeAll) {
-            lineStartX = Math.min(lineStartX, left, banOffset)
-            lineEndX = Math.max(lineEndX, right, banEndX)
-          }
-        }
-
-        maxEnd = Math.max(maxEnd, right, banEndX)
-        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
-        const startTime = pxToTime(item.left, this.noteWidth, this.bpm) - item.preTime
-
-        if (startTime < firstPitchStartTime) {
-          firstPitchStartTime = startTime
-        }
-
-        if (startTime >= lastPitchStartTime) {
-          lastPitchStartTime = startTime
-          lastPitchDuration = duration
-        }
-        // console.log(`startTime: ${startTime}, firstPitchStartTime: ${firstPitchStartTime}, lastPitchStartTime: ${lastPitchStartTime}, lastPitchDuration: ${lastPitchDuration}`)
       })
 
-      const totalDuration = lastPitchStartTime - firstPitchStartTime + lastPitchDuration
-      // 这里是因为干声合成加了默认500ms,伴奏合成没有
-      const playGan = trackMode === TrackMode.TrackModeGan || !waveSurfer.getWaveSurfer()
-      const end = playGan ? lineEndX + full : lineEndX
-      const finalMaxEnd = playGan ? maxEnd + full : maxEnd
-      const finalDuration = playGan ? totalDuration + 500 : totalDuration
+
+      console.log(`isLineInStagePitchRange:`, isLineInStagePitchRange)
+
+      // 如果在音块范围内，以音块为准
+      if (isLineInStagePitchRange) {
+        this.stagePitches.forEach((item, index) => {
+          const left = this.getStagePitchLeftPosition(item)
+          const right = this.getStagePitchRightPosition(item)
+          console.log(`left`, left)
+
+          if (lineLeft <= right) {
+            if (lineStartX === null) {
+              lineStartX = left
+            }
+            lineStartX = Math.min(lineStartX, left)
+          }
+        })
+      } else {
+        lineStartX = lineLeft
+      }
+      const startTime = pxToTime(lineStartX, this.noteWidth, this.bpm) / 1000
+
       return {
-        start: lineStartX,
-        end: end,
-        minStart,
-        maxEnd: finalMaxEnd,
-        duration: finalDuration
+        startTime,
       }
     },
     handleVolumeTension() {

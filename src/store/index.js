@@ -104,6 +104,9 @@ const store = new Vuex.Store({
     beatWidth: state => {
       return state.noteWidth * (32 / state.beatForm.fenmu) * state.beatForm.fenzi
     },
+    arrangeFenziWidth: state => {
+      return state.noteWidth * (32 / state.beatForm.fenmu) / 10
+    },
     firstPitch: state => {
       return pitchList[0].pitch
     },

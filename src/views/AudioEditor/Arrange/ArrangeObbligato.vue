@@ -176,8 +176,12 @@ export default {
           newLeft = 0
         }
         const arrangeStageWidth = this.$store.getters.stageWidth / 10
-        if (newLeft + this.waveWidth > arrangeStageWidth) {
-          newLeft = arrangeStageWidth - this.waveWidth
+        const arrangeFenziWidth = this.$store.getters.arrangeFenziWidth * this.$store.state.beatForm.fenzi
+        console.log(`arrangeStageWidth: ${arrangeStageWidth}, arrangeFenziWidth: ${arrangeFenziWidth}`)
+        console.log('newLeft + this.waveWidth:', newLeft + this.waveWidth)
+        if (newLeft + this.waveWidth > arrangeStageWidth - arrangeFenziWidth) {
+          // newLeft = arrangeStageWidth - this.waveWidth
+          this.$store.dispatch('adjustStageWidth')
         }
 
         this.$store.state.trackList[1].offset = newLeft

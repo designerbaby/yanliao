@@ -70,7 +70,7 @@ export default {
       }
       this.isChangeVolume = index
       this.startVolume = {
-        left: this.trackList[index].volume,
+        volume: this.trackList[index].volume,
         x: event.clientX
       }
     },
@@ -80,10 +80,16 @@ export default {
           x: event.clientX
         }
         const moveX = pos.x - this.startVolume.x
-        if (this.startVolume.left + moveX < 0 || this.startVolume.left + moveX > 100) {
+
+        const ratio = 216 / 100
+
+        const currentVolume = Math.ceil(this.startVolume.volume + moveX / ratio)
+        if (currentVolume < 0 || currentVolume > 100) {
           return
         }
-        this.trackList[index].volume = this.startVolume.left + moveX
+
+        this.trackList[index].volume = currentVolume
+
         if (this.trackList[index].volume === 0) {
           this.trackList[index].is_sil = 2
         } else {

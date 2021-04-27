@@ -28,7 +28,6 @@ export const createWaveSurfer = (file, type) => {
     pixelRatio: 1,  // 渲染的更快
     interact: false, // 是否可以通过鼠标来调整音波的播放位置
     fillParent: false
-    // minPxPerSec: 10
   })
   waveSurfer.on('ready', () => {
     isReady = true
