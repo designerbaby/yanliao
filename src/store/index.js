@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import profile from './profile'
+import modules from './modules'
 import { pitchList, playState, modeState, typeModeState, TrackMode } from '@/common/utils/const'
 import { getF0Data, getYinsu } from '@/api/audio'
 import { pxToTime, timeToPx, checkPitchDuplicated } from '@/common/utils/helper'
@@ -417,13 +417,12 @@ const store = new Vuex.Store({
       commit('changeStoreState', { isObbligatoChanged: true })
     }
   },
-  modules: {
-    profile: profile
-  }
+  modules
 })
 
 store.dispatch('updateStageSize')
 window.addEventListener('resize', () => {
   store.dispatch('updateStageSize')
 })
+
 export default store

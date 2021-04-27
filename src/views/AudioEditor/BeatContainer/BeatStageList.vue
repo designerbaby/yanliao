@@ -29,6 +29,9 @@ export default {
       return this.$store.state.stagePitches
     }
   },
+   created() {
+    console.log('menulist1')
+  },
   methods: {
     setPosition(left, top, pos) {
       this.left = left

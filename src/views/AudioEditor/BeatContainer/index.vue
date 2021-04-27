@@ -181,12 +181,15 @@ export default {
       // 初始化舞台的位置
       const scrollLeft = this.$refs.rightArea.scrollLeft
       const scrollTop = this.$refs.rightArea.scrollTop      
+      const rect = this.$refs.stage.getBoundingClientRect()
 
       this.$store.dispatch("changeStoreState", {
         stage: {
           ...this.$store.state.stage,
           scrollLeft,
-          scrollTop
+          scrollTop,
+          rectLeft: rect.left,
+          rectTop: rect.top,
         }
       })
       // console.log('this.$store.state.stage:', JSON.stringify(this.$store.state.stage))
@@ -703,15 +706,10 @@ export default {
 
 <style lang='less' scoped>
 /deep/ .common-scrollbar {
-  position: absolute;
-  width: calc(100% - 50px);
-  height: 100%;
-  left: 50px;
-
   &-bar {
     position: fixed;
     left: 50px;
-    height: 10px;
+    height: 14px;
     border-radius: 20px;
 
     &.is-vertical {

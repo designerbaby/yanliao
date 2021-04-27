@@ -62,13 +62,16 @@ export default {
       return show
     }
   },
+  created() {
+    console.log('menulist')
+  },
   methods: {
     setPosition(left, top) {
       this.left = left
       this.top = top
     },
     deletePitch() {
-      deleteStagePitches(this)
+      this.$store.dispatch('done/deletePitches')
       this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     editLyric(type) {
