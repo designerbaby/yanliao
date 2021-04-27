@@ -84,7 +84,6 @@ import Parameters from './Parameters.vue'
 import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
-import Scrollbar from '@/common/components/Scrollbar'
 import Bar from '@/common/components/Scrollbar/src/bar'
 
 export default {
@@ -103,7 +102,6 @@ export default {
     Parameters,
     PitchElement,
     Breath,
-    Scrollbar,
     Bar
   },
   data() {

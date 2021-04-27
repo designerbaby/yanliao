@@ -6,8 +6,7 @@
     "start": "cross-env proxy=true vue-cli-service serve",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "build:test": "npm run build && bash shell/upload_test.sh",
-    "build:prod": "npm run build && bash shell/upload_prod.sh",
+    "build:zip": "npm run build && node scripts/zip.js",
     "lint": "vue-cli-service lint",
     "lint-fix": "vue-cli-service lint --fix"
   },
