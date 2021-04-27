@@ -1,4 +1,4 @@
-export const pitchListBefore = [
+export const PitchListBefore = [
   // 1 代表黑键，0 代表白键
   {
     pitch: 40,
@@ -272,9 +272,9 @@ export const pitchListBefore = [
   }
 ]
 
-export const pitchList = pitchListBefore.reverse()
+export const PitchList = PitchListBefore.reverse()
 
-export const processStatus = { // 进度从0到4对应的百分比
+export const ProcessStatus = { // 进度从0到4对应的百分比
   0: 0,
   1: 15,
   2: 30,
@@ -282,7 +282,7 @@ export const processStatus = { // 进度从0到4对应的百分比
   4: 100
 }
 
-export const statusMap = {
+export const StatusMap = {
   0: '待跑状态',
   1: '进行中',
   2: '已成功',
@@ -290,7 +290,7 @@ export const statusMap = {
   4: '失败'
 }
 // 音频状态映射
-export const playState = {
+export const PlayState = {
   StateNone: 0, // 初始状态
   StatePlaying: 1, // 播放中
   StatePaused: 2, // 暂停
@@ -304,7 +304,7 @@ export const TrackMode = {
   TrackModeAll: 3  // 都播放
 }
 
-export const modeState = {
+export const ModeState = {
   StatePitch: 0, // 音符模式
   StateLine: 1,  // 音高线模式
   StateElement: 2 // 音素模式
@@ -317,22 +317,11 @@ export const TypeModeState = {
 }
 
 // 我的音源的音源状态
-export const audioStatusMap = {
+export const AudioStatusMap = {
   1: '审核中',
   2: '审核不通过',
   3: '审核通过',
   4: '音源合成失败',
   5: '已上线',
   6: '已下线'
-}
-
-// 错误码对应信息
-export const errorMsg = {
-  100000: 'token无效，用户未登录',
-  100011: '参数错误',
-  100012: '登录后台服务错误',
-  100013: '业务后台错误',
-  100014: '路由不存在',
-  100015: '请求参数为空',
-  100016: '设置header错误'
 }

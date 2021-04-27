@@ -50,8 +50,8 @@
             v-if="$store.state.showMenuList"
           ></BeatMenuList>
           <div :class="$style.sharp" ref="sharp"></div>
-          <PitchLine v-if="$store.state.mode === modeState.StateLine" ref="PitchLine"></PitchLine>
-          <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
+          <PitchLine v-if="$store.state.mode === ModeState.StateLine" ref="PitchLine"></PitchLine>
+          <PitchElement v-if="$store.state.mode === ModeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
         <Parameters ref="Parameters" v-if="$store.state.typeMode !== TypeModeState.StateNone"></Parameters>
 
@@ -68,7 +68,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { pitchList, playState, modeState, TypeModeState } from "@/common/utils/const"
+import { PlayState, ModeState, TypeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
@@ -106,8 +106,7 @@ export default {
   },
   data() {
     return {
-      pitchList: pitchList,
-      modeState: modeState,
+      ModeState: ModeState,
       TypeModeState: TypeModeState,
       isMouseDown: false,
       startPos: null,
@@ -266,7 +265,7 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -448,7 +447,7 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

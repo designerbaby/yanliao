@@ -34,7 +34,7 @@
 <script>
 import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
 import { getWaveSurfer } from '@/common/utils/waveSurfer'
-import { playState, TrackMode } from "@/common/utils/const"
+import { PlayState, TrackMode } from "@/common/utils/const"
 import { Message } from 'element-ui'
 
 export default {
@@ -64,7 +64,7 @@ export default {
       }
     },
     onStart(event, index) {
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -112,7 +112,7 @@ export default {
       this.$store.dispatch('changeStoreState', { isTrackChanged: true })
     },
     play(index) {
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

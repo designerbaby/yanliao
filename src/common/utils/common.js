@@ -1,4 +1,4 @@
-import { pitchList } from '@/common/utils/const'
+import { PitchList } from '@/common/utils/const'
 import { timeToPx, generateUUID, amendTop, amendLeft } from '@/common/utils/helper'
 import { Message } from "element-ui"
 
@@ -35,7 +35,7 @@ export const turnChangeLineMap = (vm, moveList, reset) => {
       if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
         newPitch = highestPitch * 100
       }
-      const lowestPitch = pitchList[pitchList.length - 1].pitch
+      const lowestPitch = PitchList[PitchList.length - 1].pitch
       if (newPitch < lowestPitch * 100) { // 小于最小的pitch取最小的
         newPitch = lowestPitch * 100
       }

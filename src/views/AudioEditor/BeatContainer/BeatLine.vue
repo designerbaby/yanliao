@@ -17,7 +17,7 @@
 
 <script>
 import { Message } from "element-ui";
-import { playState } from '@/common/utils/const'
+import { PlayState } from '@/common/utils/const'
 
 export default {
   name: "BeatLine",
@@ -62,7 +62,7 @@ export default {
         Message.error("正在合成音频中,不能修改哦~")
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

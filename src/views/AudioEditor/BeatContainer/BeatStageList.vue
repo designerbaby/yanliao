@@ -13,7 +13,6 @@
 import { Message } from "element-ui"
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap, paste } from '@/common/utils/common'
-// import { pitchList } from '@/common/utils/const'
 
 export default {
   name: 'BeatStageList',

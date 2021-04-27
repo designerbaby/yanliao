@@ -12,7 +12,6 @@ export const waveSurferIsReady = () => {
 }
 
 export const clearWaveSurfer = () => {
-  document.getElementById('waveform').style.border = 0
   waveSurfer.destroy()
   waveSurfer = null
 }
