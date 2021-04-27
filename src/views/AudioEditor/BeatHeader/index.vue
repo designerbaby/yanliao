@@ -61,7 +61,7 @@
         <img src="@/assets/audioEditor/export.png" :class="$style.icon"/>
         <div :class="$style.text">生成音频</div>
       </div>
-      <div :class="$style.linefu">
+      <!-- <div :class="$style.linefu">
         <div :class="[$style.check, $style.isActive]"
           @mousedown="toScroll(0)"
           @mousemove="onMouseUp"
@@ -78,7 +78,7 @@
           <img src="@/assets/audioEditor/right.png">
           <div :class="$style.text">右滑</div>
         </div>
-      </div>
+      </div> -->
       <div :class="[$style.common, $style.set]" @click="toSet">
         <img src="@/assets/audioEditor/setting.png" :class="$style.icon"/>
         <div :class="$style.text">更多信息</div>

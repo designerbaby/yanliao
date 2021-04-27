@@ -2,6 +2,8 @@
   <div ref="container" :class="$style.container">
     <div :class="$style.main">
       <BeatPiano></BeatPiano>
+
+      <!-- 钢琴右侧 -->
       <div :class="$style.right" ref="rightArea" id="rightArea">
         <div ref="stage" :class="$style.stage" id="audioStage">
           <BeatStageBg></BeatStageBg>
@@ -52,7 +54,11 @@
           <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
         <Parameters ref="Parameters" v-if="$store.state.typeMode !== typeModeState.StateNone"></Parameters>
+
+        <!-- 自定义横向滚动条 -->
+        <Bar wrapRef="rightArea" :move="this.barState.x" :size="this.barState.w" />
       </div>
+      
       <BeatStageList ref="BeatStageList" v-if="$store.state.showStageList"></BeatStageList>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
@@ -61,6 +67,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import { pitchList, playState, modeState, typeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
@@ -77,6 +84,7 @@ import Parameters from './Parameters.vue'
 import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
+import Bar from '@/common/components/Scrollbar/src/bar'
 
 export default {
   name: "BeatContainer",
@@ -93,7 +101,8 @@ export default {
     BeatMenuList,
     Parameters,
     PitchElement,
-    Breath
+    Breath,
+    Bar
   },
   data() {
     return {
@@ -105,10 +114,15 @@ export default {
       endPos: null,
       movePitchStart: null,
       selectedUUID: null,
-      mouseModalTarget: null
+      mouseModalTarget: null,
+      barState: {  // 自定义滚动条状态
+        x: 0, 
+        w: ''
+      }
     }
   },
   computed: {
+    ...mapGetters(['stageWidth']),
     stagePitches() {
       return this.$store.state.stagePitches
     },
@@ -131,11 +145,13 @@ export default {
       return this.$store.state.playState
     }
   },
+  watch: {
+    stageWidth() {
+      this.$nextTick(this.scrollBar)
+    }
+  },
   mounted() {
     this.updateStageOffset()
-    // window.addEventListener('resize', () => { // 缩放功能
-    //   this.updateStageOffset()
-    // })
     this.$refs.rightArea.addEventListener('scroll', () => {
       this.updateStageOffset()
     })
@@ -161,9 +177,10 @@ export default {
       this.$refs.rightArea.scrollLeft = left
     },
     updateStageOffset() {
+      this.scrollBar()
       // 初始化舞台的位置
       const scrollLeft = this.$refs.rightArea.scrollLeft
-      const scrollTop = this.$refs.rightArea.scrollTop
+      const scrollTop = this.$refs.rightArea.scrollTop      
 
       this.$store.dispatch("changeStoreState", {
         stage: {
@@ -173,6 +190,14 @@ export default {
         }
       })
       // console.log('this.$store.state.stage:', JSON.stringify(this.$store.state.stage))
+    },
+    // 滚动进度条
+    scrollBar() {
+      const wrap = this.$refs.rightArea
+      const widthPercentage = (wrap.clientWidth * 100) / wrap.scrollWidth
+      this.barState.w = widthPercentage < 100 ? widthPercentage + '%' : ''
+      this.barState.x = (wrap.scrollLeft * 100) / wrap.clientWidth
+      // console.log('scrollBar', this.stageWidth, wrap.clientWidth, wrap.scrollWidth, this.barState)
     },
     onRightClickStage(event) {
       console.log('右键整个舞台事件 onRightClickStage:', event)
@@ -611,14 +636,14 @@ export default {
 .right {
   position: absolute;
   width: calc(100% - 50px);
-  // height: calc(100%);
   height: 100%;
   left: 50px;
   user-select: none;
   overflow-x: scroll;
   overflow-x: overlay;
   &::-webkit-scrollbar {
-    width: 0px;
+    display: none;
+    width: 0;
     height: 10px;
   }
   &::-webkit-scrollbar-track-piece {
@@ -674,12 +699,27 @@ export default {
   background-color: rgba(204, 204, 204, 0.514);
 }
 
-// .aerate {
-//   width: 38px;
-//   height: 53px;
-//   position: absolute;
-//   top: -47px;
-//   left: -15px;
-// }
+</style>
 
+<style lang='less' scoped>
+/deep/ .common-scrollbar {
+  position: absolute;
+  width: calc(100% - 50px);
+  height: 100%;
+  left: 50px;
+
+  &-bar {
+    position: fixed;
+    left: 50px;
+    height: 10px;
+    border-radius: 20px;
+
+    &.is-vertical {
+      display: none;
+    }
+  }
+  &-thumb {
+    background: #b4b4b4;
+  }
+}
 </style>
