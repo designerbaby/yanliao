@@ -4,7 +4,6 @@
     :class="$style.obbligato"
     id="obbligato"
     @click.right.stop.prevent.exact="onRightClickStage"
-    @mousedown.self="onStageMouseDown"
     :style="{
       width: `${$store.getters.stageWidth / 10}px`,
       height: `${$store.getters.stageHeight / 20}px`,
@@ -19,10 +18,10 @@
         height: '48px',
         transform: `translateX(${trackList[1].offset}px)`
       }"
-      @mousedown="onWaveMouseDown"
-      @mousemove="onWaveMouseMove"
-      @mouseup="onWaveMouseUp"
-      @mouseleave="onWaveMouseUp"
+      @mousedown.stop="onWaveMouseDown"
+      @mousemove.stop="onWaveMouseMove"
+      @mouseup.stop="onWaveMouseUp"
+      @mouseleave.stop="onWaveMouseUp"
       @click.right.stop.prevent.exact="onRightClickWave"
     >
     </div>
@@ -109,10 +108,10 @@ export default {
         Message.error('只能上传mp3或wav的文件～')
         return
       }
-      this.showMenu = false
-      this.$store.dispatch('showWaveSurfer', { file: file.raw, type: 'blob' })
+
       uploadFile(file.raw, 'analyze', (url) => {
         this.$store.state.trackList[1].file = url
+        this.$store.dispatch('showWaveSurfer', { file: url, type: 'url' })
       })
     },
     onRightClickStage(event) {
@@ -124,6 +123,9 @@ export default {
         y: event.clientY - rect.top
       }
       this.showMenu = true
+      document.getElementById('app').addEventListener('click', () => {
+        this.showMenu = false
+      })
     },
     onRightClickWave(event) {
       // 鼠标右键在伴奏上
@@ -132,14 +134,14 @@ export default {
         x: event.layerX,
         y: event.layerY
       }
-      // console.log('waveMousePos:', this.waveMousePos)
+
       this.showWaveBorder = true
-      this.showMenu = false
       this.showDelete = true
+      document.getElementById('app').addEventListener('click', () => {
+        this.showDelete = false
+      })
     },
     onWaveMouseDown(event) {
-      this.showMenu = false
-      this.showDelete = false
       // console.log('onWaveMouseDown:', event)
       if (this.playState === playState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
@@ -177,8 +179,7 @@ export default {
         }
         const arrangeStageWidth = this.$store.getters.stageWidth / 10
         const arrangeFenziWidth = this.$store.getters.arrangeFenziWidth * this.$store.state.beatForm.fenzi
-        console.log(`arrangeStageWidth: ${arrangeStageWidth}, arrangeFenziWidth: ${arrangeFenziWidth}`)
-        console.log('newLeft + this.waveWidth:', newLeft + this.waveWidth)
+
         if (newLeft + this.waveWidth > arrangeStageWidth - arrangeFenziWidth) {
           // newLeft = arrangeStageWidth - this.waveWidth
           this.$store.dispatch('adjustStageWidth')
@@ -192,26 +193,18 @@ export default {
       // console.log('onWaveMouseUp', event)
       if (this.isWaveMouseDown) {
         this.isWaveMouseDown = false
+        this.showWaveBorder = true
       }
       this.$refs.WaveForm.style.opacity = 1
 
       document.removeEventListener('mousemove', this.onWaveMouseMove)
       document.removeEventListener('mouseleave', this.onWaveMouseUp)
     },
-    onStageMouseDown() {
-      // 鼠标点击伴奏舞台
-      this.showWaveBorder = false
-      this.showMenu = false
-      this.showDelete = false
-    },
     deleteObbligato() {
-      this.showDelete = false
-      this.showWaveBorder = false
       waveSurfer.clearWaveSurfer()
       this.$store.dispatch('changeStoreState', { waveWidth: 0, isObbligatoChanged: true })
     },
     selectObbligato() {
-      this.showMenu = false
       const waveSurferObj = waveSurfer.getWaveSurfer()
       if (waveSurferObj) {
         Message.error('最多只能添加一个音频')

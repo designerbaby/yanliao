@@ -87,6 +87,7 @@ export default {
     }
     if (waveSurfer.getWaveSurfer()) {
       waveSurfer.getWaveSurfer().pause()
+      waveSurfer.clearWaveSurfer()
     }
     this.storeStagePitchesWatcher()
     this.resetStoreState()
@@ -183,7 +184,11 @@ export default {
       this.$store.state.changedLineMap = changed
     },
     acInfo2TrackList(acInfo) {
-      const trackList = JSON.parse(JSON.stringify(acInfo))
+      let acInfos = acInfo
+      if (acInfos.length === 0) {
+        acInfos = this.$store.state.trackList
+      }
+      const trackList = JSON.parse(JSON.stringify(acInfos))
       trackList.forEach(item => {
         item.offset = timeToPx(item.offset, this.noteWidth / 10, this.bpm)
       })
@@ -208,7 +213,7 @@ export default {
           onlineUrl: data.online_url,
           f0AI: data.f0_ai,
           f0Draw: data.f0_draw,
-          bpm: pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
+          bpm: pitchList[0].bpm,
           toneName: pitchList[0].singer,
           toneId: pitchList[0].toneId,
           stagePitches: stagePitches,
@@ -242,7 +247,7 @@ export default {
         this.$store.dispatch('changeStoreState', {
           taskId: getParam('arrangeId') || musicxml2Json.task_id,
           musicId: musicId,
-          bpm: musicxml2Json.pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
+          bpm: musicxml2Json.pitchList[0].bpm,
           toneName: musicxml2Json.pitchList[0].singer,
           toneId: musicxml2Json.pitchList[0].toneId,
           musicName: `${musicInfo.name}填词`,
@@ -418,7 +423,7 @@ export default {
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false, isTrackChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
-      const { startTime } = this.getLinePosition() // TODO 这里要加上伴奏的长度
+      const { startTime } = this.getLinePosition()
       console.log(`doPlay generator:${generator}, isContinue:${isContinue}, startTime: ${startTime}`)
 
       if (generator) {
@@ -451,7 +456,7 @@ export default {
             if (this.playState === playState.StatePlaying) {
               if (audio.duration) {
                 const currentPosition = timeToPx(audio.currentTime * 1000, this.noteWidth, this.bpm)
-                console.log(`ticker: duration:${audio.duration}, currentTime:${audio.currentTime}, currentPosition`, currentPosition)
+                // console.log(`ticker: duration:${audio.duration}, currentTime:${audio.currentTime}, currentPosition`, currentPosition)
                 this.changeLinePosition(currentPosition, true)
               }
               requestAnimationFrame(ticker)
@@ -519,9 +524,8 @@ export default {
       this.$refs.BeatContainer.scrollTo(left)
     },
     getStagePitchLeftPosition(item) {
-      const right = item.left + item.width
       let left = item.left
-      // 有preTime表示是因素模式，因此要加上这个长度
+      // 有preTime表示是音素模式，因此要加上这个长度
       // if (item.hasOwnProperty('preTime')) {
       //   left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
       // }
@@ -532,12 +536,12 @@ export default {
     },
     getLinePosition() {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
-      const trackMode = this.$store.getters.trackMode
-
+      // const trackMode = this.$store.getters.trackMode
+      // TODO 这里当有伴奏的时候，要考虑伴奏的最左边的位置
       let lineStartX = null
       let isLineInStagePitchRange = false
       // 音块的最左边和最右边
-      let minLeft, maxRight
+      // let minLeft, maxRight
       this.stagePitches.forEach((item, idx) => {
         const right = this.getStagePitchRightPosition(item)
         if (lineLeft < right) {
@@ -553,7 +557,7 @@ export default {
         this.stagePitches.forEach((item, index) => {
           const left = this.getStagePitchLeftPosition(item)
           const right = this.getStagePitchRightPosition(item)
-          console.log(`left`, left)
+          // console.log(`left`, left)
 
           if (lineLeft <= right) {
             if (lineStartX === null) {
@@ -565,6 +569,7 @@ export default {
       } else {
         lineStartX = lineLeft
       }
+      console.log('lineStartX:', lineStartX)
       const startTime = pxToTime(lineStartX, this.noteWidth, this.bpm) / 1000
 
       return {

@@ -58,7 +58,7 @@
         <!-- 自定义横向滚动条 -->
         <Bar wrapRef="rightArea" :move="this.barState.x" :size="this.barState.w" />
       </div>
-      
+
       <BeatStageList ref="BeatStageList" v-if="$store.state.showStageList"></BeatStageList>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
@@ -116,7 +116,7 @@ export default {
       selectedUUID: null,
       mouseModalTarget: null,
       barState: {  // 自定义滚动条状态
-        x: 0, 
+        x: 0,
         w: ''
       }
     }
@@ -180,7 +180,7 @@ export default {
       this.scrollBar()
       // 初始化舞台的位置
       const scrollLeft = this.$refs.rightArea.scrollLeft
-      const scrollTop = this.$refs.rightArea.scrollTop      
+      const scrollTop = this.$refs.rightArea.scrollTop
 
       this.$store.dispatch("changeStoreState", {
         stage: {

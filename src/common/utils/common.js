@@ -1,5 +1,7 @@
 import { pitchList } from '@/common/utils/const'
-import { timeToPx, generateUUID } from '@/common/utils/helper'
+import { timeToPx, generateUUID, amendTop, amendLeft } from '@/common/utils/helper'
+import { Message } from "element-ui"
+// import {  generateUUID } from '@/common/utils/helper'
 
 export const turnChangeLineMap = (vm, moveList, reset) => {
   const changedLineMap = { ...vm.$store.state.changedLineMap }
@@ -116,5 +118,54 @@ export const deleteStagePitches = (vm) => {
     ...changedLineMap
   }
   vm.$store.dispatch('changeStoreState', { stagePitches })
+  vm.$store.dispatch('afterChangePitchAndHandle')
+}
+
+export const copy = (vm) => { // 复制功能
+  Message.success('复制成功~')
+  const copyStagePitches = vm.stagePitches.filter(v => v.selected);
+  vm.$store.dispatch('changeStoreState', { copyStagePitches })
+  vm.$store.dispatch('changeStoreState', { showMenuList: false })
+}
+
+export const paste = (vm, pos) => { // 粘贴功能
+  vm.$store.dispatch('resetStagePitchesSelect')
+  const copyStagePitches = vm.$store.state.copyStagePitches
+  if (copyStagePitches.length === 0) {
+    Message.error('没有复制东西，快去复制把~')
+    return
+  }
+
+  const firstItem = copyStagePitches[0]
+  const offsetLeft = pos.x - firstItem.left
+  const offsetTop = pos.y - firstItem.top
+  const moveList = []
+  for (let i = 0; i < copyStagePitches.length; i += 1) {
+    const item = copyStagePitches[i]
+    const newLeft = amendLeft(item.left + offsetLeft, vm.$store.state.noteWidth)
+    const newTop = amendTop(item.top + offsetTop, vm.$store.state.noteHeight)
+
+    const newItem = {
+      left: newLeft,
+      top: newTop,
+      selected: true,
+      uuid: generateUUID(),
+      breath: item.breath ? {
+        left: newLeft - item.breath.width,
+        width: item.breath.width,
+        pinyin: 'br'
+      } : item.breath
+    }
+
+    const finalItem = Object.assign({}, item, newItem)
+    moveList.push({
+      before: item,
+      after: finalItem
+    })
+    vm.$store.state.stagePitches.push(finalItem)
+  }
+  turnChangeLineMap(vm, moveList)
+
+  vm.$store.dispatch('changeStoreState', { showStageList: false })
   vm.$store.dispatch('afterChangePitchAndHandle')
 }
