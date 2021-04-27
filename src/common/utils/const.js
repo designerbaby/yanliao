@@ -310,7 +310,7 @@ export const modeState = {
   StateElement: 2 // 音素模式
 }
 
-export const typeModeState = {
+export const TypeModeState = {
   StateNone: -1, // 初识状态
   StateVolume: 0, // 响度模式
   StateTension: 1 // 张力模式

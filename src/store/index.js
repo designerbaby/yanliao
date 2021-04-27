@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import profile from './profile'
-import { pitchList, playState, modeState, typeModeState, TrackMode } from '@/common/utils/const'
+import { pitchList, playState, modeState, TypeModeState, TrackMode } from '@/common/utils/const'
 import { getF0Data, getYinsu } from '@/api/audio'
 import { pxToTime, timeToPx, checkPitchDuplicated } from '@/common/utils/helper'
 import { Message } from 'element-ui'
@@ -31,7 +31,7 @@ const defaultState = {
     scrollTop: 0  // 垂直滚动条位置
   },
   mode: modeState.StatePitch,        // 模式
-  typeMode: typeModeState.StateNone, // 附加模式类型
+  typeMode: TypeModeState.StateNone, // 附加模式类型
   playState: playState.StateNone,    // 播放状态
   stagePitches: [],      // 舞台音块
   isSynthetizing: false, // 是否在合成音频中

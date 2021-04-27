@@ -1,7 +1,6 @@
 import { pitchList } from '@/common/utils/const'
 import { timeToPx, generateUUID, amendTop, amendLeft } from '@/common/utils/helper'
 import { Message } from "element-ui"
-// import {  generateUUID } from '@/common/utils/helper'
 
 export const turnChangeLineMap = (vm, moveList, reset) => {
   const changedLineMap = { ...vm.$store.state.changedLineMap }
@@ -123,7 +122,7 @@ export const deleteStagePitches = (vm) => {
 
 export const copy = (vm) => { // 复制功能
   Message.success('复制成功~')
-  const copyStagePitches = vm.stagePitches.filter(v => v.selected);
+  const copyStagePitches = vm.$store.state.stagePitches.filter(v => v.selected);
   vm.$store.dispatch('changeStoreState', { copyStagePitches })
   vm.$store.dispatch('changeStoreState', { showMenuList: false })
 }

@@ -24,8 +24,8 @@
           >
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
-            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === typeModeState.StateVolume"/>
-            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === typeModeState.StateTension"/>
+            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === TypeModeState.StateVolume"/>
+            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === TypeModeState.StateTension"/>
           </g>
         </svg>
       </Drawable>
@@ -35,14 +35,14 @@
 
 <script>
 import Drawable from '@/views/AudioEditor/Components/Drawable.vue'
-import { typeModeState } from '@/common/utils/const'
+import { TypeModeState } from '@/common/utils/const'
 
 export default {
   name: 'Parameters',
   components: { Drawable },
   data() {
     return {
-      typeModeState: typeModeState
+      TypeModeState: TypeModeState
     }
   },
   computed: {
@@ -65,9 +65,9 @@ export default {
     typeName() {
       const typeMode = this.typeMode
       switch (typeMode) {
-        case typeModeState.StateVolume:
+        case TypeModeState.StateVolume:
           return '响度'
-        case typeModeState.StateTension:
+        case TypeModeState.StateTension:
           return '张力'
         default:
           return ''
@@ -76,12 +76,12 @@ export default {
     typeParas() {
       const typeMode = this.typeMode
       switch (typeMode) {
-        case typeModeState.StateVolume:
+        case TypeModeState.StateVolume:
           return {
             plus: '+12 dB',
             minus: '-12 dB'
           }
-        case typeModeState.StateTension:
+        case TypeModeState.StateTension:
           return {
             plus: '紧张',
             minus: '放松'
@@ -93,8 +93,8 @@ export default {
     typeRange() {
       const typeMode = this.typeMode
       switch (typeMode) {
-        case typeModeState.StateVolume: return 2400
-        case typeModeState.StateTension: return 200
+        case TypeModeState.StateVolume: return 2400
+        case TypeModeState.StateTension: return 200
         default: return 100
       }
     },
@@ -119,9 +119,9 @@ export default {
   methods: {
     onDraw(values) {
       // console.log(`onDraw values:`, values)
-      if (this.typeMode === typeModeState.StateVolume) {
+      if (this.typeMode === TypeModeState.StateVolume) {
         this.$store.dispatch('changeVolumeMap', { values })
-      } else if (this.typeMode === typeModeState.StateTension) {
+      } else if (this.typeMode === TypeModeState.StateTension) {
         this.$store.dispatch('changeTensionMap', { values })
       }
     },
@@ -196,7 +196,7 @@ export default {
       return this.positionY2Db(y)
     },
     closeParameter() {
-      this.$store.dispatch('changeStoreState', { typeMode: typeModeState.StateNone })
+      this.$store.dispatch('changeStoreState', { typeMode: TypeModeState.StateNone })
     }
   }
 }

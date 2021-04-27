@@ -41,13 +41,13 @@
         </div>
       </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, typeMode === typeModeState.StateVolume ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateVolume)">
-          <img src="@/assets/audioEditor/loud-active.png" v-if="typeMode === typeModeState.StateVolume">
+        <div :class="[$style.check, typeMode === TypeModeState.StateVolume ? $style.isActive : '']" @click="selectTypeMode(TypeModeState.StateVolume)">
+          <img src="@/assets/audioEditor/loud-active.png" v-if="typeMode === TypeModeState.StateVolume">
           <img src="@/assets/audioEditor/loud-normal.png" v-else>
           <div :class="$style.text">响度</div>
         </div>
-        <div :class="[$style.check, $style.right, typeMode === typeModeState.StateTension ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateTension)">
-          <img src="@/assets/audioEditor/tension-active.png" v-if="typeMode === typeModeState.StateTension">
+        <div :class="[$style.check, $style.right, typeMode === TypeModeState.StateTension ? $style.isActive : '']" @click="selectTypeMode(TypeModeState.StateTension)">
+          <img src="@/assets/audioEditor/tension-active.png" v-if="typeMode === TypeModeState.StateTension">
           <img src="@/assets/audioEditor/tension-normal.png" v-else>
           <div :class="$style.text">张力</div>
         </div>
@@ -98,7 +98,7 @@
 
 <script>
 import { Button, Message, Upload } from 'element-ui'
-import { playState, modeState, typeModeState, TrackMode } from "@/common/utils/const"
+import { playState, modeState, TypeModeState, TrackMode } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog.vue'
 import CommonDialog from '@/views/AudioEditor/Components/CommonDialog.vue'
@@ -112,7 +112,7 @@ export default {
   data() {
     return {
       modeState: modeState,
-      typeModeState: typeModeState,
+      TypeModeState: TypeModeState,
       clickMouseStart: false,
       timer: null,
       file: '',
@@ -204,8 +204,8 @@ export default {
       this.$store.dispatch('changeStoreState', { mode })
     },
     selectTypeMode(typeMode) {
-      if (typeMode === this.typeMode && this.typeMode !== typeModeState.StateNone) {
-        this.$store.dispatch('changeStoreState', { typeMode: typeModeState.StateNone })
+      if (typeMode === this.typeMode && this.typeMode !== TypeModeState.StateNone) {
+        this.$store.dispatch('changeStoreState', { typeMode: TypeModeState.StateNone })
       } else {
         this.$store.dispatch('changeStoreState', { typeMode })
       }

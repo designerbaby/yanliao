@@ -183,14 +183,14 @@ export default {
       }
       this.$store.state.changedLineMap = changed
     },
-    acInfo2TrackList(acInfo) {
+    acInfo2TrackList(acInfo, bpm) {
       let acInfos = acInfo
       if (acInfos.length === 0) {
         acInfos = this.$store.state.trackList
       }
       const trackList = JSON.parse(JSON.stringify(acInfos))
       trackList.forEach(item => {
-        item.offset = timeToPx(item.offset, this.noteWidth / 10, this.bpm)
+        item.offset = timeToPx(item.offset, this.noteWidth / 10, bpm)
       })
       return trackList
     },
@@ -198,12 +198,11 @@ export default {
       const taskId = getParam('taskId') || 0
       const musicId = getParam('musicId') || 0
       if (taskId) { // 从我的曲谱编辑按钮进来，如果从我的作品的编辑按钮进来就同时有taskId和musicId
-        // console.log('taskId:', taskId)
         const res = await editorDetail({ task_id: taskId })
         const data = res.data.data
         const pitchList = data.pitchList
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
-        const trackList = this.acInfo2TrackList(data.ac_info)
+        const trackList = this.acInfo2TrackList(data.ac_info, pitchList[0].bpm)
         const stageMousePos = {
           x: trackList[1]?.offset,
           y: 0
@@ -423,7 +422,7 @@ export default {
       this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false, isTrackChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
-      const { startTime } = this.getLinePosition()
+      const { startTime } = this.getLinePosition(generator)
       console.log(`doPlay generator:${generator}, isContinue:${isContinue}, startTime: ${startTime}`)
 
       if (generator) {
@@ -534,10 +533,9 @@ export default {
     getStagePitchRightPosition(item) {
       return item.left + item.width
     },
-    getLinePosition() {
+    getLinePosition(init) {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
-      // const trackMode = this.$store.getters.trackMode
-      // TODO 这里当有伴奏的时候，要考虑伴奏的最左边的位置
+      const trackMode = this.$store.getters.trackMode
       let lineStartX = null
       let isLineInStagePitchRange = false
       // 音块的最左边和最右边
@@ -549,9 +547,12 @@ export default {
         }
       })
 
-
       console.log(`isLineInStagePitchRange:`, isLineInStagePitchRange)
 
+      // 特殊场景：如果是初始状态，并且伴奏在音块前面，并且有伴奏，并且是同时播放的情况
+      if (this.trackList[1].offset < this.stagePitches[1].left && init && waveSurfer.getWaveSurfer() && trackMode === TrackMode.TrackModeAll) {
+        lineStartX = Math.min(lineStartX, this.trackList[1].offset)
+      }
       // 如果在音块范围内，以音块为准
       if (isLineInStagePitchRange) {
         this.stagePitches.forEach((item, index) => {

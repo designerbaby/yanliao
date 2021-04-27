@@ -53,7 +53,7 @@
           <PitchLine v-if="$store.state.mode === modeState.StateLine" ref="PitchLine"></PitchLine>
           <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
-        <Parameters ref="Parameters" v-if="$store.state.typeMode !== typeModeState.StateNone"></Parameters>
+        <Parameters ref="Parameters" v-if="$store.state.typeMode !== TypeModeState.StateNone"></Parameters>
 
         <!-- 自定义横向滚动条 -->
         <Bar wrapRef="rightArea" :move="this.barState.x" :size="this.barState.w" />
@@ -68,7 +68,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { pitchList, playState, modeState, typeModeState } from "@/common/utils/const"
+import { pitchList, playState, modeState, TypeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
@@ -108,7 +108,7 @@ export default {
     return {
       pitchList: pitchList,
       modeState: modeState,
-      typeModeState: typeModeState,
+      TypeModeState: TypeModeState,
       isMouseDown: false,
       startPos: null,
       endPos: null,
