@@ -572,7 +572,7 @@ export default {
       // let minLeft, maxRight
       this.stagePitches.forEach((item, idx) => {
         const right = this.getStagePitchRightPosition(item)
-        if (lineLeft < right && trackMode !== TrackMode.TrackModeAll) {
+        if (lineLeft < right && (trackMode !== TrackMode.TrackModeAll || waveSurfer.getWaveSurfer())) {
           isLineInStagePitchRange = true
         }
       })
