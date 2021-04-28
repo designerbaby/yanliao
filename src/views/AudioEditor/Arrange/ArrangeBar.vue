@@ -57,6 +57,7 @@ export default {
         }
         console.log(`waveSurferLeft: ${waveSurferLeft}, time: ${time}`)
         waveSurfer.setCurrentTime(time)
+        this.$store.dispatch('changeStoreState', { wavePlayStartTime: time })
       }
     }
   }

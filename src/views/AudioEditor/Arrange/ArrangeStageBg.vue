@@ -15,12 +15,7 @@
 
 <script>
 export default {
-  name: 'ArrangeStageBg',
-  computed: {
-    // fenziWidth() {
-    //   return this.$store.state.noteWidth * (32 / this.$store.state.beatForm.fenmu) / 10
-    // }
-  }
+  name: 'ArrangeStageBg'
 }
 </script>
 

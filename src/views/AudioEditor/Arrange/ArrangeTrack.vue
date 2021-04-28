@@ -95,9 +95,7 @@ export default {
         } else {
           this.trackList[index].is_sil = 1
         }
-        // if (index === 0 && this.$store.state.ganAudio) {
-        //   this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
-        // }
+
         const waveSurfer = getWaveSurfer()
         const trackMode = this.$store.getters.trackMode
         if (index === 1 && waveSurfer && trackMode === TrackMode.TrackModeBan) {

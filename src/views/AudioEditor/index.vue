@@ -52,7 +52,7 @@ export default {
   data() {
     return {
       userInfo: sessionStorage.getItem('userInfo'),
-      timerId: 0,
+      // timerId: 0,
 
       // 播放线
       playLine: {
@@ -162,7 +162,7 @@ export default {
       const res = await songDetail(musicId)
       return res.data.data
     },
-    async getMusicxml2Json(xml2JsonReq) {
+    async getMusicXml2Json(xml2JsonReq) {
       const res = await musicxml2Json(xml2JsonReq)
       return res.data.data
     },
@@ -229,7 +229,7 @@ export default {
         }
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
-        const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
+        const musicxml2Json = await this.getMusicXml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
         console.log('musicInfo:', musicInfo)
         let stagePitches = []
         if (musicInfo.bus_type === 1) { // 从正常的xml转过来，给的是格子数
@@ -340,18 +340,47 @@ export default {
           this.changePlayState(PlayState.StatePlaying)
         }
         waveSurferObj.playPause()
+        this.toSaveSynthesize()
         const waveOffset = this.trackList[1].offset
         waveSurferObj.on('audioprocess', (process) => {
           const left = timeToPx(process * 1000, this.noteWidth / 10, this.bpm)
-          this.$store.dispatch('changeStoreState', { lineLeft: (left + waveOffset) * 10 })
+          const currentPosition = (left + waveOffset) * 10
+          this.changeLinePosition(currentPosition, true)
         })
         waveSurferObj.on('finish', () => {
-          this.$store.dispatch('changeStoreState', { lineLeft: waveOffset * 10 })
-          waveSurferObj.setCurrentTime(0)
+          const time = this.$store.state.wavePlayStartTime
+          waveSurfer.setCurrentTime(time)
+          const left = (timeToPx(time * 1000, this.noteWidth / 10, this.bpm) + waveOffset) * 10
+          this.$store.dispatch('changeStoreState', { lineLeft: left })
           this.changePlayState(PlayState.StatePaused)
         })
       } else {
         Message.error('伴奏音轨没有伴奏哦~')
+      }
+    },
+    async toSaveSynthesize() {
+      const handleData = this.handleVolumeTension()
+      const acInfo = this.handleAcInfo()
+      const req = {
+        pitchList: this.$store.getters.pitchList,
+        f0_ai: this.$store.state.f0AI,
+        f0_draw: this.$store.state.f0Draw,
+        task_id: this.$store.state.taskId,
+        volume_data: handleData.f0Volume,
+        tension_data: handleData.f0Tension,
+        volume_xy: handleData.volumeXy,
+        tension_xy: handleData.tensionXy,
+        music_id: this.$store.state.musicId,
+        music_name: this.$store.state.musicName,
+        ac_info: acInfo,
+        is_add_ac: 0
+      }
+      const { data } = await editorSynth(req)
+      if (data.ret_code !== 0) {
+        console.log(`保存数据失败, 错误信息:${data.err_msg}, 请重试~`)
+        return
+      } else {
+        console.log(`保存数据成功, paramId: ${data.data.param_id}, taskId: ${data.data.task_id}`)
       }
     },
     toPlayVoice() {
@@ -447,7 +476,7 @@ export default {
       }
     },
     toPlayAudio(url) {
-      clearInterval(this.timerId)
+      // clearInterval(this.timerId)
       this.$store.state.ganAudio = PlayAudio({
         url,
         onPlay: (audio) => {
@@ -482,10 +511,10 @@ export default {
           requestAnimationFrame(ticker)
         },
         onPause: (dom) => {
-          clearInterval(this.timerId)
+          // clearInterval(this.timerId)
         },
         onEnd: () => {
-          clearInterval(this.timerId)
+          // clearInterval(this.timerId)
           this.changePlayState(PlayState.StateEnded)
           // 回到开始播放的位置
           const resumePosition = timeToPx(this.playStartTime * 1000, this.noteWidth, this.bpm)
@@ -526,9 +555,9 @@ export default {
     getStagePitchLeftPosition(item) {
       let left = item.left
       // 有preTime表示是音素模式，因此要加上这个长度
-      // if (item.hasOwnProperty('preTime')) {
-      //   left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
-      // }
+      if (item.hasOwnProperty('preTime')) {
+        left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
+      }
       return left
     },
     getStagePitchRightPosition(item) {
@@ -543,7 +572,7 @@ export default {
       // let minLeft, maxRight
       this.stagePitches.forEach((item, idx) => {
         const right = this.getStagePitchRightPosition(item)
-        if (lineLeft < right) {
+        if (lineLeft < right && trackMode !== TrackMode.TrackModeAll) {
           isLineInStagePitchRange = true
         }
       })
@@ -570,7 +599,7 @@ export default {
 
       // 特殊场景：如果伴奏在音块前面，并且是同时播放的情况，并且线比第一个小
       const firstPitch = this.stagePitches[0]
-      if (this.trackList[1].offset * 10 < firstPitch.left && lineLeft < firstPitch.left && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
+      if (this.trackList[1].offset * 10 < firstPitch.left && lineLeft < this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
         lineStartX = this.trackList[1].offset * 10
       }
       console.log('lineStartX:', lineStartX)

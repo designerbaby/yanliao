@@ -190,9 +190,12 @@ export default {
           // newLeft = arrangeStageWidth - this.waveWidth
           this.$store.dispatch('adjustStageWidth')
         }
-
+        const stageMousePos = {
+          x: newLeft,
+          y: 0
+        }
         this.$store.state.trackList[1].offset = newLeft
-        this.$store.dispatch('changeStoreState', { isObbligatoChanged: true })
+        this.$store.dispatch('changeStoreState', { isObbligatoChanged: true, stageMousePos })
       }
     },
     onWaveMouseUp(event) {

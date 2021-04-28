@@ -87,7 +87,8 @@ const defaultState = {
   stageMousePos: {  // 伴奏轨的位置
     x: 0,
     y: 0
-  }
+  },
+  wavePlayStartTime: 0 // 伴奏轨开始的时间
 }
 
 const store = new Vuex.Store({

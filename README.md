@@ -49,7 +49,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### 数据上报地址：
 - https://growth.tencent.com/kh37dyui2j/data_management/Source_Event/4889/user_event
 
-
 ## 难点
 - 1、用svg画音高线的时候出现锯齿
 - 2、整体数据规划
