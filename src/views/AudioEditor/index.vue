@@ -572,7 +572,7 @@ export default {
       // let minLeft, maxRight
       this.stagePitches.forEach((item, idx) => {
         const right = this.getStagePitchRightPosition(item)
-        if (lineLeft < right && (trackMode !== TrackMode.TrackModeAll || waveSurfer.getWaveSurfer())) {
+        if (lineLeft < right && trackMode !== TrackMode.TrackModeAll) {
           isLineInStagePitchRange = true
         }
       })
@@ -597,10 +597,18 @@ export default {
         lineStartX = lineLeft
       }
 
-      // 特殊场景：如果伴奏在音块前面，并且是同时播放的情况，并且线比第一个小
+      // 特殊场景：如果伴奏在音块前面，并且是同时播放的情况，伴奏最左边比第一个音符小
       const firstPitch = this.stagePitches[0]
-      if (this.trackList[1].offset * 10 < firstPitch.left && lineLeft < this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
+      if (this.trackList[1].offset * 10 < firstPitch.left && lineLeft <= this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
         lineStartX = this.trackList[1].offset * 10
+      }
+      // 有伴奏，在最左边，都播放，第一个音符比线小
+      if (firstPitch.left < this.trackList[1].offset * 10 && lineLeft < firstPitch.left && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
+        lineStartX = firstPitch.left
+      }
+      // 没有伴奏，在第一个音符最左边，都播放
+      if (trackMode === TrackMode.TrackModeAll && !waveSurfer.getWaveSurfer() && lineLeft < firstPitch.left) {
+        lineStartX = firstPitch.left
       }
       console.log('lineStartX:', lineStartX)
       const startTime = pxToTime(lineStartX, this.noteWidth, this.bpm) / 1000

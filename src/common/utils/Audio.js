@@ -5,6 +5,6 @@ export const getAudio = () => {
   return Audio
 }
 
-export const setAudio = (obj) => {
-  Audio = obj
+export const setAudio = (audio) => {
+  Audio = audio
 }

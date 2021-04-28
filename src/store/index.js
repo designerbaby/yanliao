@@ -15,7 +15,7 @@ const defaultState = {
     fenzi: 4,
     fenmu: 4
   },
-  lineLeft: 6,   // 播放线的左边距
+  lineLeft: 0,   // 播放线的左边距
   matter: 30,    // 总共有多少个小节
   noteWidth: 20, // 32分音符占据的最小像素单位
   noteHeight: 25,// 32分音符的占据的最小高度

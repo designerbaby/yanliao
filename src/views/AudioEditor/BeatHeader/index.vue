@@ -219,7 +219,6 @@ export default {
       }
       if (trackMode === TrackMode.TrackModeBan) {
         Message.error('干音在静音状态下不可合成')
-        this.toSave()
         return
       }
 
