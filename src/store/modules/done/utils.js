@@ -1,3 +1,5 @@
+import { PitchList } from '@/common/utils/const'
+
 export const turnChangeLineMap = (state, getters, moveList, reset) => {
   const changedLineMap = { ...state.changedLineMap }
   const deleteLinePoints = new Set()
@@ -31,7 +33,7 @@ export const turnChangeLineMap = (state, getters, moveList, reset) => {
       if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
         newPitch = highestPitch * 100
       }
-      const lowestPitch = pitchList[pitchList.length - 1].pitch
+      const lowestPitch = PitchList[PitchList.length - 1].pitch
       if (newPitch < lowestPitch * 100) { // 小于最小的pitch取最小的
         newPitch = lowestPitch * 100
       }
