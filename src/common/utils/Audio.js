@@ -1,5 +1,7 @@
 
-let Audio = null
+let Audio = {
+  audio: null
+}
 
 export const getAudio = () => {
   return Audio
@@ -8,3 +10,5 @@ export const getAudio = () => {
 export const setAudio = (audio) => {
   Audio = audio
 }
+
+export default Audio

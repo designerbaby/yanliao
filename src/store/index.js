@@ -61,7 +61,6 @@ const defaultState = {
   musicName: '编辑器填词', // 歌曲名称
   showArrange: true, // 是否展开编曲
   waveWidth: 0, // 音波长度
-  ganAudio: null,
   trackList: [ // 音轨列表，!!!后续多音轨要改这里的数据
     {
       volume: 100,  // 音频音量

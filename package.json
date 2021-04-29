@@ -15,6 +15,7 @@
     "babel-polyfill": "^6.26.0",
     "cos-js-sdk-v5": "^1.2.2",
     "element-ui": "^2.13.2",
+    "hotkeys-js": "^3.8.3",
     "object-assign-deep": "^0.4.0",
     "smoothscroll-polyfill": "^0.4.4",
     "vod-js-sdk-v6": "^1.4.11",
