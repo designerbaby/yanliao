@@ -10,7 +10,7 @@ import { createWaveSurfer } from '@/common/utils/waveSurfer.js'
 
 Vue.use(Vuex)
 
-const defaultState = {
+const constState = {
   beatForm: {   // 存储节拍
     fenzi: 4,
     fenmu: 4
@@ -33,7 +33,6 @@ const defaultState = {
   mode: ModeState.StatePitch,        // 模式
   typeMode: TypeModeState.StateNone, // 附加模式类型
   playState: PlayState.StateNone,    // 播放状态
-  stagePitches: [],      // 舞台音块
   isSynthetizing: false, // 是否在合成音频中
   isGetF0Data: false,    // 是否在获取f0中
   isStagePitchesChanged: false,       // 舞台音块是否有改变
@@ -43,12 +42,7 @@ const defaultState = {
   isStagePitchElementChanged: false,  // 元辅音是否有改变
   isObbligatoChanged: false,          // 伴奏是否有改变
   isTrackChanged: false,              // 干音和伴奏是否有改变
-  pitchChanged: false, // 是否全部重置
-  f0AI: [],            // 音高线虚线部分
-  f0Draw: [],          // 音高线实线部分
-  changedLineMap: {},  // 音高线改变的信息
-  volumeMap: [],  // 响度原始map数据
-  tensionMap: [], // 张力原始map数据
+  pitchChanged: false,                // 是否全部重置
   pinyinList: [], // 当前用户输入的字里面包括的多音字列表
   onlineUrl: '',  // 在线播放的音频
   isExceedHeader: false, // 滚动是否超过头部
@@ -60,6 +54,22 @@ const defaultState = {
   musicId: 0, // 从主流程过来的选中的歌曲id
   musicName: '编辑器填词', // 歌曲名称
   showArrange: true, // 是否展开编曲
+  arrangeStage: { // 音轨舞台
+    width: 0,
+    height: 0,
+    scrollLeft: 0,
+    scrollTop: 0
+  },
+  wavePlayStartTime: 0 // 伴奏轨开始的时间
+}
+
+const changeState = {
+  stagePitches: [],    // 舞台音块
+  f0AI: [],            // 音高线虚线部分
+  f0Draw: [],          // 音高线实线部分
+  changedLineMap: {},  // 音高线改变的信息
+  volumeMap: [],  // 响度原始map数据
+  tensionMap: [], // 张力原始map数据
   waveWidth: 0, // 音波长度
   trackList: [ // 音轨列表，!!!后续多音轨要改这里的数据
     {
@@ -77,17 +87,15 @@ const defaultState = {
       file: ''
     }
   ],
-  arrangeStage: { // 音轨舞台
-    width: 0,
-    height: 0,
-    scrollLeft: 0,
-    scrollTop: 0
-  },
   stageMousePos: {  // 伴奏轨的位置
     x: 0,
     y: 0
-  },
-  wavePlayStartTime: 0 // 伴奏轨开始的时间
+  }
+}
+
+const defaultState = {
+  ...deepAssign({}, constState),
+  ...deepAssign({}, changeState)
 }
 
 const store = new Vuex.Store({

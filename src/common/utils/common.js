@@ -1,6 +1,7 @@
 import { PitchList } from '@/common/utils/const'
 import { timeToPx, generateUUID } from '@/common/utils/helper'
 
+// 修改用户画过的音高线数据
 export const turnChangeLineMap = (state, moveList, reset) => {
   const changedLineMap = { ...state.changedLineMap }
   const deleteLinePoints = new Set()
