@@ -15,6 +15,7 @@
         :className="$style.draw"
         :styles="stageStyle"
         :valueHandler="valueHandler"
+        @mouse-down="saveOp"
         @on-draw="onDraw"
         >
         <svg
@@ -117,6 +118,10 @@ export default {
     }
   },
   methods: {
+    saveOp() {
+      // 操作存储
+      this.$store.dispatch('done/push')
+    },
     onDraw(values) {
       // console.log(`onDraw values:`, values)
       if (this.typeMode === typeModeState.StateVolume) {

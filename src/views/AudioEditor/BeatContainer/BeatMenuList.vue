@@ -62,9 +62,6 @@ export default {
       return show
     }
   },
-  created() {
-    console.log('menulist')
-  },
   methods: {
     setPosition(left, top) {
       this.left = left
@@ -85,6 +82,8 @@ export default {
       this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     insertBreath() {
+      // 操作存储
+      this.$store.dispatch('done/push')
       const selectStagePitches = this.stagePitches.filter(v => v.selected)
       selectStagePitches.forEach(item => {
         this.$set(item, 'breath', {
@@ -95,6 +94,8 @@ export default {
       })
     },
     cancelBreath() {
+      // 操作存储
+      this.$store.dispatch('done/push')
       const selectStagePitches = this.stagePitches.filter(v => v.selected)
       selectStagePitches.forEach(item => {
         item.breath = null

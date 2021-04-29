@@ -3,21 +3,30 @@ import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from './utils'
 
 const LOCAL = {
-  max: 20,  // 最多存储用户近20次操作
+  max: 10,  // 最多存储用户近10次操作
   cur: 0,   // 用户操作栈当前指针
-  stateJson: []  // 每次操作前 state json 格式存储
+  stateJson: [],  // 每次操作前 state json 格式存储
+  newMutation: true
 }
 
 export default {
   // 用户操作对应入栈
   push({ state, commit, dispatch, rootState, rootGetters }, payload) {
-    LOCAL.stateJson = [ ...LOCAL.stateJson.slice(0, LOCAL.cur), JSON.stringify(rootState)]
+    LOCAL.stateJson = [ ...LOCAL.stateJson.slice(0, LOCAL.cur), JSON.stringify({ ...rootState, showMenuList: false, showStageList: false })]
     LOCAL.stateJson = LOCAL.stateJson.slice(-LOCAL.max)
     LOCAL.cur = LOCAL.stateJson.length
+    LOCAL.newMutation = true
+    console.log('push', LOCAL)
   },
   // payload： -1 撤销操作; 1 恢复操作
   redo({ state, commit, dispatch, rootState, rootGetters }, payload) {
-    console.log(LOCAL)
+    console.log('redo', LOCAL)
+    // 首次撤销需保存当前state
+    if (LOCAL.newMutation === true) {
+      dispatch('push')
+      LOCAL.newMutation = false
+      LOCAL.cur -= 1
+    }
     const cur = LOCAL.cur + payload
     if (cur < 0 || cur >= LOCAL.stateJson.length) { return }
     dispatch('changeStoreState', JSON.parse(LOCAL.stateJson[cur]), { root: true })

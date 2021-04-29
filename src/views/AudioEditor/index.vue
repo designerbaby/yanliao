@@ -135,6 +135,7 @@ export default {
       if (e.target !== document.body) return
       const keyCode = e.keyCode || e.which || e.charCode;
       const ctrlKey = e.ctrlKey || e.metaKey;
+      console.log('ctrlKey', ctrlKey, keyCode)
       if (keyCode === 32) {
         this.toPlay()
         e.preventDefault()

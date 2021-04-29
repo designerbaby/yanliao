@@ -446,7 +446,7 @@ export default {
     },
     onMouseDown(event) {
       // 画音块，鼠标按住事件
-      // console.log('onMouseDown:', event)
+      console.log('onMouseDown:', event)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -507,6 +507,8 @@ export default {
       // 必须先按下了鼠标，才有松开鼠标事件
       // console.log('onMouseUp', event)
       if (this.isMouseDown) {
+        // 操作存储
+        this.$store.dispatch('done/push')
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {

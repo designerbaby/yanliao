@@ -425,4 +425,12 @@ window.addEventListener('resize', () => {
   store.dispatch('updateStageSize')
 })
 
+const subscribeMutations = ['updateBeatForm', 'updateMatter', 'changeStoreState', 'changeF0']
+store.subscribe(({ type, payload }) => {
+  if (subscribeMutations.includes(type)) {
+    console.log('subscribe', type, payload)
+    // store.dispatch('done/push')
+  }
+});
+
 export default store
