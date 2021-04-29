@@ -1,12 +1,11 @@
 import { PitchList } from '@/common/utils/const'
-import { timeToPx, generateUUID, amendTop, amendLeft } from '@/common/utils/helper'
-import { Message } from "element-ui"
+import { timeToPx, generateUUID } from '@/common/utils/helper'
 
-export const turnChangeLineMap = (vm, moveList, reset) => {
-  const changedLineMap = { ...vm.$store.state.changedLineMap }
+export const turnChangeLineMap = (state, moveList, reset) => {
+  const changedLineMap = { ...state.changedLineMap }
   const deleteLinePoints = new Set()
   const newLinePointsMap = {}
-  const pitchPerPx = 100 / vm.$store.state.noteHeight // 100是因为后台加了乘以100了
+  const pitchPerPx = 100 / state.noteHeight // 100是因为后台加了乘以100了
 
   const before = moveList[0].before
   const after = moveList[0].after
@@ -31,7 +30,7 @@ export const turnChangeLineMap = (vm, moveList, reset) => {
       const pitch = changedLineMap[x]
       const newX = x + distanceX
       let newPitch = pitch + (pitchPerPx * distanceY)
-      const highestPitch = vm.$store.getters.firstPitch
+      const highestPitch = PitchList[0].pitch
       if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
         newPitch = highestPitch * 100
       }
@@ -48,7 +47,7 @@ export const turnChangeLineMap = (vm, moveList, reset) => {
     })
   }
 
-  vm.$store.state.changedLineMap = {
+  state.changedLineMap = {
     ...changedLineMap,
     ...newLinePointsMap
   }
@@ -94,86 +93,4 @@ export const pitchList2StagePitches = (pitchList, type, vm) => {
   })
   console.log('pitchList2StagePitches:', stagePitches)
   return stagePitches
-}
-
-export const deleteStagePitches = (vm) => {
-  const stagePitches = vm.$store.state.stagePitches.filter(({ selected }) => !selected)
-  const selectStagePitches = vm.$store.state.stagePitches.filter(({ selected }) => selected)
-  const changedLineMap = { ...vm.$store.state.changedLineMap }
-  let minLeft = selectStagePitches[0].left
-  let maxRight = selectStagePitches[0].left + selectStagePitches[0].width
-  selectStagePitches.forEach(item => {
-    minLeft = Math.min(minLeft, item.left)
-    maxRight = Math.max(maxRight, item.left + item.width)
-  })
-  Object.keys(changedLineMap)
-    .map(Number)
-    .filter(x => x >= minLeft && x <= maxRight)
-    .forEach(x => {
-      delete changedLineMap[x]
-    })
-
-  vm.$store.state.changedLineMap = {
-    ...changedLineMap
-  }
-  vm.$store.dispatch('changeStoreState', { stagePitches })
-  vm.$store.dispatch('afterChangePitchAndHandle')
-}
-
-export const copy = (vm) => { // 复制功能
-  Message.success('复制成功~')
-  const copyStagePitches = vm.$store.state.stagePitches.filter(v => v.selected);
-  vm.$store.dispatch('changeStoreState', { copyStagePitches })
-  vm.$store.dispatch('changeStoreState', { showMenuList: false })
-  localStorage.setItem('copyStagePitches', JSON.stringify(copyStagePitches))
-  localStorage.setItem('changedLineMap', JSON.stringify(vm.$store.state.changedLineMap))
-}
-
-export const paste = (vm, pos) => { // 粘贴功能
-  vm.$store.dispatch('resetStagePitchesSelect')
-  let copyStagePitches = vm.$store.state.copyStagePitches
-  if (copyStagePitches.length === 0) {
-    copyStagePitches = JSON.parse(localStorage.getItem('copyStagePitches'))
-    const changedLineMap = JSON.parse(localStorage.getItem('changedLineMap'))
-    vm.$store.state.changedLineMap = {
-      ...changedLineMap
-    }
-    if (copyStagePitches.length === 0) {
-      Message.error('没有复制东西，快去复制把~')
-      return
-    }
-  }
-
-  const firstItem = copyStagePitches[0]
-  const offsetLeft = pos.x - firstItem.left
-  const offsetTop = pos.y - firstItem.top
-  const moveList = []
-  for (let i = 0; i < copyStagePitches.length; i += 1) {
-    const item = copyStagePitches[i]
-    const newLeft = amendLeft(item.left + offsetLeft, vm.$store.state.noteWidth)
-    const newTop = amendTop(item.top + offsetTop, vm.$store.state.noteHeight)
-
-    const newItem = {
-      left: newLeft,
-      top: newTop,
-      selected: true,
-      uuid: generateUUID(),
-      breath: item.breath ? {
-        left: newLeft - item.breath.width,
-        width: item.breath.width,
-        pinyin: 'br'
-      } : item.breath
-    }
-
-    const finalItem = Object.assign({}, item, newItem)
-    moveList.push({
-      before: item,
-      after: finalItem
-    })
-    vm.$store.state.stagePitches.push(finalItem)
-  }
-  turnChangeLineMap(vm, moveList)
-
-  vm.$store.dispatch('changeStoreState', { showStageList: false })
-  vm.$store.dispatch('afterChangePitchAndHandle')
 }

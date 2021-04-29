@@ -85,9 +85,9 @@ import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
 import Bar from '@/common/components/Scrollbar/src/bar'
-import Editor from '@/common/editor'
-import AddPitchCommand from '@/common/commands/AddPitchCommand'
-import MovePitchCommand from '@/common/commands/MovePitchCommand'
+// import Editor from '@/common/editor'
+// import AddPitchCommand from '@/common/commands/AddPitchCommand'
+// import MovePitchCommand from '@/common/commands/MovePitchCommand'
 
 export default {
   name: "BeatContainer",
@@ -182,7 +182,7 @@ export default {
       this.scrollBar()
       // 初始化舞台的位置
       const scrollLeft = this.$refs.rightArea.scrollLeft
-      const scrollTop = this.$refs.rightArea.scrollTop      
+      const scrollTop = this.$refs.rightArea.scrollTop
       const rect = this.$refs.stage.getBoundingClientRect()
 
       this.$store.dispatch("changeStoreState", {
@@ -421,10 +421,10 @@ export default {
           }
         }
 
-        const editor = Editor.getInstance()
-        editor.execute(new MovePitchCommand(editor, moveList))
+        // const editor = Editor.getInstance()
+        // editor.execute(new MovePitchCommand(editor, moveList))
 
-        turnChangeLineMap(this, moveList, true)
+        turnChangeLineMap(this.$store.state, moveList, true)
 
         this.movePitchStart = null
         if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
@@ -545,21 +545,21 @@ export default {
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
-        // this.addOnePitch({
-        //   width,
-        //   height: this.noteHeight,
-        //   left,
-        //   top
-        // });
-
-        const editor = Editor.getInstance()
-        const pitch = {
+        this.addOnePitch({
           width,
           height: this.noteHeight,
           left,
           top
-        }
-        editor.execute(new AddPitchCommand(editor, pitch))
+        });
+
+        // const editor = Editor.getInstance()
+        // const pitch = {
+        //   width,
+        //   height: this.noteHeight,
+        //   left,
+        //   top
+        // }
+        // editor.execute(new AddPitchCommand(editor, pitch))
 
         this.toCheckOverStage(this.endPos.x)
       }

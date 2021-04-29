@@ -10,9 +10,6 @@
 </template>
 
 <script>
-import { Message } from "element-ui"
-import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
-import { turnChangeLineMap, paste } from '@/common/utils/common'
 
 export default {
   name: 'BeatStageList',
@@ -34,49 +31,8 @@ export default {
       this.top = top
       this.pos = pos
     },
-    // toPaste() {
-    //   this.$store.dispatch('resetStagePitchesSelect')
-    //   const copyStagePitches = this.$store.state.copyStagePitches
-    //   if (copyStagePitches.length === 0) {
-    //     Message.error('没有复制东西，快去复制把~')
-    //     return
-    //   }
-
-    //   const firstItem = copyStagePitches[0]
-    //   const offsetLeft = this.pos.x - firstItem.left
-    //   const offsetTop = this.pos.y - firstItem.top
-    //   const moveList = []
-    //   for (let i = 0; i < copyStagePitches.length; i += 1) {
-    //     const item = copyStagePitches[i]
-    //     const newLeft = amendLeft(item.left + offsetLeft, this.$store.state.noteWidth)
-    //     const newTop = amendTop(item.top + offsetTop, this.$store.state.noteHeight)
-
-    //     const newItem = {
-    //       left: newLeft,
-    //       top: newTop,
-    //       selected: true,
-    //       uuid: generateUUID(),
-    //       breath: item.breath ? {
-    //         left: newLeft - item.breath.width,
-    //         width: item.breath.width,
-    //         pinyin: 'br'
-    //       } : item.breath
-    //     }
-
-    //     const finalItem = Object.assign({}, item, newItem)
-    //     moveList.push({
-    //       before: item,
-    //       after: finalItem
-    //     })
-    //     this.stagePitches.push(finalItem)
-    //   }
-    //   turnChangeLineMap(this, moveList)
-
-    //   this.$store.dispatch('changeStoreState', { showStageList: false })
-    //   this.$store.dispatch('afterChangePitchAndHandle')
-    // }
     toPaste() {
-      paste(this, this.pos)
+      this.$store.dispatch('done/pastePitches', { position: this.pos })
     }
   }
 }

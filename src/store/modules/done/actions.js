@@ -1,6 +1,6 @@
 import { Message } from 'element-ui'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
-import { turnChangeLineMap } from './utils'
+import { turnChangeLineMap } from '@/common/utils/common'
 
 const LOCAL = {
   max: 10,  // 最多存储用户近10次操作
@@ -37,19 +37,34 @@ export default {
     Message.success('复制成功~')
     const copyStagePitches = rootState.stagePitches.filter(v => v.selected);
     dispatch('changeStoreState', { copyStagePitches, showMenuList: false }, { root: true })
+    // 存一份在浏览器中
+    localStorage.setItem('copyStagePitches', JSON.stringify(copyStagePitches))
+    localStorage.setItem('changedLineMap', JSON.stringify(rootState.changedLineMap))
   },
   // 音块粘贴
-  pastePitches({ state, commit, dispatch, rootState, rootGetters }) {
+  pastePitches({ state, commit, dispatch, rootState, rootGetters }, { position }) {
     dispatch('push')
     dispatch('resetStagePitchesSelect', null, { root: true })
-    const copyStagePitches = rootState.copyStagePitches
+    let copyStagePitches = rootState.copyStagePitches
     if (copyStagePitches.length === 0) {
-      Message.error('没有复制东西，快去复制把~')
-      return
+      // 拿不到就拿浏览器中存着的，再拿不到，那也没办法了！
+      copyStagePitches = JSON.parse(localStorage.getItem('copyStagePitches'))
+      const changedLineMap = JSON.parse(localStorage.getItem('changedLineMap'))
+      rootState.changedLineMap = {
+        ...changedLineMap
+      }
+      if (copyStagePitches.length === 0) {
+        Message.error('没有复制东西，快去复制把~')
+        return
+      }
     }
-    const pos = {
+
+    let pos = {
       x: state.mousePos.clientX - rootState.stage.rectLeft,
       y: state.mousePos.clientY - rootState.stage.rectTop
+    }
+    if (position) {
+      pos = position
     }
 
     const firstItem = copyStagePitches[0]
@@ -80,7 +95,7 @@ export default {
       })
       rootState.stagePitches.push(finalItem)
     }
-    turnChangeLineMap(rootState, rootGetters, moveList)
+    turnChangeLineMap(rootState, moveList)
 
     dispatch('changeStoreState', { showStageList: false }, { root: true })
     dispatch('afterChangePitchAndHandle', null, { root: true })
@@ -104,7 +119,7 @@ export default {
       .forEach(x => {
         delete changedLineMap[x]
       })
-  
+
     rootState.changedLineMap = {
       ...changedLineMap
     }
