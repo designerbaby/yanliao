@@ -106,7 +106,6 @@ export default {
     documentListener(event) {
       this.showMenu = false
       this.showDelete = false
-
       const tagName = event.target.tagName
       if (tagName !== 'WAVE') {
         this.waveActive = false
@@ -209,6 +208,7 @@ export default {
       document.removeEventListener('mouseleave', this.onWaveMouseUp)
     },
     deleteObbligato() {
+      this.showDelete = false
       waveSurfer.clearWaveSurfer()
       this.$refs.WaveForm.style.border = 0
       this.$store.dispatch('changeStoreState', { waveWidth: 0, isObbligatoChanged: true })
@@ -240,7 +240,7 @@ export default {
   &.isActive {
     background: rgba(255,255,255,0.07);
     border-radius: 5px;
-    border: 2px solid #6C6C6C;
+    border: 2px solid #6C6C6C !important;
     // border: 1px solid red;
     height: 46px;
   }
