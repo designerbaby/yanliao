@@ -38,6 +38,9 @@ import { pitchList2StagePitches, deleteStagePitches } from '@/common/utils/commo
 import { PlayAudio } from '@/common/utils/player'
 import CommonDialog from '@/common/components/CommonDialog'
 import * as waveSurfer from '@/common/utils/waveSurfer'
+import Editor from '@/common/editor'
+
+let audio = null
 
 export default {
   name: 'AudioEditor',
@@ -54,7 +57,7 @@ export default {
     return {
       userInfo: sessionStorage.getItem('userInfo'),
       // timerId: 0,
-
+      audio: null,
       // 播放线
       playLine: {
         current: 0 // 当前的位置, px
@@ -66,6 +69,7 @@ export default {
   },
   async mounted() {
     reportEvent('audioedit-page-exposure', 147622)
+    Editor.getInstance().setVm(this.$root).setStore(this.$store)
     await this.getEditorDetail()
     this.storeStagePitchesWatcher = this.$store.watch(
       state => state.stagePitches,
@@ -86,8 +90,8 @@ export default {
   destroyed() {
     this.storeStagePitchesWatcher()
     this.resetStoreState()
-    if (this.$store.state.ganAudio) {
-      this.$store.state.ganAudio.pause() // 要把播放的暂停了
+    if (audio) {
+      audio.pause() // 要把播放的暂停了
     }
     if (waveSurfer.getWaveSurfer()) {
       waveSurfer.getWaveSurfer().pause()
@@ -452,7 +456,7 @@ export default {
         }
         this.changePlayState(PlayState.StatePlaying)
       } else if (this.playState === PlayState.StatePlaying) {
-        this.$store.state.ganAudio.pause()
+        audio.pause()
         this.changePlayState(PlayState.StatePaused)
       } else if (this.playState === PlayState.StatePaused) {
         if (this.isNeedGenerate()) {
@@ -487,22 +491,22 @@ export default {
         })
         this.toPlayAudio(onlineUrl)
         this.playStartTime = startTime
-        this.$store.state.ganAudio.currentTime = startTime
-        this.$store.state.ganAudio.play()
+        audio.currentTime = startTime
+        audio.play()
       } else {
         if (isContinue) {
           console.log(`play continue with start}`)
-          this.$store.state.ganAudio.play()
+          audio.play()
         } else {
           this.playStartTime = startTime
-          this.$store.state.ganAudio.currentTime = startTime
-          this.$store.state.ganAudio.play()
+          audio.currentTime = startTime
+          audio.play()
         }
       }
     },
     toPlayAudio(url) {
       // clearInterval(this.timerId)
-      this.$store.state.ganAudio = PlayAudio({
+      audio = PlayAudio({
         url,
         onPlay: (audio) => {
           const ticker = () => {

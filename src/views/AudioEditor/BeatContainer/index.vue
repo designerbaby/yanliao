@@ -85,6 +85,9 @@ import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
 import Bar from '@/common/components/Scrollbar/src/bar'
+import Editor from '@/common/editor'
+import AddPitchCommand from '@/common/commands/AddPitchCommand'
+import MovePitchCommand from '@/common/commands/MovePitchCommand'
 
 export default {
   name: "BeatContainer",
@@ -418,6 +421,9 @@ export default {
           }
         }
 
+        const editor = Editor.getInstance()
+        editor.execute(new MovePitchCommand(editor, moveList))
+
         turnChangeLineMap(this, moveList, true)
 
         this.movePitchStart = null
@@ -539,12 +545,22 @@ export default {
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
-        this.addOnePitch({
+        // this.addOnePitch({
+        //   width,
+        //   height: this.noteHeight,
+        //   left,
+        //   top
+        // });
+
+        const editor = Editor.getInstance()
+        const pitch = {
           width,
           height: this.noteHeight,
           left,
           top
-        });
+        }
+        editor.execute(new AddPitchCommand(editor, pitch))
+
         this.toCheckOverStage(this.endPos.x)
       }
     },

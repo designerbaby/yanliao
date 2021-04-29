@@ -125,14 +125,23 @@ export const copy = (vm) => { // 复制功能
   const copyStagePitches = vm.$store.state.stagePitches.filter(v => v.selected);
   vm.$store.dispatch('changeStoreState', { copyStagePitches })
   vm.$store.dispatch('changeStoreState', { showMenuList: false })
+  localStorage.setItem('copyStagePitches', JSON.stringify(copyStagePitches))
+  localStorage.setItem('changedLineMap', JSON.stringify(vm.$store.state.changedLineMap))
 }
 
 export const paste = (vm, pos) => { // 粘贴功能
   vm.$store.dispatch('resetStagePitchesSelect')
-  const copyStagePitches = vm.$store.state.copyStagePitches
+  let copyStagePitches = vm.$store.state.copyStagePitches
   if (copyStagePitches.length === 0) {
-    Message.error('没有复制东西，快去复制把~')
-    return
+    copyStagePitches = JSON.parse(localStorage.getItem('copyStagePitches'))
+    const changedLineMap = JSON.parse(localStorage.getItem('changedLineMap'))
+    vm.$store.state.changedLineMap = {
+      ...changedLineMap
+    }
+    if (copyStagePitches.length === 0) {
+      Message.error('没有复制东西，快去复制把~')
+      return
+    }
   }
 
   const firstItem = copyStagePitches[0]
