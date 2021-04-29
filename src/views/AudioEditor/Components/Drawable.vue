@@ -40,6 +40,7 @@ export default {
       if (this.beforeDraw && this.beforeDraw() === false){
         return
       }
+      this.$emit('mouse-down')
       const rect = this.$el.getBoundingClientRect()
       this.mouseStart = {
         rect

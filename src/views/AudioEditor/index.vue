@@ -23,6 +23,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import { Message } from 'element-ui'
 import BeatContainer from './BeatContainer'
 import BeatHeader from './BeatHeader'
@@ -84,6 +85,7 @@ export default {
     this.$store.dispatch('updateStageSize')
     await this.$nextTick()
     document.addEventListener('keydown', this.keyDownListener)
+    document.addEventListener('mousemove', this.mousemoveListener)
   },
   destroyed() {
     this.storeStagePitchesWatcher()
@@ -96,8 +98,10 @@ export default {
       waveSurfer.clearWaveSurfer()
     }
     document.removeEventListener('keydown', this.keyDownListener)
+    document.addEventListener('mousemove', this.mousemoveListener)
   },
   computed: {
+    ...mapGetters(['stagePitches']),
     noteWidth() {
       return this.$store.state.noteWidth
     },
@@ -130,15 +134,36 @@ export default {
     }
   },
   methods: {
-    keyDownListener(event) {
-      if (event.target !== document.body) return
-      if (event.keyCode === 32) {
+    keyDownListener(e) {
+      if (e.target !== document.body) return
+      const keyCode = e.keyCode || e.which || e.charCode;
+      const ctrlKey = e.ctrlKey || e.metaKey;
+      console.log('ctrlKey', ctrlKey, keyCode)
+      if (keyCode === 32) {
         this.toPlay()
-        event.preventDefault()
-      } else if (event.keyCode === 8 || event.keyCode === 46) { // delete or return
-        deleteStagePitches(this)
-        event.stopPropagation()
+        e.preventDefault()
+      } else if (keyCode === 8 || keyCode === 46) { // delete or return
+        this.$store.dispatch('done/deletePitches')
+        e.stopPropagation()
+      } else if (ctrlKey && keyCode === 67) { // ctrl + c 复制
+        this.$store.dispatch('done/copyPitches')
+      } else if (ctrlKey && keyCode === 86) { // ctrl + v 粘贴
+        this.$store.dispatch('done/pastePitches')
+      } else if (ctrlKey && keyCode === 89) { // ctrl + y 恢复
+        this.$store.dispatch('done/redo', 1)
+      } else if (ctrlKey && keyCode === 90) { // ctrl + z 撤销
+        this.$store.dispatch('done/redo', -1)
       }
+    },
+    mousemoveListener(e) {
+      this.$store.commit('done/UPDATE_MOUSEPOS', {
+        x: e.x,
+        y: e.y,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        layerX: e.layerX,
+        layerY: e.layerY
+      })
     },
     closeDialogShow() {
       this.dialogShow = false

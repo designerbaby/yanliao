@@ -182,13 +182,16 @@ export default {
       this.scrollBar()
       // 初始化舞台的位置
       const scrollLeft = this.$refs.rightArea.scrollLeft
-      const scrollTop = this.$refs.rightArea.scrollTop
+      const scrollTop = this.$refs.rightArea.scrollTop      
+      const rect = this.$refs.stage.getBoundingClientRect()
 
       this.$store.dispatch("changeStoreState", {
         stage: {
           ...this.$store.state.stage,
           scrollLeft,
-          scrollTop
+          scrollTop,
+          rectLeft: rect.left,
+          rectTop: rect.top,
         }
       })
       // console.log('this.$store.state.stage:', JSON.stringify(this.$store.state.stage))
@@ -448,7 +451,7 @@ export default {
     },
     onMouseDown(event) {
       // 画音块，鼠标按住事件
-      // console.log('onMouseDown:', event)
+      console.log('onMouseDown:', event)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
@@ -509,6 +512,8 @@ export default {
       // 必须先按下了鼠标，才有松开鼠标事件
       // console.log('onMouseUp', event)
       if (this.isMouseDown) {
+        // 操作存储
+        this.$store.dispatch('done/push')
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
@@ -718,15 +723,10 @@ export default {
 
 <style lang='less' scoped>
 /deep/ .common-scrollbar {
-  position: absolute;
-  width: calc(100% - 50px);
-  height: 100%;
-  left: 50px;
-
   &-bar {
     position: fixed;
     left: 50px;
-    height: 10px;
+    height: 14px;
     border-radius: 20px;
 
     &.is-vertical {
