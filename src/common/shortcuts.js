@@ -1,5 +1,6 @@
 
 import hotkeys from 'hotkeys-js'
+// 快捷键统一操作
 class Shortcut{
   enable = true
 

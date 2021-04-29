@@ -247,6 +247,11 @@ export default {
         if (musicInfo.bus_type === 2 && resetF0Draw === 1) {
           f0Draw = []
         }
+        const trackList = this.acInfo2TrackList(musicxml2Json.ac_info, musicxml2Json.pitchList[0].bpm)
+        const stageMousePos = {
+          x: trackList[1]?.offset,
+          y: 0
+        }
         this.$store.dispatch('changeStoreState', {
           taskId: getParam('arrangeId') || musicxml2Json.task_id,
           musicId: musicId,
@@ -259,9 +264,14 @@ export default {
           f0Draw: f0Draw,
           volumeMap: this.convertXyMap(musicxml2Json.volume_xy),
           tensionMap: this.convertXyMap(musicxml2Json.tension_xy),
-          pitchChanged: true // 标记音块改动了，这样才能重新拉到辅音
+          pitchChanged: true, // 标记音块改动了，这样才能重新拉到辅音
+          trackList: trackList,
+          stageMousePos: stageMousePos
         })
         this.saveF0DrawChange(musicxml2Json.f0_ai, f0Draw)
+        if (trackList[1].file) {
+          this.$store.dispatch('showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
+        }
         this.$store.dispatch('getPitchLine')
         this.$store.dispatch('saveFuYuan')
       }
