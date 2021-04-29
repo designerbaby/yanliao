@@ -209,11 +209,13 @@ export default {
       let xml2JsonReq = JSON.parse(sessionStorage.getItem('form'))
       xml2JsonReq.fix_pinyin_list = JSON.parse(this.getFormData())
       xml2JsonReq.is_add_ac = 0 // 不增加伴奏,为以后做伴奏做铺垫
+      console.log('this.$route.query.toneBpmChange:', this.$route.query.toneBpmChange)
+      const toneBpmChange = this.$route.query.toneBpmChange || 0
       if (this.$route.query.arrangeId) {
         xml2JsonReq.arrange_id = this.$route.query.arrangeId
-        this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1&arrangeId=${this.$route.query.arrangeId}`)
+        this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1&arrangeId=${this.$route.query.arrangeId}&resetF0Draw=${toneBpmChange}`)
       } else {
-        this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1`)
+        this.$router.push(`/audioEditor?musicId=${xml2JsonReq.music_id}&index=1&resetF0Draw=${toneBpmChange}`)
       }
       sessionStorage.setItem('xml2JsonReq', JSON.stringify(xml2JsonReq))
       this.deleteDraft()

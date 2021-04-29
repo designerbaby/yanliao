@@ -1,5 +1,4 @@
 import Command from './Command'
-import { generateUUID } from '@/common/utils/helper'
 import deepAssign from 'object-assign-deep'
 
 class MovePitchCommand extends Command {

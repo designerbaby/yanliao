@@ -152,9 +152,9 @@ export default {
         this.$store.dispatch('done/pastePitches', {position: null})
         e.preventDefault()
       } else if (ctrlKey && keyCode === 89) { // ctrl + y 恢复
-        this.$store.dispatch('done/redo', 1)
+        // this.$store.dispatch('done/redo', 1)
       } else if (ctrlKey && keyCode === 90) { // ctrl + z 撤销
-        this.$store.dispatch('done/redo', -1)
+        // this.$store.dispatch('done/redo', -1)
       }
     },
     mousemoveListener(e) {

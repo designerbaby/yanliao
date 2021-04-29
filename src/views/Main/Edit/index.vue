@@ -627,7 +627,7 @@ export default {
             sessionStorage.setItem('form', JSON.stringify(f))
             sessionStorage.setItem('polyphonicList', JSON.stringify(data.polyphonic_list))
             sessionStorage.setItem('editPath', JSON.stringify(this.$router.history.current.path))
-            this.$router.push(`/rectify?arrangeId=${f.arrange_id || ''}`)
+            this.$router.push(`/rectify?arrangeId=${f.arrange_id || ''}&toneBpmChange=${this.judgeToneBpmChange()}`)
           }
         }).then((response) => {
           if (!response) {
