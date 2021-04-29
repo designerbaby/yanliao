@@ -1,11 +1,12 @@
-import { pitchList } from '@/common/utils/const'
+import { PitchList } from '@/common/utils/const'
 import { timeToPx, generateUUID } from '@/common/utils/helper'
 
-export const turnChangeLineMap = (vm, moveList, reset) => {
-  const changedLineMap = { ...vm.$store.state.changedLineMap }
+// 修改用户画过的音高线数据
+export const turnChangeLineMap = (state, moveList, reset) => {
+  const changedLineMap = { ...state.changedLineMap }
   const deleteLinePoints = new Set()
   const newLinePointsMap = {}
-  const pitchPerPx = 100 / vm.$store.state.noteHeight // 100是因为后台加了乘以100了
+  const pitchPerPx = 100 / state.noteHeight // 100是因为后台加了乘以100了
 
   const before = moveList[0].before
   const after = moveList[0].after
@@ -30,11 +31,11 @@ export const turnChangeLineMap = (vm, moveList, reset) => {
       const pitch = changedLineMap[x]
       const newX = x + distanceX
       let newPitch = pitch + (pitchPerPx * distanceY)
-      const highestPitch = vm.$store.getters.firstPitch
+      const highestPitch = PitchList[0].pitch
       if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
         newPitch = highestPitch * 100
       }
-      const lowestPitch = pitchList[pitchList.length - 1].pitch
+      const lowestPitch = PitchList[PitchList.length - 1].pitch
       if (newPitch < lowestPitch * 100) { // 小于最小的pitch取最小的
         newPitch = lowestPitch * 100
       }
@@ -47,7 +48,7 @@ export const turnChangeLineMap = (vm, moveList, reset) => {
     })
   }
 
-  vm.$store.state.changedLineMap = {
+  state.changedLineMap = {
     ...changedLineMap,
     ...newLinePointsMap
   }
@@ -93,28 +94,4 @@ export const pitchList2StagePitches = (pitchList, type, vm) => {
   })
   console.log('pitchList2StagePitches:', stagePitches)
   return stagePitches
-}
-
-export const deleteStagePitches = (vm) => {
-  const stagePitches = vm.$store.state.stagePitches.filter(({ selected }) => !selected)
-  const selectStagePitches = vm.$store.state.stagePitches.filter(({ selected }) => selected)
-  const changedLineMap = { ...vm.$store.state.changedLineMap }
-  let minLeft = selectStagePitches[0].left
-  let maxRight = selectStagePitches[0].left + selectStagePitches[0].width
-  selectStagePitches.forEach(item => {
-    minLeft = Math.min(minLeft, item.left)
-    maxRight = Math.max(maxRight, item.left + item.width)
-  })
-  Object.keys(changedLineMap)
-    .map(Number)
-    .filter(x => x >= minLeft && x <= maxRight)
-    .forEach(x => {
-      delete changedLineMap[x]
-    })
-
-  vm.$store.state.changedLineMap = {
-    ...changedLineMap
-  }
-  vm.$store.dispatch('changeStoreState', { stagePitches })
-  vm.$store.dispatch('afterChangePitchAndHandle')
 }

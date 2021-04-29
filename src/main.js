@@ -5,6 +5,7 @@ import store from './store'
 import smoothscroll from 'smoothscroll-polyfill'
 import '@/common/utils/permission'
 import '@/common/utils/filter'
+import '@/common/css/scrollbar.less'
 
 smoothscroll.polyfill()
 Vue.config.productionTip = false

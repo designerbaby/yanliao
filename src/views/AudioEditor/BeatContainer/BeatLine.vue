@@ -17,7 +17,7 @@
 
 <script>
 import { Message } from "element-ui";
-import { playState } from '@/common/utils/const'
+import { PlayState } from '@/common/utils/const'
 
 export default {
   name: "BeatLine",
@@ -41,12 +41,19 @@ export default {
       return this.$store.state.playState
     },
     arrowTop() {
-      if (this.$store.state.isExceedHeader) {
-        // 48为头部的高度, 2为修正高度
-        return this.$store.state.appScrollTop - 48 - 2
+      const isExceedHeader = this.$store.state.isExceedHeader
+      const showArrange = this.$store.state.showArrange
+      const appScrollTop = this.$store.state.appScrollTop
+      if (isExceedHeader && !showArrange) {
+        // 48为头部的高度, 4为修正高度, 34为编曲合起来的高度
+        return appScrollTop - 48 - 4 + 34
+      } else if (isExceedHeader && showArrange) {
+        // 157为编曲展开的高度
+        return appScrollTop - 48 + 157
       }
       return 0
-    }
+    },
+
   },
   methods: {
     onLineMouseDown(event) {
@@ -55,7 +62,7 @@ export default {
         Message.error("正在合成音频中,不能修改哦~")
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

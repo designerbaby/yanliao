@@ -1,11 +1,11 @@
 <template>
   <div :class="[$style.arrange, {[$style.fixed]: isFixed}]">
-    <div :class="$style.container" v-if="$store.state.showArrange">
+    <div :class="$style.container" v-show="$store.state.showArrange">
       <ArrangeTitle></ArrangeTitle>
       <ArrangeBar></ArrangeBar>
       <div :class="$style.wrap">
         <ArrangeTrack></ArrangeTrack>
-        <div :class="$style.right" ref="rightArea">
+        <div :class="$style.right" ref="rightArea" id="arrangeRightArea">
           <ArrangeStageBg></ArrangeStageBg>
           <div
             :class="$style.line"
@@ -17,7 +17,7 @@
         </div>
       </div>
     </div>
-    <ArrangeTitle v-else :type="'right'"></ArrangeTitle>
+    <ArrangeTitle v-if="!$store.state.showArrange" :type="'right'"></ArrangeTitle>
   </div>
 </template>
 

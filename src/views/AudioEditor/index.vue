@@ -9,7 +9,7 @@
       @openDrawer="toOpenDrawer"
       @toScroll="toScroll"
     ></BeatHeader>
-    <!-- <Arrange ref="Arrange"></Arrange> -->
+    <Arrange ref="Arrange"></Arrange>
     <StatusBar></StatusBar>
     <BeatContainer ref="BeatContainer"></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
@@ -23,19 +23,24 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import { Message } from 'element-ui'
-import BeatContainer from './BeatContainer.vue'
-import BeatHeader from './BeatHeader.vue'
+import BeatContainer from './BeatContainer'
+import BeatHeader from './BeatHeader'
 import BeatSetting from './BeatSetting.vue'
-import StatusBar from './StatusBar.vue'
-// import Arrange from './Arrange/index.vue'
+import StatusBar from './StatusBar'
+import Arrange from './Arrange'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
-import { processStatus, statusMap, playState } from '@/common/utils/const'
+import { ProcessStatus, PlayState, TrackMode } from '@/common/utils/const'
 import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
-import { pitchList2StagePitches, deleteStagePitches } from '@/common/utils/common'
+import { pitchList2StagePitches } from '@/common/utils/common'
 import { PlayAudio } from '@/common/utils/player'
 import CommonDialog from '@/common/components/CommonDialog'
+import * as waveSurfer from '@/common/utils/waveSurfer'
+// import Editor from '@/common/editor'
+
+let audio = null
 
 export default {
   name: 'AudioEditor',
@@ -45,34 +50,32 @@ export default {
     BeatHeader,
     BeatSetting,
     StatusBar,
-    // Arrange,
+    Arrange,
     CommonDialog
   },
   data() {
     return {
       userInfo: sessionStorage.getItem('userInfo'),
-      timerId: 0,
+      // timerId: 0,
       audio: null,
-      linePosition: null, // 播放时，线所在的位置播放
-
       // 播放线
       playLine: {
-        start: 0,
-        end: 0,
         current: 0 // 当前的位置, px
       },
       playStartTime: 0, // 从第几秒开始播放
-      dialogShow: false
+      dialogShow: false,
+      isAddAc: 1
     }
   },
   async mounted() {
     reportEvent('audioedit-page-exposure', 147622)
+    // Editor.getInstance().setVm(this.$root).setStore(this.$store)
     await this.getEditorDetail()
     this.storeStagePitchesWatcher = this.$store.watch(
       state => state.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
-        console.log('changeStoreState isStagePitchesChanged true')
+        // console.log('changeStoreState isStagePitchesChanged true')
         this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
       },
       {
@@ -82,16 +85,23 @@ export default {
     this.$store.dispatch('updateStageSize')
     await this.$nextTick()
     document.addEventListener('keydown', this.keyDownListener)
+    document.addEventListener('mousemove', this.mousemoveListener)
   },
   destroyed() {
-    if (this.audio) {
-      this.audio.pause() // 要把播放的暂停了
-    }
     this.storeStagePitchesWatcher()
     this.resetStoreState()
+    if (audio) {
+      audio.pause() // 要把播放的暂停了
+    }
+    if (waveSurfer.getWaveSurfer()) {
+      waveSurfer.getWaveSurfer().pause()
+      waveSurfer.clearWaveSurfer()
+    }
     document.removeEventListener('keydown', this.keyDownListener)
+    document.removeEventListener('mousemove', this.mousemoveListener)
   },
   computed: {
+    ...mapGetters(['stagePitches']),
     noteWidth() {
       return this.$store.state.noteWidth
     },
@@ -118,18 +128,44 @@ export default {
     },
     stagePitches() {
       return this.$store.state.stagePitches
+    },
+    trackList() {
+      return this.$store.state.trackList
     }
   },
   methods: {
-    keyDownListener(event) {
-      if (event.target !== document.body) return
-      if (event.keyCode === 32) {
+    keyDownListener(e) {
+      if (e.target !== document.body) return
+      const keyCode = e.keyCode || e.which || e.charCode;
+      const ctrlKey = e.ctrlKey || e.metaKey;
+      console.log('ctrlKey', ctrlKey, keyCode)
+      if (keyCode === 32) { // 空格键 tab
         this.toPlay()
-        event.preventDefault()
-      } else if (event.keyCode === 8 || event.keyCode === 46) { // delete or return
-        deleteStagePitches(this)
-        event.stopPropagation()
+        e.preventDefault()
+      } else if (keyCode === 8 || keyCode === 46) { // delete or return
+        this.$store.dispatch('done/deletePitches')
+        e.stopPropagation()
+      } else if (ctrlKey && keyCode === 67) { // ctrl + c 复制
+        this.$store.dispatch('done/copyPitches')
+        e.preventDefault() // 阻止默认行为
+      } else if (ctrlKey && keyCode === 86) { // ctrl + v 粘贴
+        this.$store.dispatch('done/pastePitches', {position: null})
+        e.preventDefault()
+      } else if (ctrlKey && keyCode === 89) { // ctrl + y 恢复
+        // this.$store.dispatch('done/redo', 1)
+      } else if (ctrlKey && keyCode === 90) { // ctrl + z 撤销
+        // this.$store.dispatch('done/redo', -1)
       }
+    },
+    mousemoveListener(e) {
+      this.$store.commit('done/UPDATE_MOUSEPOS', {
+        x: e.x,
+        y: e.y,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        layerX: e.layerX,
+        layerY: e.layerY
+      })
     },
     closeDialogShow() {
       this.dialogShow = false
@@ -157,7 +193,7 @@ export default {
       const res = await songDetail(musicId)
       return res.data.data
     },
-    async getMusicxml2Json(xml2JsonReq) {
+    async getMusicXml2Json(xml2JsonReq) {
       const res = await musicxml2Json(xml2JsonReq)
       return res.data.data
     },
@@ -178,35 +214,53 @@ export default {
       }
       this.$store.state.changedLineMap = changed
     },
+    acInfo2TrackList(acInfo, bpm) {
+      let acInfos = acInfo
+      if (acInfos.length === 0) {
+        acInfos = this.$store.state.trackList
+      }
+      const trackList = JSON.parse(JSON.stringify(acInfos))
+      trackList.forEach(item => {
+        item.offset = timeToPx(item.offset, this.noteWidth / 10, bpm)
+      })
+      return trackList
+    },
     async getEditorDetail() {
       const taskId = getParam('taskId') || 0
       const musicId = getParam('musicId') || 0
       if (taskId) { // 从我的曲谱编辑按钮进来，如果从我的作品的编辑按钮进来就同时有taskId和musicId
-        // console.log('taskId:', taskId)
         const res = await editorDetail({ task_id: taskId })
         const data = res.data.data
         const pitchList = data.pitchList
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
+        const trackList = this.acInfo2TrackList(data.ac_info, pitchList[0].bpm)
+        const stageMousePos = {
+          x: trackList[1]?.offset,
+          y: 0
+        }
         await this.$store.dispatch('changeStoreState', {
           taskId: data.task_id,
-          downUrl: data.down_url,
           onlineUrl: data.online_url,
           f0AI: data.f0_ai,
           f0Draw: data.f0_draw,
-          bpm: pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
+          bpm: pitchList[0].bpm,
           toneName: pitchList[0].singer,
           toneId: pitchList[0].toneId,
           stagePitches: stagePitches,
           volumeMap: this.convertXyMap(data.volume_xy),
           tensionMap: this.convertXyMap(data.tension_xy),
-          f0Xy: data.f0_xy,
           musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
-          musicName: data.music_name
+          musicName: data.music_name,
+          trackList: trackList,
+          stageMousePos: stageMousePos
         })
         this.saveF0DrawChange(data.f0_ai, data.f0_draw)
+        if (trackList[1].file) {
+          this.$store.dispatch('showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
+        }
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
-        const musicxml2Json = await this.getMusicxml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
+        const musicxml2Json = await this.getMusicXml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
         console.log('musicInfo:', musicInfo)
         let stagePitches = []
         if (musicInfo.bus_type === 1) { // 从正常的xml转过来，给的是格子数
@@ -220,10 +274,15 @@ export default {
         if (musicInfo.bus_type === 2 && resetF0Draw === 1) {
           f0Draw = []
         }
+        const trackList = this.acInfo2TrackList(musicxml2Json.ac_info, musicxml2Json.pitchList[0].bpm)
+        const stageMousePos = {
+          x: trackList[1]?.offset,
+          y: 0
+        }
         this.$store.dispatch('changeStoreState', {
           taskId: getParam('arrangeId') || musicxml2Json.task_id,
           musicId: musicId,
-          bpm: musicxml2Json.pitchList[0].bpm, // TODO 这里如果每个字都不同，就要改
+          bpm: musicxml2Json.pitchList[0].bpm,
           toneName: musicxml2Json.pitchList[0].singer,
           toneId: musicxml2Json.pitchList[0].toneId,
           musicName: `${musicInfo.name}填词`,
@@ -232,10 +291,14 @@ export default {
           f0Draw: f0Draw,
           volumeMap: this.convertXyMap(musicxml2Json.volume_xy),
           tensionMap: this.convertXyMap(musicxml2Json.tension_xy),
-          f0Xy: musicxml2Json.f0_xy,
-          pitchChanged: true // 标记音块改动了，这样才能重新拉到辅音
+          pitchChanged: true, // 标记音块改动了，这样才能重新拉到辅音
+          trackList: trackList,
+          stageMousePos: stageMousePos
         })
         this.saveF0DrawChange(musicxml2Json.f0_ai, f0Draw)
+        if (trackList[1].file) {
+          this.$store.dispatch('showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
+        }
         this.$store.dispatch('getPitchLine')
         this.$store.dispatch('saveFuYuan')
       }
@@ -266,6 +329,16 @@ export default {
         return true
       }
 
+      // 伴奏改变了
+      if (this.$store.state.isObbligatoChanged) {
+        return true
+      }
+
+      // 静音播放改变了
+      if (this.$store.state.isTrackChanged) {
+        return true
+      }
+
       // 没有可播放的url
       if (!this.$store.state.onlineUrl && type !== 'upload') {
         return true
@@ -274,6 +347,84 @@ export default {
       return false
     },
     async toPlay() {
+      const trackMode = this.$store.getters.trackMode
+      if (trackMode === TrackMode.TrackModeNone) {
+        Message.error('都设置静音了,不播放了～')
+        return
+      }
+
+      if (trackMode === TrackMode.TrackModeBan) {
+        console.log('只播放伴奏')
+        this.toPlayWaver()
+        return
+      }
+      if (trackMode === TrackMode.TrackModeGan || !waveSurfer.getWaveSurfer()) {
+        console.log('播放干声,不合成伴奏')
+        this.isAddAc = 0
+        this.toPlayVoice()
+        return
+      }
+      if (trackMode === TrackMode.TrackModeAll) {
+        console.log('干声和伴奏一起播放,也合成伴奏')
+        this.isAddAc = 1
+        this.toPlayVoice()
+        return
+      }
+    },
+    toPlayWaver() {
+      // 只播伴奏
+      const waveSurferObj = waveSurfer.getWaveSurfer()
+      if (waveSurferObj) {
+        if (waveSurferObj.isPlaying()) {
+          this.changePlayState(PlayState.StatePaused)
+        } else {
+          this.changePlayState(PlayState.StatePlaying)
+        }
+        waveSurferObj.playPause()
+        this.toSaveSynthesize()
+        const waveOffset = this.trackList[1].offset
+        waveSurferObj.on('audioprocess', (process) => {
+          const left = timeToPx(process * 1000, this.noteWidth / 10, this.bpm)
+          const currentPosition = (left + waveOffset) * 10
+          this.changeLinePosition(currentPosition, true)
+        })
+        waveSurferObj.on('finish', () => {
+          const time = this.$store.state.wavePlayStartTime
+          waveSurfer.setCurrentTime(time)
+          const left = (timeToPx(time * 1000, this.noteWidth / 10, this.bpm) + waveOffset) * 10
+          this.$store.dispatch('changeStoreState', { lineLeft: left })
+          this.changePlayState(PlayState.StatePaused)
+        })
+      } else {
+        Message.error('伴奏音轨没有伴奏哦~')
+      }
+    },
+    async toSaveSynthesize() {
+      const handleData = this.handleVolumeTension()
+      const acInfo = this.handleAcInfo()
+      const req = {
+        pitchList: this.$store.getters.pitchList,
+        f0_ai: this.$store.state.f0AI,
+        f0_draw: this.$store.state.f0Draw,
+        task_id: this.$store.state.taskId,
+        volume_data: handleData.f0Volume,
+        tension_data: handleData.f0Tension,
+        volume_xy: handleData.volumeXy,
+        tension_xy: handleData.tensionXy,
+        music_id: this.$store.state.musicId,
+        music_name: this.$store.state.musicName,
+        ac_info: acInfo,
+        is_add_ac: 0
+      }
+      const { data } = await editorSynth(req)
+      if (data.ret_code !== 0) {
+        console.log(`保存数据失败, 错误信息:${data.err_msg}, 请重试~`)
+        return
+      } else {
+        console.log(`保存数据成功, paramId: ${data.data.param_id}, taskId: ${data.data.task_id}`)
+      }
+    },
+    toPlayVoice() {
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,请耐心等待~')
         return
@@ -287,17 +438,24 @@ export default {
         Message.error('没有音符！！')
         return
       }
+
       const lastStagePitches = this.stagePitches[this.stagePitches.length - 1]
-      const maxRight = lastStagePitches.left + lastStagePitches.width
-      if (this.$store.state.lineLeft > maxRight && this.playState !== playState.StatePlaying) {
-        Message.error('播放线后没有音符！！')
+      const lastStagePitchRight = lastStagePitches.left + lastStagePitches.width
+      const banEndX = this.trackList[1].offset * 10 + this.$store.state.waveWidth * 10
+      let maxRight = lastStagePitchRight
+      if (waveSurfer.getWaveSurfer()) {
+        maxRight = Math.max(lastStagePitchRight, banEndX)
+        waveSurfer.setCurrentTime(0)
+      }
+      if (this.$store.state.lineLeft > maxRight && this.playState !== PlayState.StatePlaying) {
+        Message.error('播放线后没有音符或伴奏！！')
         return
       }
       console.log(`Click play button, current state: ${this.playState}`)
 
       const taskId = getParam('taskId')
       // 如果当前是默认状态
-      if (this.playState === playState.StateNone) {
+      if (this.playState === PlayState.StateNone) {
         if (this.isNeedGenerate()) {
           this.doPlay(true)
         } else {
@@ -308,11 +466,11 @@ export default {
             this.doPlay(true)
           }
         }
-        this.changePlayState(playState.StatePlaying)
-      } else if (this.playState === playState.StatePlaying) {
-        this.audio.pause()
-        this.changePlayState(playState.StatePaused)
-      } else if (this.playState === playState.StatePaused) {
+        this.changePlayState(PlayState.StatePlaying)
+      } else if (this.playState === PlayState.StatePlaying) {
+        audio.pause()
+        this.changePlayState(PlayState.StatePaused)
+      } else if (this.playState === PlayState.StatePaused) {
         if (this.isNeedGenerate()) {
           this.doPlay(true)
         } else if(this.isManualMovedLine) {
@@ -320,8 +478,8 @@ export default {
         } else {
           this.doPlay(false, true)
         }
-        this.changePlayState(playState.StatePlaying)
-      } else if (this.playState === playState.StateEnded) {
+        this.changePlayState(PlayState.StatePlaying)
+      } else if (this.playState === PlayState.StateEnded) {
         if (this.isNeedGenerate()) {
           this.doPlay(true)
         } else if(this.isManualMovedLine) {
@@ -329,60 +487,51 @@ export default {
         } else {
           this.doPlay(false)
         }
-        this.changePlayState(playState.StatePlaying)
+        this.changePlayState(PlayState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false })
+      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false, isTrackChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
-      const { start, end, minStart, maxEnd, duration } = this.getLinePosition()
-      console.log(`doPlay generator:${generator}, isContinue:${isContinue}, start: ${start}, end: ${end}, minStart:${minStart}, maxEnd: ${maxEnd}, duration:${duration}`)
+      const { startTime } = this.getLinePosition()
+      console.log(`doPlay generator:${generator}, isContinue:${isContinue}, startTime: ${startTime}`)
 
-      // 百分比不能为负数，最小为0
-      const percent = Math.max(0, (start - minStart) / (maxEnd - minStart))
-      const startTime = percent * duration / 1000
-      console.log(`duration:${duration}, startTime:${startTime}, percent:${percent}`)
       if (generator) {
-        const { onlineUrl, downUrl } = await this.toSynthesize()
+        const { onlineUrl } = await this.toSynthesize(this.isAddAc)
         // 每次生成新的都存起来
         this.$store.dispatch('changeStoreState', {
-          downUrl,
           onlineUrl,
         })
-        this.playLine = {
-          current: start,
-          start,
-          end
-        }
-        this.playStartTime = startTime
         this.toPlayAudio(onlineUrl)
-        this.audio.currentTime = startTime
-        this.audio.play()
+        this.playStartTime = startTime
+        audio.currentTime = startTime
+        audio.play()
       } else {
         if (isContinue) {
-          console.log(`play continue with start: ${this.playStartTime}`)
-          // this.audio.currentTime = this.playStartTime
-          this.audio.play()
+          console.log(`play continue with start}`)
+          audio.play()
         } else {
-          this.playLine = {
-            current: start,
-            start,
-            end
-          }
-          // const duration = this.audio.duration
-          // 百分比不能为负数，最小为0
-          // const startTime = percent * duration
           this.playStartTime = startTime
-          this.audio.currentTime = startTime
-          this.audio.play()
+          audio.currentTime = startTime
+          audio.play()
         }
-
       }
     },
     toPlayAudio(url) {
-      clearInterval(this.timerId)
-      this.audio = PlayAudio({
+      // clearInterval(this.timerId)
+      audio = PlayAudio({
         url,
         onPlay: (audio) => {
+          const ticker = () => {
+            if (this.playState === PlayState.StatePlaying) {
+              if (audio.duration) {
+                const currentPosition = timeToPx(audio.currentTime * 1000, this.noteWidth, this.bpm)
+                // console.log(`ticker: duration:${audio.duration}, currentTime:${audio.currentTime}, currentPosition`, currentPosition)
+                this.changeLinePosition(currentPosition, true)
+              }
+              requestAnimationFrame(ticker)
+            }
+          }
+          /* 废弃
           this.timerId = setInterval(() => {
             if (audio.duration) {
               // 需要播放的音频长度，如果移动了线，则可能从中间位置开始播
@@ -398,15 +547,21 @@ export default {
               this.changeLinePosition(this.playLine.current, true)
             }
           }, 16)
+          */
+
+          requestAnimationFrame(ticker)
         },
         onPause: (dom) => {
-          clearInterval(this.timerId)
+          // clearInterval(this.timerId)
         },
         onEnd: () => {
-          clearInterval(this.timerId)
-          this.changePlayState(playState.StateEnded)
-          this.changeLinePosition(this.playLine.start, true)
-          this.playLine.current = this.playLine.start
+          // clearInterval(this.timerId)
+          this.changePlayState(PlayState.StateEnded)
+          // 回到开始播放的位置
+          const resumePosition = timeToPx(this.playStartTime * 1000, this.noteWidth, this.bpm)
+          // console.log(`resumePosition`, resumePosition, this.playStartTime)
+          this.changeLinePosition(resumePosition, true)
+          // this.playLine.current = this.playLine.start
         }
       })
     },
@@ -421,7 +576,8 @@ export default {
         }
         this.scrollArrange(left)
       }
-
+      this.playLine.current = left
+      // console.log('this.playLine.current:', this.playLine.current)
       this.$store.dispatch('changeStoreState', { lineLeft: left })
     },
     scrollArrange(left) {
@@ -437,50 +593,68 @@ export default {
     toScroll(left) {
       this.$refs.BeatContainer.scrollTo(left)
     },
+    getStagePitchLeftPosition(item) {
+      let left = item.left
+      // 有preTime表示是音素模式，因此要加上这个长度
+      if (item.hasOwnProperty('preTime')) {
+        left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
+      }
+      return left
+    },
+    getStagePitchRightPosition(item) {
+      return item.left + item.width
+    },
     getLinePosition() {
       const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
-      const excessPitches = []
-      let lineStartX = 10000000
-      let lineEndX = 0
-      let minStart = 0
-      let maxEnd = 0
-
-      let firstPitchStartTime = 0
-      let lastPitchStartTime = 0
-      let lastPitchDuration = 0
-      const full = this.$store.getters.pitchWidth * 50 // TODO 这里改了500个数据的话就要改动
-      this.stagePitches.forEach(item => {
-        const right = item.left + item.width
-        let left = item.left
-        if (item.hasOwnProperty('preTime')) {
-          left = item.left - timeToPx(item.preTime, this.noteWidth, this.bpm)
-        }
-        if (left >= lineLeft || right >= lineLeft) {
-          lineStartX = Math.min(lineStartX, left)
-          lineEndX = Math.max(lineEndX, right)
-        }
-
-        maxEnd = Math.max(maxEnd, right)
-        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
-        const startTime = pxToTime(item.left, this.noteWidth, this.bpm) - item.preTime
-
-        if (startTime < firstPitchStartTime) {
-          firstPitchStartTime = startTime
-        }
-
-        if (startTime > lastPitchStartTime) {
-          lastPitchStartTime = startTime
-          lastPitchDuration = duration
+      const trackMode = this.$store.getters.trackMode
+      let lineStartX = null
+      let isLineInStagePitchRange = false
+      // 音块的最左边和最右边
+      // let minLeft, maxRight
+      this.stagePitches.forEach((item, idx) => {
+        const right = this.getStagePitchRightPosition(item)
+        if (lineLeft < right && trackMode !== TrackMode.TrackModeAll) {
+          isLineInStagePitchRange = true
         }
       })
 
-      const totalDuration = lastPitchStartTime - firstPitchStartTime + lastPitchDuration
+      console.log(`isLineInStagePitchRange:`, isLineInStagePitchRange)
+
+      // 如果在音块范围内，以音块为准
+      if (isLineInStagePitchRange) {
+        this.stagePitches.forEach((item, index) => {
+          const left = this.getStagePitchLeftPosition(item)
+          const right = this.getStagePitchRightPosition(item)
+          // console.log(`left`, left)
+
+          if (lineLeft <= right) {
+            if (lineStartX === null) {
+              lineStartX = left
+            }
+            lineStartX = Math.min(lineStartX, left)
+          }
+        })
+      } else {
+        lineStartX = lineLeft
+      }
+
+      // 特殊场景：如果伴奏在音块前面，并且是同时播放的情况，伴奏最左边比第一个音符小
+      const firstPitch = this.stagePitches[0]
+      if (this.trackList[1].offset * 10 < firstPitch.left && lineLeft <= this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
+        lineStartX = this.trackList[1].offset * 10
+      }
+      // 有伴奏，在最左边，都播放，第一个音符比线小
+      if (firstPitch.left < this.trackList[1].offset * 10 && lineLeft < firstPitch.left && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
+        lineStartX = firstPitch.left
+      }
+      // 没有伴奏，在第一个音符最左边，都播放
+      if (trackMode === TrackMode.TrackModeAll && !waveSurfer.getWaveSurfer() && lineLeft < firstPitch.left) {
+        lineStartX = firstPitch.left
+      }
+      console.log('lineStartX:', lineStartX)
+      const startTime = pxToTime(lineStartX, this.noteWidth, this.bpm) / 1000
       return {
-        start: lineStartX,
-        end: lineEndX + full, // full代表sdk补的宽度
-        minStart,
-        maxEnd: maxEnd + full, // full代表sdk补的宽度
-        duration: totalDuration + 500 // 补了50个数据，一个数据10ms,总共500ms
+        startTime,
       }
     },
     handleVolumeTension() {
@@ -520,14 +694,23 @@ export default {
         f0Tension: f0Tension
       }
     },
-    async toSynthesize(callback) {
+    handleAcInfo() {
+      let acInfo = JSON.parse(JSON.stringify(this.trackList))
+      acInfo[0].file = this.$store.state.onlineUrl
+      acInfo[0].offset = this.$store.getters.pitchList[0].startTime
+      acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
+      return acInfo
+    },
+    async toSynthesize(isAddAc, callback) {
+      // isAddAc 是否合成伴奏 0 不合成 1合成
       if (this.$store.state.isGetF0Data) {
         Message.error(`网络不好，请稍后重试~`)
         return
       }
       this.$store.dispatch('changeStoreState', { isSynthetizing: true })
-      const synthesizeStart = Date.now()
+      const sStart = Date.now()
       const handleData = this.handleVolumeTension()
+      const acInfo = this.handleAcInfo()
       const req = {
         pitchList: this.$store.getters.pitchList,
         f0_ai: this.$store.state.f0AI,
@@ -537,9 +720,10 @@ export default {
         tension_data: handleData.f0Tension,
         volume_xy: handleData.volumeXy,
         tension_xy: handleData.tensionXy,
-        f0_xy: this.$store.state.f0Xy,
         music_id: this.$store.state.musicId,
-        music_name: this.$store.state.musicName
+        music_name: this.$store.state.musicName,
+        ac_info: acInfo,
+        is_add_ac: isAddAc  // 是否需要合成伴奏,0为不需要，1为需要
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -555,7 +739,6 @@ export default {
       // Message.success('开始合成音频中~')
 
       let onlineUrl = ''
-      let downUrl = ''
 
       for (let i = 0; i < 20 ;i ++) {
         const { data } = await editorSynthStatus(paramId, taskId)
@@ -569,20 +752,20 @@ export default {
             console.log('editorSynthResult:', data)
             if (resp.data.ret_code === 0 && resp.data.data.state === 2 ) {
               onlineUrl = resp.data.data.online_url
-              downUrl = resp.data.data.down_url
               Message.success('音频合成成功~')
               break
             }
         } else {
-          Message.success(`算法努力合成音频中(${processStatus[data.data.status]}%)`)
+          Message.success(`算法努力合成音频中(${ProcessStatus[data.data.status]}%)`)
         }
         await sleep(3000)
-        const synthesizeEnd = Date.now()
-        console.log(`synthesizeEnd - synthesizeStart: ${synthesizeEnd - synthesizeStart}, synthesizeStart: ${synthesizeStart}, synthesizeEnd: ${synthesizeEnd}`)
-        if ((synthesizeEnd - synthesizeStart) > 60 * 1000) {
+        const sEnd = Date.now()
+        const duration = sEnd - sStart
+        console.log(`synthesize duration: ${duration}, synthesize start: ${sStart}, synthesize end: ${sEnd}`)
+        if (duration > 60 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
           this.$store.dispatch('changeStoreState', { isSynthetizing: false })
-          this.changePlayState(playState.StateNone) // 合成失败，要把合成状态改回来
+          this.changePlayState(PlayState.StateNone) // 合成失败，要把合成状态改回来
           break
         }
       }
@@ -592,8 +775,7 @@ export default {
         callback()
       }
       return {
-        onlineUrl,
-        downUrl
+        onlineUrl
       }
     }
   }

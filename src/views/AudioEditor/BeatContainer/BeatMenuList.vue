@@ -17,8 +17,6 @@
 </template>
 
 <script>
-import { Message } from "element-ui"
-import { deleteStagePitches } from '@/common/utils/common'
 
 export default {
   name: 'BeatMenuList',
@@ -68,7 +66,7 @@ export default {
       this.top = top
     },
     deletePitch() {
-      deleteStagePitches(this)
+      this.$store.dispatch('done/deletePitches')
       this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     editLyric(type) {
@@ -76,12 +74,11 @@ export default {
       this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     copy() {
-      Message.success('复制成功~')
-      const copyStagePitches = this.stagePitches.filter(v => v.selected);
-      this.$store.dispatch('changeStoreState', { copyStagePitches })
-      this.$store.dispatch('changeStoreState', { showMenuList: false })
+      this.$store.dispatch('done/copyPitches')
     },
     insertBreath() {
+      // 操作存储
+      this.$store.dispatch('done/push')
       const selectStagePitches = this.stagePitches.filter(v => v.selected)
       selectStagePitches.forEach(item => {
         this.$set(item, 'breath', {
@@ -92,6 +89,8 @@ export default {
       })
     },
     cancelBreath() {
+      // 操作存储
+      this.$store.dispatch('done/push')
       const selectStagePitches = this.stagePitches.filter(v => v.selected)
       selectStagePitches.forEach(item => {
         item.breath = null

@@ -22,8 +22,9 @@
 
 <script>
 import { Dialog, Button, Message, Radio, RadioGroup } from 'element-ui'
-import { pitchList } from '@/common/utils/const'
+import { PitchList } from '@/common/utils/const'
 import { pitchList2StagePitches } from '@/common/utils/common'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'MidiDialog',
@@ -53,18 +54,18 @@ export default {
           lowestPitch = Math.min(lowestPitch, pitchLists[j].pitch)
           highestPitch = Math.max(highestPitch, pitchLists[j].pitch)
         }
-        if (lowestPitch < pitchList[pitchList.length - 1].pitch) {
+        if (lowestPitch < PitchList[PitchList.length - 1].pitch) {
           Message.error('最低音小于现在的音域')
           this.$emit('midi-cancel')
           return
         }
-        if (highestPitch > pitchList[0].pitch) {
+        if (highestPitch > PitchList[0].pitch) {
           Message.error('最高音大于现在的音域')
           this.$emit('midi-cancel')
           return
         }
-        item.lowestPitchStr = pitchList.find(v => v.pitch === lowestPitch).str
-        item.highestPitchStr = pitchList.find(v => v.pitch === highestPitch).str
+        item.lowestPitchStr = PitchList.find(v => v.pitch === lowestPitch).str
+        item.highestPitchStr = PitchList.find(v => v.pitch === highestPitch).str
       }
       this.midPitchList = midPitchList
       this.midiVisible = true
@@ -94,10 +95,16 @@ export default {
         tensionMap: [],
         changedLineMap: {}
       })
-      this.$store.dispatch('getPitchLine')
+      this.$store.dispatch('afterChangePitchAndHandle')
       this.$store.dispatch('saveFuYuan')
       this.$store.dispatch('adjustStageWidth')
       this.$emit('midi-cancel')
+      // 有伴奏的话，清空伴奏
+      const waveSurferObj = waveSurfer.getWaveSurfer()
+      if (waveSurfer) {
+        this.$store.dispatch('changeStoreState', { waveWidth: 0 })
+        waveSurfer.clearWaveSurfer()
+      }
       Message.success('导入成功～')
     }
   }

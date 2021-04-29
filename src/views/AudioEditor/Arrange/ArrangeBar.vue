@@ -14,7 +14,9 @@
 </template>
 
 <script>
-
+import { pxToTime } from '@/common/utils/helper'
+import { TrackMode } from '@/common/utils/const'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 export default {
   name: 'ArrangeBar',
   computed: {
@@ -23,6 +25,9 @@ export default {
         width: `${this.$store.getters.stageWidth / 10}px`,
         left: `${-this.$store.state.arrangeStage.scrollLeft}px`
       }
+    },
+    trackList() {
+      return this.$store.state.trackList
     }
   },
   data() {
@@ -33,7 +38,27 @@ export default {
       const stage = document.querySelector('#arrageStage')
       const rect = stage.getBoundingClientRect()
       const left = event.clientX - rect.left
-      this.$store.dispatch('changeStoreState', { lineLeft: left * 10 })
+      const lineLeft = left * 10
+      this.$store.dispatch('changeStoreState', { lineLeft })
+
+      // 改变音轨区播放线的位置顺便移动下面主舞台
+      const { width } = this.$store.state.stage
+      const stageRightArea = document.getElementById('rightArea')
+      const scrollLeft = lineLeft - width / 2
+      this.$store.state.stage.scrollLeft = scrollLeft
+      stageRightArea.scrollLeft = scrollLeft
+
+      // 修改伴奏轨的播放进度
+      if (waveSurfer.getWaveSurfer() && this.$store.getters.trackMode === TrackMode.TrackModeBan) {
+        const waveSurferLeft = left - this.trackList[1].offset
+        let time = pxToTime(waveSurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
+        if (time < 0) {
+          time = 0
+        }
+        console.log(`waveSurferLeft: ${waveSurferLeft}, time: ${time}`)
+        waveSurfer.setCurrentTime(time)
+        this.$store.dispatch('changeStoreState', { wavePlayStartTime: time })
+      }
     }
   }
 }

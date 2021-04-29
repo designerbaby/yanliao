@@ -146,25 +146,6 @@ export default {
     uploadExcced(files, fileList) {
       Message.error('请勿重复上传')
     },
-    async checkSongIn() {
-      let inSong = false
-      const rep = {
-        word: this.form.songName,
-        start: 0,
-        count: 10
-      }
-      const { data } = await search(rep)
-      const musicList = data.data.music_list
-      if (
-        musicList.length > 0 &&
-        this.form.songName === musicList[0].name &&
-        this.form.singerName === musicList[0].singer
-      ) {
-        this.musicId = data.data.music_list[0].music_id
-        inSong = true
-      }
-      return inSong
-    },
     async uploadButtonClick() {
       this.$refs['videoForm'].validate(result => {
         if (result === true) {
@@ -194,6 +175,7 @@ export default {
       })
     },
     async remoteMethod(query) {
+      if (!query) { return; }
       const {
         data: { data }
       } = await associateTag({ name: query })
@@ -204,7 +186,7 @@ export default {
       this.form.tags = [...this.form.tags, { value: '' }]
     },
     minusTag(index) {
-this.form.tags.splice(index, 1);
+      this.form.tags.splice(index, 1);
     },
     // el-input覆盖el-select，输入时自动触发el-select下拉选项
     inputTag(value, index) {
@@ -250,7 +232,8 @@ this.form.tags.splice(index, 1);
     width: 220px;
   }
   .add-span {
-    display: inline-block;
+    width: 220px;
+    margin-top: -10px;
     font-size: 16px;
     color: #409eff;
     cursor: pointer;

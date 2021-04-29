@@ -8,7 +8,10 @@
 
 <script>
 import { Message } from "element-ui"
-import { playState } from "@/common/utils/const"
+import { PlayState, TrackMode } from "@/common/utils/const"
+import { pxToTime } from '@/common/utils/helper'
+import * as waveSurfer from '@/common/utils/waveSurfer'
+
 export default {
   name: 'BeatTop',
   computed: {
@@ -19,7 +22,7 @@ export default {
       return this.$store.getters.beatWidth
     },
     style() {
-      return { 
+      return {
         left: `${-this.$store.state.stage.scrollLeft}px`
       }
     }
@@ -29,7 +32,8 @@ export default {
   },
   methods: {
     changeLine(event) {
-      if (this.$store.state.playState === playState.StatePlaying) {
+      console.log('changeLine:', event)
+      if (this.$store.state.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -38,6 +42,17 @@ export default {
       const rect = stage.getBoundingClientRect()
       const left = event.clientX - rect.left
       this.$store.dispatch("changeStoreState", { lineLeft: left })
+
+      // 修改伴奏轨的播放进度
+      if (waveSurfer.getWaveSurfer() && this.$store.getters.trackMode === TrackMode.TrackModeBan) {
+        const waveSurferLeft = left / 10 - this.$store.state.trackList[1].offset
+        let time = pxToTime(waveSurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
+        if (time < 0) {
+          time = 0
+        }
+        console.log(`waveSurferLeft: ${waveSurferLeft}, time: ${time}`)
+        waveSurfer.setCurrentTime(time)
+      }
     }
   }
 }

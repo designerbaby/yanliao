@@ -54,6 +54,8 @@
 import { Select, Option, InputNumber, Input, Button } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
+import { timeToPx } from '@/common/utils/helper'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatSetting',
@@ -129,7 +131,15 @@ export default {
           this.$store.state.bpm = this.inputBpmValue
         }
       })
-      // this.$store.dispatch('getPitchLine')
+       // 有伴奏的话，要相应修改伴奏的长度
+      const waveSurferObj = waveSurfer.getWaveSurfer()
+      if (waveSurferObj) {
+        const duration = waveSurferObj.getDuration()
+        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
+        this.$store.dispatch('changeStoreState', { waveWidth })
+        waveSurfer.clearWaveSurfer()
+        this.$store.dispatch('showWaveSurfer', { file: this.$store.state.trackList[1].file, type: 'url', bpm: this.inputBpmValue })
+      }
     },
     playerButtonClick() {
       this.toneList.forEach(item => {

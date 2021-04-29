@@ -1,7 +1,9 @@
 <template>
-  <div :class="$style.title" @click="clickArrange">
-    <img src="@/assets/audioEditor/track-arrow.png" :class="[type === 'right' ? $style.isRight : '']"/>
-    编曲
+  <div :class="$style.title">
+    <div :class="$style.inner" @click="clickArrange">
+      <img src="@/assets/audioEditor/track-arrow.png" :class="[type === 'right' ? $style.isRight : '']"/>
+      编曲
+    </div>
   </div>
 </template>
 
@@ -29,11 +31,13 @@ export default {
   img {
     width: 12px;
     height: 12px;
-    margin: 0 6px 0 16px;
+    margin: 0 0px 0 16px;
   }
 }
 
-
+.inner {
+  display: inline-block;
+}
 
 .isRight {
   transform: rotate(270deg);

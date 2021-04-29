@@ -1,86 +1,101 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import profile from './profile'
-import { pitchList, playState, modeState, typeModeState } from '@/common/utils/const'
+import modules from './modules'
+import { PitchList, PlayState, ModeState, TypeModeState, TrackMode } from '@/common/utils/const'
 import { getF0Data, getYinsu } from '@/api/audio'
-import { pxToTime, checkPitchDuplicated } from '@/common/utils/helper'
+import { pxToTime, timeToPx, checkPitchDuplicated } from '@/common/utils/helper'
 import { Message } from 'element-ui'
 import deepAssign from 'object-assign-deep'
+import { createWaveSurfer } from '@/common/utils/waveSurfer.js'
 
 Vue.use(Vuex)
 
-const defaultState = {
+const constState = {
   beatForm: {   // 存储节拍
     fenzi: 4,
     fenmu: 4
   },
-  lineLeft: 6,   // 播放线的左边距
+  lineLeft: 0,   // 播放线的左边距
   matter: 30,    // 总共有多少个小节
   noteWidth: 20, // 32分音符占据的最小像素单位
-  noteHeight: 25, // 32分音符的占据的最小高度
+  noteHeight: 25,// 32分音符的占据的最小高度
   bpm: 90,       // 曲速
-  toneId: 1, // 选择的toneId
-  auditUrl: '', // 选择的播放的url
-  taskId: 0, // 正在编辑的taskId
+  toneId: 1,     // 选择的toneId
+  auditUrl: '',  // 选择的播放的url
+  taskId: 0,     // 正在编辑的taskId
   toneName: 'luoxiang', // 选择的toneName
-  isSynthetizing: false, // 是否在合成音频中
-  isGetF0Data: false, // 正在获取f0中
   stage: {
-    width: 0, // 舞台容器宽度
-    height: 0, // 舞台容器高度
-    scrollLeft: 0, // 水平滚动条位置
-    scrollTop: 0 // 垂直滚动条位置
+    width: 0,     // 舞台容器宽度
+    height: 0,    // 舞台容器高度
+    scrollLeft: 0,// 水平滚动条位置
+    scrollTop: 0  // 垂直滚动条位置
   },
-  mode: modeState.StatePitch, // 模式
-  typeMode: typeModeState.StateNone, // 附加模式类型
-  playState: playState.StateNone, // 播放状态
-  stagePitches: [], // 舞台音块
-  isStagePitchesChanged: false, // 舞台音块是否有改变
-  isPitchLineChanged: false, // 音高线是否有改变
-  isVolumeChanged: false, // 响度是否有改变
-  isTensionChanged: false, // 张力是否有改变
-  isStagePitchElementChanged: false, // 元辅音是否有改变
-  f0AI: [], // 音高线虚线部分
-  f0Draw: [], // 音高线实线部分
-  f0Xy: {}, // 音高线的坐标部分 !!!暂时没用到
-  volumeMap: [], // 响度原始map数据
-  tensionMap: [], // 张力原始map数据
-  changedLineMap: {}, // 音高线改变的信息
+  mode: ModeState.StatePitch,        // 模式
+  typeMode: TypeModeState.StateNone, // 附加模式类型
+  playState: PlayState.StateNone,    // 播放状态
+  isSynthetizing: false, // 是否在合成音频中
+  isGetF0Data: false,    // 是否在获取f0中
+  isStagePitchesChanged: false,       // 舞台音块是否有改变
+  isPitchLineChanged: false,          // 音高线是否有改变
+  isVolumeChanged: false,             // 响度是否有改变
+  isTensionChanged: false,            // 张力是否有改变
+  isStagePitchElementChanged: false,  // 元辅音是否有改变
+  isObbligatoChanged: false,          // 伴奏是否有改变
+  isTrackChanged: false,              // 干音和伴奏是否有改变
+  pitchChanged: false,                // 是否全部重置
   pinyinList: [], // 当前用户输入的字里面包括的多音字列表
-  onlineUrl: '', // 在线播放的音频
-  downUrl: '', // 下载的音频
+  onlineUrl: '',  // 在线播放的音频
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
   typeContainerHeight: 250, // 响度/张力面板的高度
-  pitchChanged: false, // 是否全部重置
-  showMenuList: false, // 音块的右键菜单列表
-  showStageList: false, // 全局舞台的右键菜单列表
+  showMenuList: false,   // 音块的右键菜单列表
+  showStageList: false,  // 全局舞台的右键菜单列表
   copyStagePitches: [], // 复制的内容
   musicId: 0, // 从主流程过来的选中的歌曲id
   musicName: '编辑器填词', // 歌曲名称
   showArrange: true, // 是否展开编曲
-  trackList: [
-    {
-      name: '干音音轨',
-      current: 50,
-      total: 100,
-      play: true,
-      type: 1 // type 1代表干音音轨, 2代表伴奏音轨
-    },
-    {
-      name: '伴奏音轨',
-      current: 10,
-      total: 100,
-      play: false,
-      type: 2
-    }
-  ], // 音轨列表，后续多音轨要改这里的数据
   arrangeStage: { // 音轨舞台
     width: 0,
     height: 0,
     scrollLeft: 0,
     scrollTop: 0
+  },
+  wavePlayStartTime: 0 // 伴奏轨开始的时间
+}
+
+const changeState = {
+  stagePitches: [],    // 舞台音块
+  f0AI: [],            // 音高线虚线部分
+  f0Draw: [],          // 音高线实线部分
+  changedLineMap: {},  // 音高线改变的信息
+  volumeMap: [],  // 响度原始map数据
+  tensionMap: [], // 张力原始map数据
+  waveWidth: 0, // 音波长度
+  trackList: [ // 音轨列表，!!!后续多音轨要改这里的数据
+    {
+      volume: 100,  // 音频音量
+      is_sil: 1,    // 是否静音 1否 2是
+      type: 1,      // 音频类型 1代表干音音轨, 2代表伴奏音轨
+      offset: 0,
+      file: '', // 地址
+    },
+    {
+      volume: 100,
+      is_sil: 1,
+      type: 2,
+      offset: 0,
+      file: ''
+    }
+  ],
+  stageMousePos: {  // 伴奏轨的位置
+    x: 0,
+    y: 0
   }
+}
+
+const defaultState = {
+  ...deepAssign({}, constState),
+  ...deepAssign({}, changeState)
 }
 
 const store = new Vuex.Store({
@@ -92,18 +107,36 @@ const store = new Vuex.Store({
       return state.noteWidth * (32 / state.beatForm.fenmu) * state.beatForm.fenzi * state.matter
     },
     stageHeight: state => {
-      return pitchList.length * state.noteHeight
+      return PitchList.length * state.noteHeight
     },
     beatWidth: state => {
       return state.noteWidth * (32 / state.beatForm.fenmu) * state.beatForm.fenzi
     },
+    arrangeFenziWidth: state => {
+      return state.noteWidth * (32 / state.beatForm.fenmu) / 10
+    },
     firstPitch: state => {
-      return pitchList[0].pitch
+      return PitchList[0].pitch
     },
     pitchWidth: state => { // 音高线2个数据之间的px值
       // 10是因为数据的每一项间隔10ms
       console.log('state.bpm:', state.bpm)
       return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
+    },
+    trackMode: state => {
+      const ganIsSil = state.trackList[0].is_sil
+      const banIsSil = state.trackList[1].is_sil
+      if (ganIsSil === 2 && banIsSil === 2) {
+        return TrackMode.TrackModeNone
+      } else if (ganIsSil === 2 && banIsSil === 1) {
+        return TrackMode.TrackModeBan
+      } else if (ganIsSil === 1 && banIsSil === 2) {
+        return TrackMode.TrackModeGan
+      } else if (ganIsSil === 1 && ganIsSil === 1) {
+        return TrackMode.TrackModeAll
+      } else {
+        return TrackMode.TrackModeNone
+      }
     },
     pitchList: (state, getters) =>  {
       const stagePitches = state.stagePitches
@@ -170,22 +203,6 @@ const store = new Vuex.Store({
         pitches.push(pitchItem)
       }
       return pitches
-    },
-    audioDuration: (state, getters) => {
-      let startTime = -1
-      let endTime = -1
-      for (const pitch of getters.pitchList) {
-        if (startTime < 0 || pitch.startTime < startTime) {
-          startTime = pitch.startTime
-        }
-        if (endTime < 0 || pitch.endTime > endTime) {
-          endTime = pitch.endTime
-        }
-      }
-
-      const duration = endTime - startTime
-      // SDK还补了500
-      return duration > 0 ? duration + 500 : 0
     }
   },
   mutations: {
@@ -351,7 +368,11 @@ const store = new Vuex.Store({
         const right = item.left + item.width
         maxPitchRight = Math.max(maxPitchRight, right)
       })
+      const banEndX = state.trackList[1].offset * 10 + state.waveWidth * 10 // 伴奏的最尾端
       while (maxPitchRight > getters.stageWidth) {
+        dispatch('updateMatter', 15)
+      }
+      while (banEndX > getters.stageWidth) {
         dispatch('updateMatter', 15)
       }
     },
@@ -369,15 +390,37 @@ const store = new Vuex.Store({
         Vue.set(item, 'yuan', y)
       }
       commit('changeStoreState', { stagePitches })
+    },
+    showWaveSurfer({ commit, state, dispatch }, { file, type, bpm }) {
+      // type 'blob'加载blob文件 'url'加载url文件
+      const waveSurfer = createWaveSurfer(file, type)
+      waveSurfer.on('ready', () => {
+        // 初始化伴奏的宽度、音波、位移、音量
+        const duration = waveSurfer.getDuration()
+        const waveWidth = timeToPx(duration * 1000, state.noteWidth / 10, bpm || state.bpm)
+        commit('changeStoreState', { waveWidth })
+        state.trackList[1].offset = state.stageMousePos.x
+        waveSurfer.zoom(waveWidth / duration)
+        waveSurfer.setVolume(state.trackList[1].volume / 100)
+        dispatch('adjustStageWidth')
+      })
+      commit('changeStoreState', { isObbligatoChanged: true })
     }
   },
-  modules: {
-    profile: profile
-  }
+  modules
 })
 
 store.dispatch('updateStageSize')
 window.addEventListener('resize', () => {
   store.dispatch('updateStageSize')
 })
+
+// const subscribeMutations = ['updateBeatForm', 'updateMatter', 'changeStoreState', 'changeF0']
+// store.subscribe(({ type, payload }) => {
+//   if (subscribeMutations.includes(type)) {
+//     console.log('subscribe', type, payload)
+//     // store.dispatch('done/push')
+//   }
+// });
+
 export default store

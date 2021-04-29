@@ -2,7 +2,9 @@
   <div ref="container" :class="$style.container">
     <div :class="$style.main">
       <BeatPiano></BeatPiano>
-      <div :class="$style.right" ref="rightArea">
+
+      <!-- 钢琴右侧 -->
+      <div :class="$style.right" ref="rightArea" id="rightArea">
         <div ref="stage" :class="$style.stage" id="audioStage">
           <BeatStageBg></BeatStageBg>
           <BeatLine></BeatLine>
@@ -48,11 +50,15 @@
             v-if="$store.state.showMenuList"
           ></BeatMenuList>
           <div :class="$style.sharp" ref="sharp"></div>
-          <PitchLine v-if="$store.state.mode === modeState.StateLine" ref="PitchLine"></PitchLine>
-          <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
+          <PitchLine v-if="$store.state.mode === ModeState.StateLine" ref="PitchLine"></PitchLine>
+          <PitchElement v-if="$store.state.mode === ModeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
-        <Parameters ref="Parameters" v-if="$store.state.typeMode !== typeModeState.StateNone"></Parameters>
+        <Parameters ref="Parameters" v-if="$store.state.typeMode !== TypeModeState.StateNone"></Parameters>
+
+        <!-- 自定义横向滚动条 -->
+        <Bar wrapRef="rightArea" :move="this.barState.x" :size="this.barState.w" />
       </div>
+
       <BeatStageList ref="BeatStageList" v-if="$store.state.showStageList"></BeatStageList>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
@@ -61,9 +67,9 @@
 </template>
 
 <script>
-import { pitchList, playState, modeState, typeModeState } from "@/common/utils/const"
+import { mapGetters } from 'vuex'
+import { PlayState, ModeState, TypeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
-import BeatTop from './BeatTop.vue'
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
@@ -75,15 +81,17 @@ import LyricCorrect from './LyricCorrect.vue'
 import BeatMenuList from './BeatMenuList.vue'
 import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
-import StatusBar from './StatusBar.vue'
 import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
+import Bar from '@/common/components/Scrollbar/src/bar'
+// import Editor from '@/common/editor'
+// import AddPitchCommand from '@/common/commands/AddPitchCommand'
+// import MovePitchCommand from '@/common/commands/MovePitchCommand'
 
 export default {
   name: "BeatContainer",
   components: {
-    BeatTop,
     Message,
     BeatPiano,
     BeatStageBg,
@@ -95,24 +103,28 @@ export default {
     LyricCorrect,
     BeatMenuList,
     Parameters,
-    StatusBar,
     PitchElement,
-    Breath
+    Breath,
+    Bar
   },
   data() {
     return {
-      pitchList: pitchList,
-      modeState: modeState,
-      typeModeState: typeModeState,
+      ModeState: ModeState,
+      TypeModeState: TypeModeState,
       isMouseDown: false,
       startPos: null,
       endPos: null,
       movePitchStart: null,
       selectedUUID: null,
-      mouseModalTarget: null
+      mouseModalTarget: null,
+      barState: {  // 自定义滚动条状态
+        x: 0,
+        w: ''
+      }
     }
   },
   computed: {
+    ...mapGetters(['stageWidth']),
     stagePitches() {
       return this.$store.state.stagePitches
     },
@@ -135,11 +147,13 @@ export default {
       return this.$store.state.playState
     }
   },
+  watch: {
+    stageWidth() {
+      this.$nextTick(this.scrollBar)
+    }
+  },
   mounted() {
     this.updateStageOffset()
-    // window.addEventListener('resize', () => { // 缩放功能
-    //   this.updateStageOffset()
-    // })
     this.$refs.rightArea.addEventListener('scroll', () => {
       this.updateStageOffset()
     })
@@ -165,18 +179,30 @@ export default {
       this.$refs.rightArea.scrollLeft = left
     },
     updateStageOffset() {
+      this.scrollBar()
       // 初始化舞台的位置
       const scrollLeft = this.$refs.rightArea.scrollLeft
       const scrollTop = this.$refs.rightArea.scrollTop
+      const rect = this.$refs.stage.getBoundingClientRect()
 
       this.$store.dispatch("changeStoreState", {
         stage: {
           ...this.$store.state.stage,
           scrollLeft,
-          scrollTop
+          scrollTop,
+          rectLeft: rect.left,
+          rectTop: rect.top,
         }
       })
       // console.log('this.$store.state.stage:', JSON.stringify(this.$store.state.stage))
+    },
+    // 滚动进度条
+    scrollBar() {
+      const wrap = this.$refs.rightArea
+      const widthPercentage = (wrap.clientWidth * 100) / wrap.scrollWidth
+      this.barState.w = widthPercentage < 100 ? widthPercentage + '%' : ''
+      this.barState.x = (wrap.scrollLeft * 100) / wrap.clientWidth
+      // console.log('scrollBar', this.stageWidth, wrap.clientWidth, wrap.scrollWidth, this.barState)
     },
     onRightClickStage(event) {
       console.log('右键整个舞台事件 onRightClickStage:', event)
@@ -245,7 +271,7 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -312,7 +338,6 @@ export default {
       // 绿色块鼠标移动事件
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
-        console.log('this.mouseModalTarget:', this.mouseModalTarget)
         if (this.mouseModalTarget) {
           this.mouseModalTarget.style.left = `${event.target.dataset.left - 100}px`
           this.mouseModalTarget.style.top = `${event.target.dataset.top - 100}px`
@@ -396,7 +421,10 @@ export default {
           }
         }
 
-        turnChangeLineMap(this, moveList, true)
+        // const editor = Editor.getInstance()
+        // editor.execute(new MovePitchCommand(editor, moveList))
+
+        turnChangeLineMap(this.$store.state, moveList, true)
 
         this.movePitchStart = null
         if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
@@ -423,12 +451,12 @@ export default {
     },
     onMouseDown(event) {
       // 画音块，鼠标按住事件
-      // console.log('onMouseDown:', event)
+      console.log('onMouseDown:', event)
       if (this.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -484,6 +512,8 @@ export default {
       // 必须先按下了鼠标，才有松开鼠标事件
       // console.log('onMouseUp', event)
       if (this.isMouseDown) {
+        // 操作存储
+        this.$store.dispatch('done/push')
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
@@ -521,6 +551,16 @@ export default {
           left,
           top
         });
+
+        // const editor = Editor.getInstance()
+        // const pitch = {
+        //   width,
+        //   height: this.noteHeight,
+        //   left,
+        //   top
+        // }
+        // editor.execute(new AddPitchCommand(editor, pitch))
+
         this.toCheckOverStage(this.endPos.x)
       }
     },
@@ -616,14 +656,14 @@ export default {
 .right {
   position: absolute;
   width: calc(100% - 50px);
-  // height: calc(100%);
   height: 100%;
   left: 50px;
   user-select: none;
   overflow-x: scroll;
   overflow-x: overlay;
   &::-webkit-scrollbar {
-    width: 0px;
+    display: none;
+    width: 0;
     height: 10px;
   }
   &::-webkit-scrollbar-track-piece {
@@ -679,12 +719,22 @@ export default {
   background-color: rgba(204, 204, 204, 0.514);
 }
 
-// .aerate {
-//   width: 38px;
-//   height: 53px;
-//   position: absolute;
-//   top: -47px;
-//   left: -15px;
-// }
+</style>
 
+<style lang='less' scoped>
+/deep/ .common-scrollbar {
+  &-bar {
+    position: fixed;
+    left: 50px;
+    height: 14px;
+    border-radius: 20px;
+
+    &.is-vertical {
+      display: none;
+    }
+  }
+  &-thumb {
+    background: #b4b4b4;
+  }
+}
 </style>

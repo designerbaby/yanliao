@@ -4,35 +4,42 @@
       <div :class="$style.top">
         <img src="@/assets/audioEditor/track-people.png" v-if="it.type === 1">
         <img src="@/assets/audioEditor/track-music.png" v-else>
-        <div :class="$style.name">{{ it.name }}</div>
+        <div :class="$style.name">{{ getName(it.type) }}</div>
         <div @click="play(index)">
-          <img src="@/assets/audioEditor/track-play.png" v-if="it.play">
+          <img src="@/assets/audioEditor/track-play.png" v-if="it.is_sil === 1">
           <img src="@/assets/audioEditor/track-mute.png" v-else>
         </div>
       </div>
       <div :class="$style.progress">
-        <div :class="$style.inner" :style="{ width: `${(it.current / it.total) * 100}%` }"></div>
-        <div
-          :class="$style.select"
-          :style="{ left: `${(it.current / it.total) * 100}%` }"
-          @mousedown="onMouseDown($event, index)"
-          @mousemove="onMouseMove($event, index)"
-          @mouseup="onMouseUp"
-          @mouseleave="onMouseUp"
-        ></div>
+        <div :class="$style.inner" :style="{ width: `${(it.volume / 100) * 100}%` }"></div>
+        <Dragger
+          :className="$style.select"
+          :styles="{ left: `${(it.volume / 100) * 100}%` }"
+          @on-start="onStart($event, index)"
+          @on-move="onMove($event, index)"
+          @on-end="onEnd"
+          >
+          <img src="@/assets/audioEditor/arrow-right.png">
+        </Dragger>
         <div
           :class="$style.bubble"
-          :style="{ left: `${(it.current / it.total) * 100}%` }"
+          :style="{ left: `${(it.volume / 100) * 100}%` }"
           v-if="isChangeVolume === index"
-        >{{ it.current }}</div>
+        >{{ it.volume }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
+import { getWaveSurfer } from '@/common/utils/waveSurfer'
+import { PlayState, TrackMode } from "@/common/utils/const"
+import { Message } from 'element-ui'
+
 export default {
   name: 'ArrangeTrack',
+  components: { Dragger },
   data() {
     return {
       isChangeVolume: -1, // 要开始修改音量了
@@ -43,32 +50,76 @@ export default {
   computed: {
     trackList() {
       return this.$store.state.trackList
+    },
+    playState() {
+      return this.$store.state.playState
     }
   },
   methods: {
-    onMouseDown(event, index) {
+    getName(type) {
+      if (type === 1) {
+        return '干音音轨'
+      } else {
+        return '伴奏音轨'
+      }
+    },
+    onStart(event, index) {
+      if (this.playState === PlayState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
       this.isChangeVolume = index
       this.startVolume = {
-        left: this.trackList[index].current,
+        volume: this.trackList[index].volume,
         x: event.clientX
       }
     },
-    onMouseMove(event, index) {
+    onMove(event, index) {
       if (this.isChangeVolume >= 0) {
         const pos = {
           x: event.clientX
         }
         const moveX = pos.x - this.startVolume.x
-        this.trackList[index].current = this.startVolume.left + moveX
+
+        const ratio = 216 / 100
+
+        const currentVolume = Math.ceil(this.startVolume.volume + moveX / ratio)
+        if (currentVolume < 0 || currentVolume > 100) {
+          return
+        }
+
+        this.trackList[index].volume = currentVolume
+
+        if (this.trackList[index].volume === 0) {
+          this.trackList[index].is_sil = 2
+        } else {
+          this.trackList[index].is_sil = 1
+        }
+
+        const waveSurfer = getWaveSurfer()
+        const trackMode = this.$store.getters.trackMode
+        if (index === 1 && waveSurfer && trackMode === TrackMode.TrackModeBan) {
+          waveSurfer.setVolume(this.trackList[1].volume / 100)
+        }
       }
     },
-    onMouseUp() {
+    onEnd() {
       if (this.isChangeVolume >= 0) {
         this.isChangeVolume = -1
       }
+      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
     },
     play(index) {
-      this.trackList[index].play = !this.trackList[index].play
+      if (this.playState === PlayState.StatePlaying) {
+        Message.error('正在播放中, 不能修改哦~')
+        return
+      }
+      if (this.trackList[index].is_sil === 1) {
+        this.trackList[index].is_sil = 2
+      } else {
+        this.trackList[index].is_sil = 1
+      }
+      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
     }
   }
 }

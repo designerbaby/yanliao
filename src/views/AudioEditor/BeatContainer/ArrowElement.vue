@@ -10,9 +10,9 @@
 
 <script>
 import { Message } from 'element-ui'
-import { playState } from '@/common/utils/const'
+import { PlayState } from '@/common/utils/const'
 import { pxToTime } from '@/common/utils/helper'
-import Dragger from './Components/Dragger.vue'
+import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
 
 export default {
   name: 'ArrowElement',
@@ -39,10 +39,12 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
+      // 操作存储
+      this.$store.dispatch('done/push')
       this.isActive = true
       // console.log('onArrowEleMouseDown this.pitch:', this.pitch)
       const preTime = this.pitch.preTime

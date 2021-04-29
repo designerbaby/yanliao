@@ -10,7 +10,7 @@
         :multiple="false"
         :show-file-list="false"
         :with-credentials="true"
-        :action="action">
+        action="/">
         <div id="uploadQupuWrap">
           <div :class="$style.common" @click="uploadQupu">
             <img src="@/assets/audioEditor/import.png"/>
@@ -18,50 +18,50 @@
           </div>
         </div>
       </Upload>
-      <!-- <div :class="$style.common" @click="clickArrange">
+      <div :class="$style.common" @click="clickArrange">
         <img src="@/assets/audioEditor/track-arrange.png" v-if="$store.state.showArrange">
         <img src="@/assets/audioEditor/track-normal.png" v-else>
         <div :class="$style.text">编曲</div>
-      </div> -->
+      </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
-          <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
+        <div :class="[$style.check, mode === ModeState.StatePitch ? $style.isActive : '']" @click="selectMode(ModeState.StatePitch)">
+          <img src="@/assets/audioEditor/note-active.png" v-if="mode === ModeState.StatePitch">
           <img src="@/assets/audioEditor/note-normal.png" v-else>
           <div :class="$style.text">音符模式</div>
         </div>
-        <div :class="[$style.check, $style.middle, mode === modeState.StateLine ? $style.isActive : '']" @click="selectMode(modeState.StateLine)">
-          <img src="@/assets/audioEditor/line-active.png" v-if="mode === modeState.StateLine">
+        <div :class="[$style.check, $style.middle, mode === ModeState.StateLine ? $style.isActive : '']" @click="selectMode(ModeState.StateLine)">
+          <img src="@/assets/audioEditor/line-active.png" v-if="mode === ModeState.StateLine">
           <img src="@/assets/audioEditor/line-normal.png" v-else>
           <div :class="$style.text">音高线模式</div>
         </div>
-        <div :class="[$style.check, $style.right, mode === modeState.StateElement ? $style.isActive : '']" @click="selectMode(modeState.StateElement)">
-          <img src="@/assets/audioEditor/yinsu-active.png" v-if="mode === modeState.StateElement">
+        <div :class="[$style.check, $style.right, mode === ModeState.StateElement ? $style.isActive : '']" @click="selectMode(ModeState.StateElement)">
+          <img src="@/assets/audioEditor/yinsu-active.png" v-if="mode === ModeState.StateElement">
           <img src="@/assets/audioEditor/yinsu-normal.png" v-else>
           <div :class="$style.text">音素模式</div>
         </div>
       </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, typeMode === typeModeState.StateVolume ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateVolume)">
-          <img src="@/assets/audioEditor/loud-active.png" v-if="typeMode === typeModeState.StateVolume">
+        <div :class="[$style.check, typeMode === TypeModeState.StateVolume ? $style.isActive : '']" @click="selectTypeMode(TypeModeState.StateVolume)">
+          <img src="@/assets/audioEditor/loud-active.png" v-if="typeMode === TypeModeState.StateVolume">
           <img src="@/assets/audioEditor/loud-normal.png" v-else>
           <div :class="$style.text">响度</div>
         </div>
-        <div :class="[$style.check, $style.right, typeMode === typeModeState.StateTension ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateTension)">
-          <img src="@/assets/audioEditor/tension-active.png" v-if="typeMode === typeModeState.StateTension">
+        <div :class="[$style.check, $style.right, typeMode === TypeModeState.StateTension ? $style.isActive : '']" @click="selectTypeMode(TypeModeState.StateTension)">
+          <img src="@/assets/audioEditor/tension-active.png" v-if="typeMode === TypeModeState.StateTension">
           <img src="@/assets/audioEditor/tension-normal.png" v-else>
           <div :class="$style.text">张力</div>
         </div>
       </div>
-      <div :class="$style.common" @click="toPlay">
+      <div :class="[$style.common, status === 'notPlay' ? $style.disabled : '']" @click="toPlay">
         <img src="@/assets/audioEditor/pause.png" v-if="isPlaying" :class="$style.icon"/>
         <img src="@/assets/audioEditor/play.png" v-else :class="$style.icon"/>
         <div :class="$style.text">播放控制</div>
       </div>
-      <div :class="$style.common" @click="toGenerateAudio">
+      <div :class="[$style.common, status === 'notPlay' || status === 'notGenerate' ? $style.disabled : '']" @click="toGenerateAudio">
         <img src="@/assets/audioEditor/export.png" :class="$style.icon"/>
         <div :class="$style.text">生成音频</div>
       </div>
-      <div :class="$style.linefu">
+      <!-- <div :class="$style.linefu">
         <div :class="[$style.check, $style.isActive]"
           @mousedown="toScroll(0)"
           @mousemove="onMouseUp"
@@ -78,7 +78,7 @@
           <img src="@/assets/audioEditor/right.png">
           <div :class="$style.text">右滑</div>
         </div>
-      </div>
+      </div> -->
       <div :class="[$style.common, $style.set]" @click="toSet">
         <img src="@/assets/audioEditor/setting.png" :class="$style.icon"/>
         <div :class="$style.text">更多信息</div>
@@ -98,26 +98,26 @@
 
 <script>
 import { Button, Message, Upload } from 'element-ui'
-import { playState, modeState, typeModeState } from "@/common/utils/const"
-import { isDuplicated, reportEvent, getParam, getCookie, camSafeUrlEncode, getAuthorization } from '@/common/utils/helper'
-import MidiDialog from './MidiDialog'
-import CommonDialog from './Components/CommonDialog.vue'
-import { getUserCredential } from '@/api/audioSource'
+import { PlayState, ModeState, TypeModeState, TrackMode } from "@/common/utils/const"
+import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
+import MidiDialog from './MidiDialog.vue'
+import CommonDialog from '@/views/AudioEditor/Components/CommonDialog.vue'
 import { mid2json } from '@/api/audio'
+import { uploadFile } from '@/common/utils/upload'
+import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
   name: 'BeatHeader',
   props: ['isPlaying', 'isNeedGenerate'],
   data() {
     return {
-      modeState: modeState,
-      typeModeState: typeModeState,
+      ModeState: ModeState,
+      TypeModeState: TypeModeState,
       clickMouseStart: false,
       timer: null,
       file: '',
       clickType: -1,
-      dialogShow: false,
-      action: 'https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/'
+      dialogShow: false
     }
   },
   computed: {
@@ -135,6 +135,19 @@ export default {
     },
     showArrange() {
       return this.$store.state.showArrange
+    },
+    trackMode() {
+      return this.$store.getters.trackMode
+    },
+    status() {
+      let status = 'normal'
+      const trackMode = this.trackMode
+      if (trackMode === TrackMode.TrackModeNone) {
+        status = 'notPlay'
+      } else if (trackMode === TrackMode.TrackModeBan) {
+        status = 'notGenerate'
+      }
+      return status
     }
   },
   components: {
@@ -171,10 +184,6 @@ export default {
     clickArrange() {
       this.$store.dispatch('changeStoreState', { showArrange: !this.$store.state.showArrange })
     },
-    async getUserCredential() {
-      const res = await getUserCredential()
-      return res.data
-    },
     async mid2json(url) {
       const res = await mid2json({
         mid_url: url
@@ -183,7 +192,7 @@ export default {
       this.$refs.MidiDialog.show(res.data.data, this.file.name)
     },
     selectMode(mode) {
-      if (mode === modeState.StatePitch) {
+      if (mode === ModeState.StatePitch) {
         reportEvent('note-button-click', 147617)
       } else {
         reportEvent('pitch-button-click', 147618)
@@ -195,15 +204,25 @@ export default {
       this.$store.dispatch('changeStoreState', { mode })
     },
     selectTypeMode(typeMode) {
-      if (typeMode === this.typeMode && this.typeMode !== typeModeState.StateNone) {
-        this.$store.dispatch('changeStoreState', { typeMode: typeModeState.StateNone })
+      if (typeMode === this.typeMode && this.typeMode !== TypeModeState.StateNone) {
+        this.$store.dispatch('changeStoreState', { typeMode: TypeModeState.StateNone })
       } else {
         this.$store.dispatch('changeStoreState', { typeMode })
       }
     },
     async toGenerateAudio() {
       reportEvent('create-audio-button-click', 147619)
-      if (this.playState === playState.StatePlaying) {
+      const trackMode = this.trackMode
+      if (trackMode === TrackMode.TrackModeNone) {
+        Message.error('静音状态下不可合成')
+        return
+      }
+      if (trackMode === TrackMode.TrackModeBan) {
+        Message.error('干音在静音状态下不可合成')
+        return
+      }
+
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -217,7 +236,11 @@ export default {
         Message.error('没有音符！！')
         return
       }
-      this.$emit('synthesize', () => {
+      let isAddAc = 1  // 是否需要合成伴奏,0为不需要，1为需要
+      if (trackMode === TrackMode.TrackModeGan || !waveSurfer.getWaveSurfer()) {
+        isAddAc = 0
+      }
+      this.$emit('synthesize', isAddAc, () => {
         const index = getParam('index')
         this.$router.push(`/profile?index=${index}`)
       })
@@ -238,12 +261,29 @@ export default {
     onMouseUp() {
       this.clickMouseStart = false
     },
-    uploadChange(file) {
-      this.file = file.raw
-      this.uploadMidi()
+    uploadChange(originalFile) {
+      this.file = originalFile.raw
+      const file = originalFile.raw
+      const fileNameArr = file.name.split('.')
+      const type = fileNameArr[fileNameArr.length - 1]
+      if (type !== 'mid') {
+        Message.error('只能上传mid格式的文件～')
+        this.$refs['upload'].clearFiles()
+        return
+      }
+      const size = file.size
+      if (size > 2147483648) {
+        Message.error('文件大小超过 2GB')
+        this.$refs['upload'].clearFiles()
+        return
+      }
+      uploadFile(file, 'analyze', (url) => {
+        Message.success('解析成功～')
+        this.mid2json(url)
+      })
     },
     uploadQupu(event) {
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -263,62 +303,6 @@ export default {
     },
     midiCancelEvent() {
       this.$refs['upload'].clearFiles()
-    },
-    async uploadMidi() {
-      const file = this.file
-      const fileNameArr = file.name.split('.')
-      const type = fileNameArr[fileNameArr.length - 1]
-      if (type !== 'mid') {
-        Message.error('只能上传mid格式的文件～')
-        this.$refs['upload'].clearFiles()
-        return
-      }
-      const size = file.size
-      if (size > 2147483648) {
-        Message.error('文件大小超过 2GB')
-        this.$refs['upload'].clearFiles()
-        return
-      }
-      const method = 'PUT'
-      const mxUid = getCookie('mx_uid')
-      Message.success('开始解析中')
-      const key = `file/${mxUid}/${this.file.name}`
-      const { data } = await this.getUserCredential()
-      const info = await getAuthorization(method, key, data)
-      const Authorization = info.Authorization   // 得到的签名
-      const XCosSecurityToken = info.XCosSecurityToken // 得到的sessionToken
-      this.uploadFile(method, key, Authorization, XCosSecurityToken, (err, data) => {
-        if (err) {
-          Message.error(err)
-        } else {
-          console.log('url:', data.url)
-          this.mid2json(data.url)
-        }
-      })
-    },
-    uploadFile(method, key, Authorization, XCosSecurityToken, callback) {
-      var url = `${this.action}${camSafeUrlEncode(key).replace(/%2F/g, '/')}`
-      var xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.setRequestHeader('Authorization', Authorization);
-      XCosSecurityToken && xhr.setRequestHeader('x-cos-security-token', XCosSecurityToken)
-      xhr.upload.onprogress = (e) => {
-        const percentage = parseFloat(Math.round(e.loaded / e.total * 10000) / 100)
-        console.log(`上传进度: ${percentage}%`)
-        Message.success(`解析进度${percentage}%`)
-      };
-      xhr.onload = () => {
-        if (/^2\d\d$/.test('' + xhr.status)) {
-          var ETag = xhr.getResponseHeader('etag')
-          callback(null, {url: url, ETag: ETag})
-        } else {
-          callback(`文件${key}上传失败，状态码：${xhr.status}`)
-        }
-      };
-      xhr.onerror = () => {
-        callback(`文件${key}上传失败，请检查是否没配置 CORS 跨域规则`)
-      };
-      xhr.send(this.file);
     }
   }
 }
@@ -427,6 +411,11 @@ export default {
   width: 100%;
   opacity: 0;
   cursor: pointer;
+}
+
+.disabled {
+  filter: grayscale(100%);
+  transform: translate3d(0, 0, 0);
 }
 
 </style>
