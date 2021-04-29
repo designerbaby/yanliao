@@ -9,7 +9,7 @@
       </TableColumn>
       <TableColumn label="音源状态">
         <template slot-scope="scope">
-          <span>{{ audioStatusMap[scope.row.status] }}</span>
+          <span>{{ AudioStatusMap[scope.row.status] }}</span>
         </template>
         <template slot="header">
           <div :class="$style.source" @click="showTips">音源状态<img src="@/assets/question.png"></div>
@@ -34,7 +34,7 @@
 <script>
 import { getAudioSourceList } from '@/api/audioSource'
 import { Table, TableColumn, Pagination } from 'element-ui'
-import { audioStatusMap } from '@/common/utils/const'
+import { AudioStatusMap } from '@/common/utils/const'
 import { Dialog } from 'element-ui'
 
 export default {
@@ -53,7 +53,7 @@ export default {
       currentPage: 1,
       total: 0,
       toneInfoList: [],
-      audioStatusMap: audioStatusMap,
+      AudioStatusMap: AudioStatusMap,
       dialogVisible: false
     }
   },

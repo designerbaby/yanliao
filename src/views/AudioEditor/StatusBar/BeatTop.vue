@@ -8,7 +8,7 @@
 
 <script>
 import { Message } from "element-ui"
-import { playState, TrackMode } from "@/common/utils/const"
+import { PlayState, TrackMode } from "@/common/utils/const"
 import { pxToTime } from '@/common/utils/helper'
 import * as waveSurfer from '@/common/utils/waveSurfer'
 
@@ -33,7 +33,7 @@ export default {
   methods: {
     changeLine(event) {
       console.log('changeLine:', event)
-      if (this.$store.state.playState === playState.StatePlaying) {
+      if (this.$store.state.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

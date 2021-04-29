@@ -30,7 +30,6 @@
 import ArrowElement from './ArrowElement.vue'
 import { Message } from 'element-ui'
 import { timeToPx } from '@/common/utils/helper'
-import { modeState } from '@/common/utils/const'
 
 export default {
   name: 'PitchElement',

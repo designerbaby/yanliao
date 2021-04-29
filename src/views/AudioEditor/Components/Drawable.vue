@@ -1,6 +1,6 @@
 <template>
-  <div 
-    :class="[$style.container, className]" 
+  <div
+    :class="[$style.container, className]"
     :style="styles"
     @mousedown.stop="onMouseDown"
     @mousemove="onMouseMove"
@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { playState } from "@/common/utils/const"
+import { PlayState } from "@/common/utils/const"
 import { Message } from "element-ui"
 
 export default {
@@ -33,7 +33,7 @@ export default {
   },
   methods: {
     onMouseDown(event) {
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -63,7 +63,7 @@ export default {
         const { rect } = this.mouseStart
         const x = event.clientX - rect.left
         let y = event.clientY- rect.top
-        
+
         if (y < 0) { // 不要越界
           y = 0
         }

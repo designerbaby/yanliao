@@ -50,15 +50,15 @@
             v-if="$store.state.showMenuList"
           ></BeatMenuList>
           <div :class="$style.sharp" ref="sharp"></div>
-          <PitchLine v-if="$store.state.mode === modeState.StateLine" ref="PitchLine"></PitchLine>
-          <PitchElement v-if="$store.state.mode === modeState.StateElement" ref="PitchElement"></PitchElement>
+          <PitchLine v-if="$store.state.mode === ModeState.StateLine" ref="PitchLine"></PitchLine>
+          <PitchElement v-if="$store.state.mode === ModeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
-        <Parameters ref="Parameters" v-if="$store.state.typeMode !== typeModeState.StateNone"></Parameters>
+        <Parameters ref="Parameters" v-if="$store.state.typeMode !== TypeModeState.StateNone"></Parameters>
 
         <!-- 自定义横向滚动条 -->
         <Bar wrapRef="rightArea" :move="this.barState.x" :size="this.barState.w" />
       </div>
-      
+
       <BeatStageList ref="BeatStageList" v-if="$store.state.showStageList"></BeatStageList>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
@@ -68,7 +68,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { pitchList, playState, modeState, typeModeState } from "@/common/utils/const"
+import { PlayState, ModeState, TypeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
@@ -106,9 +106,8 @@ export default {
   },
   data() {
     return {
-      pitchList: pitchList,
-      modeState: modeState,
-      typeModeState: typeModeState,
+      ModeState: ModeState,
+      TypeModeState: TypeModeState,
       isMouseDown: false,
       startPos: null,
       endPos: null,
@@ -116,7 +115,7 @@ export default {
       selectedUUID: null,
       mouseModalTarget: null,
       barState: {  // 自定义滚动条状态
-        x: 0, 
+        x: 0,
         w: ''
       }
     }
@@ -269,7 +268,7 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -451,7 +450,7 @@ export default {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

@@ -4,7 +4,6 @@
     :class="$style.obbligato"
     id="obbligato"
     @click.right.stop.prevent.exact="onRightClickStage"
-    @mousedown.self="onStageMouseDown"
     :style="{
       width: `${$store.getters.stageWidth / 10}px`,
       height: `${$store.getters.stageHeight / 20}px`,
@@ -13,16 +12,16 @@
     <div
       id="waveform"
       ref="WaveForm"
-      :class="[$style.waveform, showWaveBorder ? $style.isActive : '']"
+      :class="[$style.waveform, waveActive ? $style.isActive : '']"
       :style="{
         width: `${waveWidth}px`,
         height: '48px',
         transform: `translateX(${trackList[1].offset}px)`
       }"
-      @mousedown="onWaveMouseDown"
-      @mousemove="onWaveMouseMove"
-      @mouseup="onWaveMouseUp"
-      @mouseleave="onWaveMouseUp"
+      @mousedown.stop="onWaveMouseDown"
+      @mousemove.stop="onWaveMouseMove"
+      @mouseup.stop="onWaveMouseUp"
+      @mouseleave.stop="onWaveMouseUp"
       @click.right.stop.prevent.exact="onRightClickWave"
     >
     </div>
@@ -62,7 +61,7 @@
 <script>
 import { Upload, Message } from 'element-ui'
 import { uploadFile } from '@/common/utils/upload'
-import { playState } from "@/common/utils/const"
+import { PlayState } from "@/common/utils/const"
 import * as waveSurfer from '@/common/utils/waveSurfer'
 
 export default {
@@ -76,7 +75,7 @@ export default {
       showMenu: false,
       showDelete: false,
       waveMousePos: null, // 伴奏音波鼠标右键的位置
-      showWaveBorder: false,
+      waveActive: false,
       isWaveMouseDown: false,
       waveStartPos: null,
       waveEndPos: null
@@ -87,6 +86,7 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
+    document.addEventListener('click', this.documentListener)
   },
   computed: {
     trackList() {
@@ -99,7 +99,19 @@ export default {
       return this.$store.state.waveWidth
     }
   },
+  destroyed() {
+    document.removeEventListener('click', this.documentListener)
+  },
   methods: {
+    documentListener(event) {
+      this.showMenu = false
+      this.showDelete = false
+
+      const tagName = event.target.tagName
+      if (tagName !== 'WAVE') {
+        this.waveActive = false
+      }
+    },
     async uploadChange(file) {
       const fileNameArr = file.raw.name.split('.')
       const type = fileNameArr[fileNameArr.length - 1]
@@ -109,10 +121,10 @@ export default {
         Message.error('只能上传mp3或wav的文件～')
         return
       }
-      this.showMenu = false
-      this.$store.dispatch('showWaveSurfer', { file: file.raw, type: 'blob' })
+
       uploadFile(file.raw, 'analyze', (url) => {
         this.$store.state.trackList[1].file = url
+        this.$store.dispatch('showWaveSurfer', { file: url, type: 'url' })
       })
     },
     onRightClickStage(event) {
@@ -132,20 +144,16 @@ export default {
         x: event.layerX,
         y: event.layerY
       }
-      // console.log('waveMousePos:', this.waveMousePos)
-      this.showWaveBorder = true
-      this.showMenu = false
+
       this.showDelete = true
     },
     onWaveMouseDown(event) {
-      this.showMenu = false
-      this.showDelete = false
       // console.log('onWaveMouseDown:', event)
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      this.showWaveBorder = true
+      this.waveActive = true
       this.isWaveMouseDown = true
 
       const rect = this.$refs.WaveForm.getBoundingClientRect()
@@ -157,11 +165,11 @@ export default {
       this.$refs.WaveForm.style.opacity = 0.8
       document.addEventListener('mousemove', this.onWaveMouseMove)
       document.addEventListener('mouseleave', this.onWaveMouseUp)
+
     },
     onWaveMouseMove(event) {
       if (this.isWaveMouseDown) {
         // console.log('onWaveMouseMove', event)
-        this.showWaveBorder = true
 
         const rect = this.$refs.WaveForm.getBoundingClientRect()
 
@@ -171,17 +179,23 @@ export default {
         const moveX = this.waveEndPos.x - this.waveStartPos.x
 
         let newLeft = this.trackList[1].offset + moveX
-
+        // 达到最左边就只能是最左边了
         if (newLeft < 0) {
           newLeft = 0
         }
         const arrangeStageWidth = this.$store.getters.stageWidth / 10
-        if (newLeft + this.waveWidth > arrangeStageWidth) {
-          newLeft = arrangeStageWidth - this.waveWidth
+        const arrangeFenziWidth = this.$store.getters.arrangeFenziWidth * this.$store.state.beatForm.fenzi
+        // 达到最右边就扩展区域
+        if (newLeft + this.waveWidth > arrangeStageWidth - arrangeFenziWidth) {
+          // newLeft = arrangeStageWidth - this.waveWidth
+          this.$store.dispatch('adjustStageWidth')
         }
-
+        const stageMousePos = {
+          x: newLeft,
+          y: 0
+        }
         this.$store.state.trackList[1].offset = newLeft
-        this.$store.dispatch('changeStoreState', { isObbligatoChanged: true })
+        this.$store.dispatch('changeStoreState', { isObbligatoChanged: true, stageMousePos })
       }
     },
     onWaveMouseUp(event) {
@@ -194,20 +208,12 @@ export default {
       document.removeEventListener('mousemove', this.onWaveMouseMove)
       document.removeEventListener('mouseleave', this.onWaveMouseUp)
     },
-    onStageMouseDown() {
-      // 鼠标点击伴奏舞台
-      this.showWaveBorder = false
-      this.showMenu = false
-      this.showDelete = false
-    },
     deleteObbligato() {
-      this.showDelete = false
-      this.showWaveBorder = false
       waveSurfer.clearWaveSurfer()
+      this.$refs.WaveForm.style.border = 0
       this.$store.dispatch('changeStoreState', { waveWidth: 0, isObbligatoChanged: true })
     },
     selectObbligato() {
-      this.showMenu = false
       const waveSurferObj = waveSurfer.getWaveSurfer()
       if (waveSurferObj) {
         Message.error('最多只能添加一个音频')

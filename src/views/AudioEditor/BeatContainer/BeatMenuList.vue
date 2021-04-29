@@ -18,7 +18,7 @@
 
 <script>
 import { Message } from "element-ui"
-import { deleteStagePitches } from '@/common/utils/common'
+import { deleteStagePitches, copy } from '@/common/utils/common'
 
 export default {
   name: 'BeatMenuList',
@@ -76,10 +76,11 @@ export default {
       this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     copy() {
-      Message.success('复制成功~')
-      const copyStagePitches = this.stagePitches.filter(v => v.selected);
-      this.$store.dispatch('changeStoreState', { copyStagePitches })
-      this.$store.dispatch('changeStoreState', { showMenuList: false })
+      copy(this)
+      // Message.success('复制成功~')
+      // const copyStagePitches = this.stagePitches.filter(v => v.selected);
+      // this.$store.dispatch('changeStoreState', { copyStagePitches })
+      // this.$store.dispatch('changeStoreState', { showMenuList: false })
     },
     insertBreath() {
       // 操作存储

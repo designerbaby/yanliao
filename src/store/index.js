@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import modules from './modules'
-import { pitchList, playState, modeState, typeModeState, TrackMode } from '@/common/utils/const'
+import { PitchList, PlayState, ModeState, TypeModeState, TrackMode } from '@/common/utils/const'
 import { getF0Data, getYinsu } from '@/api/audio'
 import { pxToTime, timeToPx, checkPitchDuplicated } from '@/common/utils/helper'
 import { Message } from 'element-ui'
@@ -15,7 +15,7 @@ const defaultState = {
     fenzi: 4,
     fenmu: 4
   },
-  lineLeft: 6,   // 播放线的左边距
+  lineLeft: 0,   // 播放线的左边距
   matter: 30,    // 总共有多少个小节
   noteWidth: 20, // 32分音符占据的最小像素单位
   noteHeight: 25,// 32分音符的占据的最小高度
@@ -30,9 +30,9 @@ const defaultState = {
     scrollLeft: 0,// 水平滚动条位置
     scrollTop: 0  // 垂直滚动条位置
   },
-  mode: modeState.StatePitch,        // 模式
-  typeMode: typeModeState.StateNone, // 附加模式类型
-  playState: playState.StateNone,    // 播放状态
+  mode: ModeState.StatePitch,        // 模式
+  typeMode: TypeModeState.StateNone, // 附加模式类型
+  playState: PlayState.StateNone,    // 播放状态
   stagePitches: [],      // 舞台音块
   isSynthetizing: false, // 是否在合成音频中
   isGetF0Data: false,    // 是否在获取f0中
@@ -87,7 +87,8 @@ const defaultState = {
   stageMousePos: {  // 伴奏轨的位置
     x: 0,
     y: 0
-  }
+  },
+  wavePlayStartTime: 0 // 伴奏轨开始的时间
 }
 
 const store = new Vuex.Store({
@@ -99,13 +100,16 @@ const store = new Vuex.Store({
       return state.noteWidth * (32 / state.beatForm.fenmu) * state.beatForm.fenzi * state.matter
     },
     stageHeight: state => {
-      return pitchList.length * state.noteHeight
+      return PitchList.length * state.noteHeight
     },
     beatWidth: state => {
       return state.noteWidth * (32 / state.beatForm.fenmu) * state.beatForm.fenzi
     },
+    arrangeFenziWidth: state => {
+      return state.noteWidth * (32 / state.beatForm.fenmu) / 10
+    },
     firstPitch: state => {
-      return pitchList[0].pitch
+      return PitchList[0].pitch
     },
     pitchWidth: state => { // 音高线2个数据之间的px值
       // 10是因为数据的每一项间隔10ms
@@ -192,22 +196,6 @@ const store = new Vuex.Store({
         pitches.push(pitchItem)
       }
       return pitches
-    },
-    audioDuration: (state, getters) => {
-      let startTime = -1
-      let endTime = -1
-      for (const pitch of getters.pitchList) {
-        if (startTime < 0 || pitch.startTime < startTime) {
-          startTime = pitch.startTime
-        }
-        if (endTime < 0 || pitch.endTime > endTime) {
-          endTime = pitch.endTime
-        }
-      }
-
-      const duration = endTime - startTime
-      // SDK还补了500
-      return duration > 0 ? duration + 500 : 0
     }
   },
   mutations: {
@@ -396,24 +384,19 @@ const store = new Vuex.Store({
       }
       commit('changeStoreState', { stagePitches })
     },
-    showWaveSurfer({ commit, state, dispatch }, { file, type }) {
+    showWaveSurfer({ commit, state, dispatch }, { file, type, bpm }) {
+      // type 'blob'加载blob文件 'url'加载url文件
       const waveSurfer = createWaveSurfer(file, type)
       waveSurfer.on('ready', () => {
+        // 初始化伴奏的宽度、音波、位移、音量
         const duration = waveSurfer.getDuration()
-        console.log('waveSurfer duration:', duration)
-        const waveWidth = timeToPx(duration * 1000, state.noteWidth / 10, state.bpm)
+        const waveWidth = timeToPx(duration * 1000, state.noteWidth / 10, bpm || state.bpm)
+        commit('changeStoreState', { waveWidth })
         state.trackList[1].offset = state.stageMousePos.x
-        console.log('waveWidth / duration:', waveWidth / duration)
         waveSurfer.zoom(waveWidth / duration)
         waveSurfer.setVolume(state.trackList[1].volume / 100)
-        commit('changeStoreState', { waveWidth })
         dispatch('adjustStageWidth')
       })
-      // waveSurfer.on('play', () => {
-      //   const currentTime = waveSurfer.getCurrentTime()
-      //   const duration = waveSurfer.getDuration()
-      //   console.log(`waveSurfer currentTime:${currentTime}, duration: ${duration}`)
-      // })
       commit('changeStoreState', { isObbligatoChanged: true })
     }
   },

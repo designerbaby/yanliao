@@ -34,7 +34,7 @@
 <script>
 import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
 import { getWaveSurfer } from '@/common/utils/waveSurfer'
-import { playState, TrackMode } from "@/common/utils/const"
+import { PlayState, TrackMode } from "@/common/utils/const"
 import { Message } from 'element-ui'
 
 export default {
@@ -64,13 +64,13 @@ export default {
       }
     },
     onStart(event, index) {
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
       this.isChangeVolume = index
       this.startVolume = {
-        left: this.trackList[index].volume,
+        volume: this.trackList[index].volume,
         x: event.clientX
       }
     },
@@ -80,18 +80,22 @@ export default {
           x: event.clientX
         }
         const moveX = pos.x - this.startVolume.x
-        if (this.startVolume.left + moveX < 0 || this.startVolume.left + moveX > 100) {
+
+        const ratio = 216 / 100
+
+        const currentVolume = Math.ceil(this.startVolume.volume + moveX / ratio)
+        if (currentVolume < 0 || currentVolume > 100) {
           return
         }
-        this.trackList[index].volume = this.startVolume.left + moveX
+
+        this.trackList[index].volume = currentVolume
+
         if (this.trackList[index].volume === 0) {
           this.trackList[index].is_sil = 2
         } else {
           this.trackList[index].is_sil = 1
         }
-        // if (index === 0 && this.$store.state.ganAudio) {
-        //   this.$store.state.ganAudio.volume = this.trackList[0].volume / 100
-        // }
+
         const waveSurfer = getWaveSurfer()
         const trackMode = this.$store.getters.trackMode
         if (index === 1 && waveSurfer && trackMode === TrackMode.TrackModeBan) {
@@ -106,7 +110,7 @@ export default {
       this.$store.dispatch('changeStoreState', { isTrackChanged: true })
     },
     play(index) {
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

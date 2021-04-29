@@ -24,30 +24,30 @@
         <div :class="$style.text">编曲</div>
       </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, mode === modeState.StatePitch ? $style.isActive : '']" @click="selectMode(modeState.StatePitch)">
-          <img src="@/assets/audioEditor/note-active.png" v-if="mode === modeState.StatePitch">
+        <div :class="[$style.check, mode === ModeState.StatePitch ? $style.isActive : '']" @click="selectMode(ModeState.StatePitch)">
+          <img src="@/assets/audioEditor/note-active.png" v-if="mode === ModeState.StatePitch">
           <img src="@/assets/audioEditor/note-normal.png" v-else>
           <div :class="$style.text">音符模式</div>
         </div>
-        <div :class="[$style.check, $style.middle, mode === modeState.StateLine ? $style.isActive : '']" @click="selectMode(modeState.StateLine)">
-          <img src="@/assets/audioEditor/line-active.png" v-if="mode === modeState.StateLine">
+        <div :class="[$style.check, $style.middle, mode === ModeState.StateLine ? $style.isActive : '']" @click="selectMode(ModeState.StateLine)">
+          <img src="@/assets/audioEditor/line-active.png" v-if="mode === ModeState.StateLine">
           <img src="@/assets/audioEditor/line-normal.png" v-else>
           <div :class="$style.text">音高线模式</div>
         </div>
-        <div :class="[$style.check, $style.right, mode === modeState.StateElement ? $style.isActive : '']" @click="selectMode(modeState.StateElement)">
-          <img src="@/assets/audioEditor/yinsu-active.png" v-if="mode === modeState.StateElement">
+        <div :class="[$style.check, $style.right, mode === ModeState.StateElement ? $style.isActive : '']" @click="selectMode(ModeState.StateElement)">
+          <img src="@/assets/audioEditor/yinsu-active.png" v-if="mode === ModeState.StateElement">
           <img src="@/assets/audioEditor/yinsu-normal.png" v-else>
           <div :class="$style.text">音素模式</div>
         </div>
       </div>
       <div :class="$style.linefu">
-        <div :class="[$style.check, typeMode === typeModeState.StateVolume ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateVolume)">
-          <img src="@/assets/audioEditor/loud-active.png" v-if="typeMode === typeModeState.StateVolume">
+        <div :class="[$style.check, typeMode === TypeModeState.StateVolume ? $style.isActive : '']" @click="selectTypeMode(TypeModeState.StateVolume)">
+          <img src="@/assets/audioEditor/loud-active.png" v-if="typeMode === TypeModeState.StateVolume">
           <img src="@/assets/audioEditor/loud-normal.png" v-else>
           <div :class="$style.text">响度</div>
         </div>
-        <div :class="[$style.check, $style.right, typeMode === typeModeState.StateTension ? $style.isActive : '']" @click="selectTypeMode(typeModeState.StateTension)">
-          <img src="@/assets/audioEditor/tension-active.png" v-if="typeMode === typeModeState.StateTension">
+        <div :class="[$style.check, $style.right, typeMode === TypeModeState.StateTension ? $style.isActive : '']" @click="selectTypeMode(TypeModeState.StateTension)">
+          <img src="@/assets/audioEditor/tension-active.png" v-if="typeMode === TypeModeState.StateTension">
           <img src="@/assets/audioEditor/tension-normal.png" v-else>
           <div :class="$style.text">张力</div>
         </div>
@@ -98,7 +98,7 @@
 
 <script>
 import { Button, Message, Upload } from 'element-ui'
-import { playState, modeState, typeModeState, TrackMode } from "@/common/utils/const"
+import { PlayState, ModeState, TypeModeState, TrackMode } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog.vue'
 import CommonDialog from '@/views/AudioEditor/Components/CommonDialog.vue'
@@ -111,8 +111,8 @@ export default {
   props: ['isPlaying', 'isNeedGenerate'],
   data() {
     return {
-      modeState: modeState,
-      typeModeState: typeModeState,
+      ModeState: ModeState,
+      TypeModeState: TypeModeState,
       clickMouseStart: false,
       timer: null,
       file: '',
@@ -192,7 +192,7 @@ export default {
       this.$refs.MidiDialog.show(res.data.data, this.file.name)
     },
     selectMode(mode) {
-      if (mode === modeState.StatePitch) {
+      if (mode === ModeState.StatePitch) {
         reportEvent('note-button-click', 147617)
       } else {
         reportEvent('pitch-button-click', 147618)
@@ -204,8 +204,8 @@ export default {
       this.$store.dispatch('changeStoreState', { mode })
     },
     selectTypeMode(typeMode) {
-      if (typeMode === this.typeMode && this.typeMode !== typeModeState.StateNone) {
-        this.$store.dispatch('changeStoreState', { typeMode: typeModeState.StateNone })
+      if (typeMode === this.typeMode && this.typeMode !== TypeModeState.StateNone) {
+        this.$store.dispatch('changeStoreState', { typeMode: TypeModeState.StateNone })
       } else {
         this.$store.dispatch('changeStoreState', { typeMode })
       }
@@ -219,11 +219,10 @@ export default {
       }
       if (trackMode === TrackMode.TrackModeBan) {
         Message.error('干音在静音状态下不可合成')
-        this.toSave()
         return
       }
 
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -284,7 +283,7 @@ export default {
       })
     },
     uploadQupu(event) {
-      if (this.playState === playState.StatePlaying) {
+      if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

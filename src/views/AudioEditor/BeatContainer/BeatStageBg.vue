@@ -1,7 +1,7 @@
 <template>
   <div :class="$style.container" :style="{ width: `${stageWidth}px` }">
     <div :class="$style.row">
-      <template v-for="it in pitchList">
+      <template v-for="it in PitchList">
         <div :class="$style.gray" :key="it.pitch" v-if="it.type === 0"></div>
         <div :class="$style.black" :key="it.pitch" v-else></div>
       </template>
@@ -22,14 +22,14 @@
 </template>
 
 <script>
-import { pitchList } from "@/common/utils/const"
+import { PitchList } from "@/common/utils/const"
 
 export default {
   name: 'BeatStageBg',
   components: {},
   data() {
     return {
-      pitchList: pitchList
+      PitchList: PitchList
     }
   },
   computed: {
