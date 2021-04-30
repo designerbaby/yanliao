@@ -60,9 +60,9 @@ export default {
       const scrollTop = this.$refs.rightArea.scrollTop
       // const arrangeStageWidth = this.$store.getters.stageWidth / 10
       // const progress = scrollLeft / arrangeStageWidth * this.$store.getters.stageWidth
-      this.$store.dispatch('changeStoreState', {
+      this.$store.dispatch('const/changeState', {
         arrangeStage: {
-          ...this.$store.state.arrangeStage,
+          ...this.$store.state.const.arrangeStage,
           scrollLeft,
           scrollTop
         }

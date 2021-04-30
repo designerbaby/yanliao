@@ -82,7 +82,7 @@ export default {
         deep: true
       }
     )
-    this.$store.dispatch('updateStageSize')
+    this.$store.dispatch('const/updateStageSize')
     await this.$nextTick()
     document.addEventListener('keydown', this.keyDownListener)
     document.addEventListener('mousemove', this.mousemoveListener)

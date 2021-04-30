@@ -6,7 +6,7 @@
           :class="$style.fenzi"
           v-for="m in $store.state.beatForm.fenzi"
           :key="m"
-          :style="{ width: `${$store.getters.arrangeFenziWidth}px` }"
+          :style="{ width: `${$store.getters.const.arrangeFenziWidth}px` }"
         ></div>
       </div>
     </div>

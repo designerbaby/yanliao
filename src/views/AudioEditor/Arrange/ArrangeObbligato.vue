@@ -5,9 +5,9 @@
     id="obbligato"
     @click.right.stop.prevent.exact="onRightClickStage"
     :style="{
-      width: `${$store.getters.stageWidth / 10}px`,
-      height: `${$store.getters.stageHeight / 20}px`,
-      top: `${$store.getters.stageHeight / 20}`
+      width: `${$store.getters.const.stageWidth / 10}px`,
+      height: `${$store.getters.const.stageHeight / 20}px`,
+      top: `${$store.getters.const.stageHeight / 20}`
     }">
     <div
       id="waveform"
@@ -183,8 +183,8 @@ export default {
         if (newLeft < 0) {
           newLeft = 0
         }
-        const arrangeStageWidth = this.$store.getters.stageWidth / 10
-        const arrangeFenziWidth = this.$store.getters.arrangeFenziWidth * this.$store.state.beatForm.fenzi
+        const arrangeStageWidth = this.$store.getters.const.stageWidth / 10
+        const arrangeFenziWidth = this.$store.getters.const.arrangeFenziWidth * this.$store.state.const.beatForm.fenzi
         // 达到最右边就扩展区域
         if (newLeft + this.waveWidth > arrangeStageWidth - arrangeFenziWidth) {
           // newLeft = arrangeStageWidth - this.waveWidth
