@@ -240,7 +240,7 @@ export default {
   &.isActive {
     background: rgba(255,255,255,0.07);
     border-radius: 5px;
-    border: 2px solid #6C6C6C;
+    border: 2px solid #6C6C6C !important;
     // border: 1px solid red;
     height: 46px;
   }
