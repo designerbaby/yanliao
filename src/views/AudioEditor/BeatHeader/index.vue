@@ -114,7 +114,7 @@ export default {
       ModeState: ModeState,
       TypeModeState: TypeModeState,
       clickMouseStart: false,
-      timer: null,
+      // timer: null,
       file: '',
       clickType: -1,
       dialogShow: false
@@ -157,23 +157,23 @@ export default {
     CommonDialog
   },
   watch: {
-    clickMouseStart(oldValue) {
-      // console.log('clickMouseStart:', oldValue)
-      if (oldValue) {
-        this.timer = setInterval(() => {
-          if (this.clickType === 0) {
-            this.$emit('toScroll', this.$store.state.const.stage.scrollLeft - 30)
-          } else {
-            this.$emit('toScroll', this.$store.state.const.stage.scrollLeft + 30)
-          }
-        }, 50)
-      } else {
-        clearInterval(this.timer)
-      }
-    }
+    // clickMouseStart(oldValue) {
+    //   // console.log('clickMouseStart:', oldValue)
+    //   if (oldValue) {
+    //     this.timer = setInterval(() => {
+    //       if (this.clickType === 0) {
+    //         this.$emit('toScroll', this.$store.state.const.stage.scrollLeft - 30)
+    //       } else {
+    //         this.$emit('toScroll', this.$store.state.const.stage.scrollLeft + 30)
+    //       }
+    //     }, 50)
+    //   } else {
+    //     clearInterval(this.timer)
+    //   }
+    // }
   },
   destroyed() {
-    clearInterval(this.timer)
+    // clearInterval(this.timer)
   },
   mounted() {
   },
@@ -226,7 +226,7 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      if (isDuplicated(this.$store.state.stagePitches)) {
+      if (isDuplicated(this.$store.state.change.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
@@ -249,15 +249,15 @@ export default {
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     },
-    toScroll(type) {
-      this.clickType = type
-      this.clickMouseStart = true
-      if (type === 0) {
-        this.$emit('toScroll', this.$store.state.const.stage.scrollLeft - 30)
-      } else {
-        this.$emit('toScroll', this.$store.state.const.stage.scrollLeft + 30)
-      }
-    },
+    // toScroll(type) {
+    //   this.clickType = type
+    //   this.clickMouseStart = true
+    //   if (type === 0) {
+    //     this.$emit('toScroll', this.$store.state.const.stage.scrollLeft - 30)
+    //   } else {
+    //     this.$emit('toScroll', this.$store.state.const.stage.scrollLeft + 30)
+    //   }
+    // },
     onMouseUp() {
       this.clickMouseStart = false
     },

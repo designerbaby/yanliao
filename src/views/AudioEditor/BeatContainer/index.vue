@@ -423,11 +423,11 @@ export default {
         // const editor = Editor.getInstance()
         // editor.execute(new MovePitchCommand(editor, moveList))
 
-        turnChangeLineMap(this.$store.rootState, moveList, true)
+        turnChangeLineMap(this.$store.state, moveList, true)
 
         this.movePitchStart = null
         if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
-          this.$store.dispatch('afterChangePitchAndHandle')
+          this.$store.dispatch('change/afterChangePitchAndHandle')
         }
       }
     },

@@ -115,11 +115,11 @@ export default {
     },
     confirmBpm() {
       if (this.inputBpmValue === 0) {
-        this.inputBpmValue = this.$store.state.bpm
+        this.inputBpmValue = this.$store.state.const.bpm
       }
       console.log('confirmBpm:', this.inputBpmValue)
       // 为了修复，bpm改变的时候，曲线闪一下的bug,这里特殊处理。
-      const oldBpm = this.$store.state.bpm
+      const oldBpm = this.$store.state.const.bpm
       this.$store.dispatch('const/changeState', { bpm: this.inputBpmValue, pitchChanged: true })
       this.$store.dispatch('change/getPitchLine', {
         beforeRequest: () => {

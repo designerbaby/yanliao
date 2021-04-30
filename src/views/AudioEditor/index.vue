@@ -498,7 +498,7 @@ export default {
       if (generator) {
         const { onlineUrl } = await this.toSynthesize(this.isAddAc)
         // 每次生成新的都存起来
-        this.$store.dispatch('const/changeStat', { onlineUrl })
+        this.$store.dispatch('const/changeState', { onlineUrl })
         this.toPlayAudio(onlineUrl)
         this.playStartTime = startTime
         audio.currentTime = startTime
