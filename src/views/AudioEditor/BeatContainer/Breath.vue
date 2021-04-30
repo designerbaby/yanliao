@@ -30,7 +30,7 @@ export default {
   },
   computed: {
     stagePitches() {
-      return this.$store.state.stagePitches
+      return this.$store.state.change.stagePitches
     }
   },
   methods: {
@@ -57,7 +57,7 @@ export default {
       pitch.breath.width = width
     },
     canMove(newLeft) {
-      if (newLeft > (this.it.left - this.$store.state.noteWidth)) { // 最小只能移动到剩下1个32分音符
+      if (newLeft > (this.it.left - this.$store.state.const.noteWidth)) { // 最小只能移动到剩下1个32分音符
         return false
       }
       const before = this.stagePitches[this.index - 1]

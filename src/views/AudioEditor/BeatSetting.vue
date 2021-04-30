@@ -7,7 +7,7 @@
     </div>
     <div :class="$style.text">歌曲名称</div>
     <div :class="$style.select">
-      <Input v-model="$store.state.musicName" placeholder="请输入歌曲名称"/>
+      <Input v-model="$store.state.const.musicName" placeholder="请输入歌曲名称"/>
     </div>
     <div :class="[$style.text, $style.qusu]">当前音源</div>
     <div :class="$style.setting">
@@ -16,7 +16,7 @@
           filterable
           :class="$style.selector"
           :placeholder="'选择谁来演唱这首歌'"
-          v-model="$store.state.toneId"
+          v-model="$store.state.const.toneId"
           @change="singleToneIdChange"
           >
           <Option
@@ -38,7 +38,7 @@
     <div :class="[$style.text, $style.qusu]">当前曲速</div>
     <div :class="$style.setting">
       <InputNumber :class="$style.bpmInput"
-        :value="$store.state.bpm"
+        :value="$store.state.const.bpm"
         @change="bpmChangeChange"
         controls-position="right"
         :min="50" :max="200"
@@ -77,10 +77,10 @@ export default {
   },
   computed: {
     stageHeight() {
-      return this.$store.getters.stageHeight
+      return this.$store.getters['const/stageHeight']
     },
     isExceedHeader() {
-      return this.$store.state.isExceedHeader
+      return this.$store.state.const.isExceedHeader
     }
   },
   mounted() {
@@ -104,10 +104,10 @@ export default {
     singleToneIdChange(value) {
       this.toneList.forEach(item => {
         if (value === item.tone_id) {
-          this.$store.dispatch('changeStoreState', { toneId: item.tone_id, toneName: item.name, auditUrl: item.audit_url })
+          this.$store.dispatch('const/changeState', { toneId: item.tone_id, toneName: item.name, auditUrl: item.audit_url })
         }
       })
-      this.$store.dispatch('getPitchLine')
+      this.$store.dispatch('change/getPitchLine')
     },
     bpmChangeChange(value) {
       console.log('bpmChangeChange:', value)
@@ -120,34 +120,34 @@ export default {
       console.log('confirmBpm:', this.inputBpmValue)
       // 为了修复，bpm改变的时候，曲线闪一下的bug,这里特殊处理。
       const oldBpm = this.$store.state.bpm
-      this.$store.dispatch('changeStoreState', { bpm: this.inputBpmValue, pitchChanged: true })
-      this.$store.dispatch('getPitchLine', {
+      this.$store.dispatch('const/changeState', { bpm: this.inputBpmValue, pitchChanged: true })
+      this.$store.dispatch('change/getPitchLine', {
         beforeRequest: () => {
           // 请求函数之前把bpm改回旧的，这样曲线就不会变动
-          this.$store.state.bpm = oldBpm
+          this.$store.state.const.bpm = oldBpm
         },
         afterRequest: () => {
           // 数据请求回来之后，把bpm改成真正修改后的值，这样f0和bpm都是新的，曲线重新绘制
-          this.$store.state.bpm = this.inputBpmValue
+          this.$store.state.const.bpm = this.inputBpmValue
         }
       })
        // 有伴奏的话，要相应修改伴奏的长度
       const waveSurferObj = waveSurfer.getWaveSurfer()
       if (waveSurferObj) {
         const duration = waveSurferObj.getDuration()
-        const waveWidth = timeToPx(duration * 1000, this.$store.state.noteWidth / 10, this.inputBpmValue)
-        this.$store.dispatch('changeStoreState', { waveWidth })
+        const waveWidth = timeToPx(duration * 1000, this.$store.state.const.noteWidth / 10, this.inputBpmValue)
+        this.$store.dispatch('change/changeState', { waveWidth })
         waveSurfer.clearWaveSurfer()
-        this.$store.dispatch('showWaveSurfer', { file: this.$store.state.trackList[1].file, type: 'url', bpm: this.inputBpmValue })
+        this.$store.dispatch('change/showWaveSurfer', { file: this.$store.state.change.trackList[1].file, type: 'url', bpm: this.inputBpmValue })
       }
     },
     playerButtonClick() {
       this.toneList.forEach(item => {
-        if (this.$store.state.toneId === item.tone_id) {
-          this.$store.dispatch('changeStoreState', { auditUrl: item.audit_url })
+        if (this.$store.state.const.toneId === item.tone_id) {
+          this.$store.dispatch('const/changeState', { auditUrl: item.audit_url })
         }
       })
-      const url = this.$store.state.auditUrl
+      const url = this.$store.state.const.auditUrl
       this.audio = PlayAudio({
         url,
         onPlay: (audio) => {

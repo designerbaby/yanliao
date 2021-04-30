@@ -17,10 +17,10 @@ export default {
   components: { BeatSelector },
   computed: {
     beatForm() {
-      return this.$store.state.beatForm
+      return this.$store.state.const.beatForm
     },
     isExceedHeader() {
-      return this.$store.state.isExceedHeader
+      return this.$store.state.const.isExceedHeader
     }
   },
   data() {
@@ -28,11 +28,11 @@ export default {
   },
   methods: {
     toShowBeat() {
-      if (this.$store.state.isSynthetizing) {
+      if (this.$store.state.const.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      if (this.$store.state.playState === PlayState.StatePlaying) {
+      if (this.$store.state.const.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }

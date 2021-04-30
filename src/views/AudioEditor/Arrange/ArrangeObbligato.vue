@@ -5,9 +5,9 @@
     id="obbligato"
     @click.right.stop.prevent.exact="onRightClickStage"
     :style="{
-      width: `${$store.getters.const.stageWidth / 10}px`,
-      height: `${$store.getters.const.stageHeight / 20}px`,
-      top: `${$store.getters.const.stageHeight / 20}`
+      width: `${$store.getters['const/stageWidth'] / 10}px`,
+      height: `${$store.getters['const/stageHeight'] / 20}px`,
+      top: `${$store.getters['const/stageHeight'] / 20}`
     }">
     <div
       id="waveform"
@@ -38,8 +38,8 @@
       :class="$style.list"
       v-if="showMenu"
       :style="{
-        top: `${$store.state.stageMousePos.y}px`,
-        left: `${$store.state.stageMousePos.x}px`
+        top: `${$store.state.change.stageMousePos.y}px`,
+        left: `${$store.state.change.stageMousePos.x}px`
       }"
       @click="selectObbligato"
     >选择伴奏文件</div>
@@ -90,13 +90,13 @@ export default {
   },
   computed: {
     trackList() {
-      return this.$store.state.trackList
+      return this.$store.state.change.trackList
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     },
     waveWidth() {
-      return this.$store.state.waveWidth
+      return this.$store.state.change.waveWidth
     }
   },
   destroyed() {
@@ -122,15 +122,15 @@ export default {
       }
 
       uploadFile(file.raw, 'analyze', (url) => {
-        this.$store.state.trackList[1].file = url
-        this.$store.dispatch('showWaveSurfer', { file: url, type: 'url' })
+        this.$store.state.change.trackList[1].file = url
+        this.$store.dispatch('change/showWaveSurfer', { file: url, type: 'url' })
       })
     },
     onRightClickStage(event) {
       // 伴奏音轨鼠标右键
       console.log('onRightClickStage:', event)
       const rect = this.$refs.Obbligato.getBoundingClientRect()
-      this.$store.state.stageMousePos = {
+      this.$store.state.change.stageMousePos = {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       }
@@ -182,19 +182,20 @@ export default {
         if (newLeft < 0) {
           newLeft = 0
         }
-        const arrangeStageWidth = this.$store.getters.const.stageWidth / 10
-        const arrangeFenziWidth = this.$store.getters.const.arrangeFenziWidth * this.$store.state.const.beatForm.fenzi
+        const arrangeStageWidth = this.$store.getters['const/stageWidth'] / 10
+        const arrangeFenziWidth = this.$store.getters['const/arrangeFenziWidth'] * this.$store.state.const.beatForm.fenzi
         // 达到最右边就扩展区域
         if (newLeft + this.waveWidth > arrangeStageWidth - arrangeFenziWidth) {
           // newLeft = arrangeStageWidth - this.waveWidth
-          this.$store.dispatch('adjustStageWidth')
+          this.$store.dispatch('const/adjustStageWidth')
         }
         const stageMousePos = {
           x: newLeft,
           y: 0
         }
-        this.$store.state.trackList[1].offset = newLeft
-        this.$store.dispatch('changeStoreState', { isObbligatoChanged: true, stageMousePos })
+        this.$store.state.change.trackList[1].offset = newLeft
+        this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
+        this.$store.dispatch('change/changeState', { stageMousePos })
       }
     },
     onWaveMouseUp(event) {
@@ -211,7 +212,8 @@ export default {
       this.showDelete = false
       waveSurfer.clearWaveSurfer()
       this.$refs.WaveForm.style.border = 0
-      this.$store.dispatch('changeStoreState', { waveWidth: 0, isObbligatoChanged: true })
+      this.$store.dispatch('change/changeState', { waveWidth: 0 })
+      this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
     },
     selectObbligato() {
       const waveSurferObj = waveSurfer.getWaveSurfer()

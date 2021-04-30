@@ -2,11 +2,11 @@ import { PitchList } from '@/common/utils/const'
 import { timeToPx, generateUUID } from '@/common/utils/helper'
 
 // 修改用户画过的音高线数据
-export const turnChangeLineMap = (state, moveList, reset) => {
-  const changedLineMap = { ...state.changedLineMap }
+export const turnChangeLineMap = (rootState, moveList, reset) => {
+  const changedLineMap = { ...rootState.change.changedLineMap }
   const deleteLinePoints = new Set()
   const newLinePointsMap = {}
-  const pitchPerPx = 100 / state.noteHeight // 100是因为后台加了乘以100了
+  const pitchPerPx = 100 / rootState.const.noteHeight // 100是因为后台加了乘以100了
 
   const before = moveList[0].before
   const after = moveList[0].after
@@ -48,7 +48,7 @@ export const turnChangeLineMap = (state, moveList, reset) => {
     })
   }
 
-  state.changedLineMap = {
+  rootState.change.changedLineMap = {
     ...changedLineMap,
     ...newLinePointsMap
   }
@@ -59,8 +59,8 @@ export const turnChangeLineMap = (state, moveList, reset) => {
 export const pitchList2StagePitches = (pitchList, type, vm) => {
   // type: grid 代表格子数，其他代表时间
   let stagePitches = []
-  const noteWidth = vm.$store.state.noteWidth
-  const noteHeight = vm.$store.state.noteHeight
+  const noteWidth = vm.$store.state.const.noteWidth
+  const noteHeight = vm.$store.state.const.noteHeight
   pitchList.forEach(item => {
     let breath = {}
     if (!item.breath) {
@@ -81,7 +81,7 @@ export const pitchList2StagePitches = (pitchList, type, vm) => {
       height: noteHeight,
       width: type === 'grid' ? item.duration * noteWidth : timeToPx(item.duration, noteWidth, pitchList[0].bpm),
       left: type === 'grid' ? item.startTime * noteWidth : timeToPx(item.startTime, noteWidth, pitchList[0].bpm),
-      top: noteHeight * (vm.$store.getters.firstPitch - item.pitch),
+      top: noteHeight * (PitchList[0].pitch - item.pitch),
       pinyinList: item.pinyinList,
       select: item.select,
       preTime: item.preTime,

@@ -47,19 +47,19 @@
           <BeatMenuList
             ref="BeatMenuList"
             @editLyric="editLyric"
-            v-if="$store.state.showMenuList"
+            v-if="$store.state.const.showMenuList"
           ></BeatMenuList>
           <div :class="$style.sharp" ref="sharp"></div>
-          <PitchLine v-if="$store.state.mode === ModeState.StateLine" ref="PitchLine"></PitchLine>
-          <PitchElement v-if="$store.state.mode === ModeState.StateElement" ref="PitchElement"></PitchElement>
+          <PitchLine v-if="$store.state.const.mode === ModeState.StateLine" ref="PitchLine"></PitchLine>
+          <PitchElement v-if="$store.state.const.mode === ModeState.StateElement" ref="PitchElement"></PitchElement>
         </div>
-        <Parameters ref="Parameters" v-if="$store.state.typeMode !== TypeModeState.StateNone"></Parameters>
+        <Parameters ref="Parameters" v-if="$store.state.const.typeMode !== TypeModeState.StateNone"></Parameters>
 
         <!-- 自定义横向滚动条 -->
         <Bar wrapRef="rightArea" :move="this.barState.x" :size="this.barState.w" />
       </div>
 
-      <BeatStageList ref="BeatStageList" v-if="$store.state.showStageList"></BeatStageList>
+      <BeatStageList ref="BeatStageList" v-if="$store.state.const.showStageList"></BeatStageList>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
     <LyricCorrect ref="LyricCorrect" @saveAllPinyin="beatLyricSaveAllPinyin"></LyricCorrect>
@@ -126,25 +126,25 @@ export default {
   computed: {
     ...mapGetters(['stageWidth']),
     stagePitches() {
-      return this.$store.state.stagePitches
+      return this.$store.state.change.stagePitches
     },
     noteWidth() {
-      return this.$store.state.noteWidth
+      return this.$store.state.const.noteWidth
     },
     noteHeight() {
-      return this.$store.state.noteHeight
+      return this.$store.state.const.noteHeight
     },
     isSynthetizing() {
-      return this.$store.state.isSynthetizing
+      return this.$store.state.const.isSynthetizing
     },
     stageWidth() {
-      return this.$store.getters.stageWidth
+      return this.$store.getters['const/stageWidth']
     },
     stageHeight() {
-      return this.$store.getters.stageHeight
+      return this.$store.getters['const/stageHeight']
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     }
   },
   watch: {
@@ -161,7 +161,6 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
-    this.$refs.drawStage.addEventListener
   },
   methods: {
     doSelectUUID(uuid) {
@@ -185,16 +184,16 @@ export default {
       const scrollTop = this.$refs.rightArea.scrollTop
       const rect = this.$refs.stage.getBoundingClientRect()
 
-      this.$store.dispatch("changeStoreState", {
+      this.$store.dispatch("const/changeState", {
         stage: {
-          ...this.$store.state.stage,
+          ...this.$store.state.const.stage,
           scrollLeft,
           scrollTop,
           rectLeft: rect.left,
           rectTop: rect.top,
         }
       })
-      // console.log('this.$store.state.stage:', JSON.stringify(this.$store.state.stage))
+
     },
     // 滚动进度条
     scrollBar() {
@@ -206,7 +205,7 @@ export default {
     },
     onRightClickStage(event) {
       console.log('右键整个舞台事件 onRightClickStage:', event)
-      this.$store.dispatch('resetStagePitchesSelect')
+      this.$store.dispatch('change/resetStagePitchesSelect')
       this.doSelectUUID(null)
       const rect = this.$refs.stage.getBoundingClientRect()
 
@@ -217,7 +216,7 @@ export default {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       }
-      this.$store.dispatch('changeStoreState', { showStageList: true })
+      this.$store.dispatch('const/changeState', { showStageList: true })
       this.$nextTick(() => {
         this.$refs.BeatStageList.setPosition(left, top, pos)
       })
@@ -225,7 +224,7 @@ export default {
     onShiftClickPitch(event, index) {
       // 绿色块鼠标+shift事件
       console.log('绿色块鼠标+shift事件 onShiftClickPitch:', event, index)
-      this.$store.dispatch('changeStoreState', { showStageList: false })
+      this.$store.dispatch('const/changeState', { showStageList: false })
       // this.doSelectUUID(this.stagePitches[index].uuid)
       let start = this.stagePitches.findIndex(v => v.uuid === this.selectedUUID)
       start = start === -1 ? index : start
@@ -246,9 +245,9 @@ export default {
     onRightClickPitch(event, index) {
       console.log(`单纯点击鼠标绿色块右键事件 onRightClickPitch,`, event, index)
       if (!this.stagePitches[index].selected) {
-        this.$store.dispatch('resetStagePitchesSelect')
+        this.$store.dispatch('change/resetStagePitchesSelect')
       }
-      this.$store.dispatch('changeStoreState', { showStageList: false })
+      this.$store.dispatch('const/changeState', { showStageList: false })
       this.commonRightClickPitch(event, index)
     },
     onShiftRightClickPitch(event, index) {
@@ -257,7 +256,7 @@ export default {
     },
     commonRightClickPitch(event, index) {
       console.log('commonRightClickPitch', event, index)
-      this.$store.dispatch('changeStoreState', { showMenuList: true })
+      this.$store.dispatch('const/changeState', { showMenuList: true })
       this.stagePitches[index].selected = true
       this.doSelectUUID(this.stagePitches[index].uuid)
       this.$nextTick(() => {
@@ -276,7 +275,7 @@ export default {
         return
       }
 
-      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
+      this.$store.dispatch('const/changeState', { showMenuList: false, showStageList: false })
       const target = event.target
       target.style.opacity = 0.8
       this.doSelectUUID(this.stagePitches[index].uuid)
@@ -311,7 +310,7 @@ export default {
           }
         })
       } else { // 当前点击的项没有选中，则只操作当前点的项
-        this.$store.dispatch('resetStagePitchesSelect')
+        this.$store.dispatch('change/resetStagePitchesSelect')
         selectedElements.push(target)
         selectedPitches.push(this.stagePitches[index])
       }
@@ -424,7 +423,7 @@ export default {
         // const editor = Editor.getInstance()
         // editor.execute(new MovePitchCommand(editor, moveList))
 
-        turnChangeLineMap(this.$store.state, moveList, true)
+        turnChangeLineMap(this.$store.rootState, moveList, true)
 
         this.movePitchStart = null
         if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
@@ -460,8 +459,8 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
-      this.$store.dispatch('resetStagePitchesSelect')
+      this.$store.dispatch('const/changeState', { showMenuList: false, showStageList: false })
+      this.$store.dispatch('change/resetStagePitchesSelect')
       this.doSelectUUID(null)
       this.isMouseDown = true; // 要保证鼠标按下了，才能确保鼠标移动
 
@@ -566,7 +565,7 @@ export default {
     },
 
     addOnePitch({ width, height, left, top }) {
-      this.$store.dispatch('resetStagePitchesSelect')
+      this.$store.dispatch('change/resetStagePitchesSelect')
       this.doSelectUUID(null)
       this.stagePitches.push({
         width,
@@ -586,7 +585,7 @@ export default {
       });
       this.doSelectUUID(this.stagePitches[this.stagePitches.length - 1].uuid)
       console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
-      this.$store.dispatch('afterChangePitchAndHandle')
+      this.$store.dispatch('change/afterChangePitchAndHandle')
     },
     onArrowMoveEnd({ width, left, top, target, direction, moveArrowStart }, index) {
       let pitchHasChanged = false
@@ -623,7 +622,7 @@ export default {
         pitchHasChanged = false
       }
       if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
-        this.$store.dispatch('afterChangePitchAndHandle')
+        this.$store.dispatch('change/afterChangePitchAndHandle')
       }
     },
     editLyric(type) {
@@ -637,7 +636,7 @@ export default {
     },
     toCheckOverStage(x) { // 向右移动如果超过舞台宽度，舞台继续加
       while ((x + 500) >= this.stageWidth) {
-        this.$store.dispatch('updateMatter', 15)
+        this.$store.dispatch('const/updateMatter', 15)
       }
     }
   }

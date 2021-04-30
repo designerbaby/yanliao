@@ -51,17 +51,17 @@ export default {
       return document.documentElement.clientWidth
     },
     stageWidth() {
-      return this.$store.getters.stageWidth
+      return this.$store.getters['const/stageWidth']
     },
     typeMode() {
-      return this.$store.state.typeMode
+      return this.$store.state.const.typeMode
     },
     pitchWidth() {
       // 10是因为数据的每一项间隔10ms
-      return this.$store.getters.pitchWidth
+      return this.$store.getters['const/pitchWidth']
     },
     typeContainerHeight() {
-      return this.$store.state.typeContainerHeight
+      return this.$store.state.const.typeContainerHeight
     },
     typeName() {
       const typeMode = this.typeMode
@@ -102,7 +102,7 @@ export default {
     stageStyle() {
       return {
         width: `${this.stageWidth}px`,
-        left: `-${this.$store.state.stage.scrollLeft}px`,
+        left: `-${this.$store.state.const.stage.scrollLeft}px`,
         height: `${this.typeContainerHeight}px`
       }
     },
@@ -111,10 +111,10 @@ export default {
       return result
     },
     volumeMap() {
-      return this.formatSvgPath(this.$store.state.volumeMap)
+      return this.formatSvgPath(this.$store.state.change.volumeMap)
     },
     tensionMap() {
-      return this.formatSvgPath(this.$store.state.tensionMap)
+      return this.formatSvgPath(this.$store.state.change.tensionMap)
     }
   },
   methods: {
@@ -125,9 +125,9 @@ export default {
     onDraw(values) {
       // console.log(`onDraw values:`, values)
       if (this.typeMode === TypeModeState.StateVolume) {
-        this.$store.dispatch('changeVolumeMap', { values })
+        this.$store.dispatch('change/changeVolumeMap', { values })
       } else if (this.typeMode === TypeModeState.StateTension) {
-        this.$store.dispatch('changeTensionMap', { values })
+        this.$store.dispatch('change/changeTensionMap', { values })
       }
     },
     positionY2Db(y) {
@@ -201,7 +201,7 @@ export default {
       return this.positionY2Db(y)
     },
     closeParameter() {
-      this.$store.dispatch('changeStoreState', { typeMode: TypeModeState.StateNone })
+      this.$store.dispatch('const/changeState', { typeMode: TypeModeState.StateNone })
     }
   }
 }

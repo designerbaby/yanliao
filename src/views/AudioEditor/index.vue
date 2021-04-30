@@ -30,16 +30,15 @@ import BeatHeader from './BeatHeader'
 import BeatSetting from './BeatSetting.vue'
 import StatusBar from './StatusBar'
 import Arrange from './Arrange'
-import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicxml2Json } from '@/api/audio'
+import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicXml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
-import { ProcessStatus, PlayState, TrackMode } from '@/common/utils/const'
+import { ProcessStatus, PlayState, TrackMode, PitchList } from '@/common/utils/const'
 import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
 import { pitchList2StagePitches } from '@/common/utils/common'
 import { PlayAudio } from '@/common/utils/player'
 import CommonDialog from '@/common/components/CommonDialog'
 import * as waveSurfer from '@/common/utils/waveSurfer'
 // import Editor from '@/common/editor'
-
 let audio = null
 
 export default {
@@ -76,7 +75,7 @@ export default {
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
         // console.log('changeStoreState isStagePitchesChanged true')
-        this.$store.dispatch('changeStoreState', { isStagePitchesChanged: true})
+        this.$store.dispatch('const/changeState', { isStagePitchesChanged: true})
       },
       {
         deep: true
@@ -101,36 +100,33 @@ export default {
     document.removeEventListener('mousemove', this.mousemoveListener)
   },
   computed: {
-    ...mapGetters(['stagePitches']),
+    // ...mapGetters(['stagePitches']),
     noteWidth() {
-      return this.$store.state.noteWidth
+      return this.$store.state.const.noteWidth
     },
     noteHeight() {
-      return this.$store.state.noteHeight
+      return this.$store.state.const.noteHeight
     },
     bpm() {
-      return this.$store.state.bpm
+      return this.$store.state.const.bpm
     },
     isSynthetizing() {
-      return this.$store.state.isSynthetizing
+      return this.$store.state.const.isSynthetizing
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     },
     isManualMovedLine() { // 是否手动移动了线
-      return this.$store.state.lineLeft !== this.playLine.current
+      return this.$store.state.const.lineLeft !== this.playLine.current
     },
     isStagePitchesChanged() {
-      return this.$store.state.isStagePitchesChanged
-    },
-    firstPitch() {
-      return this.$store.getters.firstPitch
+      return this.$store.state.const.isStagePitchesChanged
     },
     stagePitches() {
-      return this.$store.state.stagePitches
+      return this.$store.state.change.stagePitches
     },
     trackList() {
-      return this.$store.state.trackList
+      return this.$store.state.change.trackList
     }
   },
   methods: {
@@ -180,7 +176,7 @@ export default {
       this.$refs.BeatSetting.handleDrawer()
     },
     changePlayState(stateValue) {
-      this.$store.dispatch('changeStoreState', { playState: stateValue })
+      this.$store.dispatch('const/changeState', { playState: stateValue })
     },
     convertXyMap(items) {
       const xyMap = []
@@ -194,12 +190,12 @@ export default {
       return res.data.data
     },
     async getMusicXml2Json(xml2JsonReq) {
-      const res = await musicxml2Json(xml2JsonReq)
+      const res = await musicXml2Json(xml2JsonReq)
       return res.data.data
     },
     saveF0DrawChange(f0Ai, f0Draw) {
       const changed = {}
-      const pitchWidth = this.$store.getters.pitchWidth
+      const pitchWidth = this.$store.getters['const/pitchWidth']
       // 比较元数据和AI数据，如果不一样表示是修改过的，下次生成新的时候不能覆盖
       for (let i = 0; i < f0Ai.length; i += 1) {
         if (f0Ai[i] !== f0Draw[i]) {
@@ -212,12 +208,12 @@ export default {
           }
         }
       }
-      this.$store.state.changedLineMap = changed
+      this.$store.state.change.changedLineMap = changed
     },
     acInfo2TrackList(acInfo, bpm) {
       let acInfos = acInfo
       if (acInfos.length === 0) {
-        acInfos = this.$store.state.trackList
+        acInfos = this.$store.state.change.trackList
       }
       const trackList = JSON.parse(JSON.stringify(acInfos))
       trackList.forEach(item => {
@@ -238,71 +234,75 @@ export default {
           x: trackList[1]?.offset,
           y: 0
         }
-        await this.$store.dispatch('changeStoreState', {
+        await this.$store.dispatch('const/changeState', {
           taskId: data.task_id,
           onlineUrl: data.online_url,
-          f0AI: data.f0_ai,
-          f0Draw: data.f0_draw,
           bpm: pitchList[0].bpm,
           toneName: pitchList[0].singer,
           toneId: pitchList[0].toneId,
+          musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
+          musicName: data.music_name
+        })
+        await this.$store.dispatch('change/changeState', {
+          f0AI: data.f0_ai,
+          f0Draw: data.f0_draw,
           stagePitches: stagePitches,
           volumeMap: this.convertXyMap(data.volume_xy),
           tensionMap: this.convertXyMap(data.tension_xy),
-          musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
-          musicName: data.music_name,
           trackList: trackList,
           stageMousePos: stageMousePos
         })
         this.saveF0DrawChange(data.f0_ai, data.f0_draw)
         if (trackList[1].file) {
-          this.$store.dispatch('showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
+          this.$store.dispatch('change/showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
         }
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
-        const musicxml2Json = await this.getMusicXml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
+        const musicXml2Json = await this.getMusicXml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
         console.log('musicInfo:', musicInfo)
         let stagePitches = []
         if (musicInfo.bus_type === 1) { // 从正常的xml转过来，给的是格子数
-          stagePitches = pitchList2StagePitches(musicxml2Json.pitchList, 'grid', this)
+          stagePitches = pitchList2StagePitches(musicXml2Json.pitchList, 'grid', this)
         } else { // 从我自己生成的曲谱过来，给的是时间
-          stagePitches = pitchList2StagePitches(musicxml2Json.pitchList, '', this)
+          stagePitches = pitchList2StagePitches(musicXml2Json.pitchList, '', this)
         }
         // 重置F0Draw
-        let f0Draw = musicxml2Json.f0_draw
+        let f0Draw = musicXml2Json.f0_draw
         const resetF0Draw = parseInt(getParam('resetF0Draw'), 10)
         if (musicInfo.bus_type === 2 && resetF0Draw === 1) {
           f0Draw = []
         }
-        const trackList = this.acInfo2TrackList(musicxml2Json.ac_info, musicxml2Json.pitchList[0].bpm)
+        const trackList = this.acInfo2TrackList(musicXml2Json.ac_info, musicXml2Json.pitchList[0].bpm)
         const stageMousePos = {
           x: trackList[1]?.offset,
           y: 0
         }
-        this.$store.dispatch('changeStoreState', {
-          taskId: getParam('arrangeId') || musicxml2Json.task_id,
+        this.$store.dispatch('const/changeState', {
+          taskId: getParam('arrangeId') || musicXml2Json.task_id,
           musicId: musicId,
-          bpm: musicxml2Json.pitchList[0].bpm,
-          toneName: musicxml2Json.pitchList[0].singer,
-          toneId: musicxml2Json.pitchList[0].toneId,
+          bpm: musicXml2Json.pitchList[0].bpm,
+          toneName: musicXml2Json.pitchList[0].singer,
+          toneId: musicXml2Json.pitchList[0].toneId,
           musicName: `${musicInfo.name}填词`,
+          pitchChanged: true // 标记音块改动了，这样才能重新拉到辅音
+        })
+        this.$store.dispatch('change/changeState', {
           stagePitches: stagePitches,
-          f0AI: musicxml2Json.f0_ai,
+          f0AI: musicXml2Json.f0_ai,
           f0Draw: f0Draw,
-          volumeMap: this.convertXyMap(musicxml2Json.volume_xy),
-          tensionMap: this.convertXyMap(musicxml2Json.tension_xy),
-          pitchChanged: true, // 标记音块改动了，这样才能重新拉到辅音
+          volumeMap: this.convertXyMap(musicXml2Json.volume_xy),
+          tensionMap: this.convertXyMap(musicXml2Json.tension_xy),
           trackList: trackList,
           stageMousePos: stageMousePos
         })
-        this.saveF0DrawChange(musicxml2Json.f0_ai, f0Draw)
+        this.saveF0DrawChange(musicXml2Json.f0_ai, f0Draw)
         if (trackList[1].file) {
-          this.$store.dispatch('showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
+          this.$store.dispatch('change/showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
         }
-        this.$store.dispatch('getPitchLine')
-        this.$store.dispatch('saveFuYuan')
+        this.$store.dispatch('change/getPitchLine')
+        this.$store.dispatch('change/saveFuYuan')
       }
-      this.$store.dispatch('adjustStageWidth')
+      this.$store.dispatch('const/adjustStageWidth')
     },
     isNeedGenerate(type) {
       // 舞台音块改变
@@ -310,44 +310,44 @@ export default {
         return true
       }
       // 音高线变化
-      if (this.$store.state.isPitchLineChanged) {
+      if (this.$store.state.const.isPitchLineChanged) {
         return true
       }
 
       // 响度改变了
-      if (this.$store.state.isVolumeChanged) {
+      if (this.$store.state.const.isVolumeChanged) {
         return true
       }
 
       // 张力改变了
-      if (this.$store.state.isTensionChanged) {
+      if (this.$store.state.const.isTensionChanged) {
         return true
       }
 
       // 元辅音改变了
-      if (this.$store.state.isStagePitchElementChanged) {
+      if (this.$store.state.const.isStagePitchElementChanged) {
         return true
       }
 
       // 伴奏改变了
-      if (this.$store.state.isObbligatoChanged) {
+      if (this.$store.state.const.isObbligatoChanged) {
         return true
       }
 
       // 静音播放改变了
-      if (this.$store.state.isTrackChanged) {
+      if (this.$store.state.const.isTrackChanged) {
         return true
       }
 
       // 没有可播放的url
-      if (!this.$store.state.onlineUrl && type !== 'upload') {
+      if (!this.$store.state.const.onlineUrl && type !== 'upload') {
         return true
       }
 
       return false
     },
     async toPlay() {
-      const trackMode = this.$store.getters.trackMode
+      const trackMode = this.$store.getters['change/trackMode']
       if (trackMode === TrackMode.TrackModeNone) {
         Message.error('都设置静音了,不播放了～')
         return
@@ -389,10 +389,10 @@ export default {
           this.changeLinePosition(currentPosition, true)
         })
         waveSurferObj.on('finish', () => {
-          const time = this.$store.state.wavePlayStartTime
+          const time = this.$store.state.const.wavePlayStartTime
           waveSurfer.setCurrentTime(time)
           const left = (timeToPx(time * 1000, this.noteWidth / 10, this.bpm) + waveOffset) * 10
-          this.$store.dispatch('changeStoreState', { lineLeft: left })
+          this.$store.dispatch('const/changeState', { lineLeft: left })
           this.changePlayState(PlayState.StatePaused)
         })
       } else {
@@ -403,16 +403,16 @@ export default {
       const handleData = this.handleVolumeTension()
       const acInfo = this.handleAcInfo()
       const req = {
-        pitchList: this.$store.getters.pitchList,
-        f0_ai: this.$store.state.f0AI,
-        f0_draw: this.$store.state.f0Draw,
-        task_id: this.$store.state.taskId,
+        pitchList: this.$store.getters['change/pitchList'],
+        f0_ai: this.$store.state.change.f0AI,
+        f0_draw: this.$store.state.change.f0Draw,
+        task_id: this.$store.state.const.taskId,
         volume_data: handleData.f0Volume,
         tension_data: handleData.f0Tension,
         volume_xy: handleData.volumeXy,
         tension_xy: handleData.tensionXy,
-        music_id: this.$store.state.musicId,
-        music_name: this.$store.state.musicName,
+        music_id: this.$store.state.const.musicId,
+        music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
         is_add_ac: 0
       }
@@ -434,20 +434,20 @@ export default {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
-      if (!this.$store.getters.pitchList.length) {
+      if (!this.$store.getters['change/pitchList'].length) {
         Message.error('没有音符！！')
         return
       }
 
       const lastStagePitches = this.stagePitches[this.stagePitches.length - 1]
       const lastStagePitchRight = lastStagePitches.left + lastStagePitches.width
-      const banEndX = this.trackList[1].offset * 10 + this.$store.state.waveWidth * 10
+      const banEndX = this.trackList[1].offset * 10 + this.$store.state.change.waveWidth * 10
       let maxRight = lastStagePitchRight
       if (waveSurfer.getWaveSurfer()) {
         maxRight = Math.max(lastStagePitchRight, banEndX)
         waveSurfer.setCurrentTime(0)
       }
-      if (this.$store.state.lineLeft > maxRight && this.playState !== PlayState.StatePlaying) {
+      if (this.$store.state.const.lineLeft > maxRight && this.playState !== PlayState.StatePlaying) {
         Message.error('播放线后没有音符或伴奏！！')
         return
       }
@@ -460,7 +460,7 @@ export default {
           this.doPlay(true)
         } else {
           if (taskId) { // 从编辑进来，url上有taskId
-            this.toPlayAudio(this.$store.state.onlineUrl)
+            this.toPlayAudio(this.$store.state.const.onlineUrl)
             this.doPlay(false)
           } else {
             this.doPlay(true)
@@ -489,7 +489,7 @@ export default {
         }
         this.changePlayState(PlayState.StatePlaying)
       }
-      this.$store.dispatch('changeStoreState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false, isTrackChanged: false })
+      this.$store.dispatch('const/changeState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false, isTrackChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {
       const { startTime } = this.getLinePosition()
@@ -498,9 +498,7 @@ export default {
       if (generator) {
         const { onlineUrl } = await this.toSynthesize(this.isAddAc)
         // 每次生成新的都存起来
-        this.$store.dispatch('changeStoreState', {
-          onlineUrl,
-        })
+        this.$store.dispatch('const/changeStat', { onlineUrl })
         this.toPlayAudio(onlineUrl)
         this.playStartTime = startTime
         audio.currentTime = startTime
@@ -567,7 +565,7 @@ export default {
     },
     changeLinePosition(left, autoScroll = false) {
       if (autoScroll) {
-        const { width, scrollLeft } = this.$store.state.stage
+        const { width, scrollLeft } = this.$store.state.const.stage
         const max = scrollLeft + width // 滚动的大小加上容器的大小就是容器最右边的位置
         if (left > max) {
           this.$refs.BeatContainer.scrollTo(max)
@@ -578,10 +576,10 @@ export default {
       }
       this.playLine.current = left
       // console.log('this.playLine.current:', this.playLine.current)
-      this.$store.dispatch('changeStoreState', { lineLeft: left })
+      this.$store.dispatch('const/changeState', { lineLeft: left })
     },
     scrollArrange(left) {
-      const { width, scrollLeft } = this.$store.state.arrangeStage
+      const { width, scrollLeft } = this.$store.state.const.arrangeStage
       const max = scrollLeft + width
       const arrangeLeft = left / 10
       if (arrangeLeft > max) {
@@ -605,8 +603,8 @@ export default {
       return item.left + item.width
     },
     getLinePosition() {
-      const lineLeft = this.$store.state.lineLeft // 根据播放线的距离去获取相应的块
-      const trackMode = this.$store.getters.trackMode
+      const lineLeft = this.$store.state.const.lineLeft // 根据播放线的距离去获取相应的块
+      const trackMode = this.$store.getters['change/trackMode']
       let lineStartX = null
       let isLineInStagePitchRange = false
       // 音块的最左边和最右边
@@ -658,9 +656,9 @@ export default {
       }
     },
     handleVolumeTension() {
-      const pitchWidth = this.$store.getters.pitchWidth
-      const volumeMap = this.$store.state.volumeMap
-      const tensionMap = this.$store.state.tensionMap
+      const pitchWidth = this.$store.getters['const/pitchWidth']
+      const volumeMap = this.$store.state.change.volumeMap
+      const tensionMap = this.$store.state.change.tensionMap
       let volumeXy = []
       let tensionXy = []
       let f0Volume = []
@@ -696,32 +694,32 @@ export default {
     },
     handleAcInfo() {
       let acInfo = JSON.parse(JSON.stringify(this.trackList))
-      acInfo[0].file = this.$store.state.onlineUrl
-      acInfo[0].offset = this.$store.getters.pitchList[0].startTime
+      acInfo[0].file = this.$store.state.const.onlineUrl
+      acInfo[0].offset = this.$store.getters['change/pitchList'][0].startTime
       acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
       return acInfo
     },
     async toSynthesize(isAddAc, callback) {
       // isAddAc 是否合成伴奏 0 不合成 1合成
-      if (this.$store.state.isGetF0Data) {
+      if (this.$store.state.const.isGetF0Data) {
         Message.error(`网络不好，请稍后重试~`)
         return
       }
-      this.$store.dispatch('changeStoreState', { isSynthetizing: true })
+      this.$store.dispatch('const/changeState', { isSynthetizing: true })
       const sStart = Date.now()
       const handleData = this.handleVolumeTension()
       const acInfo = this.handleAcInfo()
       const req = {
-        pitchList: this.$store.getters.pitchList,
-        f0_ai: this.$store.state.f0AI,
-        f0_draw: this.$store.state.f0Draw,
-        task_id: this.$store.state.taskId,
+        pitchList: this.$store.getters['change/pitchList'],
+        f0_ai: this.$store.state.change.f0AI,
+        f0_draw: this.$store.state.change.f0Draw,
+        task_id: this.$store.state.const.taskId,
         volume_data: handleData.f0Volume,
         tension_data: handleData.f0Tension,
         volume_xy: handleData.volumeXy,
         tension_xy: handleData.tensionXy,
-        music_id: this.$store.state.musicId,
-        music_name: this.$store.state.musicName,
+        music_id: this.$store.state.const.musicId,
+        music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
         is_add_ac: isAddAc  // 是否需要合成伴奏,0为不需要，1为需要
       }
@@ -735,7 +733,7 @@ export default {
       const paramId = data.data.param_id
       const taskId = data.data.task_id
 
-      this.$store.dispatch('changeStoreState', { taskId: taskId })
+      this.$store.dispatch('const/changeState', { taskId: taskId })
       // Message.success('开始合成音频中~')
 
       let onlineUrl = ''
@@ -764,13 +762,13 @@ export default {
         console.log(`synthesize duration: ${duration}, synthesize start: ${sStart}, synthesize end: ${sEnd}`)
         if (duration > 60 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
-          this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+          this.$store.dispatch('const/changeState', { isSynthetizing: false })
           this.changePlayState(PlayState.StateNone) // 合成失败，要把合成状态改回来
           break
         }
       }
 
-      this.$store.dispatch('changeStoreState', { isSynthetizing: false })
+      this.$store.dispatch('const/changeState', { isSynthetizing: false })
       if (callback) {
         callback()
       }

@@ -1,6 +1,6 @@
 <template>
   <div :class="[$style.arrange, {[$style.fixed]: isFixed}]">
-    <div :class="$style.container" v-show="$store.state.showArrange">
+    <div :class="$style.container" v-show="$store.state.const.showArrange">
       <ArrangeTitle></ArrangeTitle>
       <ArrangeBar></ArrangeBar>
       <div :class="$style.wrap">
@@ -10,14 +10,14 @@
           <div
             :class="$style.line"
             :style="{
-              transform: `translateX(${$store.state.lineLeft / 10}px)`
+              transform: `translateX(${$store.state.const.lineLeft / 10}px)`
             }"></div>
           <ArrangeStage></ArrangeStage>
           <ArrangeObbligato></ArrangeObbligato>
         </div>
       </div>
     </div>
-    <ArrangeTitle v-if="!$store.state.showArrange" :type="'right'"></ArrangeTitle>
+    <ArrangeTitle v-if="!$store.state.const.showArrange" :type="'right'"></ArrangeTitle>
   </div>
 </template>
 
@@ -41,12 +41,8 @@ export default {
     ArrangeObbligato
   },
   computed: {
-    ...mapState({
-      isFixed: 'isExceedHeader'
-    })
-  },
-  data() {
-    return {
+    isFixed() {
+      return this.$store.state.const.isExceedHeader
     }
   },
   mounted() {
@@ -58,8 +54,6 @@ export default {
     updateStageOffset() {
       const scrollLeft = this.$refs.rightArea.scrollLeft
       const scrollTop = this.$refs.rightArea.scrollTop
-      // const arrangeStageWidth = this.$store.getters.stageWidth / 10
-      // const progress = scrollLeft / arrangeStageWidth * this.$store.getters.stageWidth
       this.$store.dispatch('const/changeState', {
         arrangeStage: {
           ...this.$store.state.const.arrangeStage,

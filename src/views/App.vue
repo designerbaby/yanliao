@@ -42,7 +42,7 @@ export default {
     app.addEventListener('scroll', (event) => {
       const appScrollTop = app.scrollTop
       const isExceedHeader = appScrollTop > 48
-      this.$store.dispatch("changeStoreState", {
+      this.$store.dispatch("const/changeState", {
         appScrollTop,
         isExceedHeader
       })
@@ -67,7 +67,7 @@ export default {
       this.loginDialogShow = false
     },
     clickApp() {
-      this.$store.dispatch('changeStoreState', { showMenuList: false, showStageList: false })
+      this.$store.dispatch('const/changeState', { showMenuList: false, showStageList: false })
     }
   }
 }

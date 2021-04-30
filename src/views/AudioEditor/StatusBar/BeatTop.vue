@@ -16,14 +16,14 @@ export default {
   name: 'BeatTop',
   computed: {
     matter() {
-      return this.$store.state.matter
+      return this.$store.state.const.matter
     },
     beatWidth() {
-      return this.$store.getters.beatWidth
+      return this.$store.getters['const/beatWidth']
     },
     style() {
       return {
-        left: `${-this.$store.state.stage.scrollLeft}px`
+        left: `${-this.$store.state.const.stage.scrollLeft}px`
       }
     }
   },
@@ -33,7 +33,7 @@ export default {
   methods: {
     changeLine(event) {
       console.log('changeLine:', event)
-      if (this.$store.state.playState === PlayState.StatePlaying) {
+      if (this.$store.state.const.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
@@ -41,12 +41,12 @@ export default {
       const stage = document.querySelector('#audioStage')
       const rect = stage.getBoundingClientRect()
       const left = event.clientX - rect.left
-      this.$store.dispatch("changeStoreState", { lineLeft: left })
+      this.$store.dispatch("const/changeState", { lineLeft: left })
 
       // 修改伴奏轨的播放进度
-      if (waveSurfer.getWaveSurfer() && this.$store.getters.trackMode === TrackMode.TrackModeBan) {
-        const waveSurferLeft = left / 10 - this.$store.state.trackList[1].offset
-        let time = pxToTime(waveSurferLeft, this.$store.state.noteWidth / 10, this.$store.state.bpm) / 1000
+      if (waveSurfer.getWaveSurfer() && this.$store.getters['change/trackMode'] === TrackMode.TrackModeBan) {
+        const waveSurferLeft = left / 10 - this.$store.state.change.trackList[1].offset
+        let time = pxToTime(waveSurferLeft, this.$store.state.const.noteWidth / 10, this.$store.state.const.bpm) / 1000
         if (time < 0) {
           time = 0
         }

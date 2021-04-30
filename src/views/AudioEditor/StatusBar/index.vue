@@ -17,11 +17,14 @@ export default {
   name: 'StatusBar',
   components: { Beat, BeatTop },
   computed: {
-    ...mapState({
-      isFixed: 'isExceedHeader'
-    }),
+    // ...mapState({
+    //   isFixed: 'isExceedHeader'
+    // }),
     showArrange() {
-      return this.$store.state.showArrange
+      return this.$store.state.const.showArrange
+    },
+    isFixed() {
+      return this.$store.state.const.isExceedHeader
     }
   }
 }

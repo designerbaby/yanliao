@@ -53,14 +53,14 @@ export default {
   },
   computed: {
     stageWidth() {
-      return this.$store.getters.stageWidth
+      return this.$store.getters['const/stageWidth']
     }
   },
   methods: {
     toSubmitBeat() {
       this.$refs.ruleForm.validate((valid) => {
         if (valid) {
-          this.$store.dispatch('updateBeatForm', this.beatForm)
+          this.$store.dispatch('const/updateBeatForm', this.beatForm)
           this.dialogVisible = false
           this.toUpdateStage()
         } else {
@@ -69,20 +69,20 @@ export default {
       })
     },
     toUpdateStage() { // 根据内外舞台的框进行比较
-      const stageConWidth = this.$store.state.stage.width
-      const arrangeStageConWidth = this.$store.state.arrangeStage.width
+      const stageConWidth = this.$store.state.const.stage.width
+      const arrangeStageConWidth = this.$store.state.const.arrangeStage.width
       console.log(`stageConWidth: ${stageConWidth}, this.stageWidth: ${this.stageWidth}`)
       while (stageConWidth > this.stageWidth) { // 外框比里框更大
-        this.$store.dispatch('updateMatter', 15)
+        this.$store.dispatch('const/updateMatter', 15)
       }
       while (arrangeStageConWidth > this.stageWidth / 10) { // 音轨页面的宽高比里面舞台需要的大
-        this.$store.dispatch('updateMatter', 15)
+        this.$store.dispatch('const/updateMatter', 15)
       }
-      this.$store.dispatch('adjustStageWidth')
+      this.$store.dispatch('const/adjustStageWidth')
     },
     showBeatDialog() {
       this.beatForm = {
-        ...this.$store.state.beatForm
+        ...this.$store.state.const.beatForm
       }
       this.dialogVisible = true
     }

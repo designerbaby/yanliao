@@ -5,6 +5,11 @@ const mutations = {
       // console.log(`changeStoreState`, k, props[k])
       state[k] = props[k]
     })
+  },
+  changeF0(state, { index, value }) {
+    const f0 = state.f0Draw
+    f0[index] = value
+    state.f0Draw = [...f0]
   }
 }
 

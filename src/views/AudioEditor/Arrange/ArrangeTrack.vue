@@ -49,10 +49,10 @@ export default {
   },
   computed: {
     trackList() {
-      return this.$store.state.trackList
+      return this.$store.state.change.trackList
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     }
   },
   methods: {
@@ -97,7 +97,7 @@ export default {
         }
 
         const waveSurfer = getWaveSurfer()
-        const trackMode = this.$store.getters.trackMode
+        const trackMode = this.$store.getters['change/trackMode']
         if (index === 1 && waveSurfer && trackMode === TrackMode.TrackModeBan) {
           waveSurfer.setVolume(this.trackList[1].volume / 100)
         }
@@ -107,7 +107,7 @@ export default {
       if (this.isChangeVolume >= 0) {
         this.isChangeVolume = -1
       }
-      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
+      this.$store.dispatch('const/changeState', { isTrackChanged: true })
     },
     play(index) {
       if (this.playState === PlayState.StatePlaying) {
@@ -119,7 +119,7 @@ export default {
       } else {
         this.trackList[index].is_sil = 1
       }
-      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
+      this.$store.dispatch('const/changeState', { isTrackChanged: true })
     }
   }
 }

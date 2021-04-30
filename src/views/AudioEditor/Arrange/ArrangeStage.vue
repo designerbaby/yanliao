@@ -3,9 +3,9 @@
     <div
       :class="$style.stage"
       id="arrageStage"
-      :style="{ width: `${$store.getters.stageWidth / 10}px`, height: `${$store.getters.stageHeight / 20}px`}">
+      :style="{ width: `${$store.getters['const/stageWidth'] / 10}px`, height: `${$store.getters['const/stageHeight'] / 20}px`}">
     </div>
-    <template v-for="(it, index) in $store.state.stagePitches">
+    <template v-for="(it, index) in $store.state.change.stagePitches">
       <div
         :class="[$style.pitch, it.selected ? $style.isActive : '', it.red ? $style.isRed: '']"
         :key="index"

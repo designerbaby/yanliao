@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     },
   },
   methods: {

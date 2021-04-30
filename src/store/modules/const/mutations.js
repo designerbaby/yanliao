@@ -1,3 +1,4 @@
+
 const mutations = {
   // 通用改成state方法
   changeState(state, props) {
@@ -5,6 +6,15 @@ const mutations = {
       // console.log(`changeStoreState`, k, props[k])
       state[k] = props[k]
     })
+  },
+  updateMatter(state, matter) {
+    state.matter += matter
+  },
+  updateBeatForm(state, form) {
+    state.beatForm = {
+      ...state.beatForm,
+      ...form
+    }
   }
 }
 

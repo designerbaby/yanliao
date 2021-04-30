@@ -29,6 +29,7 @@
 import { Message } from 'element-ui'
 import { PlayState } from "@/common/utils/const"
 import { divideArray } from '@/common/utils/helper'
+import { PitchList } from '@/common/utils/const'
 // import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
@@ -47,31 +48,28 @@ export default {
   },
   computed: {
     stageWidth() {
-      return this.$store.getters.stageWidth
+      return this.$store.getters['const/stageWidth']
     },
     stageHeight() {
-      return this.$store.getters.stageHeight
-    },
-    firstPitch() {
-      return this.$store.getters.firstPitch
+      return this.$store.getters['const/stageHeight']
     },
     noteHeight() {
-      return this.$store.state.noteHeight
+      return this.$store.state.const.noteHeight
     },
     pitchWidth() {
-      return this.$store.getters.pitchWidth
+      return this.$store.getters['const/pitchWidth']
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     },
     svgData() {
-      return this.handleData(this.$store.state.f0AI)
+      return this.handleData(this.$store.state.change.f0AI)
     },
     svgDataDraw() {
-      return this.handleData(this.$store.state.f0Draw)
+      return this.handleData(this.$store.state.change.f0Draw)
     },
     divideDraw() {
-      return this.handleDivideDraw(this.$store.state.f0Draw)
+      return this.handleDivideDraw(this.$store.state.change.f0Draw)
     }
   },
   mounted() {
@@ -81,7 +79,7 @@ export default {
       // console.time('handleDivideDraw')
       let result = []
       const pw = this.pitchWidth
-      const fp = this.firstPitch
+      const fp = PitchList[0].pitch
       const nh = this.noteHeight
       // const viewportLeft = this.$store.state.stage.scrollLeft
       // const viewportRight = viewportLeft + window.innerWidth - 50
@@ -116,7 +114,7 @@ export default {
       // console.time(`handleData`)
       let result = []
       const pw = this.pitchWidth
-      const fp = this.firstPitch
+      const fp = PitchList[0].pitch
       const nh = this.noteHeight
       for (let i = 0; i < data.length; i += 1) {
         const item = data[i]
@@ -166,7 +164,7 @@ export default {
     },
     onMouseDown(event) {
       // console.log(`onMouseDown event`, event)
-      if (this.$store.state.isSynthetizing) {
+      if (this.$store.state.const.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
@@ -193,7 +191,7 @@ export default {
           // for(const [k, v] of values) {
           //   this.$store.dispatch('changeF0', { x: k, value: v })
           // }
-          this.$store.dispatch('changeF0', { values })
+          this.$store.dispatch('change/changeF0', { values })
           this.cache.clear()
         }
       }
@@ -227,11 +225,11 @@ export default {
     },
     changeF0Value(x, y) {
       const index = Math.round(x / this.pitchWidth)
-      const data = this.$store.state.f0AI
+      const data = this.$store.state.change.f0AI
       if (data) {
         const item = data[index]
         if (item) {
-          const value = (this.firstPitch - y / this.noteHeight) * 100
+          const value = (PitchList[0].pitch - y / this.noteHeight) * 100
         // const pos = Math.round(index * this.pitchWidth)
         // this.$store.dispatch('changeF0', { index, value, x: pos })
 

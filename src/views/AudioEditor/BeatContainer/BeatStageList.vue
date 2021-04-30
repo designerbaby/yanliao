@@ -22,7 +22,7 @@ export default {
   },
   computed: {
     stagePitches() {
-      return this.$store.state.stagePitches
+      return this.$store.state.change.stagePitches
     }
   },
   methods: {

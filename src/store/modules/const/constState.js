@@ -1,6 +1,6 @@
 import { PlayState, ModeState, TypeModeState } from '@/common/utils/const'
 
-const constState = {
+const constState = () => ({
   beatForm: {   // 存储节拍
     fenzi: 4,
     fenmu: 4
@@ -18,7 +18,9 @@ const constState = {
     width: 0,     // 舞台容器宽度
     height: 0,    // 舞台容器高度
     scrollLeft: 0,// 水平滚动条位置
-    scrollTop: 0  // 垂直滚动条位置
+    scrollTop: 0, // 垂直滚动条位置
+    rectLeft: 0,
+    rectTop: 0
   },
   mode: ModeState.StatePitch,        // 模式
   typeMode: TypeModeState.StateNone, // 附加模式类型
@@ -51,6 +53,6 @@ const constState = {
     scrollTop: 0
   },
   wavePlayStartTime: 0 // 伴奏轨开始的时间
-}
+})
 
 export default constState

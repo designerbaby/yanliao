@@ -8,7 +8,7 @@
     @mousedown.stop="onLineMouseDown"
     @mouseup.stop="onLineMouseUp"
   >
-    <div :class="[$style.line, { [$style.fixed]: $store.state.isExceedHeader }]">
+    <div :class="[$style.line, { [$style.fixed]: $store.state.const.isExceedHeader }]">
       <span :class="[$style.innerSpan]" :style="{ top: `${arrowTop}px`}"></span>
       <div :class="$style.inner"></div>
     </div>
@@ -32,18 +32,18 @@ export default {
   },
   computed: {
     stageHeight() {
-      return this.$store.getters.stageHeight;
+      return this.$store.getters['const/stageHeight']
     },
     lineLeft() {
-      return this.$store.state.lineLeft;
+      return this.$store.state.const.lineLeft;
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     },
     arrowTop() {
-      const isExceedHeader = this.$store.state.isExceedHeader
-      const showArrange = this.$store.state.showArrange
-      const appScrollTop = this.$store.state.appScrollTop
+      const isExceedHeader = this.$store.state.const.isExceedHeader
+      const showArrange = this.$store.state.const.showArrange
+      const appScrollTop = this.$store.state.const.appScrollTop
       if (isExceedHeader && !showArrange) {
         // 48为头部的高度, 4为修正高度, 34为编曲合起来的高度
         return appScrollTop - 48 - 4 + 34
@@ -58,7 +58,7 @@ export default {
   methods: {
     onLineMouseDown(event) {
       console.log(`onLineMouseDown`);
-      if (this.$store.state.isSynthetizing) {
+      if (this.$store.state.const.isSynthetizing) {
         Message.error("正在合成音频中,不能修改哦~")
         return
       }
@@ -85,7 +85,7 @@ export default {
         this.left = left;
         // console.log(`this.left: ${this.left}`)
 
-        this.$store.dispatch("changeStoreState", { lineLeft: left })
+        this.$store.dispatch("const/changeState", { lineLeft: left })
       }
     },
     onLineMouseUp(event) {
@@ -99,7 +99,7 @@ export default {
         const left = this.startLeft + movePx;
 
         // 移动好线之后先存起来
-        this.$store.dispatch("changeStoreState", { lineLeft: left })
+        this.$store.dispatch("const/changeState", { lineLeft: left })
       }
     }
   }

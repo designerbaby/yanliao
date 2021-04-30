@@ -60,7 +60,7 @@ export default {
       return this.lyricForm.lyric.split('')
     },
     stagePitches() {
-      return this.$store.state.stagePitches
+      return this.$store.state.change.stagePitches
     }
   },
   methods: {
@@ -169,12 +169,12 @@ export default {
           })
         }
       }
-      this.$store.dispatch('changeStoreState', { pinyinList })
+      this.$store.dispatch('const/changeState', { pinyinList })
       return pinyinList
     },
     save() {
       const stagePitches = this.stagePitches
-      const pinyinList = this.$store.state.pinyinList
+      const pinyinList = this.$store.state.const.pinyinList
       const lyricArray = this.lyricArray
       if (this.index === -1) {
         for(let i = 0; i < this.maxlength; i += 1) {
@@ -204,8 +204,8 @@ export default {
           pitch.pinyin = pinyinList[i].pinyin[pitch.select] || 'la'
         }
       }
-      this.$store.dispatch('saveFuYuan')
-      this.$store.dispatch('getPitchLine')
+      this.$store.dispatch('change/saveFuYuan')
+      this.$store.dispatch('change/getPitchLine')
     },
     async checkComplexPinyin() {
       let hasPolyphnic = false

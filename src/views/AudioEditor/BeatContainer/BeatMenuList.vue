@@ -30,7 +30,7 @@ export default {
   },
   computed: {
     stagePitches() {
-      return this.$store.state.stagePitches
+      return this.$store.state.change.stagePitches
     },
     showBreath() {
       let show = ''
@@ -67,11 +67,11 @@ export default {
     },
     deletePitch() {
       this.$store.dispatch('done/deletePitches')
-      this.$store.dispatch('changeStoreState', { showMenuList: false })
+      this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     editLyric(type) {
       this.$emit('editLyric', type)
-      this.$store.dispatch('changeStoreState', { showMenuList: false })
+      this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     copy() {
       this.$store.dispatch('done/copyPitches')
@@ -82,8 +82,8 @@ export default {
       const selectStagePitches = this.stagePitches.filter(v => v.selected)
       selectStagePitches.forEach(item => {
         this.$set(item, 'breath', {
-          left: item.left - this.$store.state.noteWidth,
-          width: this.$store.state.noteWidth,
+          left: item.left - this.$store.state.const.noteWidth,
+          width: this.$store.state.const.noteWidth,
           pinyin: 'br'
         })
       })

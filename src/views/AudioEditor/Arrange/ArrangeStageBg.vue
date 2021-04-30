@@ -1,12 +1,12 @@
 <template>
   <div :class="$style.beat">
-    <div :class="$style.column" :style="{ width: `${$store.getters.stageWidth / 10}px`}">
-      <div :class="$style.matter" v-for="n in $store.state.matter" :key="n">
+    <div :class="$style.column" :style="{ width: `${$store.getters['const/stageWidth'] / 10}px`}">
+      <div :class="$style.matter" v-for="n in $store.state.const.matter" :key="n">
         <div
           :class="$style.fenzi"
-          v-for="m in $store.state.beatForm.fenzi"
+          v-for="m in $store.state.const.beatForm.fenzi"
           :key="m"
-          :style="{ width: `${$store.getters.const.arrangeFenziWidth}px` }"
+          :style="{ width: `${$store.getters['const/arrangeFenziWidth']}px` }"
         ></div>
       </div>
     </div>

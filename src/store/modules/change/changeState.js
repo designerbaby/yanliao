@@ -1,4 +1,4 @@
-const changeState = {
+const changeState = () => ({
   stagePitches: [],    // 舞台音块
   f0AI: [],            // 音高线虚线部分
   f0Draw: [],          // 音高线实线部分
@@ -26,6 +26,6 @@ const changeState = {
     x: 0,
     y: 0
   }
-}
+})
 
 export default changeState
