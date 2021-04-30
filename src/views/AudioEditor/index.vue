@@ -639,17 +639,17 @@ export default {
       }
 
       // 特殊场景：如果伴奏在音块前面，并且是同时播放的情况，伴奏最左边比第一个音符小
-      const firstPitch = this.stagePitches[0]
-      if (this.trackList[1].offset * 10 < firstPitch.left && lineLeft <= this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
+     const firstPitch = this.stagePitches[0]
+      if (this.trackList[1].offset * 10 < this.getStagePitchLeftPosition(firstPitch) && lineLeft <= this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
         lineStartX = this.trackList[1].offset * 10
       }
       // 有伴奏，在最左边，都播放，第一个音符比线小
-      if (firstPitch.left < this.trackList[1].offset * 10 && lineLeft < firstPitch.left && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
-        lineStartX = firstPitch.left
+      if (firstPitch.left < this.trackList[1].offset * 10 && lineLeft < this.getStagePitchLeftPosition(firstPitch) && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
+        lineStartX = this.getStagePitchLeftPosition(firstPitch)
       }
       // 没有伴奏，在第一个音符最左边，都播放
-      if (trackMode === TrackMode.TrackModeAll && !waveSurfer.getWaveSurfer() && lineLeft < firstPitch.left) {
-        lineStartX = firstPitch.left
+      if (trackMode === TrackMode.TrackModeAll && !waveSurfer.getWaveSurfer() && lineLeft < this.getStagePitchLeftPosition(firstPitch)) {
+        lineStartX = this.getStagePitchLeftPosition(firstPitch)
       }
       console.log('lineStartX:', lineStartX)
       const startTime = pxToTime(lineStartX, this.noteWidth, this.bpm) / 1000
