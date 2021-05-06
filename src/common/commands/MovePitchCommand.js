@@ -4,13 +4,13 @@ import deepAssign from 'object-assign-deep'
 class MovePitchCommand extends Command {
   constructor( editor, moveList ) {
 		super( editor )
-    this.name = 'Add One Pitch'
+    this.name = 'Move Pitch'
 
     this.moveList = deepAssign([], moveList)
   }
 
   findByUUID(uuid) {
-    return this.editor.store.state.stagePitches.find(v => v.uuid === uuid)
+    return this.editor.store.state.change.stagePitches.find(v => v.uuid === uuid)
   }
 
   execute() {
@@ -32,7 +32,7 @@ class MovePitchCommand extends Command {
     this.moveList.forEach((it, idx) => {
       const { before } = it
       // const stateBefore = this.findByUUID(it.before.uuid)
-      const stateBefore = this.editor.store.state.stagePitches.find(v => v.uuid === it.before.uuid)
+      const stateBefore = this.editor.store.state.change.stagePitches.find(v => v.uuid === it.before.uuid)
       stateBefore.left = before.left
       stateBefore.top = before.top
       if (before.breath) {

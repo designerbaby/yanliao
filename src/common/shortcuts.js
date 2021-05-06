@@ -17,6 +17,10 @@ class Shortcut{
     hotkeys('ctrl+shift+z,command+shift+z', () => {
       this.editor.redo()
     })
+    hotkeys('ctrl+y,command+y', () => {
+      this.editor.redo()
+      // TODO 阻止浏览器默认行为
+    })
   }
 
   on() {
