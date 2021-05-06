@@ -511,8 +511,6 @@ export default {
       // 必须先按下了鼠标，才有松开鼠标事件
       // console.log('onMouseUp', event)
       if (this.isMouseDown) {
-        // 操作存储
-        this.$store.dispatch('done/push')
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
