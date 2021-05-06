@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+// import { mapGetters } from 'vuex'
 import { Message } from 'element-ui'
 import BeatContainer from './BeatContainer'
 import BeatHeader from './BeatHeader'
@@ -38,7 +38,7 @@ import { pitchList2StagePitches } from '@/common/utils/common'
 import { PlayAudio } from '@/common/utils/player'
 import CommonDialog from '@/common/components/CommonDialog'
 import * as waveSurfer from '@/common/utils/waveSurfer'
-// import Editor from '@/common/editor'
+import Editor from '@/common/editor'
 let audio = null
 
 export default {
@@ -68,7 +68,7 @@ export default {
   },
   async mounted() {
     reportEvent('audioedit-page-exposure', 147622)
-    // Editor.getInstance().setVm(this.$root).setStore(this.$store)
+    Editor.getInstance().setVm(this.$root).setStore(this.$store)
     await this.getEditorDetail()
     this.storeStagePitchesWatcher = this.$store.watch(
       state => state.stagePitches,
@@ -134,7 +134,7 @@ export default {
       if (e.target !== document.body) return
       const keyCode = e.keyCode || e.which || e.charCode;
       const ctrlKey = e.ctrlKey || e.metaKey;
-      console.log('ctrlKey', ctrlKey, keyCode)
+      // console.log('ctrlKey', ctrlKey, keyCode)
       if (keyCode === 32) { // 空格键 tab
         this.toPlay()
         e.preventDefault()
@@ -148,9 +148,9 @@ export default {
         this.$store.dispatch('done/pastePitches', {position: null})
         e.preventDefault()
       } else if (ctrlKey && keyCode === 89) { // ctrl + y 恢复
-        this.$store.dispatch('done/redo', 1)
+        // this.$store.dispatch('done/redo', 1)
       } else if (ctrlKey && keyCode === 90) { // ctrl + z 撤销
-        this.$store.dispatch('done/redo', -1)
+        // this.$store.dispatch('done/redo', -1)
       }
     },
     mousemoveListener(e) {

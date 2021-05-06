@@ -58,6 +58,8 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 6、组件的规划
 - 7、用画音高线，几万个数据怎么处理优化
 - 8、批量的操作，如何做到和操作文件夹一致
+- 9、所有快捷键的操作规划
+- 10、ctrl+z和ctrl+y快捷键操作整理
 
 ## 乐理
 - 分母：一个拍由哪种音符构成

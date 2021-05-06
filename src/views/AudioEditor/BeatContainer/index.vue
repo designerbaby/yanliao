@@ -85,9 +85,10 @@ import Breath from './Breath.vue'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
 import Bar from '@/common/components/Scrollbar/src/bar'
-// import Editor from '@/common/editor'
-// import AddPitchCommand from '@/common/commands/AddPitchCommand'
-// import MovePitchCommand from '@/common/commands/MovePitchCommand'
+import Editor from '@/common/editor'
+import AddPitchCommand from '@/common/commands/AddPitchCommand'
+import MovePitchCommand from '@/common/commands/MovePitchCommand'
+import ChangePitchCommand from '@/common/commands/ChangePitchCommand'
 
 export default {
   name: "BeatContainer",
@@ -375,7 +376,7 @@ export default {
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
         const { target, index, selectedPitches, selectedElements } = this.movePitchStart
-        let pitchHasChanged = false
+        // let pitchHasChanged = false
         const moveList = []
         for (let i = 0; i < selectedPitches.length; i ++) {
           const pitch = selectedPitches[i]
@@ -387,10 +388,10 @@ export default {
           // 修正位置，自动吸附
           const newLeft = amendLeft(left, this.noteWidth)
           const newTop = amendTop(top, this.noteHeight)
-          // left和top有变动
-          if (pitch.left !== newLeft || pitch.top !== newTop) {
-            pitchHasChanged = true
-          }
+          // // left和top有变动
+          // if (pitch.left !== newLeft || pitch.top !== newTop) {
+          //   pitchHasChanged = true
+          // }
           if (pitch.breath) {
             pitch.breath.left = newLeft - pitch.breath.width
           }
@@ -415,20 +416,19 @@ export default {
             eleDom.style.transform = `translate(${this.movePitchStart.left}px, ${this.movePitchStart.top}px)`
             eleDom.dataset.left = this.movePitchStart.left
             eleDom.dataset.top = this.movePitchStart.top
-            pitchHasChanged = false
+            // pitchHasChanged = false
             return
           }
         }
-
-        // const editor = Editor.getInstance()
-        // editor.execute(new MovePitchCommand(editor, moveList))
-
-        turnChangeLineMap(this.$store.state, moveList, true)
-
         this.movePitchStart = null
-        if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
-          this.$store.dispatch('change/afterChangePitchAndHandle')
-        }
+
+        const editor = Editor.getInstance()
+        editor.execute(new MovePitchCommand(editor, moveList))
+
+        // turnChangeLineMap(this.$store.state, moveList, true)
+        // if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
+        //   this.$store.dispatch('change/afterChangePitchAndHandle')
+        // }
       }
     },
     canMoveUpPitch(pitch) {
@@ -542,57 +542,58 @@ export default {
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
-        this.addOnePitch({
-          width,
-          height: this.noteHeight,
-          left,
-          top
-        });
-
-        // const editor = Editor.getInstance()
-        // const pitch = {
+        // this.addOnePitch({
         //   width,
         //   height: this.noteHeight,
         //   left,
         //   top
-        // }
-        // editor.execute(new AddPitchCommand(editor, pitch))
+        // });
+
+        const editor = Editor.getInstance()
+        const pitch = {
+          width,
+          height: this.noteHeight,
+          left,
+          top
+        }
+        editor.execute(new AddPitchCommand(editor, pitch))
 
         this.toCheckOverStage(this.endPos.x)
       }
     },
 
-    addOnePitch({ width, height, left, top }) {
-      this.$store.dispatch('change/resetStagePitchesSelect')
-      this.doSelectUUID(null)
-      this.stagePitches.push({
-        width,
-        height,
-        left,
-        top,
-        hanzi: '啦',
-        pinyin: 'la',
-        red: false,
-        pinyinList: ['la'],
-        select: 0,
-        fu: 'l',
-        yuan: 'a',
-        selected: true,
-        pitchChanged: true,
-        uuid: generateUUID()
-      });
-      this.doSelectUUID(this.stagePitches[this.stagePitches.length - 1].uuid)
-      console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
-      this.$store.dispatch('change/afterChangePitchAndHandle')
-    },
+    // addOnePitch({ width, height, left, top }) {
+    //   this.$store.dispatch('change/resetStagePitchesSelect')
+    //   this.doSelectUUID(null)
+    //   this.stagePitches.push({
+    //     width,
+    //     height,
+    //     left,
+    //     top,
+    //     hanzi: '啦',
+    //     pinyin: 'la',
+    //     red: false,
+    //     pinyinList: ['la'],
+    //     select: 0,
+    //     fu: 'l',
+    //     yuan: 'a',
+    //     selected: true,
+    //     pitchChanged: true,
+    //     uuid: generateUUID()
+    //   });
+    //   this.doSelectUUID(this.stagePitches[this.stagePitches.length - 1].uuid)
+    //   console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
+    //   this.$store.dispatch('change/afterChangePitchAndHandle')
+    // },
     onArrowMoveEnd({ width, left, top, target, direction, moveArrowStart }, index) {
-      let pitchHasChanged = false
+      // let pitchHasChanged = false
       const pitch = this.stagePitches[index]
+      const beforePitch = Object.assign({}, pitch)
       // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
 
-      if (pitch.left !== left || pitch.top !== top || pitch.width !== width) {
-        pitchHasChanged = true // 有变化的话，需要去拉取f0数据
-      }
+      // if (pitch.left !== left || pitch.top !== top || pitch.width !== width) {
+      //   pitchHasChanged = true // 有变化的话，需要去拉取f0数据
+      // }
 
       // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
@@ -617,11 +618,17 @@ export default {
         pitch.width = moveArrowStart.width
         target.style.transform = `translate(${moveArrowStart.left}px, ${moveArrowStart.top}px)`
         target.style.width = `${moveArrowStart.width}px`
-        pitchHasChanged = false
+        // pitchHasChanged = false
       }
-      if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
-        this.$store.dispatch('change/afterChangePitchAndHandle')
+      const movePitch = {
+        before: beforePitch,
+        after: pitch
       }
+      const editor = Editor.getInstance()
+      editor.execute(new ChangePitchCommand(editor, movePitch))
+      // if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
+      //   this.$store.dispatch('change/afterChangePitchAndHandle')
+      // }
     },
     editLyric(type) {
       this.$refs.BeatLyric.showLyric(type)
