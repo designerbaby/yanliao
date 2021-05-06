@@ -722,6 +722,7 @@ export default {
 /deep/ .common-scrollbar {
   &-bar {
     position: fixed;
+    z-index: 9999;
     left: 50px;
     height: 14px;
     border-radius: 20px;
