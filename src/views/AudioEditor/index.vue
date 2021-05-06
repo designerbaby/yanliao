@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+// import { mapGetters } from 'vuex'
 import { Message } from 'element-ui'
 import BeatContainer from './BeatContainer'
 import BeatHeader from './BeatHeader'

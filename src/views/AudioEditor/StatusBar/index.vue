@@ -10,16 +10,12 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 import Beat from './Beat.vue'
 import BeatTop from './BeatTop.vue'
 export default {
   name: 'StatusBar',
   components: { Beat, BeatTop },
   computed: {
-    // ...mapState({
-    //   isFixed: 'isExceedHeader'
-    // }),
     showArrange() {
       return this.$store.state.const.showArrange
     },

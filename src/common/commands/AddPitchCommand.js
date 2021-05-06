@@ -32,15 +32,15 @@ class AddPitchCommand extends Command {
     if (stagePitches.length) {
       beatContainer.doSelectUUID(stagePitches[stagePitches.length - 1].uuid)
     }
-    // console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
     store.dispatch('change/afterChangePitchAndHandle', null, { root: true })
-    console.log(`this.stagePitches`, this.editor.store.state.change.stagePitches)
+    // console.log(`this.stagePitches`, this.editor.store.state.change.stagePitches)
   }
   undo() {
     console.log(`撤销一个音块：`, { ...this.pitch})
     const stagePitches = this.editor.store.state.change.stagePitches
     const index = stagePitches.findIndex(v => v.uuid === this.pitch.uuid)
     this.editor.store.state.change.stagePitches.splice(index, 1)
+    this.editor.store.dispatch('change/afterChangePitchAndHandle', null, { root: true })
   }
 }
 

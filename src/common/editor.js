@@ -33,7 +33,7 @@ class Editor {
 
   constructor() {
     console.log(`Init editor`)
-    this.history = new History( this )
+    this.history = new History(this)
     this.shortcut = new Shortcut(this)
   }
 
@@ -67,7 +67,6 @@ class Editor {
 
 	redo () {
 		this.history.redo()
-
 	}
 }
 

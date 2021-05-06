@@ -1,6 +1,6 @@
 
 import hotkeys from 'hotkeys-js'
-// 快捷键统一操作
+// shortcuts 快捷键统一操作
 class Shortcut{
   enable = true
 
@@ -17,9 +17,25 @@ class Shortcut{
     hotkeys('ctrl+shift+z,command+shift+z', () => {
       this.editor.redo()
     })
-    hotkeys('ctrl+y,command+y', () => {
+    hotkeys('ctrl+y,command+y', (event) => {
       this.editor.redo()
-      // TODO 阻止浏览器默认行为
+      event.preventDefault()
+    })
+    hotkeys('ctrl+c,command+c', () => {
+      console.log('按下复制键')
+      // TODO 迁移
+    })
+    hotkeys('ctrl+v,command+v', () => {
+      console.log('按下粘贴键')
+      // TODO 迁移
+    })
+    hotkeys('tab', () => {
+      console.log('按下tab键')
+      // TODO 迁移,tab键监听错误
+    })
+    hotkeys('delete', () => {
+      console.log('按下delete键')
+      // TODO 迁移,delete和return键监听错误
     })
   }
 
