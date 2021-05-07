@@ -376,7 +376,7 @@ export default {
         document.removeEventListener('mousemove', this.onPitchMouseMove)
         document.removeEventListener('mouseleave', this.onPitchMouseUp)
         const { target, index, selectedPitches, selectedElements } = this.movePitchStart
-        // let pitchHasChanged = false
+        let pitchHasChanged = false
         const moveList = []
         for (let i = 0; i < selectedPitches.length; i ++) {
           const pitch = selectedPitches[i]
@@ -388,10 +388,10 @@ export default {
           // 修正位置，自动吸附
           const newLeft = amendLeft(left, this.noteWidth)
           const newTop = amendTop(top, this.noteHeight)
-          // // left和top有变动
-          // if (pitch.left !== newLeft || pitch.top !== newTop) {
-          //   pitchHasChanged = true
-          // }
+          // left和top有变动
+          if (pitch.left !== newLeft || pitch.top !== newTop) {
+            pitchHasChanged = true
+          }
           if (pitch.breath) {
             pitch.breath.left = newLeft - pitch.breath.width
           }
@@ -416,14 +416,16 @@ export default {
             eleDom.style.transform = `translate(${this.movePitchStart.left}px, ${this.movePitchStart.top}px)`
             eleDom.dataset.left = this.movePitchStart.left
             eleDom.dataset.top = this.movePitchStart.top
-            // pitchHasChanged = false
+            pitchHasChanged = false
             return
           }
         }
         this.movePitchStart = null
 
-        const editor = Editor.getInstance()
-        editor.execute(new MovePitchCommand(editor, moveList))
+        if (pitchHasChanged) {
+          const editor = Editor.getInstance()
+          editor.execute(new MovePitchCommand(editor, moveList))
+        }
 
         // turnChangeLineMap(this.$store.state, moveList, true)
         // if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
@@ -588,14 +590,14 @@ export default {
     //   this.$store.dispatch('change/afterChangePitchAndHandle')
     // },
     onArrowMoveEnd({ width, left, top, target, direction, moveArrowStart }, index) {
-      // let pitchHasChanged = false
+      let pitchHasChanged = false
       const pitch = this.stagePitches[index]
       const beforePitch = Object.assign({}, pitch)
       // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
 
-      // if (pitch.left !== left || pitch.top !== top || pitch.width !== width) {
-      //   pitchHasChanged = true // 有变化的话，需要去拉取f0数据
-      // }
+      if (pitch.left !== left || pitch.top !== top || pitch.width !== width) {
+        pitchHasChanged = true // 有变化的话，需要去拉取f0数据
+      }
 
       // 结束后修正宽度和左边距
       pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
@@ -620,14 +622,17 @@ export default {
         pitch.width = moveArrowStart.width
         target.style.transform = `translate(${moveArrowStart.left}px, ${moveArrowStart.top}px)`
         target.style.width = `${moveArrowStart.width}px`
-        // pitchHasChanged = false
+        pitchHasChanged = false
       }
       const movePitch = {
         before: beforePitch,
         after: pitch
       }
-      const editor = Editor.getInstance()
-      editor.execute(new ChangePitchCommand(editor, movePitch))
+      if (pitchHasChanged) {
+        const editor = Editor.getInstance()
+        editor.execute(new ChangePitchCommand(editor, movePitch))
+      }
+
       // if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
       //   this.$store.dispatch('change/afterChangePitchAndHandle')
       // }

@@ -15,7 +15,7 @@ class InsertBreathCommand extends Command {
   }
 
   undo() {
-    console.log(`撤销插入换气`)
+    console.log('撤销插入换气')
     this.pitch.breath = null
   }
 }

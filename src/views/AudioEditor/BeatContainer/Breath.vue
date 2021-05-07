@@ -16,6 +16,8 @@
 <script>
 import { Message } from 'element-ui'
 import ArrowBreath from './ArrowBreath.vue'
+import Editor from '@/common/editor'
+import ChangeBreathCommand from '@/common/commands/ChangeBreathCommand'
 
 export default {
   name: 'Breath',
@@ -43,8 +45,9 @@ export default {
     },
     onArrowBreathMove({ left, width, target }, index) {
       const pitch = this.stagePitches[index]
-      pitch.breath.left = left
-      pitch.breath.width = width
+      // pitch.breath.left = left
+      // pitch.breath.width = width
+      // TODO 这里滑动不流畅
       const styles = this.getStyle(pitch)
       Object.keys(styles).forEach(k => {
         target.style[k] = styles[k]
@@ -53,8 +56,10 @@ export default {
     onArrowBreathMoveEnd({ left, width }, index) {
       console.log(`onArrowBreathMoveEnd: ${index}, left: ${left}, width: ${width}`)
       const pitch = this.stagePitches[index]
-      pitch.breath.left = left
-      pitch.breath.width = width
+      // pitch.breath.left = left
+      // pitch.breath.width = width
+      const editor = Editor.getInstance()
+      editor.execute(new ChangeBreathCommand(editor, pitch, left, width))
     },
     canMove(newLeft) {
       if (newLeft > (this.it.left - this.$store.state.const.noteWidth)) { // 最小只能移动到剩下1个32分音符

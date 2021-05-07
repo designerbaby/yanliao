@@ -10,6 +10,8 @@
 </template>
 
 <script>
+import Editor from '@/common/editor'
+import PastePitchCommand from '@/common/commands/PastePitchCommand'
 
 export default {
   name: 'BeatStageList',
@@ -32,7 +34,10 @@ export default {
       this.pos = pos
     },
     toPaste() {
-      this.$store.dispatch('done/pastePitches', { position: this.pos })
+      // this.$store.dispatch('done/pastePitches', { position: this.pos })
+      const position = this.pos
+      const editor = Editor.getInstance()
+      editor.execute(new PastePitchCommand(editor, position))
     }
   }
 }

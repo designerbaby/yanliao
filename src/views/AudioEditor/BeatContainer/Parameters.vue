@@ -15,7 +15,6 @@
         :className="$style.draw"
         :styles="stageStyle"
         :valueHandler="valueHandler"
-        @mouse-down="saveOp"
         @on-draw="onDraw"
         >
         <svg
@@ -37,6 +36,9 @@
 <script>
 import Drawable from '@/views/AudioEditor/Components/Drawable.vue'
 import { TypeModeState } from '@/common/utils/const'
+import Editor from '@/common/editor'
+import ChangeVolumeCommand from '@/common/commands/ChangeVolumeCommand'
+import ChangeTensionCommand from '@/common/commands/ChangeTensionCommand'
 
 export default {
   name: 'Parameters',
@@ -118,16 +120,19 @@ export default {
     }
   },
   methods: {
-    saveOp() {
+    // saveOp() {
       // 操作存储
       // this.$store.dispatch('done/push')
-    },
+    // },
     onDraw(values) {
+      const editor = Editor.getInstance()
       // console.log(`onDraw values:`, values)
       if (this.typeMode === TypeModeState.StateVolume) {
-        this.$store.dispatch('change/changeVolumeMap', { values })
+        // this.$store.dispatch('change/changeVolumeMap', { values })
+        editor.execute(new ChangeVolumeCommand(editor, values))
       } else if (this.typeMode === TypeModeState.StateTension) {
-        this.$store.dispatch('change/changeTensionMap', { values })
+        // this.$store.dispatch('change/changeTensionMap', { values })
+        editor.execute(new ChangeTensionCommand(editor, values))
       }
     },
     positionY2Db(y) {

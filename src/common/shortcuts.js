@@ -45,6 +45,7 @@ class Shortcut{
         case 46:
         case 8:
           console.log('按下delete键或者fn+delete', hotkeys.getPressedKeyCodes())
+          this.editor.store.dispatch('done/deletePitches')
           return false
         default:;
       }

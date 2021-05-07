@@ -28,7 +28,6 @@ import ArrangeTrack from './ArrangeTrack.vue'
 import ArrangeStage from './ArrangeStage.vue'
 import ArrangeStageBg from './ArrangeStageBg.vue'
 import ArrangeObbligato from './ArrangeObbligato.vue'
-import { mapState } from 'vuex'
 
 export default {
   name: 'Arrange',

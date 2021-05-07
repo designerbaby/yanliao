@@ -17,6 +17,7 @@
 import { pxToTime } from '@/common/utils/helper'
 import { TrackMode } from '@/common/utils/const'
 import * as waveSurfer from '@/common/utils/waveSurfer'
+
 export default {
   name: 'ArrangeBar',
   computed: {

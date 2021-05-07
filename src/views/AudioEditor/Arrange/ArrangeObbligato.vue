@@ -63,6 +63,9 @@ import { Upload, Message } from 'element-ui'
 import { uploadFile } from '@/common/utils/upload'
 import { PlayState } from "@/common/utils/const"
 import * as waveSurfer from '@/common/utils/waveSurfer'
+import Editor from '@/common/editor'
+import AddArrangeCommand from '@/common/commands/AddArrangeCommand'
+import ChangeArrangeCommand from '@/common/commands/ChangeArrangeCommand'
 
 export default {
   name: 'ArrangeObbligato',
@@ -123,7 +126,10 @@ export default {
 
       uploadFile(file.raw, 'analyze', (url) => {
         this.$store.state.change.trackList[1].file = url
-        this.$store.dispatch('change/showWaveSurfer', { file: url, type: 'url' })
+        // this.$store.dispatch('change/showWaveSurfer', { file: url, type: 'url' })
+        const editor = Editor.getInstance()
+        const type = 'url'
+        editor.execute(new AddArrangeCommand(editor, url, type))
       })
     },
     onRightClickStage(event) {
@@ -193,7 +199,8 @@ export default {
           x: newLeft,
           y: 0
         }
-        this.$store.state.change.trackList[1].offset = newLeft
+        this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
+        this.waveEndPos.left = newLeft
         this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
         this.$store.dispatch('change/changeState', { stageMousePos })
       }
@@ -204,6 +211,10 @@ export default {
         this.isWaveMouseDown = false
       }
       this.$refs.WaveForm.style.opacity = 1
+      // this.$store.state.change.trackList[1].offset = this.waveEndPos.left
+
+      const editor = Editor.getInstance()
+      editor.execute(new ChangeArrangeCommand(editor, this.waveEndPos.left))
 
       document.removeEventListener('mousemove', this.onWaveMouseMove)
       document.removeEventListener('mouseleave', this.onWaveMouseUp)

@@ -30,6 +30,8 @@
 import ArrowElement from './ArrowElement.vue'
 import { Message } from 'element-ui'
 import { timeToPx } from '@/common/utils/helper'
+import Editor from '@/common/editor'
+import ChangePitchElementCommand from '@/common/commands/ChangePitchElementCommand'
 
 export default {
   name: 'PitchElement',
@@ -141,7 +143,11 @@ export default {
     onArrowMoveEnd({ preTime }, index) {
       console.log(`onArrowMoveEnd, preTime:${preTime}`, index)
       const pitch = this.stagePitches[index]
-      pitch.preTime = preTime
+      // pitch.preTime = preTime
+
+      const editor = Editor.getInstance()
+      editor.execute(new ChangePitchElementCommand(editor, pitch, preTime))
+
       this.$store.dispatch('const/changeState', { isStagePitchElementChanged: true })
     }
   }
