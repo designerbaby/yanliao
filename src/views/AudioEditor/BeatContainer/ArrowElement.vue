@@ -44,7 +44,7 @@ export default {
         return
       }
       // 操作存储
-      this.$store.dispatch('done/push')
+      // this.$store.dispatch('done/push')
       this.isActive = true
       // console.log('onArrowEleMouseDown this.pitch:', this.pitch)
       const preTime = this.pitch.preTime

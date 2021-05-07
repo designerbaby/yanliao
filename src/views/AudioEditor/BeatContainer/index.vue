@@ -82,8 +82,8 @@ import BeatMenuList from './BeatMenuList.vue'
 import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
 import Breath from './Breath.vue'
-import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
-import { turnChangeLineMap } from '@/common/utils/common'
+import { amendTop, amendLeft } from '@/common/utils/helper'
+// import { turnChangeLineMap } from '@/common/utils/common'
 import Bar from '@/common/components/Scrollbar/src/bar'
 import Editor from '@/common/editor'
 import AddPitchCommand from '@/common/commands/AddPitchCommand'
@@ -512,7 +512,7 @@ export default {
       // console.log('onMouseUp', event)
       if (this.isMouseDown) {
         // 操作存储
-        this.$store.dispatch('done/push')
+        // this.$store.dispatch('done/push')
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {

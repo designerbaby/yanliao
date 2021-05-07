@@ -22,20 +22,32 @@ class Shortcut{
       event.preventDefault()
     })
     hotkeys('ctrl+c,command+c', () => {
-      console.log('按下复制键')
-      // TODO 迁移
+      this.editor.store.dispatch('done/copyPitches')
     })
     hotkeys('ctrl+v,command+v', () => {
       console.log('按下粘贴键')
-      // TODO 迁移
+      this.editor.store.dispatch('done/pastePitches', { position: null })
     })
-    hotkeys('tab', () => {
-      console.log('按下tab键')
-      // TODO 迁移,tab键监听错误
+    hotkeys('space', (event) => {
+      console.log('按下space键')
+      this.editor.vm.$emit('clickSpace')
+      event.preventDefault()
     })
-    hotkeys('delete', () => {
-      console.log('按下delete键')
-      // TODO 迁移,delete和return键监听错误
+
+    hotkeys("*", () => {
+      // if (hotkeys.isPressed(8) || hotkeys.isPressed(46)) {
+      //   console.log('按下delete键', hotkeys.getPressedKeyCodes())
+      //   return false
+      // }
+
+      const key = hotkeys.getPressedKeyCodes()[0]
+      switch (key) {
+        case 46:
+        case 8:
+          console.log('按下delete键或者fn+delete', hotkeys.getPressedKeyCodes())
+          return false
+        default:;
+      }
     })
   }
 

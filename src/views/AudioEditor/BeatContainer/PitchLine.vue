@@ -173,7 +173,7 @@ export default {
         return
       }
       // 操作存储
-      this.$store.dispatch('done/push')
+      // this.$store.dispatch('done/push')
 
       this.zIndex = 1001 // 把层级设得比播放线的高
       const rect = this.$refs.svgStage.getBoundingClientRect()

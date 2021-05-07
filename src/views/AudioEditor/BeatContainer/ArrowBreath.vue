@@ -43,7 +43,7 @@ export default {
         return
       }
       // 操作存储
-      this.$store.dispatch('done/push')
+      // this.$store.dispatch('done/push')
       this.isActive = true
       this.moveArrowBreathStart = {
         left: this.pitch.breath.left,

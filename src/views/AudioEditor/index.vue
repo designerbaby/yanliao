@@ -66,6 +66,9 @@ export default {
       isAddAc: 1
     }
   },
+  created() {
+    this.$root.$on('clickSpace', this.toPlay)
+  },
   async mounted() {
     reportEvent('audioedit-page-exposure', 147622)
     Editor.getInstance().setVm(this.$root).setStore(this.$store)
@@ -83,7 +86,7 @@ export default {
     )
     this.$store.dispatch('const/updateStageSize')
     await this.$nextTick()
-    document.addEventListener('keydown', this.keyDownListener)
+    // document.addEventListener('keydown', this.keyDownListener)
     document.addEventListener('mousemove', this.mousemoveListener)
   },
   destroyed() {
@@ -96,8 +99,9 @@ export default {
       waveSurfer.getWaveSurfer().pause()
       waveSurfer.clearWaveSurfer()
     }
-    document.removeEventListener('keydown', this.keyDownListener)
+    // document.removeEventListener('keydown', this.keyDownListener)
     document.removeEventListener('mousemove', this.mousemoveListener)
+    this.$root.$off('clickSpace', this.toPlay)
   },
   computed: {
     // ...mapGetters(['stagePitches']),
@@ -130,29 +134,29 @@ export default {
     }
   },
   methods: {
-    keyDownListener(e) {
-      if (e.target !== document.body) return
-      const keyCode = e.keyCode || e.which || e.charCode;
-      const ctrlKey = e.ctrlKey || e.metaKey;
-      // console.log('ctrlKey', ctrlKey, keyCode)
-      if (keyCode === 32) { // 空格键 tab
-        this.toPlay()
-        e.preventDefault()
-      } else if (keyCode === 8 || keyCode === 46) { // delete or return
-        this.$store.dispatch('done/deletePitches')
-        e.stopPropagation()
-      } else if (ctrlKey && keyCode === 67) { // ctrl + c 复制
-        this.$store.dispatch('done/copyPitches')
-        e.preventDefault() // 阻止默认行为
-      } else if (ctrlKey && keyCode === 86) { // ctrl + v 粘贴
-        this.$store.dispatch('done/pastePitches', {position: null})
-        e.preventDefault()
-      } else if (ctrlKey && keyCode === 89) { // ctrl + y 恢复
-        // this.$store.dispatch('done/redo', 1)
-      } else if (ctrlKey && keyCode === 90) { // ctrl + z 撤销
-        // this.$store.dispatch('done/redo', -1)
-      }
-    },
+    // keyDownListener(e) {
+    //   if (e.target !== document.body) return
+    //   const keyCode = e.keyCode || e.which || e.charCode;
+    //   const ctrlKey = e.ctrlKey || e.metaKey;
+    //   // console.log('ctrlKey', ctrlKey, keyCode)
+    //   if (keyCode === 32) { // 空格键 tab
+    //     this.toPlay()
+    //     e.preventDefault()
+    //   } else if (keyCode === 8 || keyCode === 46) { // delete or return
+    //     this.$store.dispatch('done/deletePitches')
+    //     e.stopPropagation()
+    //   } else if (ctrlKey && keyCode === 67) { // ctrl + c 复制
+    //     this.$store.dispatch('done/copyPitches')
+    //     e.preventDefault() // 阻止默认行为
+    //   } else if (ctrlKey && keyCode === 86) { // ctrl + v 粘贴
+    //     this.$store.dispatch('done/pastePitches', {position: null})
+    //     e.preventDefault()
+    //   } else if (ctrlKey && keyCode === 89) { // ctrl + y 恢复
+    //     // this.$store.dispatch('done/redo', 1)
+    //   } else if (ctrlKey && keyCode === 90) { // ctrl + z 撤销
+    //     // this.$store.dispatch('done/redo', -1)
+    //   }
+    // },
     mousemoveListener(e) {
       this.$store.commit('done/UPDATE_MOUSEPOS', {
         x: e.x,
