@@ -3,7 +3,7 @@ import Command from './Command'
 class ChangePitchElementCommand extends Command {
   constructor(editor) {
     super( editor )
-    this.name = 'Change PitchElemen'
+    this.name = 'Change PitchElement'
   }
 
   execute() {

@@ -8,10 +8,11 @@ class CopyPitchCommand extends Command {
 
   execute() {
     console.log('复制音块')
+
   }
 
   undo() {
-    console.log(`撤销复制伴奏`)
+    console.log(`撤销复制音块`)
   }
 }
 

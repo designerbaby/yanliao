@@ -19,6 +19,9 @@
 <script>
 import Editor from '@/common/editor'
 import DeletePitchCommand from '@/common/commands/DeletePitchCommand'
+import InsertBreathCommand from '@/common/commands/InsertBreathCommand'
+import CancelBreathCommand from '@/common/commands/CancelBreathCommand'
+import CopyPitchCommand from '@/common/commands/CopyPitchCommand'
 
 export default {
   name: 'BeatMenuList',
@@ -78,22 +81,36 @@ export default {
     },
     copy() {
       this.$store.dispatch('done/copyPitches')
+
     },
     insertBreath() {
-      const selectStagePitches = this.stagePitches.filter(v => v.selected)
-      selectStagePitches.forEach(item => {
-        this.$set(item, 'breath', {
-          left: item.left - this.$store.state.const.noteWidth,
-          width: this.$store.state.const.noteWidth,
-          pinyin: 'br'
-        })
-      })
+      const pitch = this.stagePitches.filter(v => v.selected)[0]
+
+      const breath = {
+        left: pitch.left - this.$store.state.const.noteWidth,
+        width: this.$store.state.const.noteWidth,
+        pinyin: 'br'
+      }
+      // selectStagePitches.forEach(item => {
+      //   this.$set(item, 'breath', {
+      //     left: item.left - this.$store.state.const.noteWidth,
+      //     width: this.$store.state.const.noteWidth,
+      //     pinyin: 'br'
+      //   })
+      // })
+
+      const editor = Editor.getInstance()
+      editor.execute(new InsertBreathCommand(editor, pitch, breath))
     },
     cancelBreath() {
-      const selectStagePitches = this.stagePitches.filter(v => v.selected)
-      selectStagePitches.forEach(item => {
-        item.breath = null
-      })
+      // 操作存储
+      // this.$store.dispatch('done/push')
+      const pitch = this.stagePitches.filter(v => v.selected)[0]
+      // selectStagePitches.forEach(item => {
+      //   item.breath = null
+      // })
+      const editor = Editor.getInstance()
+      editor.execute(new CancelBreathCommand(editor, pitch))
     }
   }
 }
