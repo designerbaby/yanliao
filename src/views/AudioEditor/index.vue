@@ -154,14 +154,14 @@ export default {
       }
     },
     mousemoveListener(e) {
-      this.$store.commit('done/UPDATE_MOUSEPOS', {
+      this.$store.commit('const/changeState', { mousePos: {
         x: e.x,
         y: e.y,
         clientX: e.clientX,
         clientY: e.clientY,
         layerX: e.layerX,
         layerY: e.layerY
-      })
+      }})
     },
     closeDialogShow() {
       this.dialogShow = false

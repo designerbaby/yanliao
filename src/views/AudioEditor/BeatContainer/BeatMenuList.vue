@@ -17,6 +17,8 @@
 </template>
 
 <script>
+import Editor from '@/common/editor'
+import DeletePitchCommand from '@/common/commands/DeletePitchCommand'
 
 export default {
   name: 'BeatMenuList',
@@ -66,7 +68,8 @@ export default {
       this.top = top
     },
     deletePitch() {
-      this.$store.dispatch('done/deletePitches')
+      const editor = Editor.getInstance()
+      editor.execute(new DeletePitchCommand(editor))
       this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     editLyric(type) {

@@ -52,7 +52,8 @@ const constState = () => ({
     scrollLeft: 0,
     scrollTop: 0
   },
-  wavePlayStartTime: 0 // 伴奏轨开始的时间
+  wavePlayStartTime: 0, // 伴奏轨开始的时间
+  mousePos: {} // 鼠标位置
 })
 
 export default constState
