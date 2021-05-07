@@ -66,6 +66,7 @@ import * as waveSurfer from '@/common/utils/waveSurfer'
 import Editor from '@/common/editor'
 import AddArrangeCommand from '@/common/commands/AddArrangeCommand'
 import ChangeArrangeCommand from '@/common/commands/ChangeArrangeCommand'
+import DeleteArrangeCommand from '@/common/commands/DeleteArrangeCommand'
 
 export default {
   name: 'ArrangeObbligato',
@@ -128,8 +129,7 @@ export default {
         this.$store.state.change.trackList[1].file = url
         // this.$store.dispatch('change/showWaveSurfer', { file: url, type: 'url' })
         const editor = Editor.getInstance()
-        const type = 'url'
-        editor.execute(new AddArrangeCommand(editor, url, type))
+        editor.execute(new AddArrangeCommand(editor, url, 'url'))
       })
     },
     onRightClickStage(event) {
@@ -179,7 +179,8 @@ export default {
         const rect = this.$refs.WaveForm.getBoundingClientRect()
 
         this.waveEndPos = {
-          x: event.clientX - rect.left
+          x: event.clientX - rect.left,
+          left: this.trackList[1].offset
         }
         const moveX = this.waveEndPos.x - this.waveStartPos.x
 
@@ -200,6 +201,7 @@ export default {
           y: 0
         }
         this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
+        // this.$store.state.change.trackList[1].offset = newLeft
         this.waveEndPos.left = newLeft
         this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
         this.$store.dispatch('change/changeState', { stageMousePos })
@@ -209,21 +211,24 @@ export default {
       // console.log('onWaveMouseUp', event)
       if (this.isWaveMouseDown) {
         this.isWaveMouseDown = false
+        const editor = Editor.getInstance()
+        editor.execute(new ChangeArrangeCommand(editor, this.waveEndPos.left))
+        this.$refs.WaveForm.style.opacity = 1
       }
-      this.$refs.WaveForm.style.opacity = 1
       // this.$store.state.change.trackList[1].offset = this.waveEndPos.left
-
-      const editor = Editor.getInstance()
-      editor.execute(new ChangeArrangeCommand(editor, this.waveEndPos.left))
-
       document.removeEventListener('mousemove', this.onWaveMouseMove)
       document.removeEventListener('mouseleave', this.onWaveMouseUp)
     },
     deleteObbligato() {
       this.showDelete = false
-      waveSurfer.clearWaveSurfer()
-      this.$refs.WaveForm.style.border = 0
-      this.$store.dispatch('change/changeState', { waveWidth: 0 })
+      // this.$refs.WaveForm.style.border = 0
+      this.waveActive = false
+      const editor = Editor.getInstance()
+      editor.execute(new DeleteArrangeCommand(editor))
+
+      // waveSurfer.clearWaveSurfer()
+      // this.$store.dispatch('change/changeState', { waveWidth: 0 })
+
       this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
     },
     selectObbligato() {
@@ -250,6 +255,7 @@ export default {
   left: 0;
   height: 50px;
   width: 0;
+  border: 0;
   &.isActive {
     background: rgba(255,255,255,0.07);
     border-radius: 5px;

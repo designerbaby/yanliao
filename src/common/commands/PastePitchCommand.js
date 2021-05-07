@@ -1,4 +1,5 @@
 import Command from './Command'
+import { Message } from 'element-ui'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
 

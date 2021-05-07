@@ -19,11 +19,11 @@ class AddArrangeCommand extends Command {
     waveSurfer.on('ready', () => {
       // 初始化伴奏的宽度、音波、位移、音量
       const duration = waveSurfer.getDuration()
-      const waveWidth = timeToPx(duration * 1000, store.state.const.noteWidth / 10, this.bpm || store.state.const.bpm)
+      const waveWidth = timeToPx(duration * 1000, store.state.const.noteWidth / 10, store.state.const.bpm)
       store.commit('change/changeState', { waveWidth }, { root: true })
-      store.state.trackList[1].offset = store.state.stageMousePos.x
+      store.state.change.trackList[1].offset = store.state.change.stageMousePos.x
       waveSurfer.zoom(waveWidth / duration)
-      waveSurfer.setVolume(store.state.trackList[1].volume / 100)
+      waveSurfer.setVolume(store.state.change.trackList[1].volume / 100)
       store.dispatch('const/adjustStageWidth', { root: true })
     })
     store.commit('const/changeState', { isObbligatoChanged: true }, { root: true })

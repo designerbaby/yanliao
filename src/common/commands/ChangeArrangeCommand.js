@@ -14,7 +14,7 @@ class ChangeArrangeCommand extends Command {
   }
 
   undo() {
-    console.log(`撤销修改伴奏`)
+    console.log(`撤销修改伴奏`, this.oldOffset)
     this.editor.store.state.change.trackList[1].offset = this.oldOffset
   }
 }

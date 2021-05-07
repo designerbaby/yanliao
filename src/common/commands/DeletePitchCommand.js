@@ -8,7 +8,7 @@ class DeletePitchCommand extends Command {
   }
 
   execute() {
-    console.log(`删除音块`)    
+    console.log(`删除音块`)
     const store = this.editor.store
     const stagePitches = store.state.change.stagePitches.filter(({ selected }) => !selected)
     const selectStagePitches = store.state.change.stagePitches.filter(({ selected }) => selected)
@@ -36,7 +36,6 @@ class DeletePitchCommand extends Command {
   }
 
   undo() {
-    console.log(`撤销删除音块`)
     const store = this.editor.store
     store.dispatch('change/changeState', JSON.parse(this.stateJson))
   }

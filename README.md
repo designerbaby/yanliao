@@ -72,8 +72,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - webm: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.webm
 
 ## TODO
-- 1、增加伴奏的音波没有完全覆盖
 - 2、改变音高线command
 - 3、改变歌词的command
 - 4、改变张力、响度的撤销
-- 5、删除伴奏command
