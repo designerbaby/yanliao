@@ -80,8 +80,9 @@ export default {
       this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     copy() {
-      this.$store.dispatch('done/copyPitches')
-
+      const editor = Editor.getInstance()
+      editor.execute(new CopyPitchCommand(editor))
+      this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     insertBreath() {
       const pitch = this.stagePitches.filter(v => v.selected)[0]
