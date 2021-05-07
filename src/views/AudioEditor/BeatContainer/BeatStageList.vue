@@ -34,10 +34,9 @@ export default {
       this.pos = pos
     },
     toPaste() {
-      // this.$store.dispatch('done/pastePitches', { position: this.pos })
-      const position = this.pos
       const editor = Editor.getInstance()
-      editor.execute(new PastePitchCommand(editor, position))
+      editor.execute(new PastePitchCommand(editor, this.pos))
+      // this.$store.dispatch('done/pastePitches', { position: this.pos })
     }
   }
 }

@@ -172,8 +172,6 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      // 操作存储
-      // this.$store.dispatch('done/push')
 
       this.zIndex = 1001 // 把层级设得比播放线的高
       const rect = this.$refs.svgStage.getBoundingClientRect()

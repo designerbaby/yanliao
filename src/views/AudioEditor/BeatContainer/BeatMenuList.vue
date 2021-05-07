@@ -18,6 +18,7 @@
 
 <script>
 import Editor from '@/common/editor'
+import DeletePitchCommand from '@/common/commands/DeletePitchCommand'
 import InsertBreathCommand from '@/common/commands/InsertBreathCommand'
 import CancelBreathCommand from '@/common/commands/CancelBreathCommand'
 import CopyPitchCommand from '@/common/commands/CopyPitchCommand'
@@ -70,7 +71,8 @@ export default {
       this.top = top
     },
     deletePitch() {
-      this.$store.dispatch('done/deletePitches')
+      const editor = Editor.getInstance()
+      editor.execute(new DeletePitchCommand(editor))
       this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     editLyric(type) {
@@ -78,13 +80,11 @@ export default {
       this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     copy() {
-      // this.$store.dispatch('done/copyPitches')
       const editor = Editor.getInstance()
       editor.execute(new CopyPitchCommand(editor))
+      this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     insertBreath() {
-      // 操作存储
-      // this.$store.dispatch('done/push')
       const pitch = this.stagePitches.filter(v => v.selected)[0]
 
       const breath = {

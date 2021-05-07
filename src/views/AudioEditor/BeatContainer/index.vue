@@ -513,8 +513,6 @@ export default {
       // 必须先按下了鼠标，才有松开鼠标事件
       // console.log('onMouseUp', event)
       if (this.isMouseDown) {
-        // 操作存储
-        // this.$store.dispatch('done/push')
         this.isMouseDown = false;
         const rect = this.$refs.stage.getBoundingClientRect()
         this.endPos = {
@@ -736,6 +734,7 @@ export default {
 /deep/ .common-scrollbar {
   &-bar {
     position: fixed;
+    z-index: 9999;
     left: 50px;
     height: 14px;
     border-radius: 20px;

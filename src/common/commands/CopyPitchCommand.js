@@ -15,6 +15,7 @@ class CopyPitchCommand extends Command {
     // 存一份在浏览器中
     localStorage.setItem('copyStagePitches', JSON.stringify(copyStagePitches))
     localStorage.setItem('changedLineMap', JSON.stringify(store.state.change.changedLineMap))
+
   }
 
   undo() {

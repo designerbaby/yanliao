@@ -1,5 +1,8 @@
 
 import hotkeys from 'hotkeys-js'
+import CopyPitchCommand from '@/common/commands/CopyPitchCommand'
+import PastePitchCommand from '@/common/commands/PastePitchCommand'
+import DeletePitchCommand from '@/common/commands/DeletePitchCommand'
 // shortcuts 快捷键统一操作
 class Shortcut{
   enable = true
@@ -22,14 +25,12 @@ class Shortcut{
       event.preventDefault()
     })
     hotkeys('ctrl+c,command+c', () => {
-      this.editor.store.dispatch('done/copyPitches')
+      this.editor.execute(new CopyPitchCommand(this.editor))
     })
     hotkeys('ctrl+v,command+v', () => {
-      console.log('按下粘贴键')
-      this.editor.store.dispatch('done/pastePitches', { position: null })
+      this.editor.execute(new PastePitchCommand(this.editor, null))
     })
     hotkeys('space', (event) => {
-      console.log('按下space键')
       this.editor.vm.$emit('clickSpace')
       event.preventDefault()
     })
@@ -45,7 +46,7 @@ class Shortcut{
         case 46:
         case 8:
           console.log('按下delete键或者fn+delete', hotkeys.getPressedKeyCodes())
-          this.editor.store.dispatch('done/deletePitches')
+          this.editor.execute(new DeletePitchCommand(this.editor))
           return false
         default:;
       }

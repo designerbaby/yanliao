@@ -43,8 +43,6 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      // 操作存储
-      // this.$store.dispatch('done/push')
       this.isActive = true
       // console.log('onArrowEleMouseDown this.pitch:', this.pitch)
       const preTime = this.pitch.preTime

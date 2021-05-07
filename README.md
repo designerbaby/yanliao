@@ -77,6 +77,3 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - 3、改变歌词的command
 - 4、改变张力、响度的撤销
 - 5、删除伴奏command
-- 6、删除音块command
-- 7、粘贴音块command
-- 8、复制音块command
