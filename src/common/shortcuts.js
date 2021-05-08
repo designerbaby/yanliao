@@ -16,6 +16,7 @@ class Shortcut{
   init() {
     hotkeys('ctrl+z,command+z', () => {
       this.editor.undo()
+      event.preventDefault()
     })
     hotkeys('ctrl+shift+z,command+shift+z', () => {
       this.editor.redo()
@@ -26,9 +27,11 @@ class Shortcut{
     })
     hotkeys('ctrl+c,command+c', () => {
       this.editor.execute(new CopyPitchCommand(this.editor))
+      event.preventDefault()
     })
     hotkeys('ctrl+v,command+v', () => {
       this.editor.execute(new PastePitchCommand(this.editor, null))
+      event.preventDefault()
     })
     hotkeys('space', (event) => {
       this.editor.vm.$emit('clickSpace')

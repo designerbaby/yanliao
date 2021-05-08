@@ -29,7 +29,6 @@ class PastePitchCommand extends Command {
       }
     }
     this.stateJson = JSON.stringify(store.state.change)
-
     let pos = this.position || {
       x: store.state.const.mousePos.clientX - store.state.const.stage.rectLeft,
       y: store.state.const.mousePos.clientY - store.state.const.stage.rectTop

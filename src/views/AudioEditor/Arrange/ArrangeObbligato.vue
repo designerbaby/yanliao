@@ -180,11 +180,12 @@ export default {
 
         this.waveEndPos = {
           x: event.clientX - rect.left,
-          left: this.trackList[1].offset
+          left: this.waveStartPos.left
         }
+
         const moveX = this.waveEndPos.x - this.waveStartPos.x
 
-        let newLeft = this.trackList[1].offset + moveX
+        let newLeft = this.waveStartPos.left + moveX
         // 达到最左边就只能是最左边了
         if (newLeft < 0) {
           newLeft = 0
@@ -201,9 +202,9 @@ export default {
           y: 0
         }
         this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
-        // this.$store.state.change.trackList[1].offset = newLeft
-        this.waveEndPos.left = newLeft
-        this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
+        this.waveEndPos = {
+          left: newLeft
+        }
         this.$store.dispatch('change/changeState', { stageMousePos })
       }
     },
@@ -229,7 +230,6 @@ export default {
       // waveSurfer.clearWaveSurfer()
       // this.$store.dispatch('change/changeState', { waveWidth: 0 })
 
-      this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
     },
     selectObbligato() {
       const waveSurferObj = waveSurfer.getWaveSurfer()

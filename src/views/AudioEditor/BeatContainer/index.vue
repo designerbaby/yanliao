@@ -668,8 +668,7 @@ export default {
   height: 100%;
   left: 50px;
   user-select: none;
-  overflow-x: scroll;
-  overflow-x: overlay;
+  overflow: scroll;
   &::-webkit-scrollbar {
     display: none;
     width: 0;

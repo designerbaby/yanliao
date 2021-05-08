@@ -177,7 +177,7 @@ export default {
     save() {
 
       const editor = Editor.getInstance()
-      editor.execute(new ChangePitchLyricCommand(editor, this.lyricArray, this.maxlength))
+      editor.execute(new ChangePitchLyricCommand(editor, this.lyricArray, this.maxlength, this.index))
 
       // const stagePitches = this.stagePitches
       // const pinyinList = this.$store.state.const.pinyinList

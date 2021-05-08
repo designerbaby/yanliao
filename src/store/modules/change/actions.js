@@ -11,7 +11,7 @@ const actions = {
     commit('changeState', props)
   },
   resetState({ commit }) {
-    const state = deepAssign({}, changeState)
+    const state = deepAssign({}, changeState())
     commit('changeState', state)
   },
   showWaveSurfer({ commit, state, dispatch, rootState, rootDispatch }, { file, type, bpm }) {

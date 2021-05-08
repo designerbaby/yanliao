@@ -33,6 +33,7 @@ class AddArrangeCommand extends Command {
     console.log(`撤销增加伴奏`)
     waveSurfers.clearWaveSurfer()
     this.editor.store.dispatch('change/changeState', { waveWidth: 0 })
+    this.editor.store.commit('const/changeState', { isObbligatoChanged: true }, { root: true })
   }
 }
 

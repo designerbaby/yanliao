@@ -9,13 +9,17 @@ class ChangeArrangeCommand extends Command {
 
   execute() {
     console.log('修改伴奏')
-    this.oldOffset = this.editor.store.state.change.trackList[1].offset
-    this.editor.store.state.change.trackList[1].offset = this.left
+    const store = this.editor.store
+    this.oldOffset = store.state.change.trackList[1].offset
+    store.state.change.trackList[1].offset = this.left
+    store.dispatch('const/changeState', { isObbligatoChanged: true })
   }
 
   undo() {
     console.log(`撤销修改伴奏`, this.oldOffset)
-    this.editor.store.state.change.trackList[1].offset = this.oldOffset
+    const store = this.editor.store
+    store.state.change.trackList[1].offset = this.oldOffset
+    store.dispatch('const/changeState', { isObbligatoChanged: true })
   }
 }
 

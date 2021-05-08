@@ -74,10 +74,9 @@ export default {
     Editor.getInstance().setVm(this.$root).setStore(this.$store)
     await this.getEditorDetail()
     this.storeStagePitchesWatcher = this.$store.watch(
-      state => state.stagePitches,
+      state => state.change.stagePitches,
       (newValue, oldValue) => {
         // console.log('watch store', oldValue, newValue)
-        // console.log('changeStoreState isStagePitchesChanged true')
         this.$store.dispatch('const/changeState', { isStagePitchesChanged: true})
       },
       {
@@ -102,6 +101,7 @@ export default {
     // document.removeEventListener('keydown', this.keyDownListener)
     document.removeEventListener('mousemove', this.mousemoveListener)
     this.$root.$off('clickSpace', this.toPlay)
+    Editor.getInstance().history.clear()
   },
   computed: {
     // ...mapGetters(['stagePitches']),
@@ -309,6 +309,14 @@ export default {
       this.$store.dispatch('const/adjustStageWidth')
     },
     isNeedGenerate(type) {
+      console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
+      this.$store.state.const.isPitchLineChanged: ${this.$store.state.const.isPitchLineChanged},
+      this.$store.state.const.isVolumeChanged: ${this.$store.state.const.isVolumeChanged},
+      this.$store.state.const.isTensionChanged: ${this.$store.state.const.isTensionChanged},
+      this.$store.state.const.isStagePitchElementChanged: ${this.$store.state.const.isStagePitchElementChanged},
+      this.$store.state.const.isObbligatoChanged: ${this.$store.state.const.isObbligatoChanged},
+      this.$store.state.const.isTrackChanged: ${this.$store.state.const.isTrackChanged},
+      !this.$store.state.const.onlineUrl && type !== 'upload': ${!this.$store.state.const.onlineUrl && type !== 'upload'}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true

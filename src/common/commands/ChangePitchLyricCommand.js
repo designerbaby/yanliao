@@ -1,11 +1,12 @@
 import Command from './Command'
 
 class ChangePitchLyricCommand extends Command {
-  constructor(editor, lyricArray, maxlength) {
+  constructor(editor, lyricArray, maxlength, index) {
     super( editor )
     this.name = 'Change PitchLyric'
     this.lyricArray = lyricArray
     this.maxlength = maxlength
+    this.index = index
   }
 
   execute() {

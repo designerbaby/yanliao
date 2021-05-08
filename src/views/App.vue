@@ -40,11 +40,18 @@ export default {
   mounted() {
     const app = document.querySelector('#app')
     app.addEventListener('scroll', (event) => {
+      const audioStage = document.querySelector('#audioStage')
+      const rect = audioStage.getBoundingClientRect()
       const appScrollTop = app.scrollTop
       const isExceedHeader = appScrollTop > 48
       this.$store.dispatch("const/changeState", {
         appScrollTop,
-        isExceedHeader
+        isExceedHeader,
+        stage: {
+          ...this.$store.state.const.stage,
+          rectLeft: rect.left,
+          rectTop: rect.top
+        }
       })
     })
   },

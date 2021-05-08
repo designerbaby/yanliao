@@ -67,7 +67,7 @@ class Editor {
 
 	redo () {
 		this.history.redo()
-	}
+  }
 }
 
 export default Editor

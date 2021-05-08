@@ -12,6 +12,7 @@ class DeleteArrangeCommand extends Command {
     console.log('删除伴奏')
     waveSurfers.clearWaveSurfer()
     this.editor.store.dispatch('change/changeState', { waveWidth: 0 })
+    this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
   }
 
   undo() {

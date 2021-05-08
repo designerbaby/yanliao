@@ -3,7 +3,7 @@ import constState from './constState.js'
 
 const actions = {
   resetState({ commit }) {
-    const state = deepAssign({}, constState)
+    const state = deepAssign({}, constState())
     commit('changeState', state)
   },
   changeState({ commit }, props) {
