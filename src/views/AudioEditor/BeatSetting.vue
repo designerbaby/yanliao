@@ -37,7 +37,7 @@
     </div>
     <div :class="[$style.text, $style.qusu]">当前曲速</div>
     <div :class="$style.setting">
-      <InputNumber v-stop 
+      <InputNumber v-stop
         :class="$style.bpmInput"
         :value="$store.state.const.bpm"
         @change="bpmChangeChange"
@@ -155,9 +155,9 @@ export default {
     },
     keyStop(e) {
       console.log(e)
-  if (e.ctrlKey) {
-    e.preventDefault();
-  }
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
     },
     playerButtonClick() {
       this.toneList.forEach(item => {

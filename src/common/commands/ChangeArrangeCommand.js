@@ -19,7 +19,7 @@ class ChangeArrangeCommand extends Command {
     console.log(`撤销修改伴奏`, this.oldOffset)
     const store = this.editor.store
     store.state.change.trackList[1].offset = this.oldOffset
-    store.dispatch('const/changeState', { isObbligatoChanged: true })
+    store.dispatch('const/changeState', { isObbligatoChanged: true, showArrange: true })
   }
 }
 

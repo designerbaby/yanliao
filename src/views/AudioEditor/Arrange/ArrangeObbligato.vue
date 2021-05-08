@@ -177,13 +177,9 @@ export default {
         // console.log('onWaveMouseMove', event)
 
         const rect = this.$refs.WaveForm.getBoundingClientRect()
+        const endX = event.clientX - rect.left
 
-        this.waveEndPos = {
-          x: event.clientX - rect.left,
-          left: this.waveStartPos.left
-        }
-
-        const moveX = this.waveEndPos.x - this.waveStartPos.x
+        const moveX = endX - this.waveStartPos.x
 
         let newLeft = this.waveStartPos.left + moveX
         // 达到最左边就只能是最左边了
@@ -201,10 +197,13 @@ export default {
           x: newLeft,
           y: 0
         }
-        this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
+        console.log('newLeft:', newLeft)
         this.waveEndPos = {
           left: newLeft
         }
+        // TODO 这里移动的时候会闪
+        this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
+
         this.$store.dispatch('change/changeState', { stageMousePos })
       }
     },
@@ -212,9 +211,9 @@ export default {
       // console.log('onWaveMouseUp', event)
       if (this.isWaveMouseDown) {
         this.isWaveMouseDown = false
+        this.$refs.WaveForm.style.opacity = 1
         const editor = Editor.getInstance()
         editor.execute(new ChangeArrangeCommand(editor, this.waveEndPos.left))
-        this.$refs.WaveForm.style.opacity = 1
       }
       // this.$store.state.change.trackList[1].offset = this.waveEndPos.left
       document.removeEventListener('mousemove', this.onWaveMouseMove)

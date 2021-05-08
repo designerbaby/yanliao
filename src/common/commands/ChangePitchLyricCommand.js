@@ -1,5 +1,5 @@
 import Command from './Command'
-
+import { ModeState } from "@/common/utils/const"
 class ChangePitchLyricCommand extends Command {
   constructor(editor, lyricArray, maxlength, index) {
     super( editor )
@@ -50,6 +50,7 @@ class ChangePitchLyricCommand extends Command {
   undo() {
     console.log(`撤销改变音块歌词`)
     this.editor.store.state.change.stagePitches = JSON.parse(this.oldStagePitches)
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StatePitch })
   }
 }
 

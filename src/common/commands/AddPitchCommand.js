@@ -1,5 +1,7 @@
 import Command from './Command'
 import { generateUUID } from '@/common/utils/helper'
+import { ModeState } from "@/common/utils/const"
+
 class AddPitchCommand extends Command {
   constructor( editor, pitch ) {
 		super( editor )
@@ -41,6 +43,7 @@ class AddPitchCommand extends Command {
     const index = stagePitches.findIndex(v => v.uuid === this.pitch.uuid)
     this.editor.store.state.change.stagePitches.splice(index, 1)
     this.editor.store.dispatch('change/afterChangePitchAndHandle', null, { root: true })
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StatePitch })
   }
 }
 

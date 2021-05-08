@@ -17,7 +17,7 @@
           :styles="{ left: `${(it.volume / 100) * 100}%` }"
           @on-start="onStart($event, index)"
           @on-move="onMove($event, index)"
-          @on-end="onEnd"
+          @on-end="onEnd($event, index)"
           >
           <img src="@/assets/audioEditor/arrow-right.png">
         </Dragger>
@@ -36,6 +36,9 @@ import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
 import { getWaveSurfer } from '@/common/utils/waveSurfer'
 import { PlayState, TrackMode } from "@/common/utils/const"
 import { Message } from 'element-ui'
+import Editor from '@/common/editor'
+import ChangeTrackStatusCommand from '@/common/commands/ChangeTrackStatusCommand'
+import ChangeTrackVolumeCommand from '@/common/commands/ChangeTrackVolumeCommand'
 
 export default {
   name: 'ArrangeTrack',
@@ -103,9 +106,11 @@ export default {
         }
       }
     },
-    onEnd() {
+    onEnd(event, index) {
       if (this.isChangeVolume >= 0) {
         this.isChangeVolume = -1
+        // const editor = Editor.getInstance()
+        // editor.execute(new ChangeTrackVolumeCommand(editor, this.trackList[index].volume, index))
       }
       this.$store.dispatch('const/changeState', { isTrackChanged: true })
     },
@@ -114,12 +119,16 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      if (this.trackList[index].is_sil === 1) {
-        this.trackList[index].is_sil = 2
-      } else {
-        this.trackList[index].is_sil = 1
-      }
-      this.$store.dispatch('const/changeState', { isTrackChanged: true })
+
+      const editor = Editor.getInstance()
+      editor.execute(new ChangeTrackStatusCommand(editor, index))
+
+      // if (this.trackList[index].is_sil === 1) {
+      //   this.trackList[index].is_sil = 2
+      // } else {
+      //   this.trackList[index].is_sil = 1
+      // }
+      // this.$store.dispatch('const/changeState', { isTrackChanged: true })
     }
   }
 }

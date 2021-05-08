@@ -1,7 +1,7 @@
 import Command from './Command'
 import deepAssign from 'object-assign-deep'
 import { turnChangeLineMap } from '@/common/utils/common'
-
+import { ModeState } from "@/common/utils/const"
 class MovePitchCommand extends Command {
   constructor( editor, moveList ) {
 		super( editor )
@@ -48,6 +48,7 @@ class MovePitchCommand extends Command {
     })
     turnChangeLineMap(this.editor.store.state, beforeMoveList, true)
     this.editor.store.dispatch('change/afterChangePitchAndHandle', null, { root: true })
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StatePitch })
   }
 }
 

@@ -1,5 +1,5 @@
 import Command from './Command'
-
+import { ModeState } from "@/common/utils/const"
 class ChangePitchElementCommand extends Command {
   constructor(editor, pitch, preTime) {
     super( editor )
@@ -17,6 +17,7 @@ class ChangePitchElementCommand extends Command {
   undo() {
     console.log(`撤销改变音素`)
     this.pitch.preTime = this.oldPreTime
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StateElement })
   }
 }
 

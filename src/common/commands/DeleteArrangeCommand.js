@@ -12,7 +12,7 @@ class DeleteArrangeCommand extends Command {
     console.log('删除伴奏')
     waveSurfers.clearWaveSurfer()
     this.editor.store.dispatch('change/changeState', { waveWidth: 0 })
-    this.$store.dispatch('const/changeState', { isObbligatoChanged: true })
+    this.editor.store.dispatch('const/changeState', { isObbligatoChanged: true })
   }
 
   undo() {
@@ -29,7 +29,8 @@ class DeleteArrangeCommand extends Command {
       waveSurfer.setVolume(store.state.change.trackList[1].volume / 100)
       store.dispatch('const/adjustStageWidth', { root: true })
     })
-    store.commit('const/changeState', { isObbligatoChanged: true }, { root: true })
+    store.commit('const/changeState', { isObbligatoChanged: true, showArrange: true }, { root: true })
+
   }
 }
 

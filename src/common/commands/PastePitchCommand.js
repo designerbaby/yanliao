@@ -2,7 +2,7 @@ import Command from './Command'
 import { Message } from 'element-ui'
 import { amendTop, amendLeft, generateUUID } from '@/common/utils/helper'
 import { turnChangeLineMap } from '@/common/utils/common'
-
+import { ModeState } from "@/common/utils/const"
 class PastePitchCommand extends Command {
   constructor(editor, position) {
     super( editor )
@@ -72,6 +72,7 @@ class PastePitchCommand extends Command {
     console.log(`撤销粘贴音块`)
     const store = this.editor.store
     store.dispatch('change/changeState', JSON.parse(this.stateJson))
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StatePitch })
   }
 }
 

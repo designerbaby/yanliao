@@ -1,5 +1,5 @@
 import Command from './Command'
-
+import { ModeState } from "@/common/utils/const"
 class DeletePitchCommand extends Command {
   constructor(editor) {
     super( editor )
@@ -38,6 +38,7 @@ class DeletePitchCommand extends Command {
   undo() {
     const store = this.editor.store
     store.dispatch('change/changeState', JSON.parse(this.stateJson))
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StatePitch })
   }
 }
 

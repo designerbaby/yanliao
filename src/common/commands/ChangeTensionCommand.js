@@ -1,5 +1,5 @@
 import Command from './Command'
-
+import { TypeModeState } from "@/common/utils/const"
 class ChangeTensionCommand extends Command {
   constructor(editor, drawBefore, drawMap) {
     super( editor )
@@ -17,6 +17,7 @@ class ChangeTensionCommand extends Command {
     console.log(`撤销改变张力`)
     const tensionMap = [...this.drawBefore]
     this.commit(tensionMap)
+    this.editor.store.dispatch('const/changeState', { typeMode: TypeModeState.StateTension })
   }
 
   static format(stateTensionMap, drawMap) {

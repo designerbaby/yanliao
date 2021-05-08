@@ -1,5 +1,5 @@
 import Command from './Command'
-
+import { TypeModeState } from "@/common/utils/const"
 class ChangeVolumeCommand extends Command {
   constructor(editor, drawBefore, drawMap) {
     super( editor )
@@ -17,6 +17,7 @@ class ChangeVolumeCommand extends Command {
     console.log(`撤销改变响度`)
     const volumeMap = [...this.drawBefore]
     this.commit(volumeMap)
+    this.editor.store.dispatch('const/changeState', { typeMode: TypeModeState.StateVolume })
   }
 
   static format(stateVolumeMap, drawMap) {

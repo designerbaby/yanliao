@@ -1,5 +1,5 @@
 import Command from './Command'
-
+import { ModeState } from "@/common/utils/const"
 class InsertBreathCommand extends Command {
   constructor(editor, pitch, breath) {
     super( editor )
@@ -17,6 +17,7 @@ class InsertBreathCommand extends Command {
   undo() {
     console.log('撤销插入换气')
     this.pitch.breath = null
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StatePitch })
   }
 }
 

@@ -1,5 +1,5 @@
 import Command from './Command'
-
+import { ModeState } from "@/common/utils/const"
 class ChangePitchCommand extends Command {
   constructor(editor, movePitch) {
     super( editor )
@@ -35,6 +35,7 @@ class ChangePitchCommand extends Command {
       stateBefore.breath.left = before.left - before.breath.width
     }
     this.editor.store.dispatch('change/afterChangePitchAndHandle', null, { root: true })
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StatePitch })
   }
 }
 

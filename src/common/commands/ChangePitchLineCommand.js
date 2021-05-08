@@ -1,4 +1,5 @@
 import Command from './Command'
+import { ModeState } from "@/common/utils/const"
 
 class ChangePitchLineCommand extends Command {
   // drawMap是一个Map对象
@@ -40,6 +41,7 @@ class ChangePitchLineCommand extends Command {
 
     console.log(`撤销改变音高线, pitchWidth:${data.pitchWidth}, f0Draw: ${Object.keys(data.f0Draw).length}, changedLineMap:${Object.keys(data.changedLineMap).length}`)
     this.commit(data)
+    this.editor.store.dispatch('const/changeState', { mode: ModeState.StateLine })
   }
 
   static format({
