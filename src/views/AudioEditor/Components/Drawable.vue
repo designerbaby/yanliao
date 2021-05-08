@@ -40,7 +40,7 @@ export default {
       if (this.beforeDraw && this.beforeDraw() === false){
         return
       }
-      this.$emit('mouse-down')
+      this.$emit('on-start')
       const rect = this.$el.getBoundingClientRect()
       this.mouseStart = {
         rect
@@ -79,10 +79,14 @@ export default {
       }
     },
     onMouseUp() {
-      this.mouseStart = null
-      this.lastX = 0
-      this.lastY = 0
-      this.lastTime = 0
+      if (this.mouseStart) {
+        this.mouseStart = null
+        this.lastX = 0
+        this.lastY = 0
+        this.lastTime = 0
+
+        setTimeout(() => this.$emit('on-end'), 50)
+      }
     },
     changeValue(x, y) {
       if (this.valueHandler) {

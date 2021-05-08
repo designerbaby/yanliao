@@ -71,7 +71,3 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - wav: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.wav
 - webm: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.webm
 
-## TODO
-- 2、改变音高线command
-- 3、改变歌词的command
-- 4、改变张力、响度的撤销

@@ -1,32 +1,37 @@
 import Command from './Command'
 
 class ChangeVolumeCommand extends Command {
-  constructor(editor, values) {
+  constructor(editor, drawBefore, drawMap) {
     super( editor )
     this.name = 'Change Volume'
-    this.values = values
+    this.drawMap = drawMap
+    this.drawBefore = drawBefore
   }
 
   execute() {
-    // TODO 这里需要识别鼠标放开之后才触发，不是鼠标移动就触发
-    console.log(`改变响度 values`, this.values)
-    const store = this.editor.store
-    const volumeMap = [...store.state.change.volumeMap]
-    for (const [x, v] of this.values) {
-      volumeMap[x] = v
-      // this.oldValues[x] = v
-    }
-    store.commit('const/changeState', { isVolumeChanged: true }, { root: true })
-    store.commit('change/changeState', { volumeMap })
+    const volumeMap = ChangeVolumeCommand.format(this.drawBefore, this.drawMap)
+    this.commit(volumeMap)
   }
 
   undo() {
     console.log(`撤销改变响度`)
-    const store = this.editor.store
-    const volumeMap = [...store.state.change.volumeMap]
-    for (const x of this.value) {
-      delete volumeMap[x]
+    const volumeMap = [...this.drawBefore]
+    this.commit(volumeMap)
+  }
+
+  static format(stateVolumeMap, drawMap) {
+    // console.trace(`ChangeVolumeCommand, format:`, drawMap)
+    const volumeMap = [...stateVolumeMap]
+    for (const [x, v] of drawMap.entries()) {
+      volumeMap[x] = v
     }
+    return volumeMap
+  }
+
+  commit(volumeMap) {
+    console.log(`ChangeVolumeCommand, commit: volumeMap length is:`, volumeMap.length)
+    const store = this.editor.store
+    store.commit('const/changeState', { isVolumeChanged: true }, { root: true })
     store.commit('change/changeState', { volumeMap })
   }
 }

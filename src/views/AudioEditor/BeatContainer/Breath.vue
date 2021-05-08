@@ -45,10 +45,14 @@ export default {
     },
     onArrowBreathMove({ left, width, target }, index) {
       const pitch = this.stagePitches[index]
-      // pitch.breath.left = left
-      // pitch.breath.width = width
-      // TODO 这里滑动不流畅
-      const styles = this.getStyle(pitch)
+      const styles = this.getStyle({
+        left: pitch.left,
+        height: pitch.height,
+        breath: {
+          left,
+          width
+        }
+      })
       Object.keys(styles).forEach(k => {
         target.style[k] = styles[k]
       })

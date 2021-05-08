@@ -30,6 +30,8 @@ import { Message } from 'element-ui'
 import { PlayState } from "@/common/utils/const"
 import { divideArray } from '@/common/utils/helper'
 import { PitchList } from '@/common/utils/const'
+import Editor from '@/common/editor'
+import ChangePitchLineCommand from '@/common/commands/ChangePitchLineCommand'
 // import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
@@ -43,7 +45,8 @@ export default {
       lastX: 0,
       lastY: 0,
       zIndex: 998,
-      cache: new Map()
+      cache: new Map(),
+      oneDrawCache: new Map() // 一次完整的操作的cache
     }
   },
   computed: {
@@ -179,17 +182,35 @@ export default {
         rect
       }
 
+      // 一次独立完整的划线开始前，记录之前的状态
+      this.f0DrawBefore = [...this.$store.state.change.f0Draw]
+      this.changedLineMapBefore = {...this.$store.state.change.changedLineMap}
+
       const update = () => {
         if (this.mouseStart) {
           requestAnimationFrame(update)
         }
         if (this.cache.size > 0) {
-          const values = this.cache.entries()
+          // const values = this.cache.entries()
           // console.log(`update values:`, values)
           // for(const [k, v] of values) {
           //   this.$store.dispatch('changeF0', { x: k, value: v })
           // }
-          this.$store.dispatch('change/changeF0', { values })
+          // this.$store.dispatch('change/changeF0', { values })
+
+          // 每次浏览器渲染的时候更新数据
+          const drawMap = new Map(this.cache)
+          const {
+            f0Draw,
+            changedLineMap
+          } = ChangePitchLineCommand.format({
+            pitchWidth: this.$store.getters['const/pitchWidth'],
+            f0Draw: this.$store.state.change.f0Draw,
+            changedLineMap: this.$store.state.change.changedLineMap,
+            drawMap
+          })
+
+          this.$store.commit('change/changeState', { f0Draw, changedLineMap })
           this.cache.clear()
         }
       }
@@ -215,11 +236,20 @@ export default {
     },
     onMouseUp() {
       // console.log(`onMouseUp event`, event)
-      this.mouseStart = null
-      this.zIndex = 998 // 把层级设得比播放线的低
-      this.lastX = 0
-      this.lastY = 0
-      this.lastTime = 0
+      if (this.mouseStart) {
+        this.mouseStart = null
+        this.zIndex = 998 // 把层级设得比播放线的低
+        this.lastX = 0
+        this.lastY = 0
+        this.lastTime = 0
+
+        const editor = Editor.getInstance()
+        const drawMap = new Map(this.oneDrawCache)
+        setTimeout(() => {
+          editor.execute(new ChangePitchLineCommand(editor, this.f0DrawBefore, this.changedLineMapBefore, drawMap))
+          this.oneDrawCache.clear()
+        }, 50)
+      }
     },
     changeF0Value(x, y) {
       const index = Math.round(x / this.pitchWidth)
@@ -232,6 +262,7 @@ export default {
         // this.$store.dispatch('changeF0', { index, value, x: pos })
 
           this.cache.set(x, value)
+          this.oneDrawCache.set(x, value)
         }
         // console.log('this.cache:', this.cache)
       }

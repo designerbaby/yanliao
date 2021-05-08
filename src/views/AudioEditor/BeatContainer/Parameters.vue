@@ -15,7 +15,9 @@
         :className="$style.draw"
         :styles="stageStyle"
         :valueHandler="valueHandler"
+        @on-start="onDrawStart"
         @on-draw="onDraw"
+        @on-end="onDrawEnd"
         >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +47,8 @@ export default {
   components: { Drawable },
   data() {
     return {
-      TypeModeState: TypeModeState
+      TypeModeState: TypeModeState,
+      drawMap: new Map()
     }
   },
   computed: {
@@ -120,20 +123,48 @@ export default {
     }
   },
   methods: {
-    // saveOp() {
-      // 操作存储
-      // this.$store.dispatch('done/push')
-    // },
-    onDraw(values) {
-      const editor = Editor.getInstance()
-      // console.log(`onDraw values:`, values)
+    cloneStateMap() {
+      let stateMap = []
+      // 开始画之前把之前的数据保存一份，用于撤销
       if (this.typeMode === TypeModeState.StateVolume) {
-        // this.$store.dispatch('change/changeVolumeMap', { values })
-        editor.execute(new ChangeVolumeCommand(editor, values))
+        stateMap = [...this.$store.state.change.volumeMap]
       } else if (this.typeMode === TypeModeState.StateTension) {
-        // this.$store.dispatch('change/changeTensionMap', { values })
-        editor.execute(new ChangeTensionCommand(editor, values))
+        stateMap = [...this.$store.state.change.tensionMap]
       }
+      return stateMap
+    },
+    onDrawStart() {
+      // 开始画之前把之前的数据保存一份，用于撤销
+      this.drawBefore = this.cloneStateMap()
+      // console.log(`onDrawStart, before:`, this.drawBefore)
+    },
+    onDraw(values) {
+      // 一个完整的拖动，把每一小步合并存起来
+      for (const [x, v] of values) {
+        this.drawMap.set(x, v)
+      }
+      let stateMap = this.cloneStateMap()
+
+      if (this.typeMode === TypeModeState.StateVolume) {
+        const newStateMap = ChangeVolumeCommand.format(stateMap, this.drawMap)
+        this.$store.commit('change/changeState', { volumeMap: newStateMap })
+      } else if (this.typeMode === TypeModeState.StateTension) {
+        const newStateMap = ChangeTensionCommand.format(stateMap, this.drawMap)
+        this.$store.commit('change/changeState', { tensionMap: newStateMap })
+      }
+      // console.log(`onDraw, volumeMap:`, volumeMap, this.drawMap)
+    },
+    onDrawEnd() {
+      const editor = Editor.getInstance()
+      // Create a copy
+      const draw = new Map(this.drawMap)
+      if (this.typeMode === TypeModeState.StateVolume) {
+        editor.execute(new ChangeVolumeCommand(editor, this.drawBefore, draw))
+      } else if (this.typeMode === TypeModeState.StateTension) {
+        editor.execute(new ChangeTensionCommand(editor, this.drawBefore, draw))
+      }
+      // 一次完整的操作结束后，把临时数据清空
+      this.drawMap.clear()
     },
     positionY2Db(y) {
       const dbPerPx = this.typeRange / this.typeContainerHeight
