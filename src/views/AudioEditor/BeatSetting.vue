@@ -37,7 +37,8 @@
     </div>
     <div :class="[$style.text, $style.qusu]">当前曲速</div>
     <div :class="$style.setting">
-      <InputNumber :class="$style.bpmInput"
+      <InputNumber v-stop 
+        :class="$style.bpmInput"
         :value="$store.state.const.bpm"
         @change="bpmChangeChange"
         controls-position="right"
@@ -81,6 +82,17 @@ export default {
     },
     isExceedHeader() {
       return this.$store.state.const.isExceedHeader
+    }
+  },
+  directives: {
+    stop: {
+      inserted(el) {
+        el.querySelector('input').addEventListener('keydown', (e) => {
+          if (e.ctrlKey) {
+            e.preventDefault()
+          }
+        })
+      }
     }
   },
   mounted() {
@@ -140,6 +152,12 @@ export default {
         waveSurfer.clearWaveSurfer()
         this.$store.dispatch('change/showWaveSurfer', { file: this.$store.state.change.trackList[1].file, type: 'url', bpm: this.inputBpmValue })
       }
+    },
+    keyStop(e) {
+      console.log(e)
+  if (e.ctrlKey) {
+    e.preventDefault();
+  }
     },
     playerButtonClick() {
       this.toneList.forEach(item => {

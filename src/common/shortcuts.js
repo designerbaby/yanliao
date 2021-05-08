@@ -14,22 +14,23 @@ class Shortcut{
   }
 
   init() {
-    hotkeys('ctrl+z,command+z', () => {
+    hotkeys('ctrl+z,command+z', (event) => {
       this.editor.undo()
       event.preventDefault()
     })
-    hotkeys('ctrl+shift+z,command+shift+z', () => {
+    hotkeys('ctrl+shift+z,command+shift+z', (event) => {
       this.editor.redo()
+      event.preventDefault()
     })
     hotkeys('ctrl+y,command+y', (event) => {
       this.editor.redo()
       event.preventDefault()
     })
-    hotkeys('ctrl+c,command+c', () => {
+    hotkeys('ctrl+c,command+c', (event) => {
       this.editor.execute(new CopyPitchCommand(this.editor))
       event.preventDefault()
     })
-    hotkeys('ctrl+v,command+v', () => {
+    hotkeys('ctrl+v,command+v', (event) => {
       this.editor.execute(new PastePitchCommand(this.editor, null))
       event.preventDefault()
     })
