@@ -309,14 +309,14 @@ export default {
       this.$store.dispatch('const/adjustStageWidth')
     },
     isNeedGenerate(type) {
-      console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
-      this.$store.state.const.isPitchLineChanged: ${this.$store.state.const.isPitchLineChanged},
-      this.$store.state.const.isVolumeChanged: ${this.$store.state.const.isVolumeChanged},
-      this.$store.state.const.isTensionChanged: ${this.$store.state.const.isTensionChanged},
-      this.$store.state.const.isStagePitchElementChanged: ${this.$store.state.const.isStagePitchElementChanged},
-      this.$store.state.const.isObbligatoChanged: ${this.$store.state.const.isObbligatoChanged},
-      this.$store.state.const.isTrackChanged: ${this.$store.state.const.isTrackChanged},
-      !this.$store.state.const.onlineUrl && type !== 'upload': ${!this.$store.state.const.onlineUrl && type !== 'upload'}`)
+      // console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
+      // this.$store.state.const.isPitchLineChanged: ${this.$store.state.const.isPitchLineChanged},
+      // this.$store.state.const.isVolumeChanged: ${this.$store.state.const.isVolumeChanged},
+      // this.$store.state.const.isTensionChanged: ${this.$store.state.const.isTensionChanged},
+      // this.$store.state.const.isStagePitchElementChanged: ${this.$store.state.const.isStagePitchElementChanged},
+      // this.$store.state.const.isObbligatoChanged: ${this.$store.state.const.isObbligatoChanged},
+      // this.$store.state.const.isTrackChanged: ${this.$store.state.const.isTrackChanged},
+      // !this.$store.state.const.onlineUrl && type !== 'upload': ${!this.$store.state.const.onlineUrl && type !== 'upload'}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true

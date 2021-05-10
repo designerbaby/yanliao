@@ -27,7 +27,11 @@ class ChangePitchLyricCommand extends Command {
         }
         pitch.hanzi = this.lyricArray[i] || '啦'
         pitch.pinyinList = pinyinList[i].pinyin || ['la']
-        pitch.pinyin = pinyinList[i].pinyin[pitch.select] || 'la'
+        let select = 0
+        if (pinyinList[i].pinyin.length > 1) {
+          select = pitch.select
+        }
+        pitch.pinyin = pinyinList[i].pinyin[select] || 'la'
       }
     } else {
       const changeStagePitches = stagePitches.filter(v => v.selected)
@@ -40,7 +44,11 @@ class ChangePitchLyricCommand extends Command {
         }
         pitch.hanzi = this.lyricArray[i]
         pitch.pinyinList = pinyinList[i].pinyin || ['la']
-        pitch.pinyin = pinyinList[i].pinyin[pitch.select] || 'la'
+        let select = 0
+        if (pinyinList[i].pinyin.length > 1) {
+          select = pitch.select
+        }
+        pitch.pinyin = pinyinList[i].pinyin[select] || 'la'
       }
     }
     store.dispatch('change/saveFuYuan')

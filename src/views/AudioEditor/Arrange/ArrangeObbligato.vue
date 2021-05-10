@@ -196,7 +196,6 @@ export default {
         // this.waveEndPos = {
         //   left: newLeft
         // }
-        // TODO 这里移动的时候会闪
         // this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
         this.waveStartPos.newOffset = newOffset
         this.$store.state.change.trackList[1].offset = newOffset
