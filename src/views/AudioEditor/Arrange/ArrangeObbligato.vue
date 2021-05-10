@@ -9,22 +9,24 @@
       height: `${$store.getters['const/stageHeight'] / 20}px`,
       top: `${$store.getters['const/stageHeight'] / 20}`
     }">
-    <div
-      id="waveform"
-      ref="WaveForm"
-      :class="[$style.waveform, waveActive ? $style.isActive : '']"
-      :style="{
-        width: `${waveWidth}px`,
-        height: '48px',
-        transform: `translateX(${trackList[1].offset}px)`
-      }"
-      @mousedown.stop="onWaveMouseDown"
-      @mousemove.stop="onWaveMouseMove"
-      @mouseup.stop="onWaveMouseUp"
-      @mouseleave.stop="onWaveMouseUp"
-      @click.right.stop.prevent.exact="onRightClickWave"
+    <Dragger
+      @on-start="onStart($event)"
+      @on-move="onMove($event)"
+      @on-end="onEnd($event)"
     >
-    </div>
+      <div
+        id="waveform"
+        ref="WaveForm"
+        :class="[$style.waveform, waveActive ? $style.isActive : '']"
+        :style="{
+          width: `${waveWidth}px`,
+          height: '48px',
+          transform: `translateX(${trackList[1].offset}px)`
+        }"
+        @click.right.stop.prevent.exact="onRightClickWave"
+      >
+      </div>
+    </Dragger>
     <div
       :class="$style.delete"
       v-if="showDelete"
@@ -63,16 +65,17 @@ import { Upload, Message } from 'element-ui'
 import { uploadFile } from '@/common/utils/upload'
 import { PlayState } from "@/common/utils/const"
 import * as waveSurfer from '@/common/utils/waveSurfer'
-import Editor from '@/common/editor'
 import AddArrangeCommand from '@/common/commands/AddArrangeCommand'
 import ChangeArrangeCommand from '@/common/commands/ChangeArrangeCommand'
 import DeleteArrangeCommand from '@/common/commands/DeleteArrangeCommand'
+import Dragger from '../Components/Dragger'
 
 export default {
   name: 'ArrangeObbligato',
   components: {
     Upload,
-    Message
+    Message,
+    Dragger
   },
   data() {
     return {
@@ -126,10 +129,9 @@ export default {
       }
 
       uploadFile(file.raw, 'analyze', (url) => {
-        this.$store.state.change.trackList[1].file = url
+        // this.$store.state.change.trackList[1].file = url
         // this.$store.dispatch('change/showWaveSurfer', { file: url, type: 'url' })
-        const editor = Editor.getInstance()
-        editor.execute(new AddArrangeCommand(editor, url, 'url'))
+        this.$execute(new AddArrangeCommand(this.$editor(), url))
       })
     },
     onRightClickStage(event) {
@@ -152,79 +154,69 @@ export default {
 
       this.showDelete = true
     },
-    onWaveMouseDown(event) {
+    onStart(event) {
       // console.log('onWaveMouseDown:', event)
       if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
       this.waveActive = true
-      this.isWaveMouseDown = true
-
-      const rect = this.$refs.WaveForm.getBoundingClientRect()
-
       this.waveStartPos = {
-        x: event.clientX - rect.left,
-        left: this.trackList[1].offset
+        clientX: event.clientX,
+        oldOffset: this.trackList[1].offset,
+        newOffset: 0
       }
       this.$refs.WaveForm.style.opacity = 0.8
-      document.addEventListener('mousemove', this.onWaveMouseMove)
-      document.addEventListener('mouseleave', this.onWaveMouseUp)
-
     },
-    onWaveMouseMove(event) {
-      if (this.isWaveMouseDown) {
+    onMove(event) {
+      if (this.waveStartPos) {
         // console.log('onWaveMouseMove', event)
 
-        const rect = this.$refs.WaveForm.getBoundingClientRect()
-        const endX = event.clientX - rect.left
+        // const rect = this.$refs.WaveForm.getBoundingClientRect()
+        // const endX = event.clientX - rect.left
 
-        const moveX = endX - this.waveStartPos.x
-
-        let newLeft = this.waveStartPos.left + moveX
+        const moveX = event.clientX - this.waveStartPos.clientX
+        let newOffset = this.waveStartPos.oldOffset + moveX
         // 达到最左边就只能是最左边了
-        if (newLeft < 0) {
-          newLeft = 0
+        if (newOffset < 0) {
+          newOffset = 0
         }
         const arrangeStageWidth = this.$store.getters['const/stageWidth'] / 10
         const arrangeFenziWidth = this.$store.getters['const/arrangeFenziWidth'] * this.$store.state.const.beatForm.fenzi
         // 达到最右边就扩展区域
-        if (newLeft + this.waveWidth > arrangeStageWidth - arrangeFenziWidth) {
+        if (newOffset + this.waveWidth > arrangeStageWidth - arrangeFenziWidth) {
           // newLeft = arrangeStageWidth - this.waveWidth
           this.$store.dispatch('const/adjustStageWidth')
         }
-        const stageMousePos = {
-          x: newLeft,
-          y: 0
-        }
-        console.log('newLeft:', newLeft)
-        this.waveEndPos = {
-          left: newLeft
-        }
+        // const stageMousePos = {
+        //   x: newLeft,
+        //   y: 0
+        // }
+        // console.log('newOffset:', newOffset)
+        // this.waveEndPos = {
+        //   left: newLeft
+        // }
         // TODO 这里移动的时候会闪
-        this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
-
-        this.$store.dispatch('change/changeState', { stageMousePos })
+        // this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
+        this.waveStartPos.newOffset = newOffset
+        this.$store.state.change.trackList[1].offset = newOffset
+        // this.$store.dispatch('change/changeState', { stageMousePos })
       }
     },
-    onWaveMouseUp(event) {
-      // console.log('onWaveMouseUp', event)
-      if (this.isWaveMouseDown) {
-        this.isWaveMouseDown = false
+    onEnd(event) {
+      if (this.waveStartPos) {
+        const { oldOffset, newOffset } = this.waveStartPos
+        this.waveStartPos = null
         this.$refs.WaveForm.style.opacity = 1
-        const editor = Editor.getInstance()
-        editor.execute(new ChangeArrangeCommand(editor, this.waveEndPos.left))
+        this.$execute(new ChangeArrangeCommand(this.$editor(), oldOffset, newOffset))
       }
       // this.$store.state.change.trackList[1].offset = this.waveEndPos.left
-      document.removeEventListener('mousemove', this.onWaveMouseMove)
-      document.removeEventListener('mouseleave', this.onWaveMouseUp)
     },
     deleteObbligato() {
       this.showDelete = false
       // this.$refs.WaveForm.style.border = 0
       this.waveActive = false
-      const editor = Editor.getInstance()
-      editor.execute(new DeleteArrangeCommand(editor))
+      this.$execute(new DeleteArrangeCommand(this.$editor()))
 
       // waveSurfer.clearWaveSurfer()
       // this.$store.dispatch('change/changeState', { waveWidth: 0 })

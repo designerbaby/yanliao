@@ -72,8 +72,11 @@ export default {
         return
       }
       this.isChangeVolume = index
+      const track = this.trackList[index]
       this.startVolume = {
-        volume: this.trackList[index].volume,
+        trackingType: track.type,
+        silenceStatus: track.is_sil,
+        volume: track.volume,
         x: event.clientX
       }
     },
@@ -109,8 +112,17 @@ export default {
     onEnd(event, index) {
       if (this.isChangeVolume >= 0) {
         this.isChangeVolume = -1
-        // const editor = Editor.getInstance()
-        // editor.execute(new ChangeTrackVolumeCommand(editor, this.trackList[index].volume, index))
+        const track = this.trackList[index]
+        const editor = Editor.getInstance()
+
+        const before = {...this.startVolume}
+        const after = {
+          trackingType: track.type,
+          silenceStatus: track.is_sil,
+          volume: track.volume,
+        }
+        const command = new ChangeTrackVolumeCommand(editor, before, after)
+        editor.execute(command)
       }
       this.$store.dispatch('const/changeState', { isTrackChanged: true })
     },

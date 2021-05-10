@@ -4,18 +4,17 @@ import { timeToPx } from '@/common/utils/helper'
 import * as waveSurfers from '@/common/utils/waveSurfer'
 
 class AddArrangeCommand extends Command {
-  constructor(editor, file, type, bpm) {
+  constructor(editor, file) {
     super( editor )
     this.name = 'Add Arrange'
     this.file = file
-    this.type = type
-    this.bpm = bpm
   }
 
   execute() {
     console.log('增加伴奏')
-    const waveSurfer = waveSurfers.createWaveSurfer(this.file, this.type)
+    const waveSurfer = waveSurfers.createWaveSurfer(this.file, 'url')
     const store = this.editor.store
+    store.state.change.trackList[1].file = this.file
     waveSurfer.on('ready', () => {
       // 初始化伴奏的宽度、音波、位移、音量
       const duration = waveSurfer.getDuration()
@@ -34,6 +33,9 @@ class AddArrangeCommand extends Command {
     waveSurfers.clearWaveSurfer()
     this.editor.store.dispatch('change/changeState', { waveWidth: 0 })
     this.editor.store.commit('const/changeState', { isObbligatoChanged: true, showArrange: true }, { root: true })
+
+    // const vueComponent = this.editor.findVueComponentByName('ArrangeObbligato')
+    // if (vueComponent) vueComponent.waveActive = false
   }
 }
 

@@ -1,24 +1,26 @@
 import Command from './Command'
 
 class ChangeArrangeCommand extends Command {
-  constructor(editor, left) {
+  constructor(editor, oldOffset, newOffset) {
     super( editor )
     this.name = 'Change Arrange'
-    this.left = left
+    this.oldOffset = oldOffset
+    this.newOffset = newOffset
   }
 
   execute() {
     console.log('修改伴奏')
-    const store = this.editor.store
-    this.oldOffset = store.state.change.trackList[1].offset
-    store.state.change.trackList[1].offset = this.left
-    store.dispatch('const/changeState', { isObbligatoChanged: true })
+    this.changeOffset(this.newOffset)
   }
 
   undo() {
-    console.log(`撤销修改伴奏`, this.oldOffset)
+    console.log(`撤销修改伴奏`)
+    this.changeOffset(this.oldOffset)
+  }
+
+  changeOffset(offset) {
     const store = this.editor.store
-    store.state.change.trackList[1].offset = this.oldOffset
+    store.state.change.trackList[1].offset = offset
     store.dispatch('const/changeState', { isObbligatoChanged: true, showArrange: true })
   }
 }

@@ -1,26 +1,33 @@
 import Command from './Command'
 
 class ChangeTrackVolumeCommand extends Command {
-  constructor(editor, volume, index) {
+  constructor(editor, before, after) {
     super( editor )
     this.name = 'Change TrackVolume'
-    this.volume = volume
-    this.index = index
-    this.oldVolume = 0
+    this.before = before
+    this.after = after
   }
 
   execute() {
-    // TODO 移动结束后才处理
     console.log('修改轨道音量')
-    this.oldVolume = this.editor.store.state.change.trackList[this.index].volume
-    this.editor.store.state.change.trackList[this.index] = this.volume
-    this.editor.store.dispatch('const/changeState', { isTrackChanged: true })
+    this.commit(this.after)
   }
 
   undo() {
     console.log('撤销修改轨道音量')
-    this.editor.store.state.change.trackList[this.index] = this.oldVolume
+    this.commit(this.before)
+  }
+
+  commit(item) {
+    const track = this.getTrack(item)
+    track.volume = item.volume
+    track.is_sil = item.silenceStatus
     this.editor.store.dispatch('const/changeState', { isTrackChanged: true })
+  }
+
+  getTrack(item) {
+    const track = this.editor.store.state.change.trackList.find(v => v.type === item.trackingType)
+    return track
   }
 }
 

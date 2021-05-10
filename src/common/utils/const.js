@@ -297,6 +297,7 @@ export const PlayState = {
   StateEnded: 3 // 播放完成
 }
 
+// 播放模式，2个轨道组合成4种状态
 export const TrackMode = {
   TrackModeNone: 0, // 都静音
   TrackModeBan: 1, // 只播放伴奏
@@ -324,4 +325,16 @@ export const AudioStatusMap = {
   4: '音源合成失败',
   5: '已上线',
   6: '已下线'
+}
+
+// 静音状态
+export const SilenceStatus = {
+  SilenceStatusNo: 1, // 不静音
+  SilenceStatusYes: 2 // 静音
+}
+
+// 音轨类型
+export const TrackingType = {
+  TrackingTypeGan: 1, // 干音轨
+  TrackingTypeBan: 2 // 伴奏音轨
 }

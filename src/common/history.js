@@ -19,6 +19,8 @@ class History {
       const cmd = this.undos.pop()
       cmd.undo()
       this.redos.push( cmd )
+    } else {
+      console.info(`没有可以undo的命令`)
     }
   }
   redo() {
@@ -26,7 +28,9 @@ class History {
       const cmd = this.redos.pop()
       cmd.execute()
 			this.undos.push( cmd )
-		}
+		} else {
+      console.info(`没有可以redo的命令`)
+    }
   }
   clear() {
     this.undos = []

@@ -37,7 +37,7 @@ class Editor {
     this.shortcut = new Shortcut(this)
   }
 
-  static getInstance() {
+  static getInstance(vm) {
     if (!this.instance) {
       this.instance = new Editor()
     }
