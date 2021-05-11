@@ -84,7 +84,6 @@ import Parameters from './Parameters.vue'
 import Breath from './Breath.vue'
 import { amendTop, amendLeft } from '@/common/utils/helper'
 import Bar from '@/common/components/Scrollbar/src/bar'
-import Editor from '@/common/editor'
 import AddPitchCommand from '@/common/commands/AddPitchCommand'
 import MovePitchCommand from '@/common/commands/MovePitchCommand'
 import ChangePitchCommand from '@/common/commands/ChangePitchCommand'
@@ -422,8 +421,7 @@ export default {
         this.movePitchStart = null
 
         if (pitchHasChanged) {
-          const editor = Editor.getInstance()
-          editor.execute(new MovePitchCommand(editor, moveList))
+          this.$execute(new MovePitchCommand(this.$editor(), moveList))
         }
 
       }
@@ -540,14 +538,13 @@ export default {
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
 
-        const editor = Editor.getInstance()
         const pitch = {
           width,
           height: this.noteHeight,
           left,
           top
         }
-        editor.execute(new AddPitchCommand(editor, pitch))
+        this.$execute(new AddPitchCommand(this.$editor(), pitch))
 
         this.toCheckOverStage(this.endPos.x)
       }
@@ -593,8 +590,7 @@ export default {
         after: pitch
       }
       if (pitchHasChanged) {
-        const editor = Editor.getInstance()
-        editor.execute(new ChangePitchCommand(editor, movePitch))
+        this.$execute(new ChangePitchCommand(this.$editor(), movePitch))
       }
 
     },

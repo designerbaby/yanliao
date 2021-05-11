@@ -28,7 +28,6 @@ import { Dialog, Form, FormItem, Button, Input, Message } from 'element-ui'
 import { Hanzi2Pinyin } from '@/api/audio'
 import { validateChinese } from '@/common/utils/validate'
 import { isChineseChar } from '@/common/utils/helper'
-import Editor from '@/common/editor'
 import ChangePitchLyricCommand from '@/common/commands/ChangePitchLyricCommand'
 
 export default {
@@ -175,8 +174,7 @@ export default {
       return pinyinList
     },
     save() {
-      const editor = Editor.getInstance()
-      editor.execute(new ChangePitchLyricCommand(editor, this.lyricArray, this.maxlength, this.index))
+      this.$execute(new ChangePitchLyricCommand(this.$editor(), this.lyricArray, this.maxlength, this.index))
     },
     async checkComplexPinyin() {
       let hasPolyphnic = false
