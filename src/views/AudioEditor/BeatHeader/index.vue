@@ -11,15 +11,15 @@
         :show-file-list="false"
         :with-credentials="true"
         action="/">
-        <div id="uploadQupuWrap">
-          <div :class="$style.common" @click="uploadQupu">
+        <div id="uploadQuPuWrap">
+          <div :class="$style.common" @click="uploadQuPu">
             <img src="@/assets/audioEditor/import.png"/>
             <div :class="$style.text">导入曲谱</div>
           </div>
         </div>
       </Upload>
       <div :class="$style.common" @click="clickArrange">
-        <img src="@/assets/audioEditor/track-arrange.png" v-if="$store.state.showArrange">
+        <img src="@/assets/audioEditor/track-arrange.png" v-if="$store.state.const.showArrange">
         <img src="@/assets/audioEditor/track-normal.png" v-else>
         <div :class="$style.text">编曲</div>
       </div>
@@ -114,7 +114,7 @@ export default {
       ModeState: ModeState,
       TypeModeState: TypeModeState,
       clickMouseStart: false,
-      timer: null,
+      // timer: null,
       file: '',
       clickType: -1,
       dialogShow: false
@@ -122,22 +122,22 @@ export default {
   },
   computed: {
     mode() {
-      return this.$store.state.mode
+      return this.$store.state.const.mode
     },
     typeMode() {
-      return this.$store.state.typeMode
+      return this.$store.state.const.typeMode
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     },
     isExceedHeader() {
-      return this.$store.state.isExceedHeader
+      return this.$store.state.const.isExceedHeader
     },
     showArrange() {
-      return this.$store.state.showArrange
+      return this.$store.state.const.showArrange
     },
     trackMode() {
-      return this.$store.getters.trackMode
+      return this.$store.getters['change/trackMode']
     },
     status() {
       let status = 'normal'
@@ -157,23 +157,23 @@ export default {
     CommonDialog
   },
   watch: {
-    clickMouseStart(oldValue) {
-      // console.log('clickMouseStart:', oldValue)
-      if (oldValue) {
-        this.timer = setInterval(() => {
-          if (this.clickType === 0) {
-            this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
-          } else {
-            this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
-          }
-        }, 50)
-      } else {
-        clearInterval(this.timer)
-      }
-    }
+    // clickMouseStart(oldValue) {
+    //   // console.log('clickMouseStart:', oldValue)
+    //   if (oldValue) {
+    //     this.timer = setInterval(() => {
+    //       if (this.clickType === 0) {
+    //         this.$emit('toScroll', this.$store.state.const.stage.scrollLeft - 30)
+    //       } else {
+    //         this.$emit('toScroll', this.$store.state.const.stage.scrollLeft + 30)
+    //       }
+    //     }, 50)
+    //   } else {
+    //     clearInterval(this.timer)
+    //   }
+    // }
   },
   destroyed() {
-    clearInterval(this.timer)
+    // clearInterval(this.timer)
   },
   mounted() {
   },
@@ -182,7 +182,7 @@ export default {
       this.$emit('play')
     },
     clickArrange() {
-      this.$store.dispatch('changeStoreState', { showArrange: !this.$store.state.showArrange })
+      this.$store.dispatch('const/changeState', { showArrange: !this.$store.state.const.showArrange })
     },
     async mid2json(url) {
       const res = await mid2json({
@@ -197,17 +197,17 @@ export default {
       } else {
         reportEvent('pitch-button-click', 147618)
       }
-      if (this.$store.state.isSynthetizing) {
+      if (this.$store.state.const.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
-      this.$store.dispatch('changeStoreState', { mode })
+      this.$store.dispatch('const/changeState', { mode })
     },
     selectTypeMode(typeMode) {
       if (typeMode === this.typeMode && this.typeMode !== TypeModeState.StateNone) {
-        this.$store.dispatch('changeStoreState', { typeMode: TypeModeState.StateNone })
+        this.$store.dispatch('const/changeState', { typeMode: TypeModeState.StateNone })
       } else {
-        this.$store.dispatch('changeStoreState', { typeMode })
+        this.$store.dispatch('const/changeState', { typeMode })
       }
     },
     async toGenerateAudio() {
@@ -226,13 +226,13 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      if (isDuplicated(this.$store.state.stagePitches)) {
+      if (isDuplicated(this.$store.state.change.stagePitches)) {
         Message.error('音符存在重叠, 请调整好~')
         return
       }
-      if (this.$store.state.stagePitches.length === 0 &&
-          this.$store.state.f0AI.length === 0 &&
-          this.$store.state.f0Draw.length === 0) {
+      if (this.$store.state.change.stagePitches.length === 0 &&
+          this.$store.state.change.f0AI.length === 0 &&
+          this.$store.state.change.f0Draw.length === 0) {
         Message.error('没有音符！！')
         return
       }
@@ -249,15 +249,15 @@ export default {
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     },
-    toScroll(type) {
-      this.clickType = type
-      this.clickMouseStart = true
-      if (type === 0) {
-        this.$emit('toScroll', this.$store.state.stage.scrollLeft - 30)
-      } else {
-        this.$emit('toScroll', this.$store.state.stage.scrollLeft + 30)
-      }
-    },
+    // toScroll(type) {
+    //   this.clickType = type
+    //   this.clickMouseStart = true
+    //   if (type === 0) {
+    //     this.$emit('toScroll', this.$store.state.const.stage.scrollLeft - 30)
+    //   } else {
+    //     this.$emit('toScroll', this.$store.state.const.stage.scrollLeft + 30)
+    //   }
+    // },
     onMouseUp() {
       this.clickMouseStart = false
     },
@@ -282,7 +282,7 @@ export default {
         this.mid2json(url)
       })
     },
-    uploadQupu(event) {
+    uploadQuPu(event) {
       if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
@@ -295,7 +295,7 @@ export default {
     confirmEvent() {
       // 放弃未保存的改动，确定
       this.dialogShow = false
-      document.getElementById('uploadQupuWrap').click()
+      document.getElementById('uploadQuPuWrap').click()
     },
     cancelEvent() {
       // 放弃未保存的改动，取消

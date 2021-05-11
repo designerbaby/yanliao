@@ -26,12 +26,12 @@ export default {
   },
   computed: {
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     }
   },
   methods: {
     onStart(event) { // 鼠标按下事件
-      if (this.$store.state.isSynthetizing) {
+      if (this.$store.state.const.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }

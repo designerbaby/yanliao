@@ -45,7 +45,7 @@ export default {
   },
   computed: {
     stagePitches() {
-      return this.$store.state.stagePitches
+      return this.$store.state.change.stagePitches
     }
   },
   methods: {
@@ -55,7 +55,7 @@ export default {
       this.setCorrectSelectStagePitches()
     },
     setCorrectSelectStagePitches() {
-      const pinyinList = this.$store.state.pinyinList
+      const pinyinList = this.$store.state.const.pinyinList
       const selectStagePitches = this.selectStagePitches
       let correctSelectStagePitches = []
       for (let i = 0; i < selectStagePitches.length; i += 1) {
@@ -78,14 +78,14 @@ export default {
       this.correctSelectStagePitches = correctSelectStagePitches
     },
     submit() {
-      this.$emit('saveAllPinyin')
+      // this.$emit('saveAllPinyin')
       this.pinyinVisible = false
     },
     toBack() {
       this.pinyinVisible = false
     },
     changeSelect(event, uuid) {
-      this.$store.state.stagePitches.forEach(item => {
+      this.$store.state.change.stagePitches.forEach(item => {
         if (item.uuid === uuid) {
           item.select = event
         }

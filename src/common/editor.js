@@ -33,11 +33,11 @@ class Editor {
 
   constructor() {
     console.log(`Init editor`)
-    this.history = new History( this )
+    this.history = new History(this)
     this.shortcut = new Shortcut(this)
   }
 
-  static getInstance() {
+  static getInstance(vm) {
     if (!this.instance) {
       this.instance = new Editor()
     }
@@ -67,8 +67,7 @@ class Editor {
 
 	redo () {
 		this.history.redo()
-
-	}
+  }
 }
 
 export default Editor

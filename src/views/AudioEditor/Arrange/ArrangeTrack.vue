@@ -17,7 +17,7 @@
           :styles="{ left: `${(it.volume / 100) * 100}%` }"
           @on-start="onStart($event, index)"
           @on-move="onMove($event, index)"
-          @on-end="onEnd"
+          @on-end="onEnd($event, index)"
           >
           <img src="@/assets/audioEditor/arrow-right.png">
         </Dragger>
@@ -36,6 +36,9 @@ import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
 import { getWaveSurfer } from '@/common/utils/waveSurfer'
 import { PlayState, TrackMode } from "@/common/utils/const"
 import { Message } from 'element-ui'
+import Editor from '@/common/editor'
+import ChangeTrackStatusCommand from '@/common/commands/ChangeTrackStatusCommand'
+import ChangeTrackVolumeCommand from '@/common/commands/ChangeTrackVolumeCommand'
 
 export default {
   name: 'ArrangeTrack',
@@ -49,10 +52,10 @@ export default {
   },
   computed: {
     trackList() {
-      return this.$store.state.trackList
+      return this.$store.state.change.trackList
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     }
   },
   methods: {
@@ -69,8 +72,11 @@ export default {
         return
       }
       this.isChangeVolume = index
+      const track = this.trackList[index]
       this.startVolume = {
-        volume: this.trackList[index].volume,
+        trackingType: track.type,
+        silenceStatus: track.is_sil,
+        volume: track.volume,
         x: event.clientX
       }
     },
@@ -97,29 +103,44 @@ export default {
         }
 
         const waveSurfer = getWaveSurfer()
-        const trackMode = this.$store.getters.trackMode
+        const trackMode = this.$store.getters['change/trackMode']
         if (index === 1 && waveSurfer && trackMode === TrackMode.TrackModeBan) {
           waveSurfer.setVolume(this.trackList[1].volume / 100)
         }
       }
     },
-    onEnd() {
+    onEnd(event, index) {
       if (this.isChangeVolume >= 0) {
         this.isChangeVolume = -1
+        const track = this.trackList[index]
+        const editor = Editor.getInstance()
+
+        const before = {...this.startVolume}
+        const after = {
+          trackingType: track.type,
+          silenceStatus: track.is_sil,
+          volume: track.volume,
+        }
+        const command = new ChangeTrackVolumeCommand(editor, before, after)
+        editor.execute(command)
       }
-      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
+      this.$store.dispatch('const/changeState', { isTrackChanged: true })
     },
     play(index) {
       if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      if (this.trackList[index].is_sil === 1) {
-        this.trackList[index].is_sil = 2
-      } else {
-        this.trackList[index].is_sil = 1
-      }
-      this.$store.dispatch('changeStoreState', { isTrackChanged: true })
+
+      const editor = Editor.getInstance()
+      editor.execute(new ChangeTrackStatusCommand(editor, index))
+
+      // if (this.trackList[index].is_sil === 1) {
+      //   this.trackList[index].is_sil = 2
+      // } else {
+      //   this.trackList[index].is_sil = 1
+      // }
+      // this.$store.dispatch('const/changeState', { isTrackChanged: true })
     }
   }
 }

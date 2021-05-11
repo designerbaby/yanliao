@@ -1,6 +1,9 @@
 
 import hotkeys from 'hotkeys-js'
-// 快捷键统一操作
+import CopyPitchCommand from '@/common/commands/CopyPitchCommand'
+import PastePitchCommand from '@/common/commands/PastePitchCommand'
+import DeletePitchCommand from '@/common/commands/DeletePitchCommand'
+// shortcuts 快捷键统一操作
 class Shortcut{
   enable = true
 
@@ -11,11 +14,70 @@ class Shortcut{
   }
 
   init() {
-    hotkeys('ctrl+z,command+z', () => {
+    hotkeys('ctrl+z,command+z', (event) => {
       this.editor.undo()
+      event.preventDefault()
     })
-    hotkeys('ctrl+shift+z,command+shift+z', () => {
+    hotkeys('ctrl+shift+z,command+shift+z', (event) => {
       this.editor.redo()
+      event.preventDefault()
+    })
+    hotkeys('ctrl+y,command+y', (event) => {
+      this.editor.redo()
+      event.preventDefault()
+    })
+    hotkeys('ctrl+c,command+c', (event) => {
+      this.editor.execute(new CopyPitchCommand(this.editor))
+      event.preventDefault()
+    })
+    hotkeys('ctrl+v,command+v', (event) => {
+      this.editor.execute(new PastePitchCommand(this.editor, null))
+      event.preventDefault()
+    })
+    hotkeys('space', (event) => {
+      this.editor.vm.$emit('clickSpace')
+      event.preventDefault()
+    })
+    // hotkeys('ctrl+b,command+b', (event) => {
+    //   console.log('ctrl+b,command+b:', event)
+    // })
+    // hotkeys('ctrl+p,command+p', (event) => {
+    //   console.log('ctrl+p,command+p:', event)
+    // })
+    // hotkeys('ctrl+l,command+l', (event) => {
+    //   console.log('ctrl+l,command+l:', event)
+    // })
+    // hotkeys('ctrl+shift+l,command+shift+l', (event) => {
+    //   console.log('ctrl+shift+l,command+shift+l:', event)
+    // })
+
+    hotkeys("*", () => {
+      // if (hotkeys.isPressed(8) || hotkeys.isPressed(46)) {
+      //   console.log('按下delete键', hotkeys.getPressedKeyCodes())
+      //   return false
+      // }
+
+      const key = hotkeys.getPressedKeyCodes()[0]
+      switch (key) {
+        case 46:
+        case 8:
+          console.log('按下delete键或者fn+delete', hotkeys.getPressedKeyCodes())
+          this.editor.execute(new DeletePitchCommand(this.editor))
+          return false
+        // case 38:
+        //   console.log('38 向上')
+        //   return false
+        // case 37:
+        //   console.log('37 向左')
+        //   return false
+        // case 40:
+        //   console.log('40 向下')
+        //   return false
+        // case 39:
+        //   console.log('39 向右')
+          // return false
+        default:;
+      }
     })
   }
 

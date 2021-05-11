@@ -71,7 +71,7 @@ const getYinsu = (data) => {
 }
 
 // xml转json的接口
-const musicxml2Json = (data) => {
+const musicXml2Json = (data) => {
   return axios({
     method: 'post',
     url: '/cgi-bin/v1/yan/synth/xml2json',
@@ -114,7 +114,7 @@ export {
   Hanzi2Pinyin,
   editorDetail,
   getYinsu,
-  musicxml2Json,
+  musicXml2Json,
   shareMusicScore,
   getToneInfo,
   mid2json

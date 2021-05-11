@@ -29,6 +29,9 @@
 import { Message } from 'element-ui'
 import { PlayState } from "@/common/utils/const"
 import { divideArray } from '@/common/utils/helper'
+import { PitchList } from '@/common/utils/const'
+import Editor from '@/common/editor'
+import ChangePitchLineCommand from '@/common/commands/ChangePitchLineCommand'
 // import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
@@ -42,36 +45,34 @@ export default {
       lastX: 0,
       lastY: 0,
       zIndex: 998,
-      cache: new Map()
+      cache: new Map(),
+      oneDrawCache: new Map() // 一次完整的操作的cache
     }
   },
   computed: {
     stageWidth() {
-      return this.$store.getters.stageWidth
+      return this.$store.getters['const/stageWidth']
     },
     stageHeight() {
-      return this.$store.getters.stageHeight
-    },
-    firstPitch() {
-      return this.$store.getters.firstPitch
+      return this.$store.getters['const/stageHeight']
     },
     noteHeight() {
-      return this.$store.state.noteHeight
+      return this.$store.state.const.noteHeight
     },
     pitchWidth() {
-      return this.$store.getters.pitchWidth
+      return this.$store.getters['const/pitchWidth']
     },
     playState() {
-      return this.$store.state.playState
+      return this.$store.state.const.playState
     },
     svgData() {
-      return this.handleData(this.$store.state.f0AI)
+      return this.handleData(this.$store.state.change.f0AI)
     },
     svgDataDraw() {
-      return this.handleData(this.$store.state.f0Draw)
+      return this.handleData(this.$store.state.change.f0Draw)
     },
     divideDraw() {
-      return this.handleDivideDraw(this.$store.state.f0Draw)
+      return this.handleDivideDraw(this.$store.state.change.f0Draw)
     }
   },
   mounted() {
@@ -81,7 +82,7 @@ export default {
       // console.time('handleDivideDraw')
       let result = []
       const pw = this.pitchWidth
-      const fp = this.firstPitch
+      const fp = PitchList[0].pitch
       const nh = this.noteHeight
       // const viewportLeft = this.$store.state.stage.scrollLeft
       // const viewportRight = viewportLeft + window.innerWidth - 50
@@ -116,7 +117,7 @@ export default {
       // console.time(`handleData`)
       let result = []
       const pw = this.pitchWidth
-      const fp = this.firstPitch
+      const fp = PitchList[0].pitch
       const nh = this.noteHeight
       for (let i = 0; i < data.length; i += 1) {
         const item = data[i]
@@ -166,7 +167,7 @@ export default {
     },
     onMouseDown(event) {
       // console.log(`onMouseDown event`, event)
-      if (this.$store.state.isSynthetizing) {
+      if (this.$store.state.const.isSynthetizing) {
         Message.error('正在合成音频中,不能修改哦~')
         return
       }
@@ -174,8 +175,6 @@ export default {
         Message.error('正在播放中, 不能修改哦~')
         return
       }
-      // 操作存储
-      this.$store.dispatch('done/push')
 
       this.zIndex = 1001 // 把层级设得比播放线的高
       const rect = this.$refs.svgStage.getBoundingClientRect()
@@ -183,17 +182,35 @@ export default {
         rect
       }
 
+      // 一次独立完整的划线开始前，记录之前的状态
+      this.f0DrawBefore = [...this.$store.state.change.f0Draw]
+      this.changedLineMapBefore = {...this.$store.state.change.changedLineMap}
+
       const update = () => {
         if (this.mouseStart) {
           requestAnimationFrame(update)
         }
         if (this.cache.size > 0) {
-          const values = this.cache.entries()
+          // const values = this.cache.entries()
           // console.log(`update values:`, values)
           // for(const [k, v] of values) {
           //   this.$store.dispatch('changeF0', { x: k, value: v })
           // }
-          this.$store.dispatch('changeF0', { values })
+          // this.$store.dispatch('change/changeF0', { values })
+
+          // 每次浏览器渲染的时候更新数据
+          const drawMap = new Map(this.cache)
+          const {
+            f0Draw,
+            changedLineMap
+          } = ChangePitchLineCommand.format({
+            pitchWidth: this.$store.getters['const/pitchWidth'],
+            f0Draw: this.$store.state.change.f0Draw,
+            changedLineMap: this.$store.state.change.changedLineMap,
+            drawMap
+          })
+
+          this.$store.commit('change/changeState', { f0Draw, changedLineMap })
           this.cache.clear()
         }
       }
@@ -219,23 +236,33 @@ export default {
     },
     onMouseUp() {
       // console.log(`onMouseUp event`, event)
-      this.mouseStart = null
-      this.zIndex = 998 // 把层级设得比播放线的低
-      this.lastX = 0
-      this.lastY = 0
-      this.lastTime = 0
+      if (this.mouseStart) {
+        this.mouseStart = null
+        this.zIndex = 998 // 把层级设得比播放线的低
+        this.lastX = 0
+        this.lastY = 0
+        this.lastTime = 0
+
+        const editor = Editor.getInstance()
+        const drawMap = new Map(this.oneDrawCache)
+        setTimeout(() => {
+          editor.execute(new ChangePitchLineCommand(editor, this.f0DrawBefore, this.changedLineMapBefore, drawMap))
+          this.oneDrawCache.clear()
+        }, 50)
+      }
     },
     changeF0Value(x, y) {
       const index = Math.round(x / this.pitchWidth)
-      const data = this.$store.state.f0AI
+      const data = this.$store.state.change.f0AI
       if (data) {
         const item = data[index]
         if (item) {
-          const value = (this.firstPitch - y / this.noteHeight) * 100
+          const value = (PitchList[0].pitch - y / this.noteHeight) * 100
         // const pos = Math.round(index * this.pitchWidth)
         // this.$store.dispatch('changeF0', { index, value, x: pos })
 
           this.cache.set(x, value)
+          this.oneDrawCache.set(x, value)
         }
         // console.log('this.cache:', this.cache)
       }

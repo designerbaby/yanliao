@@ -35,8 +35,8 @@ export default {
   // 音块复制
   copyPitches({ state, commit, dispatch, rootState }) {
     Message.success('复制成功~')
-    const copyStagePitches = rootState.stagePitches.filter(v => v.selected);
-    dispatch('changeStoreState', { copyStagePitches, showMenuList: false }, { root: true })
+    const copyStagePitches = rootState.change.stagePitches.filter(v => v.selected);
+    dispatch('const/changeState', { copyStagePitches, showMenuList: false }, { root: true })
     // 存一份在浏览器中
     localStorage.setItem('copyStagePitches', JSON.stringify(copyStagePitches))
     localStorage.setItem('changedLineMap', JSON.stringify(rootState.changedLineMap))
@@ -44,8 +44,8 @@ export default {
   // 音块粘贴
   pastePitches({ state, commit, dispatch, rootState, rootGetters }, { position }) {
     dispatch('push')
-    dispatch('resetStagePitchesSelect', null, { root: true })
-    let copyStagePitches = rootState.copyStagePitches
+    dispatch('change/resetStagePitchesSelect', null, { root: true })
+    let copyStagePitches = rootState.const.copyStagePitches
     if (copyStagePitches.length === 0) {
       // 拿不到就拿浏览器中存着的，再拿不到，那也没办法了！
       copyStagePitches = JSON.parse(localStorage.getItem('copyStagePitches'))
@@ -60,8 +60,8 @@ export default {
     }
 
     let pos = {
-      x: state.mousePos.clientX - rootState.stage.rectLeft,
-      y: state.mousePos.clientY - rootState.stage.rectTop
+      x: state.mousePos.clientX - rootState.const.stage.rectLeft,
+      y: state.mousePos.clientY - rootState.const.stage.rectTop
     }
     if (position) {
       pos = position
@@ -73,8 +73,8 @@ export default {
     const moveList = []
     for (let i = 0; i < copyStagePitches.length; i += 1) {
       const item = copyStagePitches[i]
-      const newLeft = amendLeft(item.left + offsetLeft, rootState.noteWidth)
-      const newTop = amendTop(item.top + offsetTop, rootState.noteHeight)
+      const newLeft = amendLeft(item.left + offsetLeft, rootState.const.noteWidth)
+      const newTop = amendTop(item.top + offsetTop, rootState.const.noteHeight)
 
       const newItem = {
         left: newLeft,
@@ -93,20 +93,20 @@ export default {
         before: item,
         after: finalItem
       })
-      rootState.stagePitches.push(finalItem)
+      rootState.change.stagePitches.push(finalItem)
     }
     turnChangeLineMap(rootState, moveList)
 
-    dispatch('changeStoreState', { showStageList: false }, { root: true })
-    dispatch('afterChangePitchAndHandle', null, { root: true })
+    dispatch('const/changeState', { showStageList: false }, { root: true })
+    dispatch('change/afterChangePitchAndHandle', null, { root: true })
   },
   // 音块删除
   deletePitches({ dispatch, rootState }) {
-    const stagePitches = rootState.stagePitches.filter(({ selected }) => !selected)
-    const selectStagePitches = rootState.stagePitches.filter(({ selected }) => selected)
+    const stagePitches = rootState.change.stagePitches.filter(({ selected }) => !selected)
+    const selectStagePitches = rootState.change.stagePitches.filter(({ selected }) => selected)
     if (selectStagePitches.length === 0) { return; }
     dispatch('push')
-    const changedLineMap = { ...rootState.changedLineMap }
+    const changedLineMap = { ...rootState.change.changedLineMap }
     let minLeft = selectStagePitches[0].left
     let maxRight = selectStagePitches[0].left + selectStagePitches[0].width
     selectStagePitches.forEach(item => {
@@ -120,10 +120,10 @@ export default {
         delete changedLineMap[x]
       })
 
-    rootState.changedLineMap = {
+    rootState.change.changedLineMap = {
       ...changedLineMap
     }
-    dispatch('changeStoreState', { stagePitches }, { root: true })
-    dispatch('afterChangePitchAndHandle', null, { root: true })
+    dispatch('change/changeState', { stagePitches }, { root: true })
+    dispatch('change/afterChangePitchAndHandle', null, { root: true })
   }
 }
