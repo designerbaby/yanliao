@@ -1,10 +1,11 @@
 import Command from './Command'
+import deepAssign from 'object-assign-deep'
 import { ModeState } from "@/common/utils/const"
 class ChangePitchCommand extends Command {
   constructor(editor, movePitch) {
     super( editor )
     this.name = 'Change Pitch'
-    this.movePitch = movePitch
+    this.movePitch = deepAssign({}, movePitch)
   }
 
   findByUUID(uuid) {
