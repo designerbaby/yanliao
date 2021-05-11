@@ -22,7 +22,7 @@
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将视频文件拖到此处，或<em>点击上传</em></div>
           <div class="el-upload__tip"
-               slot="tip">只能上传MP4、TS、FLV、WMV、ASF、RM、RMVB、MPG、MPEG、3GP、MOV、WEBM、MKV、AVI。注意素材的时长不可超过30s</div>
+               slot="tip">只能上传MP4、TS、FLV、WMV、ASF、RM、RMVB、MPG、MPEG、3GP、MOV、WEBM、MKV、AVI。注意素材的时长不可超过60s</div>
         </Upload>
       </FormItem>
       <FormItem label="素材描述"
@@ -135,8 +135,8 @@ export default {
       const audioElement = new Audio(url) //audio也可获取视频的时长
       audioElement.addEventListener('loadedmetadata', () => {
         console.log(audioElement.duration)
-        if (audioElement.duration > 30) {
-          Message.error('注意素材的时长不可超过30s')
+        if (audioElement.duration > 60) {
+          Message.error('注意素材的时长不可超过60s')
           this.$refs['upload'].clearFiles()
         } else {
           this.form.file = file.raw

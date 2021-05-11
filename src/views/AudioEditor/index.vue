@@ -649,7 +649,7 @@ export default {
       }
 
       // 特殊场景：如果伴奏在音块前面，并且是同时播放的情况，伴奏最左边比第一个音符小
-      const firstPitch = this.stagePitches[0]
+     const firstPitch = this.stagePitches[0]
       if (this.trackList[1].offset * 10 < this.getStagePitchLeftPosition(firstPitch) && lineLeft <= this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
         lineStartX = this.trackList[1].offset * 10
       }
