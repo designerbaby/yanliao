@@ -38,6 +38,18 @@ class Shortcut{
       this.editor.vm.$emit('clickSpace')
       event.preventDefault()
     })
+    // hotkeys('ctrl+b,command+b', (event) => {
+    //   console.log('ctrl+b,command+b:', event)
+    // })
+    // hotkeys('ctrl+p,command+p', (event) => {
+    //   console.log('ctrl+p,command+p:', event)
+    // })
+    // hotkeys('ctrl+l,command+l', (event) => {
+    //   console.log('ctrl+l,command+l:', event)
+    // })
+    // hotkeys('ctrl+shift+l,command+shift+l', (event) => {
+    //   console.log('ctrl+shift+l,command+shift+l:', event)
+    // })
 
     hotkeys("*", () => {
       // if (hotkeys.isPressed(8) || hotkeys.isPressed(46)) {
@@ -52,6 +64,18 @@ class Shortcut{
           console.log('按下delete键或者fn+delete', hotkeys.getPressedKeyCodes())
           this.editor.execute(new DeletePitchCommand(this.editor))
           return false
+        // case 38:
+        //   console.log('38 向上')
+        //   return false
+        // case 37:
+        //   console.log('37 向左')
+        //   return false
+        // case 40:
+        //   console.log('40 向下')
+        //   return false
+        // case 39:
+        //   console.log('39 向右')
+          // return false
         default:;
       }
     })
