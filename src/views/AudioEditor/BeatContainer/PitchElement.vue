@@ -30,6 +30,8 @@
 import ArrowElement from './ArrowElement.vue'
 import { Message } from 'element-ui'
 import { timeToPx } from '@/common/utils/helper'
+import Editor from '@/common/editor'
+import ChangePitchElementCommand from '@/common/commands/ChangePitchElementCommand'
 
 export default {
   name: 'PitchElement',
@@ -44,18 +46,18 @@ export default {
   },
   computed: {
     stageWidth() {
-      return this.$store.getters.stageWidth
+      return this.$store.getters['const/stageWidth']
     },
     stageHeight() {
-      return this.$store.getters.stageHeight
+      return this.$store.getters['const/stageHeight']
     },
     stagePitches() {
-      return this.$store.state.stagePitches
+      return this.$store.state.change.stagePitches
     }
   },
   methods: {
     timeToPx(time) {
-      const { noteWidth, bpm } = this.$store.state
+      const { noteWidth, bpm } = this.$store.state.const
       const px = timeToPx(time, noteWidth, bpm)
       return px
     },
@@ -119,7 +121,7 @@ export default {
       if (index <= 0) {
         return true
       }
-      const { noteWidth, bpm } = this.$store.state
+      const { noteWidth, bpm } = this.$store.state.const
       const current = this.stagePitches[index]
       const before = this.stagePitches[index - 1]
       const beforeEnd = before.left + before.width
@@ -141,8 +143,12 @@ export default {
     onArrowMoveEnd({ preTime }, index) {
       console.log(`onArrowMoveEnd, preTime:${preTime}`, index)
       const pitch = this.stagePitches[index]
-      pitch.preTime = preTime
-      this.$store.dispatch('changeStoreState', { isStagePitchElementChanged: true })
+      // pitch.preTime = preTime
+
+      const editor = Editor.getInstance()
+      editor.execute(new ChangePitchElementCommand(editor, pitch, preTime))
+
+      this.$store.dispatch('const/changeState', { isStagePitchElementChanged: true })
     }
   }
 }

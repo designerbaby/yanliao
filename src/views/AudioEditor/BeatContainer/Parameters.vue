@@ -15,8 +15,9 @@
         :className="$style.draw"
         :styles="stageStyle"
         :valueHandler="valueHandler"
-        @mouse-down="saveOp"
+        @on-start="onDrawStart"
         @on-draw="onDraw"
+        @on-end="onDrawEnd"
         >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -37,13 +38,17 @@
 <script>
 import Drawable from '@/views/AudioEditor/Components/Drawable.vue'
 import { TypeModeState } from '@/common/utils/const'
+import Editor from '@/common/editor'
+import ChangeVolumeCommand from '@/common/commands/ChangeVolumeCommand'
+import ChangeTensionCommand from '@/common/commands/ChangeTensionCommand'
 
 export default {
   name: 'Parameters',
   components: { Drawable },
   data() {
     return {
-      TypeModeState: TypeModeState
+      TypeModeState: TypeModeState,
+      drawMap: new Map()
     }
   },
   computed: {
@@ -51,17 +56,17 @@ export default {
       return document.documentElement.clientWidth
     },
     stageWidth() {
-      return this.$store.getters.stageWidth
+      return this.$store.getters['const/stageWidth']
     },
     typeMode() {
-      return this.$store.state.typeMode
+      return this.$store.state.const.typeMode
     },
     pitchWidth() {
       // 10是因为数据的每一项间隔10ms
-      return this.$store.getters.pitchWidth
+      return this.$store.getters['const/pitchWidth']
     },
     typeContainerHeight() {
-      return this.$store.state.typeContainerHeight
+      return this.$store.state.const.typeContainerHeight
     },
     typeName() {
       const typeMode = this.typeMode
@@ -102,7 +107,7 @@ export default {
     stageStyle() {
       return {
         width: `${this.stageWidth}px`,
-        left: `-${this.$store.state.stage.scrollLeft}px`,
+        left: `-${this.$store.state.const.stage.scrollLeft}px`,
         height: `${this.typeContainerHeight}px`
       }
     },
@@ -111,24 +116,55 @@ export default {
       return result
     },
     volumeMap() {
-      return this.formatSvgPath(this.$store.state.volumeMap)
+      return this.formatSvgPath(this.$store.state.change.volumeMap)
     },
     tensionMap() {
-      return this.formatSvgPath(this.$store.state.tensionMap)
+      return this.formatSvgPath(this.$store.state.change.tensionMap)
     }
   },
   methods: {
-    saveOp() {
-      // 操作存储
-      this.$store.dispatch('done/push')
+    cloneStateMap() {
+      let stateMap = []
+      // 开始画之前把之前的数据保存一份，用于撤销
+      if (this.typeMode === TypeModeState.StateVolume) {
+        stateMap = [...this.$store.state.change.volumeMap]
+      } else if (this.typeMode === TypeModeState.StateTension) {
+        stateMap = [...this.$store.state.change.tensionMap]
+      }
+      return stateMap
+    },
+    onDrawStart() {
+      // 开始画之前把之前的数据保存一份，用于撤销
+      this.drawBefore = this.cloneStateMap()
+      // console.log(`onDrawStart, before:`, this.drawBefore)
     },
     onDraw(values) {
-      // console.log(`onDraw values:`, values)
-      if (this.typeMode === TypeModeState.StateVolume) {
-        this.$store.dispatch('changeVolumeMap', { values })
-      } else if (this.typeMode === TypeModeState.StateTension) {
-        this.$store.dispatch('changeTensionMap', { values })
+      // 一个完整的拖动，把每一小步合并存起来
+      for (const [x, v] of values) {
+        this.drawMap.set(x, v)
       }
+      let stateMap = this.cloneStateMap()
+
+      if (this.typeMode === TypeModeState.StateVolume) {
+        const newStateMap = ChangeVolumeCommand.format(stateMap, this.drawMap)
+        this.$store.commit('change/changeState', { volumeMap: newStateMap })
+      } else if (this.typeMode === TypeModeState.StateTension) {
+        const newStateMap = ChangeTensionCommand.format(stateMap, this.drawMap)
+        this.$store.commit('change/changeState', { tensionMap: newStateMap })
+      }
+      // console.log(`onDraw, volumeMap:`, volumeMap, this.drawMap)
+    },
+    onDrawEnd() {
+      const editor = Editor.getInstance()
+      // Create a copy
+      const draw = new Map(this.drawMap)
+      if (this.typeMode === TypeModeState.StateVolume) {
+        editor.execute(new ChangeVolumeCommand(editor, this.drawBefore, draw))
+      } else if (this.typeMode === TypeModeState.StateTension) {
+        editor.execute(new ChangeTensionCommand(editor, this.drawBefore, draw))
+      }
+      // 一次完整的操作结束后，把临时数据清空
+      this.drawMap.clear()
     },
     positionY2Db(y) {
       const dbPerPx = this.typeRange / this.typeContainerHeight
@@ -201,7 +237,7 @@ export default {
       return this.positionY2Db(y)
     },
     closeParameter() {
-      this.$store.dispatch('changeStoreState', { typeMode: TypeModeState.StateNone })
+      this.$store.dispatch('const/changeState', { typeMode: TypeModeState.StateNone })
     }
   }
 }

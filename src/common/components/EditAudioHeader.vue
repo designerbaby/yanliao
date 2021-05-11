@@ -30,7 +30,6 @@ export default {
     }
   },
   mounted() {
-    // console.log('mx_uid:', this.uid)
   },
   methods: {
     openHomePage() {

@@ -25,6 +25,7 @@ import { Dialog, Button, Message, Radio, RadioGroup } from 'element-ui'
 import { PitchList } from '@/common/utils/const'
 import { pitchList2StagePitches } from '@/common/utils/common'
 import * as waveSurfer from '@/common/utils/waveSurfer'
+import Editor from '@/common/editor'
 
 export default {
   name: 'MidiDialog',
@@ -82,29 +83,33 @@ export default {
       const pitchList = this.midPitchList[this.selectMid].pitchList
       const stagePitches = pitchList2StagePitches(pitchList, 'grid', this)
       this.midiVisible = false
-      this.$store.dispatch('changeStoreState', {
+      this.$store.dispatch('const/changeState', {
         taskId: 0,
         bpm: pitchList[0].bpm,
         toneName: pitchList[0].singer,
         toneId: pitchList[0].toneId,
         musicName: this.fileName,
+        pitchChanged: true
+      })
+      this.$store.dispatch('change/changeState', {
         stagePitches: stagePitches,
-        pitchChanged: true,
         f0Draw: [],
         volumeMap: [],
         tensionMap: [],
         changedLineMap: {}
       })
-      this.$store.dispatch('afterChangePitchAndHandle')
-      this.$store.dispatch('saveFuYuan')
-      this.$store.dispatch('adjustStageWidth')
+      this.$store.dispatch('change/afterChangePitchAndHandle')
+      this.$store.dispatch('change/saveFuYuan')
+      this.$store.dispatch('const/adjustStageWidth')
       this.$emit('midi-cancel')
       // 有伴奏的话，清空伴奏
       const waveSurferObj = waveSurfer.getWaveSurfer()
-      if (waveSurfer) {
-        this.$store.dispatch('changeStoreState', { waveWidth: 0 })
+      if (waveSurferObj) {
+        this.$store.dispatch('change/changeState', { waveWidth: 0 })
         waveSurfer.clearWaveSurfer()
       }
+      // 清空撤回栈
+      Editor.getInstance().history.clear()
       Message.success('导入成功～')
     }
   }

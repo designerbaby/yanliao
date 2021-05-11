@@ -34,19 +34,19 @@ export default {
   },
   computed: {
     beatForm() {
-      return this.$store.state.beatForm
+      return this.$store.state.const.beatForm
     },
     stageWidth() {
-      return this.$store.getters.stageWidth
+      return this.$store.getters['const/stageWidth']
     },
     matter() {
-      return this.$store.state.matter
+      return this.$store.state.const.matter
     },
     noteWidth() {
-      return this.$store.state.noteWidth
+      return this.$store.state.const.noteWidth
     },
     stageHeight() {
-      return this.$store.getters.stageHeight
+      return this.$store.getters['const/stageHeight']
     }
   }
 }

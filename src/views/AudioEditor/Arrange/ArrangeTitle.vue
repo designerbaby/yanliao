@@ -16,7 +16,7 @@ export default {
   },
   methods: {
     clickArrange() {
-      this.$store.dispatch('changeStoreState', { showArrange: !this.$store.state.showArrange })
+      this.$store.dispatch('const/changeState', { showArrange: !this.$store.state.const.showArrange })
     }
   }
 }
