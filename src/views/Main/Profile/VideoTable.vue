@@ -307,27 +307,3 @@ export default {
   }
 }
 </style>
-
-<style lang="less">
-  // .video-container {
-  //   position: relative;
-  //   display: flex;
-  //   justify-content: center;
-  //   .close-button {
-  //     width: 20px;
-  //     height: 20px;
-  //     cursor: pointer;
-  //     margin: -20px 10px;
-  //   }
-  // }
-  // .video-dialog {
-  //   .el-dialog {
-  //     background: none;
-  //     box-shadow: none;
-  //     text-align: center;
-  //     .el-dialog__header {
-  //       display: none;
-  //     }
-  //   }
-  // }
-</style>

@@ -64,18 +64,6 @@ class Shortcut{
           console.log('按下delete键或者fn+delete', hotkeys.getPressedKeyCodes())
           this.editor.execute(new DeletePitchCommand(this.editor))
           return false
-        // case 38:
-        //   console.log('38 向上')
-        //   return false
-        // case 37:
-        //   console.log('37 向左')
-        //   return false
-        // case 40:
-        //   console.log('40 向下')
-        //   return false
-        // case 39:
-        //   console.log('39 向右')
-          // return false
         default:;
       }
     })

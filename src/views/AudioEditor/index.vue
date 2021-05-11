@@ -85,7 +85,6 @@ export default {
     )
     this.$store.dispatch('const/updateStageSize')
     await this.$nextTick()
-    // document.addEventListener('keydown', this.keyDownListener)
     document.addEventListener('mousemove', this.mousemoveListener)
   },
   destroyed() {
@@ -98,7 +97,6 @@ export default {
       waveSurfer.getWaveSurfer().pause()
       waveSurfer.clearWaveSurfer()
     }
-    // document.removeEventListener('keydown', this.keyDownListener)
     document.removeEventListener('mousemove', this.mousemoveListener)
     this.$root.$off('clickSpace', this.toPlay)
     Editor.getInstance().history.clear()
@@ -134,29 +132,6 @@ export default {
     }
   },
   methods: {
-    // keyDownListener(e) {
-    //   if (e.target !== document.body) return
-    //   const keyCode = e.keyCode || e.which || e.charCode;
-    //   const ctrlKey = e.ctrlKey || e.metaKey;
-    //   // console.log('ctrlKey', ctrlKey, keyCode)
-    //   if (keyCode === 32) { // 空格键 tab
-    //     this.toPlay()
-    //     e.preventDefault()
-    //   } else if (keyCode === 8 || keyCode === 46) { // delete or return
-    //     this.$store.dispatch('done/deletePitches')
-    //     e.stopPropagation()
-    //   } else if (ctrlKey && keyCode === 67) { // ctrl + c 复制
-    //     this.$store.dispatch('done/copyPitches')
-    //     e.preventDefault() // 阻止默认行为
-    //   } else if (ctrlKey && keyCode === 86) { // ctrl + v 粘贴
-    //     this.$store.dispatch('done/pastePitches', {position: null})
-    //     e.preventDefault()
-    //   } else if (ctrlKey && keyCode === 89) { // ctrl + y 恢复
-    //     // this.$store.dispatch('done/redo', 1)
-    //   } else if (ctrlKey && keyCode === 90) { // ctrl + z 撤销
-    //     // this.$store.dispatch('done/redo', -1)
-    //   }
-    // },
     mousemoveListener(e) {
       this.$store.commit('const/changeState', { mousePos: {
         x: e.x,
@@ -309,14 +284,6 @@ export default {
       this.$store.dispatch('const/adjustStageWidth')
     },
     isNeedGenerate(type) {
-      // console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
-      // this.$store.state.const.isPitchLineChanged: ${this.$store.state.const.isPitchLineChanged},
-      // this.$store.state.const.isVolumeChanged: ${this.$store.state.const.isVolumeChanged},
-      // this.$store.state.const.isTensionChanged: ${this.$store.state.const.isTensionChanged},
-      // this.$store.state.const.isStagePitchElementChanged: ${this.$store.state.const.isStagePitchElementChanged},
-      // this.$store.state.const.isObbligatoChanged: ${this.$store.state.const.isObbligatoChanged},
-      // this.$store.state.const.isTrackChanged: ${this.$store.state.const.isTrackChanged},
-      // !this.$store.state.const.onlineUrl && type !== 'upload': ${!this.$store.state.const.onlineUrl && type !== 'upload'}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true
@@ -541,23 +508,6 @@ export default {
               requestAnimationFrame(ticker)
             }
           }
-          /* 废弃
-          this.timerId = setInterval(() => {
-            if (audio.duration) {
-              // 需要播放的音频长度，如果移动了线，则可能从中间位置开始播
-              const duration = audio.duration // 音频总长度
-              const restDuration = duration - this.playStartTime
-              const msDuration = restDuration * 1000
-
-              const length = this.playLine.end - this.playLine.start
-              const times = msDuration / 16
-              const step = length / times
-
-              this.playLine.current += step
-              this.changeLinePosition(this.playLine.current, true)
-            }
-          }, 16)
-          */
 
           requestAnimationFrame(ticker)
         },
@@ -571,7 +521,6 @@ export default {
           const resumePosition = timeToPx(this.playStartTime * 1000, this.noteWidth, this.bpm)
           // console.log(`resumePosition`, resumePosition, this.playStartTime)
           this.changeLinePosition(resumePosition, true)
-          // this.playLine.current = this.playLine.start
         }
       })
     },
@@ -587,7 +536,6 @@ export default {
         this.scrollArrange(left)
       }
       this.playLine.current = left
-      // console.log('this.playLine.current:', this.playLine.current)
       this.$store.dispatch('const/changeState', { lineLeft: left })
     },
     scrollArrange(left) {
@@ -649,7 +597,7 @@ export default {
       }
 
       // 特殊场景：如果伴奏在音块前面，并且是同时播放的情况，伴奏最左边比第一个音符小
-     const firstPitch = this.stagePitches[0]
+      const firstPitch = this.stagePitches[0]
       if (this.trackList[1].offset * 10 < this.getStagePitchLeftPosition(firstPitch) && lineLeft <= this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
         lineStartX = this.trackList[1].offset * 10
       }
