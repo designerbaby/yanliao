@@ -16,7 +16,6 @@
 <script>
 import { Message } from 'element-ui'
 import ArrowBreath from './ArrowBreath.vue'
-import Editor from '@/common/editor'
 import ChangeBreathCommand from '@/common/commands/ChangeBreathCommand'
 
 export default {
@@ -62,8 +61,7 @@ export default {
       const pitch = this.stagePitches[index]
       // pitch.breath.left = left
       // pitch.breath.width = width
-      const editor = Editor.getInstance()
-      editor.execute(new ChangeBreathCommand(editor, pitch, left, width))
+      this.$execute(new ChangeBreathCommand(this.$editor(), pitch, left, width))
     },
     canMove(newLeft) {
       if (newLeft > (this.it.left - this.$store.state.const.noteWidth)) { // 最小只能移动到剩下1个32分音符

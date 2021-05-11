@@ -36,7 +36,6 @@ import Dragger from '@/views/AudioEditor/Components/Dragger.vue'
 import { getWaveSurfer } from '@/common/utils/waveSurfer'
 import { PlayState, TrackMode } from "@/common/utils/const"
 import { Message } from 'element-ui'
-import Editor from '@/common/editor'
 import ChangeTrackStatusCommand from '@/common/commands/ChangeTrackStatusCommand'
 import ChangeTrackVolumeCommand from '@/common/commands/ChangeTrackVolumeCommand'
 
@@ -113,7 +112,6 @@ export default {
       if (this.isChangeVolume >= 0) {
         this.isChangeVolume = -1
         const track = this.trackList[index]
-        const editor = Editor.getInstance()
 
         const before = {...this.startVolume}
         const after = {
@@ -121,8 +119,7 @@ export default {
           silenceStatus: track.is_sil,
           volume: track.volume,
         }
-        const command = new ChangeTrackVolumeCommand(editor, before, after)
-        editor.execute(command)
+        this.$execute(new ChangeTrackVolumeCommand(this.$editor(), before, after))
       }
       this.$store.dispatch('const/changeState', { isTrackChanged: true })
     },
@@ -132,15 +129,8 @@ export default {
         return
       }
 
-      const editor = Editor.getInstance()
-      editor.execute(new ChangeTrackStatusCommand(editor, index))
+      this.$execute(new ChangeTrackStatusCommand(this.$editor(), index))
 
-      // if (this.trackList[index].is_sil === 1) {
-      //   this.trackList[index].is_sil = 2
-      // } else {
-      //   this.trackList[index].is_sil = 1
-      // }
-      // this.$store.dispatch('const/changeState', { isTrackChanged: true })
     }
   }
 }

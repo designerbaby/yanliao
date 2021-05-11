@@ -10,7 +10,6 @@
 </template>
 
 <script>
-import Editor from '@/common/editor'
 import PastePitchCommand from '@/common/commands/PastePitchCommand'
 
 export default {
@@ -34,9 +33,7 @@ export default {
       this.pos = pos
     },
     toPaste() {
-      const editor = Editor.getInstance()
-      editor.execute(new PastePitchCommand(editor, this.pos))
-      // this.$store.dispatch('done/pastePitches', { position: this.pos })
+      this.$execute(new PastePitchCommand(this.$editor(), this.pos))
     }
   }
 }

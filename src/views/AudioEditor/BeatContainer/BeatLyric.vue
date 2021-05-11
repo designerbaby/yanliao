@@ -28,7 +28,6 @@ import { Dialog, Form, FormItem, Button, Input, Message } from 'element-ui'
 import { Hanzi2Pinyin } from '@/api/audio'
 import { validateChinese } from '@/common/utils/validate'
 import { isChineseChar } from '@/common/utils/helper'
-import Editor from '@/common/editor'
 import ChangePitchLyricCommand from '@/common/commands/ChangePitchLyricCommand'
 
 export default {
@@ -175,43 +174,7 @@ export default {
       return pinyinList
     },
     save() {
-
-      const editor = Editor.getInstance()
-      editor.execute(new ChangePitchLyricCommand(editor, this.lyricArray, this.maxlength, this.index))
-
-      // const stagePitches = this.stagePitches
-      // const pinyinList = this.$store.state.const.pinyinList
-      // const lyricArray = this.lyricArray
-      // if (this.index === -1) {
-      //   for(let i = 0; i < this.maxlength; i += 1) {
-      //     const pitch = stagePitches[i]
-
-      //     // 歌词逐个有没改动
-      //     if (pitch.hanzi !== this.lyricArray[i]) {
-      //       pitch.pitchChanged = true
-      //     } else {
-      //       pitch.pitchChanged = false
-      //     }
-      //     pitch.hanzi = this.lyricArray[i] || '啦'
-      //     pitch.pinyinList = pinyinList[i].pinyin || ['la']
-      //     pitch.pinyin = pinyinList[i].pinyin[pitch.select] || 'la'
-      //   }
-      // } else {
-      //   const changeStagePitches = this.stagePitches.filter(v => v.selected)
-      //   for (let i = 0; i < changeStagePitches.length; i += 1) {
-      //     const pitch = changeStagePitches[i]
-      //     if (pitch.hanzi !== this.lyricArray[i]) {
-      //       pitch.pitchChanged = true
-      //     } else {
-      //       pitch.pitchChanged = false
-      //     }
-      //     pitch.hanzi = this.lyricArray[i]
-      //     pitch.pinyinList = pinyinList[i].pinyin || ['la']
-      //     pitch.pinyin = pinyinList[i].pinyin[pitch.select] || 'la'
-      //   }
-      // }
-      // this.$store.dispatch('change/saveFuYuan')
-      // this.$store.dispatch('change/getPitchLine')
+      this.$execute(new ChangePitchLyricCommand(this.$editor(), this.lyricArray, this.maxlength, this.index))
     },
     async checkComplexPinyin() {
       let hasPolyphnic = false

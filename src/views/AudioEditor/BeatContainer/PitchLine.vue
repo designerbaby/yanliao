@@ -30,7 +30,6 @@ import { Message } from 'element-ui'
 import { PlayState } from "@/common/utils/const"
 import { divideArray } from '@/common/utils/helper'
 import { PitchList } from '@/common/utils/const'
-import Editor from '@/common/editor'
 import ChangePitchLineCommand from '@/common/commands/ChangePitchLineCommand'
 // import { drawSvgPath } from '@/common/utils/draw'
 
@@ -243,10 +242,9 @@ export default {
         this.lastY = 0
         this.lastTime = 0
 
-        const editor = Editor.getInstance()
         const drawMap = new Map(this.oneDrawCache)
         setTimeout(() => {
-          editor.execute(new ChangePitchLineCommand(editor, this.f0DrawBefore, this.changedLineMapBefore, drawMap))
+          this.$execute(new ChangePitchLineCommand(this.$editor(), this.f0DrawBefore, this.changedLineMapBefore, drawMap))
           this.oneDrawCache.clear()
         }, 50)
       }
