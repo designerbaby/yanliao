@@ -83,7 +83,6 @@ import BeatStageList from './BeatStageList.vue'
 import Parameters from './Parameters.vue'
 import Breath from './Breath.vue'
 import { amendTop, amendLeft } from '@/common/utils/helper'
-// import { turnChangeLineMap } from '@/common/utils/common'
 import Bar from '@/common/components/Scrollbar/src/bar'
 import Editor from '@/common/editor'
 import AddPitchCommand from '@/common/commands/AddPitchCommand'
@@ -427,10 +426,6 @@ export default {
           editor.execute(new MovePitchCommand(editor, moveList))
         }
 
-        // turnChangeLineMap(this.$store.state, moveList, true)
-        // if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
-        //   this.$store.dispatch('change/afterChangePitchAndHandle')
-        // }
       }
     },
     canMoveUpPitch(pitch) {
@@ -544,12 +539,6 @@ export default {
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
-        // this.addOnePitch({
-        //   width,
-        //   height: this.noteHeight,
-        //   left,
-        //   top
-        // });
 
         const editor = Editor.getInstance()
         const pitch = {
@@ -564,29 +553,6 @@ export default {
       }
     },
 
-    // addOnePitch({ width, height, left, top }) {
-    //   this.$store.dispatch('change/resetStagePitchesSelect')
-    //   this.doSelectUUID(null)
-    //   this.stagePitches.push({
-    //     width,
-    //     height,
-    //     left,
-    //     top,
-    //     hanzi: '啦',
-    //     pinyin: 'la',
-    //     red: false,
-    //     pinyinList: ['la'],
-    //     select: 0,
-    //     fu: 'l',
-    //     yuan: 'a',
-    //     selected: true,
-    //     pitchChanged: true,
-    //     uuid: generateUUID()
-    //   });
-    //   this.doSelectUUID(this.stagePitches[this.stagePitches.length - 1].uuid)
-    //   console.log(`addOnePitch: width:${width}, height: ${height}, left: ${left}, top: ${top}, hanzi: 啦, pinyin: la, red: false, pinyinList: ['la'], select: 0, fu: 'l', yuan: 'a', selected: true, pitchChanged: true`)
-    //   this.$store.dispatch('change/afterChangePitchAndHandle')
-    // },
     onArrowMoveEnd({ width, left, top, target, direction, moveArrowStart }, index) {
       let pitchHasChanged = false
       const pitch = this.stagePitches[index]
@@ -631,9 +597,6 @@ export default {
         editor.execute(new ChangePitchCommand(editor, movePitch))
       }
 
-      // if (pitchHasChanged) { // 这里防止点击后就直接去获取f0数据
-      //   this.$store.dispatch('change/afterChangePitchAndHandle')
-      // }
     },
     editLyric(type) {
       this.$refs.BeatLyric.showLyric(type)

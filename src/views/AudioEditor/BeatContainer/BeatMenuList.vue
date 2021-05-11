@@ -92,24 +92,12 @@ export default {
         width: this.$store.state.const.noteWidth,
         pinyin: 'br'
       }
-      // selectStagePitches.forEach(item => {
-      //   this.$set(item, 'breath', {
-      //     left: item.left - this.$store.state.const.noteWidth,
-      //     width: this.$store.state.const.noteWidth,
-      //     pinyin: 'br'
-      //   })
-      // })
 
       const editor = Editor.getInstance()
       editor.execute(new InsertBreathCommand(editor, pitch, breath))
     },
     cancelBreath() {
-      // 操作存储
-      // this.$store.dispatch('done/push')
       const pitch = this.stagePitches.filter(v => v.selected)[0]
-      // selectStagePitches.forEach(item => {
-      //   item.breath = null
-      // })
       const editor = Editor.getInstance()
       editor.execute(new CancelBreathCommand(editor, pitch))
     }

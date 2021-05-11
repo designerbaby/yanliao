@@ -97,22 +97,6 @@ const actions = {
     commit('changeState', { f0Draw, stagePitches })
     commit('const/changeState', { isPitchLineChanged: false, isGetF0Data: false, pitchChanged: false }, { root: true })
   },
-  // changeVolumeMap({ commit, state }, { values }) {
-  //   const volumeMap = [...state.volumeMap]
-  //   for (const [x, v] of values) {
-  //     volumeMap[x] = v
-  //   }
-  //   commit('const/changeState', { isVolumeChanged: true }, { root: true })
-  //   commit('changeState', { volumeMap })
-  // },
-  // changeTensionMap({ commit, state }, { values }) {
-  //   const tensionMap = [...state.tensionMap]
-  //   for (const [x, v] of values) {
-  //     tensionMap[x] = v
-  //   }
-  //   commit('const/changeState', { isTensionChanged: true }, { root: true })
-  //   commit('changeState', { tensionMap })
-  // },
   afterChangePitchAndHandle({ commit, state, dispatch }) {
     state.stagePitches.sort((a, b) => a.left - b.left) // 排序
     const stagePitches = checkPitchDuplicated(state.stagePitches)
