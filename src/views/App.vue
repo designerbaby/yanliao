@@ -50,14 +50,18 @@ export default {
       if (audioStage) {
         const rect = audioStage.getBoundingClientRect()
         this.$store.dispatch("const/changeState", {
-        stage: {
-          ...this.$store.state.const.stage,
-          rectLeft: rect.left,
-          rectTop: rect.top
-        }
-      })
+          stage: {
+            ...this.$store.state.const.stage,
+            rectLeft: rect.left,
+            rectTop: rect.top
+          }
+        })
       }
     })
+    document.addEventListener('mousewheel', this.mousewheelListener, { passive: false })
+  },
+  destroyed() {
+    document.removeEventListener('mousewheel', this.mousewheelListener)
   },
   methods: {
     changeBg(data) {
@@ -79,6 +83,27 @@ export default {
     },
     clickApp() {
       this.$store.dispatch('const/changeState', { showMenuList: false, showStageList: false })
+    },
+    scrollListener() {
+
+    },
+    mousewheelListener(e) {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.wheelDelta < 0) {
+          if (this.$store.state.const.noteWidth <= 10) {
+            return false
+          }
+          this.$store.state.const.noteWidth -= 1
+          // this.$store.dispatch('const/adjustStageWidth')
+        } else if (e.wheelDelta > 0) {
+          if (this.$store.state.const.noteWidth >= 80) {
+            return false
+          }
+          this.$store.state.const.noteWidth += 1
+        }
+      }
     }
   }
 }

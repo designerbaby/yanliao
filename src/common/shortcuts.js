@@ -3,6 +3,7 @@ import hotkeys from 'hotkeys-js'
 import CopyPitchCommand from '@/common/commands/CopyPitchCommand'
 import PastePitchCommand from '@/common/commands/PastePitchCommand'
 import DeletePitchCommand from '@/common/commands/DeletePitchCommand'
+
 // shortcuts 快捷键统一操作
 class Shortcut{
   enable = true
@@ -75,6 +76,6 @@ class Shortcut{
   off() {
     this.enable = false
   }
-
 }
+
 export default Shortcut
