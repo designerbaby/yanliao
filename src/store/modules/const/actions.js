@@ -10,6 +10,7 @@ const actions = {
     commit('changeState', props)
   },
   updateMatter(context, matter) {
+    console.log('updateMatter', matter)
     context.commit('updateMatter', matter)
   },
   updateBeatForm (context, form) {
@@ -44,6 +45,20 @@ const actions = {
     while (banEndX > getters.stageWidth) {
       dispatch('updateMatter', 15)
     }
+  },
+  toUpdateStage({ state, getters, dispatch, rootState, rootGetters }) {
+    const stageConWidth = state.stage.width
+    const arrangeStageConWidth = state.arrangeStage.width
+    const stageWidth = getters.stageWidth
+    console.log(`stageConWidth: ${stageConWidth}, stageWidth: ${stageWidth}, arrangeStageConWidth: ${arrangeStageConWidth}`)
+    while (stageConWidth > stageWidth) { // 外框比里框更大
+      dispatch('updateMatter', 15)
+    }
+    while (arrangeStageConWidth > stageWidth / 10) { // 音轨页面的宽高比里面舞台需要的大
+      dispatch('updateMatter', 15)
+    }
+    dispatch('adjustStageWidth')
+    // stageConWidth: 1870, stageWidth: 1200, arrangeStageConWidth: 1704
   }
 }
 

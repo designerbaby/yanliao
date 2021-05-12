@@ -35,6 +35,7 @@ export default {
     return {
       pageBg: '',
       loginDialogShow: false,
+      timer: null
     }
   },
   mounted() {
@@ -62,6 +63,12 @@ export default {
   },
   destroyed() {
     document.removeEventListener('mousewheel', this.mousewheelListener)
+    clearTimeout(this.timer)
+  },
+  computed: {
+    stageWidth() {
+      return this.$store.getters['const/stageWidth']
+    }
   },
   methods: {
     changeBg(data) {
@@ -84,9 +91,6 @@ export default {
     clickApp() {
       this.$store.dispatch('const/changeState', { showMenuList: false, showStageList: false })
     },
-    scrollListener() {
-
-    },
     mousewheelListener(e) {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault()
@@ -96,7 +100,14 @@ export default {
             return false
           }
           this.$store.state.const.noteWidth -= 1
-          // this.$store.dispatch('const/adjustStageWidth')
+          clearTimeout(this.timer)
+          this.timer = setTimeout(() => {
+            const arrangeStageConWidth = this.$store.state.const.arrangeStage.width
+            console.log(`arrangeStageConWidth: ${arrangeStageConWidth}, this.stageWidth: ${this.stageWidth}`)
+            while (arrangeStageConWidth > this.stageWidth / 10) { // 音轨页面的宽高比里面舞台需要的大
+              this.$store.dispatch('const/updateMatter', 15)
+            }
+          }, 250)
         } else if (e.wheelDelta > 0) {
           if (this.$store.state.const.noteWidth >= 80) {
             return false
