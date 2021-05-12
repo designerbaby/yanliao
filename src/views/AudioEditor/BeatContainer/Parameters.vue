@@ -141,7 +141,7 @@ export default {
     onDraw(values) {
       // 一个完整的拖动，把每一小步合并存起来
       for (const [x, v] of values) {
-        this.drawMap.set(x, v)
+        this.drawMap.set(x, Math.round(v))
       }
       let stateMap = this.cloneStateMap()
 
@@ -203,20 +203,23 @@ export default {
       return this.drawFormatData(resultArr)
     },
     drawFormatData (resultArr) {
-      let result = ''
+      // 改成数组形式,优化下性能
+      let result = []
       for (let i = 0; i < resultArr.length; i += 1) {
         const x = resultArr[i].x
         const y = resultArr[i].y
         if (i === 0) {
-          result += `M `
+          result.push('M ')
         }
 
         if ((i - 1) % 3 === 0) {
-          result += "C "
+          result.push('C ')
         }
-        result += `${x},${y} `
+        result.push(x)
+        result.push(',')
+        result.push(y)
+        result.push(' ')
       }
-
       if (resultArr.length > 0) {
         const lastX = Math.round(resultArr[resultArr.length - 1].x)
 
@@ -225,13 +228,25 @@ export default {
         const size = mod === 0 ? 0 : 3 - mod
 
         for (let j = 0; j < size ; j += 1) {
-          result += `${lastX},125 `
+          result.push(lastX)
+          result.push(',')
+          result.push(125)
+          result.push(' ')
         }
 
-        result += `L ${lastX},125 ${this.stageWidth},125 `
+        result.push('L')
+        result.push(' ')
+        result.push(lastX)
+        result.push(',')
+        result.push(125)
+        result.push(' ')
+        result.push(this.stageWidth)
+        result.push(',')
+        result.push(125)
+        result.push(' ')
       }
 
-      return result.trimRight()
+      return result.join('')
     },
     valueHandler(x, y) {
       return this.positionY2Db(y)

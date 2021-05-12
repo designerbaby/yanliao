@@ -58,11 +58,6 @@ class Shortcut{
     // })
 
     hotkeys("*", () => {
-      // if (hotkeys.isPressed(8) || hotkeys.isPressed(46)) {
-      //   console.log('按下delete键', hotkeys.getPressedKeyCodes())
-      //   return false
-      // }
-
       const key = hotkeys.getPressedKeyCodes()[0]
       switch (key) {
         case 46:

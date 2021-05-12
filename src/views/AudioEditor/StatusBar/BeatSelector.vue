@@ -63,7 +63,6 @@ export default {
           this.$store.dispatch('const/updateBeatForm', this.beatForm)
           this.dialogVisible = false
           this.toUpdateStage()
-          // this.$store.dispatch('const/toUpdateStage')
         } else {
           Message.error('请全部填写完整并正确再提交')
         }

@@ -55,7 +55,7 @@ export default {
   data() {
     return {
       userInfo: sessionStorage.getItem('userInfo'),
-      // timerId: 0,
+      timer: null,
       audio: null,
       // 播放线
       playLine: {
@@ -86,6 +86,7 @@ export default {
     this.$store.dispatch('const/updateStageSize')
     await this.$nextTick()
     document.addEventListener('mousemove', this.mousemoveListener)
+    document.addEventListener('mousewheel', this.mousewheelListener, { passive: false })
   },
   destroyed() {
     this.storeStagePitchesWatcher()
@@ -97,9 +98,11 @@ export default {
       waveSurfer.getWaveSurfer().pause()
       waveSurfer.clearWaveSurfer()
     }
-    document.removeEventListener('mousemove', this.mousemoveListener)
     this.$root.$off('clickSpace', this.toPlay)
     Editor.getInstance().history.clear()
+    document.removeEventListener('mousemove', this.mousemoveListener)
+    document.removeEventListener('mousewheel', this.mousewheelListener)
+    clearTimeout(this.timer)
   },
   computed: {
     // ...mapGetters(['stagePitches']),
@@ -129,6 +132,9 @@ export default {
     },
     trackList() {
       return this.$store.state.change.trackList
+    },
+    stageWidth() {
+      return this.$store.getters['const/stageWidth']
     }
   },
   methods: {
@@ -141,6 +147,118 @@ export default {
         layerX: e.layerX,
         layerY: e.layerY
       }})
+    },
+    mousewheelListener(e) {
+      const oldNoteWidth = this.$store.state.const.noteWidth
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.wheelDelta < 0) {
+          if (this.$store.state.const.noteWidth <= 10) {
+            return false
+          }
+          this.$store.state.const.noteWidth -= 1
+          clearTimeout(this.timer)
+          this.timer = setTimeout(() => {
+            const arrangeStageConWidth = this.$store.state.const.arrangeStage.width
+            while (arrangeStageConWidth > this.stageWidth / 10) { // 音轨页面的宽高比里面舞台需要的大
+              this.$store.dispatch('const/updateMatter', 15)
+            }
+          }, 250)
+        } else if (e.wheelDelta > 0) {
+          if (this.$store.state.const.noteWidth >= 80) {
+            return false
+          }
+          this.$store.state.const.noteWidth += 1
+        }
+        // 缩放音块
+        if (this.stagePitches.length > 0) {
+          this.zoomStagePitches(oldNoteWidth)
+        }
+        // 缩放伴奏
+        if (waveSurfer.getWaveSurfer()) {
+          this.zoomWaveSurfer(oldNoteWidth)
+        }
+        // TODO 以下三个有问题
+        // 缩放响度
+        if (this.$store.state.change.volumeMap.length > 0) {
+          this.zoomVolume(oldNoteWidth)
+        }
+        // 缩放张力
+        if (this.$store.state.change.tensionMap.length > 0) {
+          this.zoomTension(oldNoteWidth)
+        }
+        // 缩放用户画过的部分
+        if (this.$store.state.change.changedLineMap.length > 0) {
+          this.zoomChangedLineMap(oldNoteWidth)
+        }
+      }
+    },
+    zoomStagePitches(oldNoteWidth) {
+      const oldNote = oldNoteWidth
+      const newNoteWidth = this.$store.state.const.noteWidth
+      this.stagePitches.forEach(item => {
+        item.left = item.left * newNoteWidth / oldNote
+        item.width = item.width * newNoteWidth / oldNote
+        if (item.breath) {
+          item.breath.left = item.breath.left * newNoteWidth / oldNote
+          item.breath.width = item.breath.width * newNoteWidth / oldNote
+        }
+      })
+    },
+    zoomWaveSurfer(oldNoteWidth) {
+      console.log('zoomWaveSurfer:', oldNoteWidth)
+      // 缩放音波宽度和音波
+      const duration = waveSurfer.getWaveSurfer().getDuration()
+      const newNoteWidth = this.$store.state.const.noteWidth
+      this.$store.state.change.waveWidth = this.$store.state.change.waveWidth * newNoteWidth / oldNoteWidth
+      waveSurfer.getWaveSurfer().zoom(this.$store.state.change.waveWidth / duration)
+      // 缩放最左边距离
+      this.trackList[1].offset = this.trackList[1].offset * newNoteWidth / oldNoteWidth
+    },
+    zoomVolume(oldNoteWidth) {
+      const newNoteWidth = this.$store.state.const.noteWidth
+      const volumeMap = { ...this.$store.state.change.volumeMap }
+      const newVolumeMap = {}
+      const deleteVolume = new Set()
+      Object.keys(volumeMap).forEach(x => {
+        const newX = Math.round(x * newNoteWidth / oldNoteWidth)
+        console.log(`x: ${x}, newX: ${newX}`)
+        console.log(`newX: ${newX}, newVolumeMap[newX] ${newVolumeMap[newX]}, x: ${x}, volumeMap[x]: ${volumeMap[x]}`)
+        newVolumeMap[newX] = volumeMap[x]
+        console.log(`newX: ${newX}, newVolumeMap[newX] ${newVolumeMap[newX]}, x: ${x}, volumeMap[x]: ${volumeMap[x]}`)
+        deleteVolume.add(x)
+      })
+      deleteVolume.forEach(v => {
+        delete volumeMap[v]
+      })
+      console.log('volumeMap:', volumeMap)
+      console.log('newVolumeMap:', newVolumeMap)
+      this.$store.state.change.volumeMap = {
+        ...volumeMap,
+        ...newVolumeMap
+      }
+    },
+    zoomTension(oldNoteWidth) {
+
+    },
+    zoomChangedLineMap(oldNoteWidth) {
+      const newNoteWidth = this.$store.state.const.noteWidth
+      const changedLineMap = { ... this.$store.state.change.changedLineMap }
+      const newChangedLineMap = {}
+      const deleteChangedLineMap = new Set()
+      Object.keys(changedLineMap).forEach(x => {
+        const newX = Math.round(x * newNoteWidth / oldNoteWidth)
+        newChangedLineMap[newX] = changedLineMap[x]
+        deleteChangedLineMap.add(x)
+      })
+      deleteChangedLineMap.forEach(v => {
+        delete changedLineMap[v]
+      })
+      this.$store.state.change.changedLineMap = {
+        ...newChangedLineMap,
+        ...changedLineMap
+      }
     },
     closeDialogShow() {
       this.dialogShow = false
@@ -494,7 +612,6 @@ export default {
       }
     },
     toPlayAudio(url) {
-      // clearInterval(this.timerId)
       audio = PlayAudio({
         url,
         onPlay: (audio) => {
@@ -512,14 +629,11 @@ export default {
           requestAnimationFrame(ticker)
         },
         onPause: (dom) => {
-          // clearInterval(this.timerId)
         },
         onEnd: () => {
-          // clearInterval(this.timerId)
           this.changePlayState(PlayState.StateEnded)
           // 回到开始播放的位置
           const resumePosition = timeToPx(this.playStartTime * 1000, this.noteWidth, this.bpm)
-          // console.log(`resumePosition`, resumePosition, this.playStartTime)
           this.changeLinePosition(resumePosition, true)
         }
       })

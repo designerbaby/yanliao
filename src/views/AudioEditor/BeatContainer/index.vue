@@ -62,7 +62,7 @@
       <BeatStageList ref="BeatStageList" v-if="$store.state.const.showStageList"></BeatStageList>
     </div>
     <BeatLyric ref="BeatLyric" @showLyric="showLyric"></BeatLyric>
-    <LyricCorrect ref="LyricCorrect" @saveAllPinyin="beatLyricSaveAllPinyin"></LyricCorrect>
+    <LyricCorrect ref="LyricCorrect"></LyricCorrect>
   </div>
 </template>
 
@@ -160,30 +160,8 @@ export default {
       // 右键基础事件被阻止掉了
       return false
     }
-    // this.$refs.rightArea.addEventListener('mousewheel', this.mousewheelListener)
-  },
-  destroyed() {
-    // this.$refs.rightArea.removeEventListener('mousewheel', this.mousewheelListener)
   },
   methods: {
-    // mousewheelListener(e) {
-    //   if (e.ctrlKey || e.metaKey) {
-    //     e.preventDefault()
-    //     e.stopPropagation()
-    //     if (e.wheelDelta < 0) {
-    //       if (this.$store.state.const.noteWidth <= 10) {
-    //         return false
-    //       }
-    //       this.$store.state.const.noteWidth -= 1
-    //       // this.$store.dispatch('const/adjustStageWidth')
-    //     } else if (e.wheelDelta > 0) {
-    //       if (this.$store.state.const.noteWidth >= 80) {
-    //         return false
-    //       }
-    //       this.$store.state.const.noteWidth += 1
-    //     }
-    //   }
-    // },
     doSelectUUID(uuid) {
       // 为空时清空
       if (!uuid) {
@@ -618,9 +596,6 @@ export default {
     },
     editLyric(type) {
       this.$refs.BeatLyric.showLyric(type)
-    },
-    beatLyricSaveAllPinyin() {
-      this.$refs.BeatLyric.save()
     },
     showLyric(selectStagePitches) {
       this.$refs.LyricCorrect.showLyric(selectStagePitches)

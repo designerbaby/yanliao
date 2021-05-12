@@ -78,7 +78,6 @@ export default {
       this.correctSelectStagePitches = correctSelectStagePitches
     },
     submit() {
-      // this.$emit('saveAllPinyin')
       this.pinyinVisible = false
     },
     toBack() {
