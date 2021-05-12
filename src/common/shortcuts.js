@@ -3,6 +3,7 @@ import hotkeys from 'hotkeys-js'
 import CopyPitchCommand from '@/common/commands/CopyPitchCommand'
 import PastePitchCommand from '@/common/commands/PastePitchCommand'
 import DeletePitchCommand from '@/common/commands/DeletePitchCommand'
+import SelectAllCommand from '@/common/commands/SelectAllCommand'
 // shortcuts 快捷键统一操作
 class Shortcut{
   enable = true
@@ -14,6 +15,11 @@ class Shortcut{
   }
 
   init() {
+    // ctrl + a 全选音符
+    hotkeys('ctrl+a,command+a', (event) => {
+      new SelectAllCommand(this.editor).execute()
+      event.preventDefault()
+    })
     hotkeys('ctrl+z,command+z', (event) => {
       this.editor.undo()
       event.preventDefault()

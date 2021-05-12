@@ -104,8 +104,6 @@ export default {
       editor.execute(new InsertBreathCommand(editor, pitch, breath))
     },
     cancelBreath() {
-      // 操作存储
-      // this.$store.dispatch('done/push')
       const pitch = this.stagePitches.filter(v => v.selected)[0]
       // selectStagePitches.forEach(item => {
       //   item.breath = null
