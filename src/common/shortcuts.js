@@ -81,6 +81,6 @@ class Shortcut{
   off() {
     this.enable = false
   }
-
 }
+
 export default Shortcut

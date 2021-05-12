@@ -22,7 +22,7 @@ const actions = {
       const duration = waveSurfer.getDuration()
       const waveWidth = timeToPx(duration * 1000, rootState.const.noteWidth / 10, bpm || rootState.const.bpm)
       commit('changeState', { waveWidth })
-      state.trackList[1].offset = state.stageMousePos.x
+      // state.trackList[1].offset = state.stageMousePos.x
       waveSurfer.zoom(waveWidth / duration)
       waveSurfer.setVolume(state.trackList[1].volume / 100)
       rootDispatch('const/adjustStageWidth', { root: true })

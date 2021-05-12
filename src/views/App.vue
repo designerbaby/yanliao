@@ -35,6 +35,7 @@ export default {
     return {
       pageBg: '',
       loginDialogShow: false,
+      timer: null
     }
   },
   mounted() {
@@ -50,14 +51,24 @@ export default {
       if (audioStage) {
         const rect = audioStage.getBoundingClientRect()
         this.$store.dispatch("const/changeState", {
-        stage: {
-          ...this.$store.state.const.stage,
-          rectLeft: rect.left,
-          rectTop: rect.top
-        }
-      })
+          stage: {
+            ...this.$store.state.const.stage,
+            rectLeft: rect.left,
+            rectTop: rect.top
+          }
+        })
       }
     })
+    document.addEventListener('mousewheel', this.mousewheelListener, { passive: false })
+  },
+  destroyed() {
+    document.removeEventListener('mousewheel', this.mousewheelListener)
+    clearTimeout(this.timer)
+  },
+  computed: {
+    stageWidth() {
+      return this.$store.getters['const/stageWidth']
+    }
   },
   methods: {
     changeBg(data) {
@@ -79,6 +90,31 @@ export default {
     },
     clickApp() {
       this.$store.dispatch('const/changeState', { showMenuList: false, showStageList: false })
+    },
+    mousewheelListener(e) {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.wheelDelta < 0) {
+          if (this.$store.state.const.noteWidth <= 10) {
+            return false
+          }
+          this.$store.state.const.noteWidth -= 1
+          clearTimeout(this.timer)
+          this.timer = setTimeout(() => {
+            const arrangeStageConWidth = this.$store.state.const.arrangeStage.width
+            console.log(`arrangeStageConWidth: ${arrangeStageConWidth}, this.stageWidth: ${this.stageWidth}`)
+            while (arrangeStageConWidth > this.stageWidth / 10) { // 音轨页面的宽高比里面舞台需要的大
+              this.$store.dispatch('const/updateMatter', 15)
+            }
+          }, 250)
+        } else if (e.wheelDelta > 0) {
+          if (this.$store.state.const.noteWidth >= 80) {
+            return false
+          }
+          this.$store.state.const.noteWidth += 1
+        }
+      }
     }
   }
 }
