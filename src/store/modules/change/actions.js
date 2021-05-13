@@ -22,7 +22,6 @@ const actions = {
       const duration = waveSurfer.getDuration()
       const waveWidth = timeToPx(duration * 1000, rootState.const.noteWidth / 10, bpm || rootState.const.bpm)
       commit('changeState', { waveWidth })
-      // state.trackList[1].offset = state.stageMousePos.x
       waveSurfer.zoom(waveWidth / duration)
       waveSurfer.setVolume(state.trackList[1].volume / 100)
       rootDispatch('const/adjustStageWidth', { root: true })
@@ -64,9 +63,9 @@ const actions = {
     const changed = state.changedLineMap
     // 修正音高线
     for (const [index, value] of f0Data.entries()) {
-      const x = Math.round(rootGetters['const/pitchWidth'] * index)
+      const x = Math.round(Math.round(rootGetters['const/pitchWidth'] * index) / rootGetters['const/scale'])
       // const preX = Math.round(getters.pitchWidth * (index - 1))
-      const nextX = Math.round(rootGetters['const/pitchWidth'] * (index + 1))
+      const nextX = Math.round(Math.round(rootGetters['const/pitchWidth'] * (index + 1)) / rootGetters['const/scale'])
       const changedValue = null
       for (let j = x; j <= nextX; j +=1) {
         if (j in changed) {

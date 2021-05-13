@@ -25,7 +25,8 @@ const changeState = () => ({
   stageMousePos: {  // 伴奏轨的位置
     x: 0,
     y: 0
-  }
+  },
+  alteredPitch: [] // 存储增删改查的pitch
 })
 
 export default changeState

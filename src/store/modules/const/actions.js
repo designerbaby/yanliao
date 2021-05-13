@@ -10,7 +10,6 @@ const actions = {
     commit('changeState', props)
   },
   updateMatter(context, matter) {
-    console.log('updateMatter', matter)
     context.commit('updateMatter', matter)
   },
   updateBeatForm (context, form) {
@@ -32,7 +31,6 @@ const actions = {
     })
   },
   adjustStageWidth({ state, getters, dispatch, rootState, rootGetters }) {
-    console.log('adjustStageWidth')
     let maxPitchRight = 0
     rootState.change.stagePitches.forEach((item) => {
       const right = item.left + item.width

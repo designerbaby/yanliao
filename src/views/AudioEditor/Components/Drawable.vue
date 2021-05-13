@@ -30,6 +30,9 @@ export default {
     playState() {
       return this.$store.state.const.playState
     },
+    scale() {
+      return this.$store.getters['const/scale']
+    }
   },
   methods: {
     onMouseDown(event) {
@@ -61,7 +64,12 @@ export default {
     onMouseMove(event) {
       if (this.mouseStart) {
         const { rect } = this.mouseStart
-        const x = event.clientX - rect.left
+        const drawX = event.clientX - rect.left
+
+        // 根据缩放比例来缩放x的位置
+        const x = Math.round(drawX / this.scale)
+        // console.log(`scale:${this.scale}, drawX,${drawX} -> realX:${x}`)
+        
         let y = event.clientY- rect.top
 
         if (y < 0) { // 不要越界

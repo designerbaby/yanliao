@@ -26,8 +26,8 @@
           >
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
-            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === TypeModeState.StateVolume"/>
-            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === TypeModeState.StateTension"/>
+            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateVolume"/>
+            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateTension"/>
           </g>
         </svg>
       </Drawable>
@@ -48,7 +48,8 @@ export default {
   data() {
     return {
       TypeModeState: TypeModeState,
-      drawMap: new Map()
+      drawMap: new Map(),
+      typeContainerHeight: 250
     }
   },
   computed: {
@@ -64,9 +65,6 @@ export default {
     pitchWidth() {
       // 10是因为数据的每一项间隔10ms
       return this.$store.getters['const/pitchWidth']
-    },
-    typeContainerHeight() {
-      return this.$store.state.const.typeContainerHeight
     },
     typeName() {
       const typeMode = this.typeMode
@@ -116,10 +114,14 @@ export default {
       return result
     },
     volumeMap() {
+      // console.log('volumeMap:', this.$store.state.change.volumeMap)
       return this.formatSvgPath(this.$store.state.change.volumeMap)
     },
     tensionMap() {
       return this.formatSvgPath(this.$store.state.change.tensionMap)
+    },
+    scale() {
+      return this.$store.getters['const/scale']
     }
   },
   methods: {
@@ -186,6 +188,7 @@ export default {
       return y
     },
     formatSvgPath (data) {
+      // console.log('formatSvgPath:', data, this.pitchWidth)
       let resultArr = []
       for (let i = 0; i < data.length; i += 1) {
         const x = Math.round(this.pitchWidth * i)
@@ -203,6 +206,7 @@ export default {
       return this.drawFormatData(resultArr)
     },
     drawFormatData (resultArr) {
+      // console.log('drawFormatData:', resultArr)
       // 改成数组形式,优化下性能
       let result = []
       for (let i = 0; i < resultArr.length; i += 1) {
@@ -335,5 +339,9 @@ export default {
   background: transparent;
   width: 100%;
   height: 100%;
+}
+.dpath {
+  // transition: transform 2s ease-in-out 0.5s;
+  transform-origin: left center;
 }
 </style>

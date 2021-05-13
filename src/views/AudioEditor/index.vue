@@ -179,19 +179,6 @@ export default {
         if (waveSurfer.getWaveSurfer()) {
           this.zoomWaveSurfer(oldNoteWidth)
         }
-        // TODO 以下三个有问题
-        // 缩放响度
-        if (this.$store.state.change.volumeMap.length > 0) {
-          this.zoomVolume(oldNoteWidth)
-        }
-        // 缩放张力
-        if (this.$store.state.change.tensionMap.length > 0) {
-          this.zoomTension(oldNoteWidth)
-        }
-        // 缩放用户画过的部分
-        if (this.$store.state.change.changedLineMap.length > 0) {
-          this.zoomChangedLineMap(oldNoteWidth)
-        }
       }
     },
     zoomStagePitches(oldNoteWidth) {
@@ -207,7 +194,7 @@ export default {
       })
     },
     zoomWaveSurfer(oldNoteWidth) {
-      console.log('zoomWaveSurfer:', oldNoteWidth)
+      // console.log('zoomWaveSurfer:', oldNoteWidth)
       // 缩放音波宽度和音波
       const duration = waveSurfer.getWaveSurfer().getDuration()
       const newNoteWidth = this.$store.state.const.noteWidth
@@ -215,50 +202,6 @@ export default {
       waveSurfer.getWaveSurfer().zoom(this.$store.state.change.waveWidth / duration)
       // 缩放最左边距离
       this.trackList[1].offset = this.trackList[1].offset * newNoteWidth / oldNoteWidth
-    },
-    zoomVolume(oldNoteWidth) {
-      const newNoteWidth = this.$store.state.const.noteWidth
-      const volumeMap = { ...this.$store.state.change.volumeMap }
-      const newVolumeMap = {}
-      const deleteVolume = new Set()
-      Object.keys(volumeMap).forEach(x => {
-        const newX = Math.round(x * newNoteWidth / oldNoteWidth)
-        console.log(`x: ${x}, newX: ${newX}`)
-        console.log(`newX: ${newX}, newVolumeMap[newX] ${newVolumeMap[newX]}, x: ${x}, volumeMap[x]: ${volumeMap[x]}`)
-        newVolumeMap[newX] = volumeMap[x]
-        console.log(`newX: ${newX}, newVolumeMap[newX] ${newVolumeMap[newX]}, x: ${x}, volumeMap[x]: ${volumeMap[x]}`)
-        deleteVolume.add(x)
-      })
-      deleteVolume.forEach(v => {
-        delete volumeMap[v]
-      })
-      console.log('volumeMap:', volumeMap)
-      console.log('newVolumeMap:', newVolumeMap)
-      this.$store.state.change.volumeMap = {
-        ...volumeMap,
-        ...newVolumeMap
-      }
-    },
-    zoomTension(oldNoteWidth) {
-
-    },
-    zoomChangedLineMap(oldNoteWidth) {
-      const newNoteWidth = this.$store.state.const.noteWidth
-      const changedLineMap = { ... this.$store.state.change.changedLineMap }
-      const newChangedLineMap = {}
-      const deleteChangedLineMap = new Set()
-      Object.keys(changedLineMap).forEach(x => {
-        const newX = Math.round(x * newNoteWidth / oldNoteWidth)
-        newChangedLineMap[newX] = changedLineMap[x]
-        deleteChangedLineMap.add(x)
-      })
-      deleteChangedLineMap.forEach(v => {
-        delete changedLineMap[v]
-      })
-      this.$store.state.change.changedLineMap = {
-        ...newChangedLineMap,
-        ...changedLineMap
-      }
     },
     closeDialogShow() {
       this.dialogShow = false
@@ -773,6 +716,12 @@ export default {
       acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
       return acInfo
     },
+    handleAlteredTime() {
+      // [{stb,st,et}, {stb,st,et}]
+      const alteredTime = []
+
+      return alteredTime
+    },
     async toSynthesize(isAddAc, callback) {
       // isAddAc 是否合成伴奏 0 不合成 1合成
       if (this.$store.state.const.isGetF0Data) {
@@ -795,7 +744,8 @@ export default {
         music_id: this.$store.state.const.musicId,
         music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
-        is_add_ac: isAddAc  // 是否需要合成伴奏,0为不需要，1为需要
+        is_add_ac: isAddAc,  // 是否需要合成伴奏,0为不需要，1为需要
+        altered_time: this.handleAlteredTime()// 分段合成的片段
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)

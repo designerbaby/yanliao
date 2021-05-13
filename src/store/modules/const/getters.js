@@ -16,6 +16,10 @@ const getters = {
   pitchWidth: state => { // 音高线2个数据之间的px值
     // 10是因为数据的每一项间隔10ms
     return (10 * 8 * state.bpm * state.noteWidth) / (60 * 1000)
+  },
+  // 缩放比例
+  scale: state => {
+    return state.noteWidth / 20
   }
 }
 
