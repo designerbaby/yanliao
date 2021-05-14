@@ -135,6 +135,9 @@ export default {
     },
     stageWidth() {
       return this.$store.getters['const/stageWidth']
+    },
+    scale() {
+      return this.$store.getters['const/scale']
     }
   },
   methods: {
@@ -347,6 +350,14 @@ export default {
       this.$store.dispatch('const/adjustStageWidth')
     },
     isNeedGenerate(type) {
+      console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
+      this.$store.state.const.isPitchLineChanged: ${this.$store.state.const.isPitchLineChanged},
+      this.$store.state.const.isVolumeChanged: ${this.$store.state.const.isVolumeChanged},
+      this.$store.state.const.isTensionChanged: ${this.$store.state.const.isTensionChanged},
+      this.$store.state.const.isStagePitchElementChanged: ${this.$store.state.const.isStagePitchElementChanged},
+      this.$store.state.const.isObbligatoChanged: ${this.$store.state.const.isObbligatoChanged},
+      this.$store.state.const.isTrackChanged: ${this.$store.state.const.isTrackChanged},
+      !this.$store.state.const.onlineUrl && type !== 'upload': ${!this.$store.state.const.onlineUrl && type !== 'upload'}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true
@@ -694,12 +705,14 @@ export default {
           y: tensionMap[i] || 0
         })
       }
-      for (let i = 0; i < volumeXy.length; i += pitchWidth) {
+      console.log('pitchWidth:', pitchWidth)
+      const apart = pitchWidth / this.scale
+      for (let i = 0; i < volumeXy.length; i += apart) {
         if (volumeXy[Math.round(i)]) {
           f0Volume.push(parseInt(volumeXy[Math.round(i)].y, 10))
         }
       }
-      for (let i = 0; i < tensionXy.length; i += pitchWidth) {
+      for (let i = 0; i < tensionXy.length; i += apart) {
         if (tensionXy[Math.round(i)]) {
           f0Tension.push(parseInt(tensionXy[Math.round(i)].y, 10))
         }
