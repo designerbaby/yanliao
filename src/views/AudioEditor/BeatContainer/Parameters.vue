@@ -23,11 +23,15 @@
           xmlns="http://www.w3.org/2000/svg"
           version="1.1"
           :class="$style.svg"
+          :style="{ 
+            transform: `scaleX(${scale}) translateZ(0) translate3d(0, 0, 0)`,
+            minWidth: `${stageWidth}px`
+          }"
           >
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
-            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateVolume"/>
-            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateTension"/>
+            <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === TypeModeState.StateVolume"/>
+            <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" v-if="typeMode === TypeModeState.StateTension"/>
           </g>
         </svg>
       </Drawable>
@@ -64,7 +68,6 @@ export default {
       return this.$store.state.const.typeMode
     },
     pitchWidth() {
-      // 10是因为数据的每一项间隔10ms
       return this.$store.getters['const/pitchWidth']
     },
     typeName() {
@@ -190,7 +193,7 @@ export default {
     formatSvgPath (data) {
       let resultArr = []
       for (let i = 0; i < data.length; i += 1) {
-        const x = Math.round(this.pitchWidth * i)
+        const x = Math.round(this.pitchWidth * i / this.scale)
         let value = data[x]
         if (value === null || value === undefined) {
           value = 0
@@ -275,6 +278,7 @@ export default {
 .svg {
   width: 100%;
   height: 100%;
+  transform-origin: left center;
 }
 .top {
   width: 100%;
@@ -342,6 +346,5 @@ export default {
 .dpath {
   // transition: transform 2s ease-in-out 0.5s;
   transform-origin: left center;
-  transform: transitionZ(0); // 开启硬件加速
 }
 </style>
