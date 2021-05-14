@@ -27,7 +27,6 @@
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
             <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateVolume"/>
-            <!-- <path v-for="(it, index) in divideVolumeMap" :key="index" :d="it" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateVolume"/> -->
             <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateTension"/>
           </g>
         </svg>
@@ -121,9 +120,6 @@ export default {
     tensionMap() {
       return this.formatSvgPath(this.$store.state.change.tensionMap)
     },
-    // divideVolumeMap() {
-    //   return this.divideFormatSvgPath(this.$store.state.change.volumeMap)
-    // },
     scale() {
       return this.$store.getters['const/scale']
     }
@@ -191,32 +187,6 @@ export default {
       }
       return y
     },
-    // divideFormatSvgPath(data) {
-    //   let resultArr = []
-    //   for (let i = 0; i < data.length; i += 1) {
-    //     const x = Math.round(this.pitchWidth * i)
-    //     let value = data[x]
-    //     if (value === null || value === undefined) {
-    //       value = 0
-    //     }
-    //     let y = this.db2PositionY(value)
-    //     resultArr.push({
-    //       x,
-    //       y
-    //     })
-    //   }
-    //   const divide = divideArray(99, resultArr)
-    //   let classifyDraw = []
-    //   for (let i = 0; i < divide.length; i += 1) {
-    //     const item = divide[i]
-    //     if (i < divide.length - 1) {
-    //       item.push(divide[i + 1][0])
-    //     }
-    //     classifyDraw.push(this.drawFormatData(item))
-    //   }
-    //   return classifyDraw
-    //   // return this.drawFormatData(resultArr)
-    // },
     formatSvgPath (data) {
       let resultArr = []
       for (let i = 0; i < data.length; i += 1) {

@@ -80,9 +80,9 @@ import BeatLyric from './BeatLyric.vue'
 import LyricCorrect from './LyricCorrect.vue'
 import BeatMenuList from './BeatMenuList.vue'
 import BeatStageList from './BeatStageList.vue'
-import Parameters from './Parameters.vue'
-import Breath from './Breath.vue'
-import { amendTop, amendLeft } from '@/common/utils/helper'
+import Parameters from './Parameters.vue' // 响度张力
+import Breath from './Breath.vue' // 换气
+import { amendTop, amendLeft, amendWidth } from '@/common/utils/helper'
 import Bar from '@/common/components/Scrollbar/src/bar'
 import AddPitchCommand from '@/common/commands/AddPitchCommand'
 import MovePitchCommand from '@/common/commands/MovePitchCommand'
@@ -521,19 +521,21 @@ export default {
 
         // 一个矩形里面，上边和下边的位置，哪个小取哪个，也就是取上边的位置
         const startToEndx = this.endPos.x - this.startPos.x
-        const startToEndy = this.endPos.y - this.startPos.x
-
-        if (Math.abs(startToEndx) < 10 || Math.abs(startToEndy) < 10) {
-          // Message.error('移动距离小于10')
+        if (Math.abs(startToEndx) < 10) {
+          console.log('移动距离小于10')
           return
         }
 
         const topPx = Math.min(this.startPos.y, this.endPos.y);
         const initLeft = Math.min(this.startPos.x, this.endPos.x);
 
-        const top = amendTop(topPx, this.noteHeight)
-        const left = amendLeft(initLeft, this.noteWidth)
+        let top = amendTop(topPx, this.noteHeight)
 
+        if (parseInt(this.$refs.sharp.style.height, 10) < this.noteWidth / 2) { // 如果高度小于1/2,以向上为准
+          top = topPx - topPx % this.noteHeight
+        }
+
+        const left = amendLeft(initLeft, this.noteWidth)
         const initWidth = Math.abs(this.startPos.x - this.endPos.x);
         // 根据32分音符的最小像素调整宽度
         const width = Math.max(Math.ceil(initWidth / this.noteWidth) * this.noteWidth, 20)
@@ -554,28 +556,31 @@ export default {
       let pitchHasChanged = false
       const pitch = this.stagePitches[index]
       const beforePitch = Object.assign({}, pitch)
-      // console.log(`onArrowMoveEnd: width: ${width}, left: ${left}, top: ${top}, target: ${target}, direction: ${direction}`)
 
       if (pitch.left !== left || pitch.top !== top || pitch.width !== width) {
         pitchHasChanged = true // 有变化的话，需要去拉取f0数据
       }
 
       // 结束后修正宽度和左边距
-      pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
+      // pitch.left = Math.floor(left / this.noteWidth) * this.noteWidth
+      pitch.left = amendLeft(left, this.noteWidth)
       pitch.top = top
-      if (direction === 'left') {
-        // 向左的话,他是要增的，所以要向上取整
-        pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
-      } else {
-        pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
-      }
+      pitch.width = amendWidth(width, this.noteWidth)
+      // if (direction === 'left') {
+      //   // 向左的话,他是要增的，所以要向上取整
+      //   // pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
+      //   pitch.width = amendWidth(width, this.noteWidth)
+      // } else {
+      //   // pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
+      //   pitch.width = amendWidth(width, this.noteWidth)
+      // }
+      console.log(`onArrowMoveEnd: left: ${left}, pitch.left: ${pitch.left}, width: ${width}, pitch.width: ${pitch.width}, direction: ${direction}`)
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
       pitch.pitchChanged = true // 有改变的话，需要去拉取元辅音
       if (pitch.breath) {
         pitch.breath.left = pitch.left - pitch.breath.width
       }
-      console.log(`onArrowMoveEnd: pitch.left: ${pitch.left}, pitch.width: ${pitch.width}, pitch.top: ${pitch.top}, direction: ${direction}`)
       if (!this.canMoveUpPitch(pitch)) {
         Message.error('连音符格式错误，请确保连音符“-”前面有连续音符')
         pitch.left = moveArrowStart.left
@@ -592,7 +597,6 @@ export default {
       if (pitchHasChanged) {
         this.$execute(new ChangePitchCommand(this.$editor(), movePitch))
       }
-
     },
     editLyric(type) {
       this.$refs.BeatLyric.showLyric(type)

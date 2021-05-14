@@ -46,7 +46,6 @@ class Shortcut{
       event.preventDefault()
     })
     hotkeys('ctrl+l,command+l', (event) => {
-      console.log('ctrl+l,command+l:', event)
       const selectStagePitches = this.editor.store.state.change.stagePitches.filter(v => v.selected)
       if (selectStagePitches.length <= 0) {
         Message.error(`没有选中音符块~`)
@@ -57,7 +56,6 @@ class Shortcut{
       event.preventDefault()
     })
     hotkeys('ctrl+shift+l,command+shift+l', (event) => {
-      console.log('ctrl+shift+l,command+shift+l:', event)
       const BeatLyric = this.editor.findVueComponentByName('BeatLyric')
       BeatLyric.showLyric(-1)
       event.preventDefault()
@@ -67,9 +65,6 @@ class Shortcut{
     // })
     // hotkeys('ctrl+p,command+p', (event) => {
     //   console.log('ctrl+p,command+p:', event)
-    // })
-    // hotkeys('ctrl+shift+l,command+shift+l', (event) => {
-    //   console.log('ctrl+shift+l,command+shift+l:', event)
     // })
 
     hotkeys("*", () => {

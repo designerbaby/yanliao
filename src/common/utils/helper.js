@@ -90,6 +90,16 @@ export const amendLeft = (left, noteWidth) => {
   }
 }
 
+// 修正宽度
+export const amendWidth = (width, noteWidth) => {
+  const mod = width % noteWidth
+  if (mod < noteWidth / 2) {
+    return width - mod
+  } else {
+    return width - mod + noteWidth
+  }
+}
+
 // 对更多字符编码的 url encode 格式
 export const camSafeUrlEncode = (str) => {
   return encodeURIComponent(str)

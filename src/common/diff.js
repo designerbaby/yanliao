@@ -7,6 +7,7 @@ class Diff {
     this.editor = editor
   }
   diffProps = ['hanzi','pinyin','pinyinList','fu','yuan','left','width','breath','preTime']
+
   diff(pitches) {
     const added = []
     const deleted = []
@@ -29,7 +30,7 @@ class Diff {
       const item = pitches[i]
       const oldItem = this.beforePitches.find(it => it.uuid === item.uuid)
       if (oldItem) {
-        added.push(item)
+        changed.push(item)
       }
     }
   }
