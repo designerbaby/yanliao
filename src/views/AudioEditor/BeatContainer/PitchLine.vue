@@ -67,11 +67,14 @@ export default {
     svgData() {
       return this.handleData(this.$store.state.change.f0AI)
     },
-    svgDataDraw() {
-      return this.handleData(this.$store.state.change.f0Draw)
-    },
+    // svgDataDraw() {
+    //   return this.handleData(this.$store.state.change.f0Draw)
+    // },
     divideDraw() {
       return this.handleDivideDraw(this.$store.state.change.f0Draw)
+    },
+    scale() {
+      return this.$store.getters['const/scale']
     }
   },
   mounted() {
@@ -83,18 +86,14 @@ export default {
       const pw = this.pitchWidth
       const fp = PitchList[0].pitch
       const nh = this.noteHeight
-      // const viewportLeft = this.$store.state.stage.scrollLeft
-      // const viewportRight = viewportLeft + window.innerWidth - 50
       for (let i = 0; i < data.length; i += 1) {
         const item = data[i]
         const x = Math.round(pw * i)
-        // if (x >= viewportLeft && x <= viewportRight) {
-          const y = ((fp - item / 100) * nh + 12.5).toFixed(2)
-          result.push({
-            x,
-            y
-          })
-        // }
+        const y = ((fp - item / 100) * nh + 12.5).toFixed(2)
+        result.push({
+          x,
+          y
+        })
       }
       // console.timeEnd('handleDivideDraw')
       // 每隔100个分段显示
@@ -206,7 +205,8 @@ export default {
             pitchWidth: this.$store.getters['const/pitchWidth'],
             f0Draw: this.$store.state.change.f0Draw,
             changedLineMap: this.$store.state.change.changedLineMap,
-            drawMap
+            drawMap,
+            scale: this.scale
           })
 
           this.$store.commit('change/changeState', { f0Draw, changedLineMap })
@@ -217,17 +217,15 @@ export default {
     },
     onMouseMove(event) {
       if (this.mouseStart) {
-
         const { rect } = this.mouseStart
-        const x = event.clientX - rect.left
+        const pointX = event.clientX - rect.left
+        const x = Math.round(pointX / this.scale)
+        // console.log(`Draw pitch line, pointX:${pointX}, realX:${x}, scale:${this.scale}`)
         const y = event.clientY- rect.top - 13
-
         this.changeF0Value(x, y)
         if (this.lastTime) {
           this.patchValue(this.lastX, this.lastY, x, y)
         }
-
-
         this.lastTime = Date.now()
         this.lastX = x
         this.lastY = y
@@ -250,7 +248,8 @@ export default {
       }
     },
     changeF0Value(x, y) {
-      const index = Math.round(x / this.pitchWidth)
+      // 这里的x是没有缩放的值
+      const index = Math.round(x * this.scale / this.pitchWidth)
       const data = this.$store.state.change.f0AI
       if (data) {
         const item = data[index]

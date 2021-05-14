@@ -23,6 +23,10 @@
           xmlns="http://www.w3.org/2000/svg"
           version="1.1"
           :class="$style.svg"
+          :style="{ 
+            transform: `scaleX(${scale}) translateZ(0) translate3d(0, 0, 0)`,
+            minWidth: `${stageWidth}px`
+          }"
           >
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
@@ -41,6 +45,7 @@ import { TypeModeState } from '@/common/utils/const'
 import Editor from '@/common/editor'
 import ChangeVolumeCommand from '@/common/commands/ChangeVolumeCommand'
 import ChangeTensionCommand from '@/common/commands/ChangeTensionCommand'
+import { divideArray } from '@/common/utils/helper'
 
 export default {
   name: 'Parameters',
@@ -48,7 +53,8 @@ export default {
   data() {
     return {
       TypeModeState: TypeModeState,
-      drawMap: new Map()
+      drawMap: new Map(),
+      typeContainerHeight: 250
     }
   },
   computed: {
@@ -62,11 +68,7 @@ export default {
       return this.$store.state.const.typeMode
     },
     pitchWidth() {
-      // 10是因为数据的每一项间隔10ms
       return this.$store.getters['const/pitchWidth']
-    },
-    typeContainerHeight() {
-      return this.$store.state.const.typeContainerHeight
     },
     typeName() {
       const typeMode = this.typeMode
@@ -120,6 +122,9 @@ export default {
     },
     tensionMap() {
       return this.formatSvgPath(this.$store.state.change.tensionMap)
+    },
+    scale() {
+      return this.$store.getters['const/scale']
     }
   },
   methods: {
@@ -188,7 +193,7 @@ export default {
     formatSvgPath (data) {
       let resultArr = []
       for (let i = 0; i < data.length; i += 1) {
-        const x = Math.round(this.pitchWidth * i)
+        const x = Math.round(this.pitchWidth * i / this.scale)
         let value = data[x]
         if (value === null || value === undefined) {
           value = 0
@@ -203,20 +208,24 @@ export default {
       return this.drawFormatData(resultArr)
     },
     drawFormatData (resultArr) {
-      let result = ''
+      // console.log('drawFormatData:', resultArr)
+      // 改成数组形式,优化下性能
+      let result = []
       for (let i = 0; i < resultArr.length; i += 1) {
         const x = resultArr[i].x
         const y = resultArr[i].y
         if (i === 0) {
-          result += `M `
+          result.push('M ')
         }
 
         if ((i - 1) % 3 === 0) {
-          result += "C "
+          result.push('C ')
         }
-        result += `${x},${y} `
+        result.push(x)
+        result.push(',')
+        result.push(y)
+        result.push(' ')
       }
-
       if (resultArr.length > 0) {
         const lastX = Math.round(resultArr[resultArr.length - 1].x)
 
@@ -225,13 +234,25 @@ export default {
         const size = mod === 0 ? 0 : 3 - mod
 
         for (let j = 0; j < size ; j += 1) {
-          result += `${lastX},125 `
+          result.push(lastX)
+          result.push(',')
+          result.push(125)
+          result.push(' ')
         }
 
-        result += `L ${lastX},125 ${this.stageWidth},125 `
+        result.push('L')
+        result.push(' ')
+        result.push(lastX)
+        result.push(',')
+        result.push(125)
+        result.push(' ')
+        result.push(this.stageWidth)
+        result.push(',')
+        result.push(125)
+        result.push(' ')
       }
 
-      return result.trimRight()
+      return result.join('')
     },
     valueHandler(x, y) {
       return this.positionY2Db(y)
@@ -257,6 +278,7 @@ export default {
 .svg {
   width: 100%;
   height: 100%;
+  transform-origin: left center;
 }
 .top {
   width: 100%;
@@ -320,5 +342,9 @@ export default {
   background: transparent;
   width: 100%;
   height: 100%;
+}
+.dpath {
+  // transition: transform 2s ease-in-out 0.5s;
+  transform-origin: left center;
 }
 </style>

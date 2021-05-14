@@ -35,7 +35,6 @@ class AddPitchCommand extends Command {
       beatContainer.doSelectUUID(stagePitches[stagePitches.length - 1].uuid)
     }
     store.dispatch('change/afterChangePitchAndHandle', null, { root: true })
-    // console.log(`this.stagePitches`, this.editor.store.state.change.stagePitches)
   }
   undo() {
     console.log(`撤销一个音块：`, { ...this.pitch})
