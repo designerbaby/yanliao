@@ -30,7 +30,7 @@ class ChangeVolumeCommand extends Command {
   }
 
   commit(volumeMap) {
-    console.log(`ChangeVolumeCommand, commit: volumeMap length is:`, volumeMap.length)
+    // console.log(`ChangeVolumeCommand, commit: volumeMap length is:`, volumeMap.length)
     const store = this.editor.store
     store.commit('const/changeState', { isVolumeChanged: true }, { root: true })
     store.commit('change/changeState', { volumeMap })

@@ -269,6 +269,7 @@ export default {
         const data = res.data.data
         const pitchList = data.pitchList
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
+        this.$editor().diff.setBeforePitches(stagePitches)
         const trackList = this.acInfo2TrackList(data.ac_info, pitchList[0].bpm)
         const stageMousePos = {
           x: trackList[1]?.offset,
@@ -306,6 +307,7 @@ export default {
         } else { // 从我自己生成的曲谱过来，给的是时间
           stagePitches = pitchList2StagePitches(musicXml2Json.pitchList, '', this)
         }
+        this.$editor().diff.setBeforePitches(stagePitches)
         // 重置F0Draw
         let f0Draw = musicXml2Json.f0_draw
         const resetF0Draw = parseInt(getParam('resetF0Draw'), 10)
@@ -745,7 +747,7 @@ export default {
         music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
         is_add_ac: isAddAc,  // 是否需要合成伴奏,0为不需要，1为需要
-        altered_time: this.handleAlteredTime()// 分段合成的片段
+        altered_time: this.handleAlteredTime(this.$store.state.change.stagePitches)// 分段合成的片段
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)

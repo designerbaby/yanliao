@@ -61,11 +61,13 @@ const actions = {
 
     const f0Draw = []
     const changed = state.changedLineMap
+    // console.log('state.changedLineMap:', state.changedLineMap)
     // 修正音高线
     for (const [index, value] of f0Data.entries()) {
-      const x = Math.round(Math.round(rootGetters['const/pitchWidth'] * index) / rootGetters['const/scale'])
+      const scale = rootGetters['const/scale']
+      const x = Math.round(Math.round(rootGetters['const/pitchWidth'] * index) / scale)
       // const preX = Math.round(getters.pitchWidth * (index - 1))
-      const nextX = Math.round(Math.round(rootGetters['const/pitchWidth'] * (index + 1)) / rootGetters['const/scale'])
+      const nextX = Math.round(Math.round(rootGetters['const/pitchWidth'] * (index + 1)) / scale)
       const changedValue = null
       for (let j = x; j <= nextX; j +=1) {
         if (j in changed) {

@@ -27,6 +27,7 @@
           <g>
             <path :d="f0Init" stroke="gray" fill="transparent" stroke-linejoin="round"/>
             <path :d="volumeMap" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateVolume"/>
+            <!-- <path v-for="(it, index) in divideVolumeMap" :key="index" :d="it" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateVolume"/> -->
             <path :d="tensionMap" stroke="white" fill="transparent" stroke-linejoin="round" :class="$style.dpath" :style="{ transform: `scaleX(${scale})` }" v-if="typeMode === TypeModeState.StateTension"/>
           </g>
         </svg>
@@ -41,6 +42,7 @@ import { TypeModeState } from '@/common/utils/const'
 import Editor from '@/common/editor'
 import ChangeVolumeCommand from '@/common/commands/ChangeVolumeCommand'
 import ChangeTensionCommand from '@/common/commands/ChangeTensionCommand'
+import { divideArray } from '@/common/utils/helper'
 
 export default {
   name: 'Parameters',
@@ -114,12 +116,14 @@ export default {
       return result
     },
     volumeMap() {
-      // console.log('volumeMap:', this.$store.state.change.volumeMap)
       return this.formatSvgPath(this.$store.state.change.volumeMap)
     },
     tensionMap() {
       return this.formatSvgPath(this.$store.state.change.tensionMap)
     },
+    // divideVolumeMap() {
+    //   return this.divideFormatSvgPath(this.$store.state.change.volumeMap)
+    // },
     scale() {
       return this.$store.getters['const/scale']
     }
@@ -143,7 +147,7 @@ export default {
     onDraw(values) {
       // 一个完整的拖动，把每一小步合并存起来
       for (const [x, v] of values) {
-        this.drawMap.set(x, Math.round(v))
+        this.drawMap.set(x, v)
       }
       let stateMap = this.cloneStateMap()
 
@@ -187,8 +191,33 @@ export default {
       }
       return y
     },
+    // divideFormatSvgPath(data) {
+    //   let resultArr = []
+    //   for (let i = 0; i < data.length; i += 1) {
+    //     const x = Math.round(this.pitchWidth * i)
+    //     let value = data[x]
+    //     if (value === null || value === undefined) {
+    //       value = 0
+    //     }
+    //     let y = this.db2PositionY(value)
+    //     resultArr.push({
+    //       x,
+    //       y
+    //     })
+    //   }
+    //   const divide = divideArray(99, resultArr)
+    //   let classifyDraw = []
+    //   for (let i = 0; i < divide.length; i += 1) {
+    //     const item = divide[i]
+    //     if (i < divide.length - 1) {
+    //       item.push(divide[i + 1][0])
+    //     }
+    //     classifyDraw.push(this.drawFormatData(item))
+    //   }
+    //   return classifyDraw
+    //   // return this.drawFormatData(resultArr)
+    // },
     formatSvgPath (data) {
-      // console.log('formatSvgPath:', data, this.pitchWidth)
       let resultArr = []
       for (let i = 0; i < data.length; i += 1) {
         const x = Math.round(this.pitchWidth * i)
@@ -343,5 +372,6 @@ export default {
 .dpath {
   // transition: transform 2s ease-in-out 0.5s;
   transform-origin: left center;
+  transform: transitionZ(0); // 开启硬件加速
 }
 </style>
