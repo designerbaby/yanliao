@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import Editor from '@/common/editor'
 import DeletePitchCommand from '@/common/commands/DeletePitchCommand'
 import InsertBreathCommand from '@/common/commands/InsertBreathCommand'
 import CancelBreathCommand from '@/common/commands/CancelBreathCommand'
@@ -71,8 +70,7 @@ export default {
       this.top = top
     },
     deletePitch() {
-      const editor = Editor.getInstance()
-      editor.execute(new DeletePitchCommand(editor))
+      this.$execute(new DeletePitchCommand(this.$editor()))
       this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     editLyric(type) {
@@ -80,8 +78,7 @@ export default {
       this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     copy() {
-      const editor = Editor.getInstance()
-      editor.execute(new CopyPitchCommand(editor))
+      this.$execute(new CopyPitchCommand(this.$editor()))
       this.$store.dispatch('const/changeState', { showMenuList: false })
     },
     insertBreath() {
@@ -92,24 +89,12 @@ export default {
         width: this.$store.state.const.noteWidth,
         pinyin: 'br'
       }
-      // selectStagePitches.forEach(item => {
-      //   this.$set(item, 'breath', {
-      //     left: item.left - this.$store.state.const.noteWidth,
-      //     width: this.$store.state.const.noteWidth,
-      //     pinyin: 'br'
-      //   })
-      // })
 
-      const editor = Editor.getInstance()
-      editor.execute(new InsertBreathCommand(editor, pitch, breath))
+      this.$execute(new InsertBreathCommand(this.$editor(), pitch, breath))
     },
     cancelBreath() {
       const pitch = this.stagePitches.filter(v => v.selected)[0]
-      // selectStagePitches.forEach(item => {
-      //   item.breath = null
-      // })
-      const editor = Editor.getInstance()
-      editor.execute(new CancelBreathCommand(editor, pitch))
+      this.$execute(new CancelBreathCommand(this.$editor(), pitch))
     }
   }
 }

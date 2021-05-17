@@ -61,24 +61,6 @@
         <img src="@/assets/audioEditor/export.png" :class="$style.icon"/>
         <div :class="$style.text">生成音频</div>
       </div>
-      <!-- <div :class="$style.linefu">
-        <div :class="[$style.check, $style.isActive]"
-          @mousedown="toScroll(0)"
-          @mousemove="onMouseUp"
-          @mouseup="onMouseUp"
-        >
-          <img src="@/assets/audioEditor/left.png">
-          <div :class="$style.text">左滑</div>
-        </div>
-        <div :class="[$style.check, $style.right, $style.isActive]"
-          @mousedown="toScroll(1)"
-          @mousemove="onMouseUp"
-          @mouseup="onMouseUp"
-        >
-          <img src="@/assets/audioEditor/right.png">
-          <div :class="$style.text">右滑</div>
-        </div>
-      </div> -->
       <div :class="[$style.set]">
         <div :class="[$style.common]" @click="showDialog('SpeedyDialog')">
           <img src="@/assets/audioEditor/keyboard.png" :class="$style.icon"/>
@@ -122,7 +104,6 @@ export default {
       ModeState: ModeState,
       TypeModeState: TypeModeState,
       clickMouseStart: false,
-      // timer: null,
       file: '',
       clickType: -1,
       dialogShow: false
@@ -166,23 +147,8 @@ export default {
     CommonDialog
   },
   watch: {
-    // clickMouseStart(oldValue) {
-    //   // console.log('clickMouseStart:', oldValue)
-    //   if (oldValue) {
-    //     this.timer = setInterval(() => {
-    //       if (this.clickType === 0) {
-    //         this.$emit('toScroll', this.$store.state.const.stage.scrollLeft - 30)
-    //       } else {
-    //         this.$emit('toScroll', this.$store.state.const.stage.scrollLeft + 30)
-    //       }
-    //     }, 50)
-    //   } else {
-    //     clearInterval(this.timer)
-    //   }
-    // }
   },
   destroyed() {
-    // clearInterval(this.timer)
   },
   mounted() {
   },
@@ -258,15 +224,6 @@ export default {
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     },
-    // toScroll(type) {
-    //   this.clickType = type
-    //   this.clickMouseStart = true
-    //   if (type === 0) {
-    //     this.$emit('toScroll', this.$store.state.const.stage.scrollLeft - 30)
-    //   } else {
-    //     this.$emit('toScroll', this.$store.state.const.stage.scrollLeft + 30)
-    //   }
-    // },
     onMouseUp() {
       this.clickMouseStart = false
     },

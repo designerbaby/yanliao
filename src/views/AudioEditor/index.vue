@@ -55,7 +55,7 @@ export default {
   data() {
     return {
       userInfo: sessionStorage.getItem('userInfo'),
-      // timerId: 0,
+      timer: null,
       audio: null,
       // 播放线
       playLine: {
@@ -85,8 +85,8 @@ export default {
     )
     this.$store.dispatch('const/updateStageSize')
     await this.$nextTick()
-    // document.addEventListener('keydown', this.keyDownListener)
     document.addEventListener('mousemove', this.mousemoveListener)
+    document.addEventListener('mousewheel', this.mousewheelListener, { passive: false })
   },
   destroyed() {
     this.storeStagePitchesWatcher()
@@ -98,10 +98,11 @@ export default {
       waveSurfer.getWaveSurfer().pause()
       waveSurfer.clearWaveSurfer()
     }
-    // document.removeEventListener('keydown', this.keyDownListener)
-    document.removeEventListener('mousemove', this.mousemoveListener)
     this.$root.$off('clickSpace', this.toPlay)
     Editor.getInstance().history.clear()
+    document.removeEventListener('mousemove', this.mousemoveListener)
+    document.removeEventListener('mousewheel', this.mousewheelListener)
+    clearTimeout(this.timer)
   },
   computed: {
     // ...mapGetters(['stagePitches']),
@@ -131,32 +132,15 @@ export default {
     },
     trackList() {
       return this.$store.state.change.trackList
+    },
+    stageWidth() {
+      return this.$store.getters['const/stageWidth']
+    },
+    scale() {
+      return this.$store.getters['const/scale']
     }
   },
   methods: {
-    // keyDownListener(e) {
-    //   if (e.target !== document.body) return
-    //   const keyCode = e.keyCode || e.which || e.charCode;
-    //   const ctrlKey = e.ctrlKey || e.metaKey;
-    //   // console.log('ctrlKey', ctrlKey, keyCode)
-    //   if (keyCode === 32) { // 空格键 tab
-    //     this.toPlay()
-    //     e.preventDefault()
-    //   } else if (keyCode === 8 || keyCode === 46) { // delete or return
-    //     this.$store.dispatch('done/deletePitches')
-    //     e.stopPropagation()
-    //   } else if (ctrlKey && keyCode === 67) { // ctrl + c 复制
-    //     this.$store.dispatch('done/copyPitches')
-    //     e.preventDefault() // 阻止默认行为
-    //   } else if (ctrlKey && keyCode === 86) { // ctrl + v 粘贴
-    //     this.$store.dispatch('done/pastePitches', {position: null})
-    //     e.preventDefault()
-    //   } else if (ctrlKey && keyCode === 89) { // ctrl + y 恢复
-    //     // this.$store.dispatch('done/redo', 1)
-    //   } else if (ctrlKey && keyCode === 90) { // ctrl + z 撤销
-    //     // this.$store.dispatch('done/redo', -1)
-    //   }
-    // },
     mousemoveListener(e) {
       this.$store.commit('const/changeState', { mousePos: {
         x: e.x,
@@ -166,6 +150,61 @@ export default {
         layerX: e.layerX,
         layerY: e.layerY
       }})
+    },
+    mousewheelListener(e) {
+      const oldNoteWidth = this.$store.state.const.noteWidth
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.wheelDelta < 0) {
+          if (this.$store.state.const.noteWidth <= 10) {
+            return false
+          }
+          this.$store.state.const.noteWidth -= 1
+          clearTimeout(this.timer)
+          this.timer = setTimeout(() => {
+            const arrangeStageConWidth = this.$store.state.const.arrangeStage.width
+            while (arrangeStageConWidth > this.stageWidth / 10) { // 音轨页面的宽高比里面舞台需要的大
+              this.$store.dispatch('const/updateMatter', 15)
+            }
+          }, 250)
+        } else if (e.wheelDelta > 0) {
+          if (this.$store.state.const.noteWidth >= 80) {
+            return false
+          }
+          this.$store.state.const.noteWidth += 1
+        }
+        // 缩放音块
+        if (this.stagePitches.length > 0) {
+          this.zoomStagePitches(oldNoteWidth)
+        }
+        // 缩放伴奏
+        if (waveSurfer.getWaveSurfer()) {
+          this.zoomWaveSurfer(oldNoteWidth)
+        }
+      }
+    },
+    zoomStagePitches(oldNoteWidth) {
+      const oldNote = oldNoteWidth
+      const newNoteWidth = this.$store.state.const.noteWidth
+      this.stagePitches.forEach(item => {
+        item.left = item.left * newNoteWidth / oldNote
+        item.width = item.width * newNoteWidth / oldNote
+        if (item.breath) {
+          item.breath.left = item.breath.left * newNoteWidth / oldNote
+          item.breath.width = item.breath.width * newNoteWidth / oldNote
+        }
+      })
+    },
+    zoomWaveSurfer(oldNoteWidth) {
+      // console.log('zoomWaveSurfer:', oldNoteWidth)
+      // 缩放音波宽度和音波
+      const duration = waveSurfer.getWaveSurfer().getDuration()
+      const newNoteWidth = this.$store.state.const.noteWidth
+      this.$store.state.change.waveWidth = this.$store.state.change.waveWidth * newNoteWidth / oldNoteWidth
+      waveSurfer.getWaveSurfer().zoom(this.$store.state.change.waveWidth / duration)
+      // 缩放最左边距离
+      this.trackList[1].offset = this.trackList[1].offset * newNoteWidth / oldNoteWidth
     },
     closeDialogShow() {
       this.dialogShow = false
@@ -233,6 +272,7 @@ export default {
         const data = res.data.data
         const pitchList = data.pitchList
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
+        this.$editor().diff.setBeforePitches(stagePitches)
         const trackList = this.acInfo2TrackList(data.ac_info, pitchList[0].bpm)
         const stageMousePos = {
           x: trackList[1]?.offset,
@@ -270,6 +310,7 @@ export default {
         } else { // 从我自己生成的曲谱过来，给的是时间
           stagePitches = pitchList2StagePitches(musicXml2Json.pitchList, '', this)
         }
+        this.$editor().diff.setBeforePitches(stagePitches)
         // 重置F0Draw
         let f0Draw = musicXml2Json.f0_draw
         const resetF0Draw = parseInt(getParam('resetF0Draw'), 10)
@@ -309,14 +350,14 @@ export default {
       this.$store.dispatch('const/adjustStageWidth')
     },
     isNeedGenerate(type) {
-      // console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
-      // this.$store.state.const.isPitchLineChanged: ${this.$store.state.const.isPitchLineChanged},
-      // this.$store.state.const.isVolumeChanged: ${this.$store.state.const.isVolumeChanged},
-      // this.$store.state.const.isTensionChanged: ${this.$store.state.const.isTensionChanged},
-      // this.$store.state.const.isStagePitchElementChanged: ${this.$store.state.const.isStagePitchElementChanged},
-      // this.$store.state.const.isObbligatoChanged: ${this.$store.state.const.isObbligatoChanged},
-      // this.$store.state.const.isTrackChanged: ${this.$store.state.const.isTrackChanged},
-      // !this.$store.state.const.onlineUrl && type !== 'upload': ${!this.$store.state.const.onlineUrl && type !== 'upload'}`)
+      console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
+      this.$store.state.const.isPitchLineChanged: ${this.$store.state.const.isPitchLineChanged},
+      this.$store.state.const.isVolumeChanged: ${this.$store.state.const.isVolumeChanged},
+      this.$store.state.const.isTensionChanged: ${this.$store.state.const.isTensionChanged},
+      this.$store.state.const.isStagePitchElementChanged: ${this.$store.state.const.isStagePitchElementChanged},
+      this.$store.state.const.isObbligatoChanged: ${this.$store.state.const.isObbligatoChanged},
+      this.$store.state.const.isTrackChanged: ${this.$store.state.const.isTrackChanged},
+      !this.$store.state.const.onlineUrl && type !== 'upload': ${!this.$store.state.const.onlineUrl && type !== 'upload'}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true
@@ -527,7 +568,6 @@ export default {
       }
     },
     toPlayAudio(url) {
-      // clearInterval(this.timerId)
       audio = PlayAudio({
         url,
         onPlay: (audio) => {
@@ -541,37 +581,16 @@ export default {
               requestAnimationFrame(ticker)
             }
           }
-          /* 废弃
-          this.timerId = setInterval(() => {
-            if (audio.duration) {
-              // 需要播放的音频长度，如果移动了线，则可能从中间位置开始播
-              const duration = audio.duration // 音频总长度
-              const restDuration = duration - this.playStartTime
-              const msDuration = restDuration * 1000
-
-              const length = this.playLine.end - this.playLine.start
-              const times = msDuration / 16
-              const step = length / times
-
-              this.playLine.current += step
-              this.changeLinePosition(this.playLine.current, true)
-            }
-          }, 16)
-          */
 
           requestAnimationFrame(ticker)
         },
         onPause: (dom) => {
-          // clearInterval(this.timerId)
         },
         onEnd: () => {
-          // clearInterval(this.timerId)
           this.changePlayState(PlayState.StateEnded)
           // 回到开始播放的位置
           const resumePosition = timeToPx(this.playStartTime * 1000, this.noteWidth, this.bpm)
-          // console.log(`resumePosition`, resumePosition, this.playStartTime)
           this.changeLinePosition(resumePosition, true)
-          // this.playLine.current = this.playLine.start
         }
       })
     },
@@ -587,7 +606,6 @@ export default {
         this.scrollArrange(left)
       }
       this.playLine.current = left
-      // console.log('this.playLine.current:', this.playLine.current)
       this.$store.dispatch('const/changeState', { lineLeft: left })
     },
     scrollArrange(left) {
@@ -649,7 +667,7 @@ export default {
       }
 
       // 特殊场景：如果伴奏在音块前面，并且是同时播放的情况，伴奏最左边比第一个音符小
-     const firstPitch = this.stagePitches[0]
+      const firstPitch = this.stagePitches[0]
       if (this.trackList[1].offset * 10 < this.getStagePitchLeftPosition(firstPitch) && lineLeft <= this.trackList[1].offset * 10 && trackMode === TrackMode.TrackModeAll && waveSurfer.getWaveSurfer()) {
         lineStartX = this.trackList[1].offset * 10
       }
@@ -687,12 +705,14 @@ export default {
           y: tensionMap[i] || 0
         })
       }
-      for (let i = 0; i < volumeXy.length; i += pitchWidth) {
+      console.log('pitchWidth:', pitchWidth)
+      const apart = pitchWidth / this.scale
+      for (let i = 0; i < volumeXy.length; i += apart) {
         if (volumeXy[Math.round(i)]) {
           f0Volume.push(parseInt(volumeXy[Math.round(i)].y, 10))
         }
       }
-      for (let i = 0; i < tensionXy.length; i += pitchWidth) {
+      for (let i = 0; i < tensionXy.length; i += apart) {
         if (tensionXy[Math.round(i)]) {
           f0Tension.push(parseInt(tensionXy[Math.round(i)].y, 10))
         }
@@ -710,6 +730,12 @@ export default {
       acInfo[0].offset = this.$store.getters['change/pitchList'][0].startTime
       acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
       return acInfo
+    },
+    handleAlteredTime() {
+      // [{stb,st,et}, {stb,st,et}]
+      const alteredTime = []
+
+      return alteredTime
     },
     async toSynthesize(isAddAc, callback) {
       // isAddAc 是否合成伴奏 0 不合成 1合成
@@ -733,7 +759,8 @@ export default {
         music_id: this.$store.state.const.musicId,
         music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
-        is_add_ac: isAddAc  // 是否需要合成伴奏,0为不需要，1为需要
+        is_add_ac: isAddAc,  // 是否需要合成伴奏,0为不需要，1为需要
+        altered_time: this.handleAlteredTime(this.$store.state.change.stagePitches)// 分段合成的片段
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)

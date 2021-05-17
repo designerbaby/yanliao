@@ -15,6 +15,7 @@ class ChangePitchLineCommand extends Command {
   execute() {
     const store = this.editor.store
     const pitchWidth = store.getters['const/pitchWidth']
+    const scale = store.getters['const/scale']
     this.pitchWidth = pitchWidth
 
     const {
@@ -27,7 +28,8 @@ class ChangePitchLineCommand extends Command {
       f0Draw,
       changedLineMap,
       pitchWidth,
-      drawMap: this.drawMap
+      drawMap: this.drawMap,
+      scale
     })
     this.commit(data)
   }
@@ -48,12 +50,13 @@ class ChangePitchLineCommand extends Command {
     pitchWidth,
     f0Draw: argF0Draw,
     changedLineMap: argChangedLineMap,
-    drawMap
+    drawMap,
+    scale = 1
   }) {
     const changedLineMap = { ...argChangedLineMap }
     const f0Draw = [...argF0Draw]
     for(const [x, v] of drawMap.entries()) {
-      const index = Math.round(Number(x) / pitchWidth)
+      const index = Math.round(Math.round(Number(x) * scale) / pitchWidth)
       changedLineMap[x] = v
       f0Draw[index] = v
     }

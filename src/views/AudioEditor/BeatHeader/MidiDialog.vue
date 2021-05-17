@@ -73,7 +73,9 @@ export default {
     },
     show(data, fileName) {
       this.handleMidPitchList(data.midPitchList)
-      this.fileName = fileName
+      const fileNameArr = fileName.split('.')
+      const name = fileNameArr.slice(0, fileNameArr.length - 1).join('')
+      this.fileName = name
     },
     cancel() {
       this.midiVisible = false

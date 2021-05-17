@@ -39,7 +39,6 @@ const constState = () => ({
   onlineUrl: '',  // 在线播放的音频
   isExceedHeader: false, // 滚动是否超过头部
   appScrollTop: 0, // 页面垂直滚动条的位置
-  typeContainerHeight: 250, // 响度/张力面板的高度
   showMenuList: false,   // 音块的右键菜单列表
   showStageList: false,  // 全局舞台的右键菜单列表
   copyStagePitches: [], // 复制的内容

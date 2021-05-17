@@ -24,7 +24,6 @@ class DeleteArrangeCommand extends Command {
       const duration = waveSurfer.getDuration()
       const waveWidth = timeToPx(duration * 1000, store.state.const.noteWidth / 10, store.state.const.bpm)
       store.commit('change/changeState', { waveWidth }, { root: true })
-      store.state.change.trackList[1].offset = store.state.change.stageMousePos.x
       waveSurfer.zoom(waveWidth / duration)
       waveSurfer.setVolume(store.state.change.trackList[1].volume / 100)
       store.dispatch('const/adjustStageWidth', { root: true })

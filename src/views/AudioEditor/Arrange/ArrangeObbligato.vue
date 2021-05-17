@@ -129,8 +129,6 @@ export default {
       }
 
       uploadFile(file.raw, 'analyze', (url) => {
-        // this.$store.state.change.trackList[1].file = url
-        // this.$store.dispatch('change/showWaveSurfer', { file: url, type: 'url' })
         this.$execute(new AddArrangeCommand(this.$editor(), url))
       })
     },
@@ -172,9 +170,6 @@ export default {
       if (this.waveStartPos) {
         // console.log('onWaveMouseMove', event)
 
-        // const rect = this.$refs.WaveForm.getBoundingClientRect()
-        // const endX = event.clientX - rect.left
-
         const moveX = event.clientX - this.waveStartPos.clientX
         let newOffset = this.waveStartPos.oldOffset + moveX
         // 达到最左边就只能是最左边了
@@ -188,18 +183,8 @@ export default {
           // newLeft = arrangeStageWidth - this.waveWidth
           this.$store.dispatch('const/adjustStageWidth')
         }
-        // const stageMousePos = {
-        //   x: newLeft,
-        //   y: 0
-        // }
-        // console.log('newOffset:', newOffset)
-        // this.waveEndPos = {
-        //   left: newLeft
-        // }
-        // this.$refs.WaveForm.style.transform = `translateX(${newLeft}px)`
         this.waveStartPos.newOffset = newOffset
         this.$store.state.change.trackList[1].offset = newOffset
-        // this.$store.dispatch('change/changeState', { stageMousePos })
       }
     },
     onEnd(event) {
@@ -209,17 +194,11 @@ export default {
         this.$refs.WaveForm.style.opacity = 1
         this.$execute(new ChangeArrangeCommand(this.$editor(), oldOffset, newOffset))
       }
-      // this.$store.state.change.trackList[1].offset = this.waveEndPos.left
     },
     deleteObbligato() {
       this.showDelete = false
-      // this.$refs.WaveForm.style.border = 0
       this.waveActive = false
       this.$execute(new DeleteArrangeCommand(this.$editor()))
-
-      // waveSurfer.clearWaveSurfer()
-      // this.$store.dispatch('change/changeState', { waveWidth: 0 })
-
     },
     selectObbligato() {
       const waveSurferObj = waveSurfer.getWaveSurfer()

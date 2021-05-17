@@ -34,7 +34,7 @@ export default {
   data() {
     return {
       pageBg: '',
-      loginDialogShow: false,
+      loginDialogShow: false
     }
   },
   mounted() {
@@ -50,12 +50,12 @@ export default {
       if (audioStage) {
         const rect = audioStage.getBoundingClientRect()
         this.$store.dispatch("const/changeState", {
-        stage: {
-          ...this.$store.state.const.stage,
-          rectLeft: rect.left,
-          rectTop: rect.top
-        }
-      })
+          stage: {
+            ...this.$store.state.const.stage,
+            rectLeft: rect.left,
+            rectTop: rect.top
+          }
+        })
       }
     })
   },
