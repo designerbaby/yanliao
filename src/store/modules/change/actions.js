@@ -28,7 +28,7 @@ const actions = {
     })
     commit('const/changeState', { isObbligatoChanged: true }, { root: true })
   },
-  async getPitchLine({ commit, state, getters, rootGetters }, { beforeRequest, afterRequest } = {}) {
+  async getPitchLine({ commit, state, getters, rootState, rootGetters }, { beforeRequest, afterRequest } = {}) {
     console.log(`[action] getPitchLine called`)
     if (getters.pitchList.length <= 0) {
       // Message.error('没有画音块，所以没音高线')
@@ -90,7 +90,7 @@ const actions = {
     for (let i = 0; i < pitchList.length; i += 1) {
       const item = stagePitches[i]
       const isExist = item.hasOwnProperty('preTime')
-      if (state.pitchChanged || item.pitchChanged || !isExist) {
+      if (rootState.const.pitchChanged || item.pitchChanged || !isExist) {
         Vue.set(item, 'preTime', pitchList[i].preTime)
       }
       item.pitchChanged = false
