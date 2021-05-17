@@ -3,6 +3,7 @@ import deepAssign from 'object-assign-deep'
 class DiffPitches {
 
   beforePitches = null
+  beforeChangedLineMap = null
   diffProps = ['fu', 'hanzi', 'height', 'left', 'pinyin', 'pitchChanged', 'preTime', 'select', 'top','width', 'yuan']
   breathDiffProp = ['left', 'width', 'pinyin']
   constructor(editor) {
@@ -43,16 +44,20 @@ class DiffPitches {
         const item = pitches[i]
         const oldItem = this.beforePitches.find(it => it.uuid === item.uuid)
         const diffProps = this.diffProps
-        console.log(`item: ${JSON.stringify(item)}, oldItem: ${JSON.stringify(oldItem)}`)
+        // console.log(`item: ${JSON.stringify(item)}, oldItem: ${JSON.stringify(oldItem)}`)
         if (item && oldItem) {
           for (let i = 0; i < diffProps.length; i += 1) {
             const prop = diffProps[i]
-            console.log(`item[prop]: ${item[prop]}, oldItem: ${oldItem}, item[prop] !== oldItem[prop]: ${item[prop] !== oldItem[prop]}`)
+            // console.log(`prop: ${prop}, item[prop]: ${item[prop]}, oldItem: ${oldItem}, item[prop] !== oldItem[prop]: ${item[prop] !== oldItem[prop]}`)
             if (item[prop] !== oldItem[prop]) {
               changed.push(item)
               break
             }
             if (item.breath) {
+              if (!oldItem.breath) {
+                changed.push(item)
+                break
+              }
               const breathDiffProp = this.breathDiffProp
               for (let i = 0; i < breathDiffProp.length; i += 1) {
                 const breathProp = breathDiffProp[i]
@@ -69,6 +74,11 @@ class DiffPitches {
     const finalArray = this.unique(added, changed, deleted)
     console.log('finalArray:', finalArray)
     return finalArray
+  }
+
+  diffPitchLine(changedLineMap) {
+    const beforeChangedLineMap = this.beforeChangedLineMap
+
   }
 
   unique (added, changed, deleted) {
@@ -89,6 +99,10 @@ class DiffPitches {
 
   setBeforePitches(pitches) {
     this.beforePitches = deepAssign([], pitches)
+  }
+
+  setBeforeChangedLineMap (changedLineMap) {
+    this.beforeChangedLineMap = deepAssign({}, changedLineMap)
   }
 
   clear() {

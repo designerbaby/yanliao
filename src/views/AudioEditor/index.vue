@@ -155,11 +155,8 @@ export default {
       }})
     },
     mousewheelListener(e) {
-      console.log('mousewheelListener:', e)
       const oldNoteWidth = this.$store.state.const.noteWidth
       if (e.ctrlKey || e.metaKey) {
-        console.log('e.ctrlKey:', e.ctrlKey)
-        console.log('e.metaKey:', e.metaKey)
         e.preventDefault()
         e.stopPropagation()
         if (e.wheelDelta < 0) {
