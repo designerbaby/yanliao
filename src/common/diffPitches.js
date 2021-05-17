@@ -47,6 +47,7 @@ class DiffPitches {
         if (item && oldItem) {
           for (let i = 0; i < diffProps.length; i += 1) {
             const prop = diffProps[i]
+            console.log(`item[prop]: ${item[prop]}, oldItem: ${oldItem}, item[prop] !== oldItem[prop]: ${item[prop] !== oldItem[prop]}`)
             if (item[prop] !== oldItem[prop]) {
               changed.push(item)
               break
@@ -88,6 +89,10 @@ class DiffPitches {
 
   setBeforePitches(pitches) {
     this.beforePitches = deepAssign([], pitches)
+  }
+
+  clear() {
+    this.beforePitches = null
   }
 
 }

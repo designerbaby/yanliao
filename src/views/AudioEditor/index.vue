@@ -63,7 +63,9 @@ export default {
       },
       playStartTime: 0, // 从第几秒开始播放
       dialogShow: false,
-      isAddAc: 1
+      isAddAc: 1,
+      beforeBpm: 90,
+      beforeToneId: 1
     }
   },
   created() {
@@ -100,6 +102,7 @@ export default {
     }
     this.$root.$off('clickSpace', this.toPlay)
     Editor.getInstance().history.clear()
+    Editor.getInstance().diffPitches.clear()
     document.removeEventListener('mousemove', this.mousemoveListener)
     document.removeEventListener('mousewheel', this.mousewheelListener)
     clearTimeout(this.timer)
@@ -152,8 +155,11 @@ export default {
       }})
     },
     mousewheelListener(e) {
+      console.log('mousewheelListener:', e)
       const oldNoteWidth = this.$store.state.const.noteWidth
       if (e.ctrlKey || e.metaKey) {
+        console.log('e.ctrlKey:', e.ctrlKey)
+        console.log('e.metaKey:', e.metaKey)
         e.preventDefault()
         e.stopPropagation()
         if (e.wheelDelta < 0) {
@@ -272,7 +278,6 @@ export default {
         const data = res.data.data
         const pitchList = data.pitchList
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
-        Editor.getInstance().diffPitches.setBeforePitches(stagePitches)
         const trackList = this.acInfo2TrackList(data.ac_info, pitchList[0].bpm)
         const stageMousePos = {
           x: trackList[1]?.offset,
@@ -300,6 +305,9 @@ export default {
         if (trackList[1].file) {
           this.$store.dispatch('change/showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
         }
+        Editor.getInstance().diffPitches.setBeforePitches(stagePitches)
+        this.beforeBpm = pitchList[0].bpm
+        this.beforeToneId = pitchList[0].toneId
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
         const musicXml2Json = await this.getMusicXml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
@@ -732,7 +740,7 @@ export default {
     },
     getAlteredTime() {
       // [{stb,st,et}, {stb,st,et}]
-      const alteredTime = []
+      let alteredTime = []
       const alteredPitches = Editor.getInstance().diffPitches.diff(this.$store.state.change.stagePitches)
       console.log('alteredPitches:', alteredPitches)
       for (let i = 0; i < alteredPitches.length; i += 1 ) {
@@ -750,6 +758,13 @@ export default {
           st: st,
           et: isAdjoin ? st + duration - nextItem.preTime : st + duration
         })
+      }
+      const beforeBpm = this.beforeBpm
+      const beforeToneId = this.beforeToneId
+      if (beforeBpm !== this.$store.state.const.bpm || beforeToneId !== this.$store.state.const.toneId) {
+        console.log(`beforeBpm !== this.$store.state.const.bpm:`, beforeBpm !== this.$store.state.const.bpm)
+        console.log(`beforeToneId !== this.$store.state.const.toneId:`, beforeToneId !== this.$store.state.const.toneId)
+        alteredTime = []
       }
       return alteredTime
     },
@@ -807,8 +822,10 @@ export default {
             console.log('editorSynthResult:', data)
             if (resp.data.ret_code === 0 && resp.data.data.state === 2 ) {
               onlineUrl = resp.data.data.online_url
-              // 合成成功把之前的stagePitches存起来，用于下次合成对比
+              // 合成成功把之前的stagePitches和bpm、toneId存起来，用于下次合成对比
               Editor.getInstance().diffPitches.setBeforePitches(this.$store.state.change.stagePitches)
+              this.beforeBpm = this.$store.state.const.bpm
+              this.beforeToneId = this.$store.state.const.toneId
               Message.success('音频合成成功~')
               break
             }
