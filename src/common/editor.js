@@ -1,6 +1,6 @@
 import History from './history'
 import Shortcut from './shortcuts'
-import Diff from './diff'
+import DiffPitches from './diffPitches'
 /**
  * 通过组件名称找到组件实例，目前只能找一个，如果同一个组件有多个地方使用就会找到第一个
  * @param {*} componentName
@@ -30,13 +30,13 @@ class Editor {
   store = null
   history = null
   shortcut = null
-  diff = null
+  diffPitches = null
 
   constructor() {
     console.log(`Init editor`)
     this.history = new History(this)
     this.shortcut = new Shortcut(this)
-    this.diff = new Diff(this)
+    this.diffPitches = new DiffPitches(this)
   }
 
   static getInstance(vm) {
