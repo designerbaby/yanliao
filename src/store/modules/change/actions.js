@@ -90,7 +90,6 @@ const actions = {
     for (let i = 0; i < pitchList.length; i += 1) {
       const item = stagePitches[i]
       const isExist = item.hasOwnProperty('preTime')
-      console.log(`state.pitchChanged: ${state.pitchChanged}, item.pitchChanged: ${item.pitchChanged}, !isExist: ${!isExist}`)
       if (rootState.const.pitchChanged || item.pitchChanged || !isExist) {
         Vue.set(item, 'preTime', pitchList[i].preTime)
       }
