@@ -137,7 +137,7 @@ export default {
   },
   methods: {
     show(visible) {
-      this.visible = visible === undefined ? !this.visible : visible
+      this.visible = typeof visible === 'boolean' ? visible : !this.visible
     }
   }
 }
