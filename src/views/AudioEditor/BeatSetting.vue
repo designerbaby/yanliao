@@ -190,7 +190,7 @@ export default {
   width: 316px;
   top: 78px;
   background: #323232;
-  box-shadow: -4px 4px 4px 0 rgba(0,0,0,0.30);
+  box-shadow: -8px 0 8px -8px rgb(0, 0, 0, 0.3);
   position: absolute;
   right: -316px;
   transition: right 0.2s linear;
