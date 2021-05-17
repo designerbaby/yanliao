@@ -1,6 +1,6 @@
 <template>
   <transition name="speedy">
-    <div :class="[$style.SpeedyDialog]"
+    <div :class="[$style.SpeedyDialog, isExceedHeader ? $style.isFloat : '']"
          :style="{ height: `${stageHeight + 25}px`}"
          v-show="visible">
       <div :class="$style.top">
@@ -16,7 +16,7 @@
             <span>批量选择</span>
           </div>
           <div :class="$style.word">
-            <p>S</p>
+            <p>Shift</p>
           </div>
         </li>
         <li>
@@ -119,7 +119,6 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 
 export default {
   name: 'SpeedyDialog',
@@ -129,11 +128,16 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('const', ['stageHeight'])
+    stageHeight() {
+      return this.$store.getters['const/stageHeight']
+    },
+    isExceedHeader() {
+      return this.$store.state.const.isExceedHeader
+    }
   },
   methods: {
-    show() {
-      this.visible = !this.visible
+    show(visible) {
+      this.visible = visible === undefined ? !this.visible : visible
     }
   }
 }
@@ -149,7 +153,10 @@ export default {
   position: absolute;
   right: 0;
   transition: right 0.2s linear;
-  z-index: 2000; // 编辑拍号的层级
+  z-index: 2001; // 编辑拍号的层级
+  &.isFloat {
+    position: fixed;
+  }
 }
 
 .top {
@@ -180,7 +187,7 @@ export default {
     font-size: 14px;
     color: rgba(255,255,255,0.80);
     height: 44px;
-    border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
   }
 }
 
@@ -198,6 +205,7 @@ export default {
 .word {
   display: flex;
   align-items: center;
+  font-size: 12px;
 
   p {
     padding: 4px 7px;
