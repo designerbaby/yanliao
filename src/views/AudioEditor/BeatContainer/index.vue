@@ -286,13 +286,13 @@ export default {
         mouseModalTarget.style.position = `absolute`
         mouseModalTarget.style.width = '200px'
         mouseModalTarget.style.height = '200px'
-        mouseModalTarget.style.left = `${target.dataset.left - 100}px`
-        mouseModalTarget.style.top = `${target.dataset.top - 100}px`
+        mouseModalTarget.style.left = `${event.clientX - 100}px`
+        mouseModalTarget.style.top = `${event.clientY - 100}px`
         mouseModalTarget.style.opacity = 0 // 蒙层的透明度
         mouseModalTarget.style.cursor = 'move'
         mouseModalTarget.style.background = 'red'
         mouseModalTarget.addEventListener('mouseup', this.onPitchMouseUp)
-        this.$refs.stage.appendChild(mouseModalTarget)
+        document.body.appendChild(mouseModalTarget)
       }
 
       // 都有的dom元素
@@ -337,8 +337,8 @@ export default {
       // console.log('onPitchMouseMove:', event)
       if (this.movePitchStart) {
         if (this.mouseModalTarget) {
-          this.mouseModalTarget.style.left = `${event.target.dataset.left - 100}px`
-          this.mouseModalTarget.style.top = `${event.target.dataset.top - 100}px`
+          this.mouseModalTarget.style.left = `${event.clientX - 100}px`
+          this.mouseModalTarget.style.top = `${event.clientY - 100}px`
         }
         const { target, selectedPitches, selectedElements } = this.movePitchStart
 
@@ -368,7 +368,7 @@ export default {
       if (this.movePitchStart) {
         // console.log(`onPitchMouseUp`, event)
         if (this.mouseModalTarget) {
-          this.$refs.stage.removeChild(this.mouseModalTarget)
+          document.body.removeChild(this.mouseModalTarget)
           this.mouseModalTarget = null
         }
         document.removeEventListener('mousemove', this.onPitchMouseMove)
