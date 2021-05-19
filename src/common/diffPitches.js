@@ -3,9 +3,10 @@ import deepAssign from 'object-assign-deep'
 class DiffPitches {
 
   beforePitches = null
-  beforeChangedLineMap = null
+  beforeF0Draw = null
   diffProps = ['fu', 'hanzi', 'height', 'left', 'pinyin', 'pitchChanged', 'preTime', 'select', 'top','width', 'yuan']
   breathDiffProp = ['left', 'width', 'pinyin']
+
   constructor(editor) {
     this.editor = editor
   }
@@ -76,9 +77,36 @@ class DiffPitches {
     return finalArray
   }
 
-  diffPitchLine(changedLineMap) {
-    const beforeChangedLineMap = this.beforeChangedLineMap
+  diffF0Draw(newF0Draw) {
+    const oldF0Draw = this.beforeF0Draw
+    if (!oldF0Draw || !newF0Draw) {
+      return []
+    }
+    const values = []
+    const length = newF0Draw.length
 
+    let lastIndex = -2
+    for (let i = 0; i < length; i += 1) {
+      const oldValue = oldF0Draw[i]
+      const newValue = newF0Draw[i]
+      const item = {
+        index: i,
+        st: i * 10,
+        et: i * 10,
+        stb: -1
+      }
+      if (oldValue != newValue) {
+        // 连续
+        if ((lastIndex + 1) === i) {
+          values[values.length].et = i * 10
+        } else {
+          values.push(item)
+        }
+        lastIndex = i
+      }
+    }
+
+    return values
   }
 
   unique (added, changed, deleted) {
@@ -97,16 +125,22 @@ class DiffPitches {
     return array
   }
 
-  setBeforePitches(pitches) {
-    this.beforePitches = deepAssign([], pitches)
+  setBefore({ stagePitches, f0Draw }) {
+    this.beforePitches = deepAssign([], stagePitches)
+    this.beforeF0Draw = deepAssign([], f0Draw)
   }
 
-  setBeforeChangedLineMap (changedLineMap) {
-    this.beforeChangedLineMap = deepAssign({}, changedLineMap)
-  }
+  // setBeforePitches(pitches) {
+  //   this.beforePitches = deepAssign([], pitches)
+  // }
 
-  clear() {
+  // setBeforeChangedLineMap (changedLineMap) {
+  //   this.beforeChangedLineMap = deepAssign({}, changedLineMap)
+  // }
+
+  clearBefore() {
     this.beforePitches = null
+    this.beforeF0Draw = null
   }
 
 }

@@ -63,9 +63,9 @@ export default {
       },
       playStartTime: 0, // 从第几秒开始播放
       dialogShow: false,
-      isAddAc: 1,
-      beforeBpm: 90,
-      beforeToneId: 1
+      isAddAc: 1
+      // beforeBpm: 90,
+      // beforeToneId: 1
     }
   },
   created() {
@@ -102,7 +102,7 @@ export default {
     }
     this.$root.$off('clickSpace', this.toPlay)
     Editor.getInstance().history.clear()
-    Editor.getInstance().diffPitches.clear()
+    // Editor.getInstance().diffPitches.clear()
     document.removeEventListener('mousemove', this.mousemoveListener)
     document.removeEventListener('mousewheel', this.mousewheelListener)
     clearTimeout(this.timer)
@@ -289,22 +289,23 @@ export default {
           musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
           musicName: data.music_name
         })
+        const f0Draw = data.f0_draw
         await this.$store.dispatch('change/changeState', {
           f0AI: data.f0_ai,
-          f0Draw: data.f0_draw,
+          f0Draw,
           stagePitches: stagePitches,
           volumeMap: this.convertXyMap(data.volume_xy),
           tensionMap: this.convertXyMap(data.tension_xy),
           trackList: trackList,
           stageMousePos: stageMousePos
         })
-        this.saveF0DrawChange(data.f0_ai, data.f0_draw)
+        this.saveF0DrawChange(data.f0_ai, f0Draw)
         if (trackList[1].file) {
           this.$store.dispatch('change/showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
         }
-        Editor.getInstance().diffPitches.setBeforePitches(stagePitches)
-        this.beforeBpm = pitchList[0].bpm
-        this.beforeToneId = pitchList[0].toneId
+        // Editor.getInstance().diffPitches.setBefore({ stagePitches, f0Draw })
+        // this.beforeBpm = pitchList[0].bpm
+        // this.beforeToneId = pitchList[0].toneId
       } else if (musicId) { // 从编辑页面或者修改歌词页面进来
         const musicInfo = await this.getMusicInfo(musicId)
         const musicXml2Json = await this.getMusicXml2Json(JSON.parse(sessionStorage.getItem('xml2JsonReq')))
@@ -735,36 +736,36 @@ export default {
       acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
       return acInfo
     },
-    getAlteredTime() {
-      // [{stb,st,et}, {stb,st,et}]
-      let alteredTime = []
-      const alteredPitches = Editor.getInstance().diffPitches.diff(this.$store.state.change.stagePitches)
-      console.log('alteredPitches:', alteredPitches)
-      for (let i = 0; i < alteredPitches.length; i += 1 ) {
-        const item = alteredPitches[i]
-        const nextItem = alteredPitches[i + 1]
-        let isAdjoin = false
-        if (item && nextItem && item.left + item.width === nextItem.left ) {
-          isAdjoin = true
-        }
-        const st = pxToTime(item.left, this.noteWidth, this.bpm)
-        const duration = pxToTime(item.width, this.noteWidth, this.bpm)
-        const breathSt = pxToTime(item.breath?.left, this.noteWidth, this.bpm)
-        alteredTime.push({
-          stb: item.breath && breathSt < st - item.preTime ? breathSt : st - item.preTime,
-          st: st,
-          et: isAdjoin ? st + duration - nextItem.preTime : st + duration
-        })
-      }
-      const beforeBpm = this.beforeBpm
-      const beforeToneId = this.beforeToneId
-      if (beforeBpm !== this.$store.state.const.bpm || beforeToneId !== this.$store.state.const.toneId) {
-        console.log(`beforeBpm !== this.$store.state.const.bpm:`, beforeBpm !== this.$store.state.const.bpm)
-        console.log(`beforeToneId !== this.$store.state.const.toneId:`, beforeToneId !== this.$store.state.const.toneId)
-        alteredTime = []
-      }
-      return alteredTime
-    },
+    // getAlteredTime() {
+    //   // [{stb,st,et}, {stb,st,et}]
+    //   let alteredTime = []
+    //   const alteredPitches = Editor.getInstance().diffPitches.diff(this.$store.state.change.stagePitches)
+    //   console.log('alteredPitches:', alteredPitches)
+    //   for (let i = 0; i < alteredPitches.length; i += 1 ) {
+    //     const item = alteredPitches[i]
+    //     const nextItem = alteredPitches[i + 1]
+    //     let isAdjoin = false
+    //     if (item && nextItem && item.left + item.width === nextItem.left ) {
+    //       isAdjoin = true
+    //     }
+    //     const st = pxToTime(item.left, this.noteWidth, this.bpm)
+    //     const duration = pxToTime(item.width, this.noteWidth, this.bpm)
+    //     const breathSt = pxToTime(item.breath?.left, this.noteWidth, this.bpm)
+    //     alteredTime.push({
+    //       stb: item.breath && breathSt < st - item.preTime ? breathSt : st - item.preTime,
+    //       st: st,
+    //       et: isAdjoin ? st + duration - nextItem.preTime : st + duration
+    //     })
+    //   }
+    //   const beforeBpm = this.beforeBpm
+    //   const beforeToneId = this.beforeToneId
+    //   if (beforeBpm !== this.$store.state.const.bpm || beforeToneId !== this.$store.state.const.toneId) {
+    //     console.log(`beforeBpm !== this.$store.state.const.bpm:`, beforeBpm !== this.$store.state.const.bpm)
+    //     console.log(`beforeToneId !== this.$store.state.const.toneId:`, beforeToneId !== this.$store.state.const.toneId)
+    //     alteredTime = []
+    //   }
+    //   return alteredTime
+    // },
     async toSynthesize(isAddAc, callback) {
       // isAddAc 是否合成伴奏 0 不合成 1合成
       if (this.$store.state.const.isGetF0Data) {
@@ -775,8 +776,8 @@ export default {
       const sStart = Date.now()
       const handleData = this.handleVolumeTension()
       const acInfo = this.handleAcInfo()
-      const alteredTime = this.getAlteredTime()
-      console.log('alteredTime:', alteredTime)
+      // const alteredTime = this.getAlteredTime()
+      // console.log('alteredTime:', alteredTime)
       const req = {
         pitchList: this.$store.getters['change/pitchList'],
         f0_ai: this.$store.state.change.f0AI,
@@ -790,7 +791,7 @@ export default {
         music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
         is_add_ac: isAddAc,  // 是否需要合成伴奏,0为不需要，1为需要
-        altered_time: alteredTime// 分段合成的片段
+        altered_time: []// 分段合成的片段
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -819,10 +820,13 @@ export default {
             console.log('editorSynthResult:', data)
             if (resp.data.ret_code === 0 && resp.data.data.state === 2 ) {
               onlineUrl = resp.data.data.online_url
-              // 合成成功把之前的stagePitches和bpm、toneId存起来，用于下次合成对比
-              Editor.getInstance().diffPitches.setBeforePitches(this.$store.state.change.stagePitches)
-              this.beforeBpm = this.$store.state.const.bpm
-              this.beforeToneId = this.$store.state.const.toneId
+
+              // 合成成功把之前的stagePitches和bpm、toneId、changedLineMap存起来，用于下次合成对比
+              // const { stagePitches, f0Draw } = this.$store.state.change
+              // Editor.getInstance().diffPitches.setBefore({ stagePitches, f0Draw })
+              // this.beforeBpm = this.$store.state.const.bpm
+              // this.beforeToneId = this.$store.state.const.toneId
+              // Editor.getInstance().diffPitches.setBeforeChangedLineMap(this.$store.state.change.changedLineMap)
               Message.success('音频合成成功~')
               break
             }

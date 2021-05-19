@@ -70,3 +70,10 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - mp4: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.mp4
 - wav: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.wav
 - webm: https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.webm
+- url: `https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.${extension}`
+
+
+- m4a: https://musicx-1253428821.file.myqcloud.com/files/C4.m4a
+- mp3: https://musicx-1253428821.file.myqcloud.com/files/C4.mp3
+- wav: https://musicx-1253428821.file.myqcloud.com/files/C4.wav
+- webm: https://musicx-1253428821.file.myqcloud.com/files/C4.webm
