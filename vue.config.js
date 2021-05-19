@@ -14,8 +14,13 @@ if (process.env.proxy) {
       '/cgi-bin': {
         target: 'https://test-yan.qq.com',
         changeOrigin: true,
-        reqHeaders: {
-          referer: 'https://test-yan.qq.com',
+        onProxyReq(proxyReq, req, res) {
+          proxyReq.setHeader('referer', 'https://test-yan.qq.com')
+        },
+        onProxyRes(proxyRes, req, res) {
+          if (Array.isArray(proxyRes.headers['set-cookie'])) {
+            proxyRes.headers['set-cookie'] = proxyRes.headers['set-cookie'].map(n => (n.replace(/Domain=[a-z.-]+;/, '')))
+          }
         }
       }
     }

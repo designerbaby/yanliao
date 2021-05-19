@@ -55,8 +55,7 @@
 import { Select, Option, InputNumber, Input, Button } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
-import { timeToPx } from '@/common/utils/helper'
-import * as waveSurfer from '@/common/utils/waveSurfer'
+import ChangeBpmCommand from '@/common/commands/ChangeBpmCommand'
 
 export default {
   name: 'BeatSetting',
@@ -129,29 +128,7 @@ export default {
       if (this.inputBpmValue === 0) {
         this.inputBpmValue = this.$store.state.const.bpm
       }
-      console.log('confirmBpm:', this.inputBpmValue)
-      // 为了修复，bpm改变的时候，曲线闪一下的bug,这里特殊处理。
-      const oldBpm = this.$store.state.const.bpm
-      this.$store.dispatch('const/changeState', { bpm: this.inputBpmValue, pitchChanged: true })
-      this.$store.dispatch('change/getPitchLine', {
-        beforeRequest: () => {
-          // 请求函数之前把bpm改回旧的，这样曲线就不会变动
-          this.$store.state.const.bpm = oldBpm
-        },
-        afterRequest: () => {
-          // 数据请求回来之后，把bpm改成真正修改后的值，这样f0和bpm都是新的，曲线重新绘制
-          this.$store.state.const.bpm = this.inputBpmValue
-        }
-      })
-       // 有伴奏的话，要相应修改伴奏的长度
-      const waveSurferObj = waveSurfer.getWaveSurfer()
-      if (waveSurferObj) {
-        const duration = waveSurferObj.getDuration()
-        const waveWidth = timeToPx(duration * 1000, this.$store.state.const.noteWidth / 10, this.inputBpmValue)
-        this.$store.dispatch('change/changeState', { waveWidth })
-        waveSurfer.clearWaveSurfer()
-        this.$store.dispatch('change/showWaveSurfer', { file: this.$store.state.change.trackList[1].file, type: 'url', bpm: this.inputBpmValue })
-      }
+      this.$execute(new ChangeBpmCommand(this.$editor(), this.inputBpmValue))
     },
     keyStop(e) {
       console.log(e)
@@ -190,7 +167,7 @@ export default {
   width: 316px;
   top: 78px;
   background: #323232;
-  box-shadow: -4px 4px 4px 0 rgba(0,0,0,0.30);
+  box-shadow: -8px 0 8px -8px rgb(0, 0, 0, 0.3);
   position: absolute;
   right: -316px;
   transition: right 0.2s linear;

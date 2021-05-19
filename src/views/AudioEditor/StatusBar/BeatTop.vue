@@ -68,6 +68,7 @@ export default {
   position: relative;
   display: inline-flex;
   background-color: #373736;
+  cursor: pointer;
 }
 .matter {
   height: 25px;

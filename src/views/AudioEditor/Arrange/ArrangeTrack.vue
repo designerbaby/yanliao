@@ -5,7 +5,14 @@
         <img src="@/assets/audioEditor/track-people.png" v-if="it.type === 1">
         <img src="@/assets/audioEditor/track-music.png" v-else>
         <div :class="$style.name">{{ getName(it.type) }}</div>
-        <div @click="play(index)">
+        <div :class="$style.plus" v-if="it.type !== 1"
+          @click.stop="showObbligato"
+          @mouseover.stop="showObbligato"
+          @mouseup.stop="hideObbligato">
+          <img src="@/assets/audioEditor/track-add.png">
+         <div :class="$style.list" v-if="showMenu" @click.stop="selectObbligato">选择伴奏文件</div>
+        </div>
+        <div :class="$style.volume" @click="play(index)">
           <img src="@/assets/audioEditor/track-play.png" v-if="it.is_sil === 1">
           <img src="@/assets/audioEditor/track-mute.png" v-else>
         </div>
@@ -46,7 +53,8 @@ export default {
     return {
       isChangeVolume: -1, // 要开始修改音量了
       startVolume: null,
-      endVolume: null
+      endVolume: null,
+      showMenu: false
     }
   },
   computed: {
@@ -57,7 +65,16 @@ export default {
       return this.$store.state.const.playState
     }
   },
+  mounted() {
+    document.addEventListener('click', this.documentListener)
+  },
+  destroyed() {
+    document.removeEventListener('click', this.documentListener)
+  },
   methods: {
+    documentListener(event) {
+      this.showMenu = false
+    },
     getName(type) {
       if (type === 1) {
         return '干音音轨'
@@ -130,7 +147,17 @@ export default {
       }
 
       this.$execute(new ChangeTrackStatusCommand(this.$editor(), index))
-
+    },
+    showObbligato() {
+      this.showMenu = true
+    },
+    hideObbligato () {
+      this.showMenu = false
+    },
+    selectObbligato() {
+      this.showMenu = false
+      this.$store.state.change.stageMousePos.x = 0
+      this.$emit('select')
     }
   }
 }
@@ -154,7 +181,7 @@ export default {
   font-size: 12px;
   color: rgba(255,255,255,0.80);
   margin: 12px;
-  // justify-content: space-around;
+  // justify-content: space-between;
   align-items: center;
   height: 12px;
   img {
@@ -166,8 +193,9 @@ export default {
 
 .name {
   margin-left: 4px;
-  display: flex;
-  flex: 1;
+  // display: flex;
+  // flex: 1;
+  text-align: left;
 }
 
 .progress {
@@ -198,6 +226,7 @@ export default {
   position: absolute;
   left: 0;
   top: -3px;
+  cursor: pointer;
 }
 
 .bubble {
@@ -226,6 +255,46 @@ export default {
     border-radius: 3px;
     top: 30px;
     left: 48%;
+  }
+}
+
+.plus {
+  margin: 0 5px;
+  font-size: 18px;
+  font-weight: bolder;
+  position: relative;
+  cursor: pointer;
+  img {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.volume {
+  margin-left: auto;
+  line-height: 12px;
+  cursor: pointer;
+}
+
+.list {
+  width: 96px;
+  height: 26px;
+  background: #151517;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 26px;
+  font-size: 12px;
+  color: #fff;
+  position: absolute;
+  top: 17px;
+  left: 10px;
+  cursor: pointer;
+  z-index: 10;
+  &:hover {
+    opacity: 0.8;
+  }
+  &:active {
+    opacity: 0.8;
   }
 }
 </style>
