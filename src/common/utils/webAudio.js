@@ -24,7 +24,8 @@ if ($audio.canPlayType('audio/webm; codecs=vorbis')) {
   extension = 'mp3';
 }
 // const url = `https://musicx-1253428821.file.myqcloud.com/files/harpsichord-c4.${extension}`
-const url = `https://musicx-1253428821.file.myqcloud.com/files/C4.${extension}?date=${Date.now()}`
+// const url = `https://musicx-1253428821.file.myqcloud.com/files/C4.${extension}?date=${Date.now()}`
+const url = 'https://musicx-1253428821.file.myqcloud.com/files/C5.MP3'
 
 function loadSample(url) {
   return fetch(url)

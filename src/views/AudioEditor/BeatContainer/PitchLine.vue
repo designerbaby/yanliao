@@ -31,7 +31,6 @@ import { PlayState } from "@/common/utils/const"
 import { divideArray } from '@/common/utils/helper'
 import { PitchList } from '@/common/utils/const'
 import ChangePitchLineCommand from '@/common/commands/ChangePitchLineCommand'
-// import { drawSvgPath } from '@/common/utils/draw'
 
 export default {
   name: 'PitchLine',
