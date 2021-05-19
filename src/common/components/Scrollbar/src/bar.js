@@ -8,6 +8,9 @@ export default {
     size: String,
     move: Number
   },
+  data: () => ({
+    cursorDown: false
+  }),
 
   computed: {
     bar() {
@@ -23,16 +26,14 @@ export default {
     const { size, move, bar } = this
 
     return (
-      <div
-        class={['common-scrollbar-bar', 'is-' + bar.key]}
-        onMousedown={this.clickTrackHandler}
-      >
+      <div class={['common-scrollbar-bar', 'is-' + bar.key]} onMousedown={this.clickTrackHandler}>
         <div
           ref="thumb"
           class="common-scrollbar-thumb"
           onMousedown={this.clickThumbHandler}
           style={renderThumbStyle({ size, move, bar })}
         />
+        <div class="common-scrollbar-fixed" v-show={this.cursorDown}></div>
       </div>
     )
   },
@@ -42,21 +43,15 @@ export default {
       this.startDrag(e)
       this[this.bar.axis] =
         e.currentTarget[this.bar.offset] -
-        (e[this.bar.client] -
-          e.currentTarget.getBoundingClientRect()[this.bar.direction])
+        (e[this.bar.client] - e.currentTarget.getBoundingClientRect()[this.bar.direction])
     },
 
     clickTrackHandler(e) {
-      const offset = Math.abs(
-        e.target.getBoundingClientRect()[this.bar.direction] -
-          e[this.bar.client]
-      )
+      const offset = Math.abs(e.target.getBoundingClientRect()[this.bar.direction] - e[this.bar.client])
       const thumbHalf = this.$refs.thumb[this.bar.offset] / 2
-      const thumbPositionPercentage =
-        ((offset - thumbHalf) * 100) / this.$el[this.bar.offset]
+      const thumbPositionPercentage = ((offset - thumbHalf) * 100) / this.$el[this.bar.offset]
 
-      this.wrap[this.bar.scroll] =
-        (thumbPositionPercentage * this.wrap[this.bar.scrollSize]) / 100
+      this.wrap[this.bar.scroll] = (thumbPositionPercentage * this.wrap[this.bar.scrollSize]) / 100
     },
 
     startDrag(e) {
@@ -74,19 +69,23 @@ export default {
 
       if (!prevPage) return
 
-      const offset =
-        (this.$el.getBoundingClientRect()[this.bar.direction] -
-          e[this.bar.client]) *
-        -1
-      const thumbClickPosition = this.$refs.thumb[this.bar.offset] - prevPage
-      const thumbPositionPercentage =
-        ((offset - thumbClickPosition) * 100) / this.$el[this.bar.offset]
+      console.log(e, this.$el, this.$el.getBoundingClientRect(), this.bar)
+      const rect = this.$el.getBoundingClientRect()
+      // 超出滚动条范围自动停止
+      // if (this.bar.axis === 'X' && Math.abs(e.clientY - rect.y) > 50) {
+      //   this.mouseUpDocumentHandler()
+      //   return
+      // }
 
-      this.wrap[this.bar.scroll] =
-        (thumbPositionPercentage * this.wrap[this.bar.scrollSize]) / 100
+      const offset = (rect[this.bar.direction] - e[this.bar.client]) * -1
+      const thumbClickPosition = this.$refs.thumb[this.bar.offset] - prevPage
+      const thumbPositionPercentage = ((offset - thumbClickPosition) * 100) / this.$el[this.bar.offset]
+
+      this.wrap[this.bar.scroll] = (thumbPositionPercentage * this.wrap[this.bar.scrollSize]) / 100
     },
 
     mouseUpDocumentHandler(e) {
+      console.log('e', e)
       this.cursorDown = false
       this[this.bar.axis] = 0
       off(document, 'mousemove', this.mouseMoveDocumentHandler)
