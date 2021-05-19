@@ -5,8 +5,11 @@
         <img src="@/assets/audioEditor/track-people.png" v-if="it.type === 1">
         <img src="@/assets/audioEditor/track-music.png" v-else>
         <div :class="$style.name">{{ getName(it.type) }}</div>
-        <div :class="$style.plus" v-if="it.type !== 1" @click.stop="addObbligato">
-          +
+        <div :class="$style.plus" v-if="it.type !== 1"
+          @click.stop="showObbligato"
+          @mouseover.stop="showObbligato"
+          @mouseup.stop="hideObbligato">
+          <img src="@/assets/audioEditor/track-add.png">
          <div :class="$style.list" v-if="showMenu" @click.stop="selectObbligato">选择伴奏文件</div>
         </div>
         <div :class="$style.volume" @click="play(index)">
@@ -145,8 +148,11 @@ export default {
 
       this.$execute(new ChangeTrackStatusCommand(this.$editor(), index))
     },
-    addObbligato() {
+    showObbligato() {
       this.showMenu = true
+    },
+    hideObbligato () {
+      this.showMenu = false
     },
     selectObbligato() {
       this.showMenu = false
@@ -258,6 +264,10 @@ export default {
   font-weight: bolder;
   position: relative;
   cursor: pointer;
+  img {
+    width: 12px;
+    height: 12px;
+  }
 }
 
 .volume {
@@ -276,8 +286,8 @@ export default {
   font-size: 12px;
   color: #fff;
   position: absolute;
-  top: 20px;
-  left: 0;
+  top: 17px;
+  left: 10px;
   cursor: pointer;
   z-index: 10;
   &:hover {

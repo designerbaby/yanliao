@@ -742,8 +742,7 @@ export default {
         music_id: this.$store.state.const.musicId,
         music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
-        is_add_ac: isAddAc,  // 是否需要合成伴奏,0为不需要，1为需要
-        altered_time: []// 分段合成的片段
+        is_add_ac: isAddAc  // 是否需要合成伴奏,0为不需要，1为需要
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
