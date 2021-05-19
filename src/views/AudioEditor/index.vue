@@ -23,7 +23,6 @@
 </template>
 
 <script>
-// import { mapGetters } from 'vuex'
 import { Message } from 'element-ui'
 import BeatContainer from './BeatContainer'
 import BeatHeader from './BeatHeader'
@@ -105,7 +104,6 @@ export default {
     clearTimeout(this.timer)
   },
   computed: {
-    // ...mapGetters(['stagePitches']),
     noteWidth() {
       return this.$store.state.const.noteWidth
     },
@@ -272,7 +270,6 @@ export default {
         const data = res.data.data
         const pitchList = data.pitchList
         const stagePitches = pitchList2StagePitches(pitchList, '', this)
-        this.$editor().diff.setBeforePitches(stagePitches)
         const trackList = this.acInfo2TrackList(data.ac_info, pitchList[0].bpm)
         const stageMousePos = {
           x: trackList[1]?.offset,
@@ -287,16 +284,17 @@ export default {
           musicId: musicId ? musicId : data.music_id, // 从我的作品进来有musicId就用这个，没的话，就用之前保存的
           musicName: data.music_name
         })
+        const f0Draw = data.f0_draw
         await this.$store.dispatch('change/changeState', {
           f0AI: data.f0_ai,
-          f0Draw: data.f0_draw,
+          f0Draw,
           stagePitches: stagePitches,
           volumeMap: this.convertXyMap(data.volume_xy),
           tensionMap: this.convertXyMap(data.tension_xy),
           trackList: trackList,
           stageMousePos: stageMousePos
         })
-        this.saveF0DrawChange(data.f0_ai, data.f0_draw)
+        this.saveF0DrawChange(data.f0_ai, f0Draw)
         if (trackList[1].file) {
           this.$store.dispatch('change/showWaveSurfer', { file: trackList[1]?.file, type: 'url' })
         }
@@ -310,7 +308,6 @@ export default {
         } else { // 从我自己生成的曲谱过来，给的是时间
           stagePitches = pitchList2StagePitches(musicXml2Json.pitchList, '', this)
         }
-        this.$editor().diff.setBeforePitches(stagePitches)
         // 重置F0Draw
         let f0Draw = musicXml2Json.f0_draw
         const resetF0Draw = parseInt(getParam('resetF0Draw'), 10)
@@ -350,14 +347,6 @@ export default {
       this.$store.dispatch('const/adjustStageWidth')
     },
     isNeedGenerate(type) {
-      console.log(`this.isStagePitchesChanged: ${this.isStagePitchesChanged},
-      this.$store.state.const.isPitchLineChanged: ${this.$store.state.const.isPitchLineChanged},
-      this.$store.state.const.isVolumeChanged: ${this.$store.state.const.isVolumeChanged},
-      this.$store.state.const.isTensionChanged: ${this.$store.state.const.isTensionChanged},
-      this.$store.state.const.isStagePitchElementChanged: ${this.$store.state.const.isStagePitchElementChanged},
-      this.$store.state.const.isObbligatoChanged: ${this.$store.state.const.isObbligatoChanged},
-      this.$store.state.const.isTrackChanged: ${this.$store.state.const.isTrackChanged},
-      !this.$store.state.const.onlineUrl && type !== 'upload': ${!this.$store.state.const.onlineUrl && type !== 'upload'}`)
       // 舞台音块改变
       if (this.isStagePitchesChanged) {
         return true
@@ -731,12 +720,6 @@ export default {
       acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
       return acInfo
     },
-    handleAlteredTime() {
-      // [{stb,st,et}, {stb,st,et}]
-      const alteredTime = []
-
-      return alteredTime
-    },
     async toSynthesize(isAddAc, callback) {
       // isAddAc 是否合成伴奏 0 不合成 1合成
       if (this.$store.state.const.isGetF0Data) {
@@ -759,8 +742,7 @@ export default {
         music_id: this.$store.state.const.musicId,
         music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
-        is_add_ac: isAddAc,  // 是否需要合成伴奏,0为不需要，1为需要
-        altered_time: this.handleAlteredTime(this.$store.state.change.stagePitches)// 分段合成的片段
+        is_add_ac: isAddAc  // 是否需要合成伴奏,0为不需要，1为需要
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)

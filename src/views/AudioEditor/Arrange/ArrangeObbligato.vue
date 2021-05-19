@@ -225,6 +225,7 @@ export default {
   height: 50px;
   width: 0;
   border: 0;
+  cursor: pointer;
   &.isActive {
     background: rgba(255,255,255,0.07);
     border-radius: 5px;
