@@ -98,7 +98,7 @@ export default {
       waveSurfer.clearWaveSurfer()
     }
     this.$root.$off('clickSpace', this.toPlay)
-    Editor.getInstance().history.clear()
+    Editor.getInstance().clear()
     document.removeEventListener('mousemove', this.mousemoveListener)
     document.removeEventListener('mousewheel', this.mousewheelListener)
     clearTimeout(this.timer)
@@ -720,6 +720,12 @@ export default {
       acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
       return acInfo
     },
+    getAlteredTime() {
+      // [{stb,st,et}, {stb,st,et}]
+      const { changedLineMap, f0Draw } = this.$store.state.change
+      const alteredTime = Editor.getInstance().diffPitches.diffF0Draw({ changedLineMap, f0Draw })
+      return alteredTime
+    },
     async toSynthesize(isAddAc, callback) {
       // isAddAc 是否合成伴奏 0 不合成 1合成
       if (this.$store.state.const.isGetF0Data) {
@@ -730,6 +736,7 @@ export default {
       const sStart = Date.now()
       const handleData = this.handleVolumeTension()
       const acInfo = this.handleAcInfo()
+      // const alteredTime = this.getAlteredTime()
       const req = {
         pitchList: this.$store.getters['change/pitchList'],
         f0_ai: this.$store.state.change.f0AI,
@@ -742,7 +749,8 @@ export default {
         music_id: this.$store.state.const.musicId,
         music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
-        is_add_ac: isAddAc  // 是否需要合成伴奏,0为不需要，1为需要
+        is_add_ac: isAddAc // 是否需要合成伴奏,0为不需要，1为需要
+        // altered_time: alteredTime
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -772,6 +780,9 @@ export default {
             if (resp.data.ret_code === 0 && resp.data.data.state === 2 ) {
               onlineUrl = resp.data.data.online_url
               Message.success('音频合成成功~')
+              // 合成成功把之前的changedLineMap存起来，用于下次合成对比
+              const { changedLineMap, f0Draw } = this.$store.state.change
+              Editor.getInstance().diffPitches.setBefore({ changedLineMap, f0Draw })
               break
             }
         } else {
