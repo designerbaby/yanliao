@@ -722,8 +722,8 @@ export default {
     },
     getAlteredTime() {
       // [{stb,st,et}, {stb,st,et}]
-      const { changedLineMap, f0Draw } = this.$store.state.change
-      const alteredTime = Editor.getInstance().diffPitches.diffF0Draw({ changedLineMap, f0Draw })
+      const { changedLineMap } = this.$store.state.change
+      const alteredTime = Editor.getInstance().diff.diffChangeLineMap({ changedLineMap })
       return alteredTime
     },
     async toSynthesize(isAddAc, callback) {
@@ -736,7 +736,7 @@ export default {
       const sStart = Date.now()
       const handleData = this.handleVolumeTension()
       const acInfo = this.handleAcInfo()
-      // const alteredTime = this.getAlteredTime()
+      const alteredTime = this.getAlteredTime()
       const req = {
         pitchList: this.$store.getters['change/pitchList'],
         f0_ai: this.$store.state.change.f0AI,
@@ -749,8 +749,8 @@ export default {
         music_id: this.$store.state.const.musicId,
         music_name: this.$store.state.const.musicName,
         ac_info: acInfo,
-        is_add_ac: isAddAc // 是否需要合成伴奏,0为不需要，1为需要
-        // altered_time: alteredTime
+        is_add_ac: isAddAc, // 是否需要合成伴奏,0为不需要，1为需要
+        altered_time: alteredTime
       }
       const { data } = await editorSynth(req)
       console.log('editorSynth:', data)
@@ -781,18 +781,18 @@ export default {
               onlineUrl = resp.data.data.online_url
               Message.success('音频合成成功~')
               // 合成成功把之前的changedLineMap存起来，用于下次合成对比
-              const { changedLineMap, f0Draw } = this.$store.state.change
-              Editor.getInstance().diffPitches.setBefore({ changedLineMap, f0Draw })
+              const { changedLineMap } = this.$store.state.change
+              Editor.getInstance().diff.setBefore({ changedLineMap })
               break
             }
         } else {
           Message.success(`算法努力合成音频中(${ProcessStatus[data.data.status]}%)`)
         }
-        await sleep(3000)
+        await sleep(2000)
         const sEnd = Date.now()
         const duration = sEnd - sStart
         console.log(`synthesize duration: ${duration}, synthesize start: ${sStart}, synthesize end: ${sEnd}`)
-        if (duration > 60 * 1000) {
+        if (duration > 40 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
           this.$store.dispatch('const/changeState', { isSynthetizing: false })
           this.changePlayState(PlayState.StateNone) // 合成失败，要把合成状态改回来

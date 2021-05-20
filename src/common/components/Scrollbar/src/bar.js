@@ -69,7 +69,7 @@ export default {
 
       if (!prevPage) return
 
-      console.log(e, this.$el, this.$el.getBoundingClientRect(), this.bar)
+      // console.log(e, this.$el, this.$el.getBoundingClientRect(), this.bar)
       const rect = this.$el.getBoundingClientRect()
       // 超出滚动条范围自动停止
       // if (this.bar.axis === 'X' && Math.abs(e.clientY - rect.y) > 50) {
@@ -85,7 +85,7 @@ export default {
     },
 
     mouseUpDocumentHandler(e) {
-      console.log('e', e)
+      // console.log('e', e)
       this.cursorDown = false
       this[this.bar.axis] = 0
       off(document, 'mousemove', this.mouseMoveDocumentHandler)
