@@ -23,7 +23,7 @@
           xmlns="http://www.w3.org/2000/svg"
           version="1.1"
           :class="$style.svg"
-          :style="{ 
+          :style="{
             transform: `scaleX(${scale}) translateZ(0) translate3d(0, 0, 0)`,
             minWidth: `${stageWidth}px`
           }"
@@ -269,7 +269,7 @@ export default {
   z-index: 1000;
   position: fixed;
   bottom: 0;
-  background: rgba(#323232, 0.8);
+  background: rgba(#323232, 0.6);
   border-radius: 1px;
   height: 282px;
   width: calc(100% - 50px);
