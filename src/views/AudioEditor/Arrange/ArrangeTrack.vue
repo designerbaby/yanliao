@@ -9,7 +9,7 @@
           @click.stop="showObbligato"
           @mouseover.stop="showObbligato">
           <img src="@/assets/audioEditor/track-add.png">
-         <div :class="$style.list" v-if="showMenu" @click="selectObbligato">选择伴奏文件</div>
+         <div :class="$style.list" v-if="showMenu" @click.stop="selectObbligato">选择伴奏文件</div>
         </div>
         <div :class="$style.volume" @click="play(index)">
           <img src="@/assets/audioEditor/track-play.png" v-if="it.is_sil === 1">
@@ -65,7 +65,6 @@ export default {
     }
   },
   mounted() {
-    console.log('2222')
     document.addEventListener('click', this.documentListener)
   },
   destroyed() {
