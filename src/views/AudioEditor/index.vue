@@ -480,6 +480,10 @@ export default {
         Message.error('没有音符！！')
         return
       }
+      if (this.$store.state.const.isGetF0Data) {
+        Message.error(`网络不好，请稍后重试~`)
+        return
+      }
 
       const lastStagePitches = this.stagePitches[this.stagePitches.length - 1]
       const lastStagePitchRight = lastStagePitches.left + lastStagePitches.width
@@ -728,10 +732,11 @@ export default {
     },
     async toSynthesize(isAddAc, callback) {
       // isAddAc 是否合成伴奏 0 不合成 1合成
-      if (this.$store.state.const.isGetF0Data) {
-        Message.error(`网络不好，请稍后重试~`)
-        return
-      }
+      // if (this.$store.state.const.isGetF0Data) {
+      //   this.changePlayState(PlayState.StateNone) // 合成失败，要把合成状态改回来
+      //   Message.error(`网络不好，请稍后重试~`)
+      //   return
+      // }
       this.$store.dispatch('const/changeState', { isSynthetizing: true })
       const sStart = Date.now()
       const handleData = this.handleVolumeTension()
