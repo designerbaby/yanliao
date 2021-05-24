@@ -55,7 +55,7 @@
         <div>
           <span>颤音振幅</span>
           <p>
-            <Slider v-model="swing"></Slider>
+            <Slider :show-tooltip="false" v-model="swing"></Slider>
           </p>
           <span>{{shakeOption.swing.toFixed(1)}}半音</span>
         </div>
@@ -151,11 +151,11 @@ export default {
     width: 275px;
     height: 38px;
     padding-right: 12px;
-    transition: all 0.3s cubic-bezier(0, 0.2, 0.2, 1) 0.15s;
+    transition: all 0.15s cubic-bezier(0, 0.2, 0.2, 1) 0.1s;
 
     img {
-      transform: rotate(180deg);
-      transition: transform 0.3s cubic-bezier(0, 0.2, 0.2, 1) 0.15s;
+      transform: rotate(0deg);
+      transition: transform 0.15s cubic-bezier(0, 0.2, 0.2, 1) 0.1s;
     }
   }
 }
@@ -173,6 +173,7 @@ export default {
   img {
     width: 12px;
     height: 12px;
+    transform: rotate(180deg);
     transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 }
@@ -184,7 +185,7 @@ export default {
 
   &.small {
     opacity: 0;
-    transition: opacity 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    transition: opacity 0.15s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 }
 
