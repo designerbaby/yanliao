@@ -1,4 +1,4 @@
-import { PlayState, ModeState, TypeModeState } from '@/common/utils/const'
+import { PlayState, ModeState, TypeModeState, StateLineMode } from '@/common/utils/const'
 
 const constState = () => ({
   beatForm: {   // 存储节拍
@@ -23,6 +23,7 @@ const constState = () => ({
     rectTop: 0
   },
   mode: ModeState.StatePitch,        // 模式
+  lineMode: StateLineMode.Free,      // 音高线模式
   typeMode: TypeModeState.StateNone, // 附加模式类型
   playState: PlayState.StateNone,    // 播放状态
   isSynthetizing: false, // 是否在合成音频中
@@ -41,6 +42,10 @@ const constState = () => ({
   appScrollTop: 0, // 页面垂直滚动条的位置
   showMenuList: false,   // 音块的右键菜单列表
   showStageList: false,  // 全局舞台的右键菜单列表
+  shakeOption: {
+    swing: 1,  // 颤音振幅2半音
+    cycle: 2,  // 颤音周期4小格
+  },
   copyStagePitches: [], // 复制的内容
   musicId: 0, // 从主流程过来的选中的歌曲id
   musicName: '编辑器填词', // 歌曲名称

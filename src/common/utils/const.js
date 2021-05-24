@@ -311,6 +311,11 @@ export const ModeState = {
   StateElement: 2 // 音素模式
 }
 
+export const StateLineMode = {
+  Free: 0, // 自由绘制
+  Shake: 1,  // 颤音模式
+}
+
 export const TypeModeState = {
   StateNone: -1, // 初识状态
   StateVolume: 0, // 响度模式

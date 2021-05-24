@@ -29,10 +29,23 @@
           <img src="@/assets/audioEditor/note-normal.png" v-else>
           <div :class="$style.text">音符模式</div>
         </div>
-        <div :class="[$style.check, $style.middle, mode === ModeState.StateLine ? $style.isActive : '']" @click="selectMode(ModeState.StateLine)">
-          <img src="@/assets/audioEditor/line-active.png" v-if="mode === ModeState.StateLine">
-          <img src="@/assets/audioEditor/line-normal.png" v-else>
-          <div :class="$style.text">音高线模式</div>
+        <div :class="$style.lineWrapper" @mouseover="showLineContainer(true)" @mouseout="showLineContainer(false)">
+          <div :class="[$style.check, $style.middle, mode === ModeState.StateLine ? $style.isActive : '']" @click="selectMode(ModeState.StateLine)">
+            <img src="@/assets/audioEditor/line-active.png" v-if="mode === ModeState.StateLine">
+            <img src="@/assets/audioEditor/line-normal.png" v-else>
+            <div :class="$style.text">音高线模式</div>
+          </div>
+          <div :class="$style.lineContainer" v-show="mode === ModeState.StateLine && lineOver">
+            <div :class="[$style.lineLi, lineMode === StateLineMode.Free ? $style.lineActive : '']" @click="selectLineMode(StateLineMode.Free)">
+              <img src="@/assets/shake/free.png" alt="">
+              <span>自由绘制</span>
+            </div>
+            <div :class="[$style.lineLi, lineMode === StateLineMode.Shake ? $style.lineActive : '']" @click="selectLineMode(StateLineMode.Shake)">
+              <img src="@/assets/shake/shake.png" alt="">
+              <span>颤音绘制</span>
+            </div>
+          </div>
+          
         </div>
         <div :class="[$style.check, $style.right, mode === ModeState.StateElement ? $style.isActive : '']" @click="selectMode(ModeState.StateElement)">
           <img src="@/assets/audioEditor/yinsu-active.png" v-if="mode === ModeState.StateElement">
@@ -86,8 +99,9 @@
 </template>
 
 <script>
+import { mapState, mapGetters } from 'vuex'
 import { Button, Message, Upload } from 'element-ui'
-import { PlayState, ModeState, TypeModeState, TrackMode } from "@/common/utils/const"
+import { PlayState, ModeState, TypeModeState, TrackMode, StateLineMode } from "@/common/utils/const"
 import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog.vue'
 import SpeedyDialog from './SpeedyDialog.vue'
@@ -103,31 +117,17 @@ export default {
     return {
       ModeState: ModeState,
       TypeModeState: TypeModeState,
+      StateLineMode: StateLineMode,
       clickMouseStart: false,
       file: '',
       clickType: -1,
-      dialogShow: false
+      dialogShow: false,
+      lineOver: false
     }
   },
   computed: {
-    mode() {
-      return this.$store.state.const.mode
-    },
-    typeMode() {
-      return this.$store.state.const.typeMode
-    },
-    playState() {
-      return this.$store.state.const.playState
-    },
-    isExceedHeader() {
-      return this.$store.state.const.isExceedHeader
-    },
-    showArrange() {
-      return this.$store.state.const.showArrange
-    },
-    trackMode() {
-      return this.$store.getters['change/trackMode']
-    },
+    ...mapState('const', ['mode', 'lineMode', 'typeMode', 'playState', 'isExceedHeader', 'showArrange']),
+    ...mapGetters('change', ['trackMode']),
     status() {
       let status = 'normal'
       const trackMode = this.trackMode
@@ -178,11 +178,26 @@ export default {
       }
       this.$store.dispatch('const/changeState', { mode })
     },
+    selectLineMode(lineMode) {
+      if (lineMode !== this.lineMode) {
+        this.$store.dispatch('const/changeState', { lineMode })
+      }
+    },
     selectTypeMode(typeMode) {
       if (typeMode === this.typeMode && this.typeMode !== TypeModeState.StateNone) {
         this.$store.dispatch('const/changeState', { typeMode: TypeModeState.StateNone })
       } else {
         this.$store.dispatch('const/changeState', { typeMode })
+      }
+    },
+    showLineContainer(flag) {
+      clearTimeout(this.lineOverTimer)
+      if (flag) {
+        this.lineOver = true
+      } else {
+        this.lineOverTimer = setTimeout(() => {
+          this.lineOver = false
+        }, 400)
       }
     },
     async toGenerateAudio() {
@@ -296,7 +311,7 @@ export default {
   display: flex;
   align-items: center;
   height: 78px;
-  overflow: hidden;
+  // overflow: hidden;
   font-size: 12px;
   background: #323232;
   z-index: 1050; // 头部控制板的层级
@@ -342,6 +357,63 @@ export default {
   display: flex;
   flex-direction: row;
   margin: 0 0 0 24px;
+}
+
+.lineWrapper {
+  position: relative;
+}
+
+.lineContainer {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 96px;
+  padding: 8px 0;
+  background: #242424;
+  box-shadow: 0 4px 10px 0 rgba(0,0,0,0.50);
+  border-radius: 8px;
+}
+
+.lineLi {
+  display: flex;
+  padding: 0 9px;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.80);
+  line-height: 36px;
+  cursor: pointer;
+
+  &.lineActive {
+    background: #1A1A1A;
+
+    &:hover {
+      background: #1A1A1A;
+    }
+
+    &::after {
+      content: '';
+      width: 12px;
+      height: 12px;
+      background-image: url('~@/assets/shake/active.png');
+      background-repeat: no-repeat;
+      background-position: 100% 100%;
+      background-size: 100%;
+    }
+  }
+
+  &:hover {
+    background: rgba(30,30,30,0.5);
+  }
+
+  img {
+    width: 10px;
+    height: 10px;
+    margin: 0 5px 0 0;
+  }
+
+  span {
+    margin-right: 3px;
+  }
 }
 
 .check {

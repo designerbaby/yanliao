@@ -67,7 +67,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import { PlayState, ModeState, TypeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
 import BeatPiano from './BeatPiano.vue'
@@ -104,7 +104,7 @@ export default {
     Parameters,
     PitchElement,
     Breath,
-    Bar
+    Bar,
   },
   data() {
     return {
@@ -123,28 +123,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['stageWidth']),
-    stagePitches() {
-      return this.$store.state.change.stagePitches
-    },
-    noteWidth() {
-      return this.$store.state.const.noteWidth
-    },
-    noteHeight() {
-      return this.$store.state.const.noteHeight
-    },
-    isSynthetizing() {
-      return this.$store.state.const.isSynthetizing
-    },
-    stageWidth() {
-      return this.$store.getters['const/stageWidth']
-    },
-    stageHeight() {
-      return this.$store.getters['const/stageHeight']
-    },
-    playState() {
-      return this.$store.state.const.playState
-    }
+    ...mapState('const', ['mode', 'noteWidth', 'noteHeight', 'isSynthetizing', 'playState']),
+    ...mapState('change', ['stagePitches']),
+    ...mapGetters('const', ['stageWidth', 'stageHeight']),
   },
   watch: {
     stageWidth() {
