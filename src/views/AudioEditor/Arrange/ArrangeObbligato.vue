@@ -134,7 +134,7 @@ export default {
     },
     onRightClickStage(event) {
       // 伴奏音轨鼠标右键
-      console.log('onRightClickStage:', event)
+      // console.log('onRightClickStage:', event)
       const rect = this.$refs.Obbligato.getBoundingClientRect()
       this.$store.state.change.stageMousePos = {
         x: event.clientX - rect.left,
@@ -144,7 +144,7 @@ export default {
     },
     onRightClickWave(event) {
       // 鼠标右键在伴奏上
-      console.log('onRightClickWave:', event)
+      // console.log('onRightClickWave:', event)
       this.waveMousePos = {
         x: event.layerX,
         y: event.layerY
@@ -153,7 +153,7 @@ export default {
       this.showDelete = true
     },
     onStart(event) {
-      // console.log('onWaveMouseDown:', event)
+      // console.log('onStart:', event)
       if (this.playState === PlayState.StatePlaying) {
         Message.error('正在播放中, 不能修改哦~')
         return
@@ -162,14 +162,13 @@ export default {
       this.waveStartPos = {
         clientX: event.clientX,
         oldOffset: this.trackList[1].offset,
-        newOffset: 0
+        newOffset: this.trackList[1].offset
       }
       this.$refs.WaveForm.style.opacity = 0.8
     },
     onMove(event) {
       if (this.waveStartPos) {
-        // console.log('onWaveMouseMove', event)
-
+        // console.log('onMove', event)
         const moveX = event.clientX - this.waveStartPos.clientX
         let newOffset = this.waveStartPos.oldOffset + moveX
         // 达到最左边就只能是最左边了
@@ -188,6 +187,7 @@ export default {
       }
     },
     onEnd(event) {
+      // console.log('onEnd:', event)
       if (this.waveStartPos) {
         const { oldOffset, newOffset } = this.waveStartPos
         this.waveStartPos = null
@@ -225,6 +225,7 @@ export default {
   height: 50px;
   width: 0;
   border: 0;
+  cursor: pointer;
   &.isActive {
     background: rgba(255,255,255,0.07);
     border-radius: 5px;

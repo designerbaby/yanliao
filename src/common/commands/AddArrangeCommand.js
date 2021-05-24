@@ -1,5 +1,4 @@
 import Command from './Command'
-// import { createWaveSurfer } from '@/common/utils/waveSurfer.js'
 import { timeToPx } from '@/common/utils/helper'
 import * as waveSurfers from '@/common/utils/waveSurfer'
 
@@ -33,9 +32,6 @@ class AddArrangeCommand extends Command {
     waveSurfers.clearWaveSurfer()
     this.editor.store.dispatch('change/changeState', { waveWidth: 0 })
     this.editor.store.commit('const/changeState', { isObbligatoChanged: true, showArrange: true }, { root: true })
-
-    // const vueComponent = this.editor.findVueComponentByName('ArrangeObbligato')
-    // if (vueComponent) vueComponent.waveActive = false
   }
 }
 

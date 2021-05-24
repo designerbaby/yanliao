@@ -70,6 +70,11 @@ class Editor {
 	redo () {
 		this.history.redo()
   }
+
+  clear() {
+    this.history.clear()
+    this.diff.clear()
+  }
 }
 
 export default Editor

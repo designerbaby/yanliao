@@ -4,7 +4,7 @@
       <ArrangeTitle></ArrangeTitle>
       <ArrangeBar></ArrangeBar>
       <div :class="$style.wrap">
-        <ArrangeTrack></ArrangeTrack>
+        <ArrangeTrack @select="select"></ArrangeTrack>
         <div :class="$style.right" ref="rightArea" id="arrangeRightArea">
           <ArrangeStageBg></ArrangeStageBg>
           <div
@@ -13,7 +13,7 @@
               transform: `translateX(${$store.state.const.lineLeft / 10}px)`
             }"></div>
           <ArrangeStage></ArrangeStage>
-          <ArrangeObbligato></ArrangeObbligato>
+          <ArrangeObbligato ref="ArrangeObbligato"></ArrangeObbligato>
         </div>
       </div>
     </div>
@@ -63,6 +63,9 @@ export default {
     },
     scrollTo(left) {
       this.$refs.rightArea.scrollLeft = left
+    },
+    select() {
+      this.$refs.ArrangeObbligato.selectObbligato()
     }
   }
 }

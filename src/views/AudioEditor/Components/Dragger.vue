@@ -17,7 +17,8 @@ export default {
       // 0-鼠标左盘/1-鼠标中键/2-鼠标右键
       if (event.button !== 0) return
       // console.log(`Dragger onMouseDown`, event)
-      const { left, top } = event.target.getBoundingClientRect()
+      // const { left, top } = event.target.getBoundingClientRect()
+      const [left, top] = [event.clientX, event.clientY]
       // const target = event.target.cloneNode(true)
       const target = document.createElement('div')
       target.style.zIndex = 99999

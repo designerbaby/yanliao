@@ -76,6 +76,7 @@ export default {
 .note {
   display: flex;
   position: absolute;
+  cursor: pointer;
 }
 .matter {
   width: 72px;

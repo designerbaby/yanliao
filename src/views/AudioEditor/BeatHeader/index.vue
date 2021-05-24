@@ -86,7 +86,7 @@
       </div>
     </div>
     <MidiDialog ref="MidiDialog" @midi-cancel="midiCancelEvent"></MidiDialog>
-    <SpeedyDialog ref="SpeedyDialog" @midi-cancel="midiCancelEvent"></SpeedyDialog>
+    <SpeedyDialog ref="SpeedyDialog"></SpeedyDialog>
     <CommonDialog
       :show="dialogShow"
       title="导入Midi"

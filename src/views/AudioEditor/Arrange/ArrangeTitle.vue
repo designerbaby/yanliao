@@ -37,6 +37,7 @@ export default {
 
 .inner {
   display: inline-block;
+  cursor: pointer;
 }
 
 .isRight {

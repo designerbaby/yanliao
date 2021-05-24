@@ -164,7 +164,6 @@ export default {
       // 一次独立完整的划线开始前，记录之前的状态
       this.f0DrawBefore = [...this.$store.state.change.f0Draw]
       this.changedLineMapBefore = {...this.$store.state.change.changedLineMap}
-
       const update = () => {
         if (this.mouseStart) {
           requestAnimationFrame(update)
@@ -202,7 +201,7 @@ export default {
         const pointX = event.clientX - rect.left
         const x = Math.round(pointX / this.scale)
         // console.log(`Draw pitch line, pointX:${pointX}, realX:${x}, scale:${this.scale}`)
-        const y = event.clientY- rect.top - 13
+        const y = event.clientY - rect.top - 13
         this.changeF0Value(x, y)
         if (this.lastTime) {
           this.patchValue(this.lastX, this.lastY, x, y)
