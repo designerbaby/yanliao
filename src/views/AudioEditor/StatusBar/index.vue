@@ -1,27 +1,34 @@
 <template>
   <div :class="$style.container">
-    <div :class="$style.holder" v-if="isFixed"></div>
+    <div :class="$style.holder" v-if="isExceedHeader"></div>
     <div
-      :class="[$style.main, isFixed && !showArrange ? $style.fixed : '', isFixed && showArrange ? $style.openFixed : '']">
+      :class="[$style.main, isExceedHeader && !showArrange ? $style.fixed : '', isExceedHeader && showArrange ? $style.openFixed : '']">
       <Beat></Beat>
       <BeatTop></BeatTop>
+      <!-- 颤音提示 -->
+      <Shake  v-if="mode === ModeState.StateLine && lineMode === StateLineMode.Shake"></Shake>
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
 import Beat from './Beat.vue'
 import BeatTop from './BeatTop.vue'
+import Shake from './Components/StateLine/Shake.vue'
+import { ModeState, StateLineMode } from "@/common/utils/const"
+
 export default {
   name: 'StatusBar',
-  components: { Beat, BeatTop },
-  computed: {
-    showArrange() {
-      return this.$store.state.const.showArrange
-    },
-    isFixed() {
-      return this.$store.state.const.isExceedHeader
+  data() {
+    return {
+      StateLineMode,
+      ModeState: ModeState,
     }
+  },
+  components: { Beat, BeatTop, Shake },
+  computed: {
+    ...mapState('const', ['lineMode', 'mode', 'showArrange', 'isExceedHeader'])
   }
 }
 </script>
@@ -36,6 +43,7 @@ export default {
   flex: 1;
 }
 .main {
+  position: relative;
   background-color: #373736;
   width: 100%;
   display: flex;
