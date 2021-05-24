@@ -13,10 +13,10 @@
     <StatusBar></StatusBar>
     <BeatContainer ref="BeatContainer"></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
-    <ChromeDialog
+    <!-- <ChromeDialog
       :show="dialogShow"
       :confirmButtonEvent="closeDialogShow"
-    ></ChromeDialog>
+    ></ChromeDialog> -->
   </div>
 </template>
 
@@ -33,7 +33,7 @@ import { ProcessStatus, PlayState, TrackMode, PitchList } from '@/common/utils/c
 import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, isChrome } from '@/common/utils/helper'
 import { pitchList2StagePitches } from '@/common/utils/common'
 import { PlayAudio } from '@/common/utils/player'
-import ChromeDialog from './Components/ChromeDialog'
+// import ChromeDialog from './Components/ChromeDialog'
 import * as waveSurfer from '@/common/utils/waveSurfer'
 import Editor from '@/common/editor'
 let audio = null
@@ -46,8 +46,8 @@ export default {
     BeatHeader,
     BeatSetting,
     StatusBar,
-    Arrange,
-    ChromeDialog
+    Arrange
+    // ChromeDialog
   },
   data() {
     return {
@@ -85,7 +85,7 @@ export default {
     document.addEventListener('mousemove', this.mousemoveListener)
     document.addEventListener('mousewheel', this.mousewheelListener, { passive: false })
     if (!isChrome) {
-      this.dialogShow = true
+      // this.dialogShow = true
     }
   },
   destroyed() {

@@ -31,7 +31,7 @@
 <script>
 import { Dialog, Form, FormItem, Input, Message } from 'element-ui'
 import { fetchAuthCode, login } from '@/api/login'
-import { reportEvent } from '@/common/utils/helper'
+import { reportEvent, isInElectron } from '@/common/utils/helper'
 
 export default {
   name: 'LoginDialog',
@@ -121,6 +121,7 @@ export default {
     confirmLoginButtonClick() {
       this.$refs.loginForm.validate((valid) => {
         if (valid === true) {
+          console.log('isInElectron:', isInElectron)
           location.reload()
         }
       })
