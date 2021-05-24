@@ -13,12 +13,10 @@
     <StatusBar></StatusBar>
     <BeatContainer ref="BeatContainer"></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
-    <CommonDialog
+    <ChromeDialog
       :show="dialogShow"
-      titleText="为更好的提供服务,建议您使用chrome浏览器哦～"
-      confirmButtonText="确定"
       :confirmButtonEvent="closeDialogShow"
-      :cancelButtonEvent="closeDialogShow" />
+    ></ChromeDialog>
   </div>
 </template>
 
@@ -32,10 +30,10 @@ import Arrange from './Arrange'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicXml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { ProcessStatus, PlayState, TrackMode, PitchList } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, isChrome } from '@/common/utils/helper'
 import { pitchList2StagePitches } from '@/common/utils/common'
 import { PlayAudio } from '@/common/utils/player'
-import CommonDialog from '@/common/components/CommonDialog'
+import ChromeDialog from './Components/ChromeDialog'
 import * as waveSurfer from '@/common/utils/waveSurfer'
 import Editor from '@/common/editor'
 let audio = null
@@ -49,7 +47,7 @@ export default {
     BeatSetting,
     StatusBar,
     Arrange,
-    CommonDialog
+    ChromeDialog
   },
   data() {
     return {
@@ -86,6 +84,9 @@ export default {
     await this.$nextTick()
     document.addEventListener('mousemove', this.mousemoveListener)
     document.addEventListener('mousewheel', this.mousewheelListener, { passive: false })
+    if (!isChrome) {
+      this.dialogShow = true
+    }
   },
   destroyed() {
     this.storeStagePitchesWatcher()
