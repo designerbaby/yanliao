@@ -1,6 +1,9 @@
 <template>
   <div ref="container" :class="$style.container">
     <div :class="$style.main">
+      <!-- 颤音提示 -->
+      <Shake  v-if="mode === ModeState.StateLine && lineMode === StateLineMode.Shake"></Shake>
+
       <BeatPiano></BeatPiano>
 
       <!-- 钢琴右侧 -->
@@ -67,9 +70,10 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import { PlayState, ModeState, TypeModeState } from "@/common/utils/const"
+import { mapState, mapGetters } from 'vuex'
+import { PlayState, ModeState, TypeModeState, StateLineMode } from "@/common/utils/const"
 import { Message } from "element-ui"
+import Shake from './components/StateLine/Shake.vue'
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
@@ -104,10 +108,12 @@ export default {
     Parameters,
     PitchElement,
     Breath,
-    Bar
+    Bar,
+    Shake
   },
   data() {
     return {
+      StateLineMode,
       ModeState: ModeState,
       TypeModeState: TypeModeState,
       isMouseDown: false,
@@ -123,28 +129,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['stageWidth']),
-    stagePitches() {
-      return this.$store.state.change.stagePitches
-    },
-    noteWidth() {
-      return this.$store.state.const.noteWidth
-    },
-    noteHeight() {
-      return this.$store.state.const.noteHeight
-    },
-    isSynthetizing() {
-      return this.$store.state.const.isSynthetizing
-    },
-    stageWidth() {
-      return this.$store.getters['const/stageWidth']
-    },
-    stageHeight() {
-      return this.$store.getters['const/stageHeight']
-    },
-    playState() {
-      return this.$store.state.const.playState
-    }
+    ...mapState('const', ['lineMode', 'mode', 'noteWidth', 'noteHeight', 'isSynthetizing', 'playState']),
+    ...mapState('change', ['stagePitches']),
+    ...mapGetters('const', ['stageWidth', 'stageHeight']),
   },
   watch: {
     stageWidth() {

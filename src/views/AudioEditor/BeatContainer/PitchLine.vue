@@ -26,8 +26,9 @@
 </template>
 
 <script>
+import { mapState, mapGetters } from 'vuex'
 import { Message } from 'element-ui'
-import { PlayState } from "@/common/utils/const"
+import { PlayState, StateLineMode } from "@/common/utils/const"
 import { divideArray } from '@/common/utils/helper'
 import { PitchList } from '@/common/utils/const'
 import ChangePitchLineCommand from '@/common/commands/ChangePitchLineCommand'
@@ -48,32 +49,13 @@ export default {
     }
   },
   computed: {
-    stageWidth() {
-      return this.$store.getters['const/stageWidth']
-    },
-    stageHeight() {
-      return this.$store.getters['const/stageHeight']
-    },
-    noteHeight() {
-      return this.$store.state.const.noteHeight
-    },
-    pitchWidth() {
-      return this.$store.getters['const/pitchWidth']
-    },
-    playState() {
-      return this.$store.state.const.playState
-    },
+    ...mapState('const', ['lineMode', 'noteWidth', 'noteHeight', 'playState', 'shakeOption']),
+    ...mapGetters('const', ['stageWidth', 'stageHeight', 'pitchWidth', 'scale']),
     svgData() {
       return this.handleData(this.$store.state.change.f0AI)
     },
-    // svgDataDraw() {
-    //   return this.handleData(this.$store.state.change.f0Draw)
-    // },
     divideDraw() {
       return this.handleDivideDraw(this.$store.state.change.f0Draw)
-    },
-    scale() {
-      return this.$store.getters['const/scale']
     }
   },
   mounted() {
@@ -88,7 +70,7 @@ export default {
       for (let i = 0; i < data.length; i += 1) {
         const item = data[i]
         const x = Math.round(pw * i)
-        const y = ((fp - item / 100) * nh + 12.5).toFixed(2)
+        const y = Number(((fp - item / 100) * nh + 12.5).toFixed(2))
         result.push({
           x,
           y
@@ -252,9 +234,14 @@ export default {
       if (data) {
         const item = data[index]
         if (item) {
-          const value = (PitchList[0].pitch - y / this.noteHeight) * 100
-        // const pos = Math.round(index * this.pitchWidth)
-        // this.$store.dispatch('changeF0', { index, value, x: pos })
+
+          let value = (PitchList[0].pitch - y / this.noteHeight) * 100
+          if (this.lineMode === StateLineMode.Shake) {
+            const A = this.shakeOption.swing
+            const T = this.shakeOption.cycle
+            const x0 = Math.round(this.pitchWidth * index)
+            value = Number((value + (A * 100) * Math.sin(x0 * 2 * Math.PI / T / this.noteWidth)).toFixed(2))
+          }  
 
           this.cache.set(x, value)
           this.oneDrawCache.set(x, value)
