@@ -12,15 +12,15 @@
         :with-credentials="true"
         action="/">
         <div id="uploadQuPuWrap">
-          <div :class="$style.common" @click="uploadQuPu">
+          <div :class="[$style.common, $style.left]" @click="uploadQuPu">
             <img src="@/assets/audioEditor/import.png"/>
             <div :class="$style.text">导入曲谱</div>
           </div>
         </div>
       </Upload>
       <div :class="$style.common" @click="clickArrange">
-        <img src="@/assets/audioEditor/track-arrange.png" v-if="$store.state.const.showArrange">
-        <img src="@/assets/audioEditor/track-normal.png" v-else>
+        <img src="@/assets/track/track-arrange.png" v-if="$store.state.const.showArrange">
+        <img src="@/assets/track/track-normal.png" v-else>
         <div :class="$style.text">编曲</div>
       </div>
       <div :class="$style.linefu">
@@ -352,17 +352,20 @@ export default {
   align-items: center;
   flex-direction: column;
   position: relative;
-  margin: 0 0 0 40px;
+  margin: 0 0 0 44px;
   // border: 1px solid red;
 }
 
+.left {
+  margin: 0 0 0 24px;
+}
 .commonRight {
   margin: 0 0 0 5px;
 }
 
 .set {
   position: absolute;
-  right: 30px;
+  right: 24px;
   display: flex;
   align-items: center;
 }
@@ -370,7 +373,7 @@ export default {
 .linefu {
   display: flex;
   flex-direction: row;
-  margin: 0 0 0 24px;
+  margin: 0 0 0 44px;
 }
 
 .lineWrapper {

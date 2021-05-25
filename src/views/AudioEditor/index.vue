@@ -676,7 +676,7 @@ export default {
       console.log('lineStartX:', lineStartX)
       const startTime = pxToTime(lineStartX, this.noteWidth, this.bpm) / 1000
       return {
-        startTime,
+        startTime
       }
     },
     handleVolumeTension() {
@@ -721,7 +721,7 @@ export default {
     handleAcInfo() {
       let acInfo = JSON.parse(JSON.stringify(this.trackList))
       acInfo[0].file = this.$store.state.const.onlineUrl
-      acInfo[0].offset = this.$store.getters['change/pitchList'][0].startTime
+      acInfo[0].offset = this.$store.getters['change/pitchList'][0]?.startTime || 0
       acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
       return acInfo
     },
@@ -732,12 +732,6 @@ export default {
       return alteredTime
     },
     async toSynthesize(isAddAc, callback) {
-      // isAddAc 是否合成伴奏 0 不合成 1合成
-      // if (this.$store.state.const.isGetF0Data) {
-      //   this.changePlayState(PlayState.StateNone) // 合成失败，要把合成状态改回来
-      //   Message.error(`网络不好，请稍后重试~`)
-      //   return
-      // }
       this.$store.dispatch('const/changeState', { isSynthetizing: true })
       const sStart = Date.now()
       const handleData = this.handleVolumeTension()
