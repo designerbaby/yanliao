@@ -120,17 +120,17 @@ export default {
   }
 }
 .button {
-  width: 116px;
+  // width: 116px;
   height: 44px;
   line-height: 44px;
   margin: 0 auto;
   &:hover {
     background: #1C1C1E;
-    border-radius: 8px;
+    // border-radius: 8px;
   }
   &:active {
     background: #0E0E0F;
-    border-radius: 8px;
+    // border-radius: 8px;
   }
 }
 
@@ -139,7 +139,7 @@ export default {
 }
 
 .line {
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid #1c1c1e;
 }
 
 .bottom {

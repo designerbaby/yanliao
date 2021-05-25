@@ -10,15 +10,6 @@ export const isTestEnv = !isProdEnv
 // export const isTestEnv = (/dev|test|localhost/i).test(location.hostname)
 
 // 获取url上各个信息
-export const getUrlParameters = _ => {
-  const match = window.location.search.match(/([^?=&]+)(=([^&]*))/g)
-  if (match) {
-    return match.reduce((a, v) => (a[v.slice(0, v.indexOf('='))] = process.browser && decodeURIComponent(v.slice(v.indexOf('=') + 1)), a), {}) // eslint-disable-line
-  }
-  return {}
-}
-
-// 获取url上各个信息
 export const getParam = (key) => {
   const result = new RegExp(`${key}=([^&]*)`, 'i').exec(window.location.search)
   return (result && decodeURI(result[1])) || ''
@@ -148,17 +139,6 @@ export const checkPitchDuplicated = (stagePitches) => {
   return pitches
 }
 
-export const findLastIndex = (array, cb) => {
-  for (let i = array.length-1; i >=0; i--) {
-    const element = array[i];
-    if (cb.call(null, element, i, array)) {
-      return i
-    }
-  }
-  return -1
-}
-
-
 export const generateUUID = () => {
   var d = new Date().getTime();
   if (window.performance && typeof window.performance.now === "function") {
@@ -192,7 +172,20 @@ export const getAuthorization = (method, key, data) => {
     })
   }
 }
-const UA = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCase()
-const isEdge = UA && UA.indexOf('edge/') > 0;
-export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
 
+const UA = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCase()
+
+const isEdge = UA && UA.indexOf('edge/') > 0 || UA.indexOf('edg/') > 0;
+console.log('isEdge:', isEdge)
+// 是chrome浏览器
+export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
+console.log('isChrome:', isChrome)
+// 是mac
+export const isMac = /macintosh|mac os x/i.test(UA)
+console.log('isMac:', isMac)
+// 是windows
+export const isWindows = UA.indexOf("win32") >= 0 || UA.indexOf("wow32") >= 0 || UA.indexOf("win64") >= 0 || UA.indexOf("wow64") >= 0
+console.log('isWindows:', isWindows)
+// 运行在electron中
+export const isInElectron = /electron/i.test(UA)
+console.log('isInElectron:', isInElectron)

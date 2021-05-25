@@ -2,18 +2,19 @@
   <div :class="$style.track">
     <div :class="$style.menu" v-for="(it, index) in trackList" :key="index">
       <div :class="$style.top">
-        <img src="@/assets/audioEditor/track-people.png" v-if="it.type === 1">
-        <img src="@/assets/audioEditor/track-music.png" v-else>
+        <img src="@/assets/track/track-people.png" v-if="it.type === 1">
+        <img src="@/assets/track/track-music.png" v-else>
         <div :class="$style.name">{{ getName(it.type) }}</div>
         <div :class="$style.plus" v-if="it.type !== 1"
-          @click.stop="showObbligato"
-          @mouseover.stop="showObbligato">
-          <img src="@/assets/audioEditor/track-add.png">
-         <div :class="$style.list" v-if="showMenu" @click.stop="selectObbligato">选择伴奏文件</div>
+          @click.stop="selectObbligato"
+          @mouseover.stop="showObbligato(true)"
+          @mouseout.stop="showObbligato(false)">
+          <img src="@/assets/track/track-add.png">
+         <div :class="$style.list" v-if="showMenu">选择伴奏文件</div>
         </div>
         <div :class="$style.volume" @click="play(index)">
-          <img src="@/assets/audioEditor/track-play.png" v-if="it.is_sil === 1">
-          <img src="@/assets/audioEditor/track-mute.png" v-else>
+          <img src="@/assets/track/track-play.png" v-if="it.is_sil === 1">
+          <img src="@/assets/track/track-mute.png" v-else>
         </div>
       </div>
       <div :class="$style.progress">
@@ -147,8 +148,8 @@ export default {
 
       this.$execute(new ChangeTrackStatusCommand(this.$editor(), index))
     },
-    showObbligato() {
-      this.showMenu = true
+    showObbligato(flag) {
+      this.showMenu = flag
     },
     selectObbligato() {
       this.showMenu = false
@@ -240,17 +241,17 @@ export default {
   transform: translateX(-50%);
   font-family: PingFangSC-Regular;
   font-weight: bolder;
-  &:after {
-    content: '';
+  &::after {
     position: absolute;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 6px 5px 0 5px;
-    border-color: #181818 transparent transparent transparent;
-    border-radius: 3px;
-    top: 30px;
-    left: 48%;
+    content: '';
+    top: 29px;
+    left: 45%;
+    width: 10px;
+    height: 6px;
+    background-image: url('~@/assets/track/track-triangle.png');
+    background-repeat: no-repeat;
+    background-position: 100% 100%;
+    background-size: 100%;
   }
 }
 
@@ -275,7 +276,8 @@ export default {
 .list {
   width: 96px;
   height: 26px;
-  background: #151517;
+  // background: #151517;
+  background: #4C4C4C;
   border-radius: 4px;
   text-align: center;
   line-height: 26px;
