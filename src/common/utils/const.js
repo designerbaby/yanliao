@@ -343,3 +343,5 @@ export const TrackingType = {
   TrackingTypeGan: 1, // 干音轨
   TrackingTypeBan: 2 // 伴奏音轨
 }
+
+export const defaultAvatar = 'https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/image/profile_default.png'

@@ -77,3 +77,8 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - mp3: https://musicx-1253428821.file.myqcloud.com/files/C4.mp3
 - wav: https://musicx-1253428821.file.myqcloud.com/files/C4.wav
 - webm: https://musicx-1253428821.file.myqcloud.com/files/C4.webm
+
+
+## TODO
+- 判断是否在electorn中
+- 测试判断windows还是mac

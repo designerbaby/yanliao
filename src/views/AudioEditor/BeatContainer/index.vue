@@ -547,14 +547,6 @@ export default {
       pitch.left = amendLeft(left, this.noteWidth)
       pitch.top = top
       pitch.width = amendWidth(width, this.noteWidth)
-      // if (direction === 'left') {
-      //   // 向左的话,他是要增的，所以要向上取整
-      //   // pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
-      //   pitch.width = amendWidth(width, this.noteWidth)
-      // } else {
-      //   // pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
-      //   pitch.width = amendWidth(width, this.noteWidth)
-      // }
       console.log(`onArrowMoveEnd: left: ${left}, pitch.left: ${pitch.left}, width: ${width}, pitch.width: ${pitch.width}, direction: ${direction}`)
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
