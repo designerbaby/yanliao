@@ -300,7 +300,7 @@ export default {
         location.href = 'https://musicx-1253428821.file.myqcloud.com/files/yanliao-darwin-x64-1.0.0.zip'
       }
       if (isWindows) {
-        location.href = ''
+        location.href = 'https://musicx-1253428821.file.myqcloud.com/files/yanliao-app-1.0.0-win.zip'
       }
     }
   }
