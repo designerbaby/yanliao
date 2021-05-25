@@ -12,15 +12,15 @@
         :with-credentials="true"
         action="/">
         <div id="uploadQuPuWrap">
-          <div :class="$style.common" @click="uploadQuPu">
+          <div :class="[$style.common, $style.left]" @click="uploadQuPu">
             <img src="@/assets/audioEditor/import.png"/>
             <div :class="$style.text">导入曲谱</div>
           </div>
         </div>
       </Upload>
       <div :class="$style.common" @click="clickArrange">
-        <img src="@/assets/audioEditor/track-arrange.png" v-if="$store.state.const.showArrange">
-        <img src="@/assets/audioEditor/track-normal.png" v-else>
+        <img src="@/assets/track/track-arrange.png" v-if="$store.state.const.showArrange">
+        <img src="@/assets/track/track-normal.png" v-else>
         <div :class="$style.text">编曲</div>
       </div>
       <div :class="$style.linefu">
@@ -45,7 +45,7 @@
               <span>颤音绘制</span>
             </div>
           </div>
-          
+
         </div>
         <div :class="[$style.check, $style.right, mode === ModeState.StateElement ? $style.isActive : '']" @click="selectMode(ModeState.StateElement)">
           <img src="@/assets/audioEditor/yinsu-active.png" v-if="mode === ModeState.StateElement">
@@ -75,6 +75,10 @@
         <div :class="$style.text">生成音频</div>
       </div>
       <div :class="[$style.set]">
+        <div :class="[$style.common]" @click="downClient" v-if="!isInElectron">
+          <img src="@/assets/audioEditor/chrome.png" :class="$style.icon"/>
+          <div :class="$style.text">下载客户端</div>
+        </div>
         <div :class="[$style.common]" @click="showDialog('SpeedyDialog')">
           <img src="@/assets/audioEditor/keyboard.png" :class="$style.icon"/>
           <div :class="$style.text">快捷键</div>
@@ -102,7 +106,7 @@
 import { mapState, mapGetters } from 'vuex'
 import { Button, Message, Upload } from 'element-ui'
 import { PlayState, ModeState, TypeModeState, TrackMode, StateLineMode } from "@/common/utils/const"
-import { isDuplicated, reportEvent, getParam } from '@/common/utils/helper'
+import { isDuplicated, reportEvent, getParam, isMac, isWindows, isInElectron } from '@/common/utils/helper'
 import MidiDialog from './MidiDialog.vue'
 import SpeedyDialog from './SpeedyDialog.vue'
 import CommonDialog from '@/views/AudioEditor/Components/CommonDialog.vue'
@@ -118,6 +122,7 @@ export default {
       ModeState: ModeState,
       TypeModeState: TypeModeState,
       StateLineMode: StateLineMode,
+      isInElectron: isInElectron,
       clickMouseStart: false,
       file: '',
       clickType: -1,
@@ -288,7 +293,16 @@ export default {
     },
     showDialog(name, data) {
 			this.$refs[name].show(data);
-		},
+    },
+    downClient() {
+      console.log('downClient')
+      if (isMac) {
+        location.href = 'https://musicx-1253428821.file.myqcloud.com/files/yanliao-darwin-x64-1.0.0.zip'
+      }
+      if (isWindows) {
+        location.href = ''
+      }
+    }
   }
 }
 </script>
@@ -338,17 +352,20 @@ export default {
   align-items: center;
   flex-direction: column;
   position: relative;
-  margin: 0 0 0 40px;
+  margin: 0 0 0 44px;
   // border: 1px solid red;
 }
 
+.left {
+  margin: 0 0 0 24px;
+}
 .commonRight {
   margin: 0 0 0 5px;
 }
 
 .set {
   position: absolute;
-  right: 30px;
+  right: 24px;
   display: flex;
   align-items: center;
 }
@@ -356,7 +373,7 @@ export default {
 .linefu {
   display: flex;
   flex-direction: row;
-  margin: 0 0 0 24px;
+  margin: 0 0 0 44px;
 }
 
 .lineWrapper {

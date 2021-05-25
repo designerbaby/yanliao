@@ -135,7 +135,7 @@ export default {
   position: absolute;
   z-index: 1000;
   left: 80px;
-  top: 20px;
+  top: 45px;
   width: 352px;
   height: 392px;
   background: #323232;

@@ -1,9 +1,6 @@
 <template>
   <div ref="container" :class="$style.container">
     <div :class="$style.main">
-      <!-- 颤音提示 -->
-      <Shake  v-if="mode === ModeState.StateLine && lineMode === StateLineMode.Shake"></Shake>
-
       <BeatPiano></BeatPiano>
 
       <!-- 钢琴右侧 -->
@@ -71,9 +68,8 @@
 
 <script>
 import { mapState, mapGetters } from 'vuex'
-import { PlayState, ModeState, TypeModeState, StateLineMode } from "@/common/utils/const"
+import { PlayState, ModeState, TypeModeState } from "@/common/utils/const"
 import { Message } from "element-ui"
-import Shake from './components/StateLine/Shake.vue'
 import BeatPiano from './BeatPiano.vue'
 import BeatStageBg from './BeatStageBg.vue'
 import BeatLine from './BeatLine.vue' // 播放线
@@ -109,11 +105,9 @@ export default {
     PitchElement,
     Breath,
     Bar,
-    Shake
   },
   data() {
     return {
-      StateLineMode,
       ModeState: ModeState,
       TypeModeState: TypeModeState,
       isMouseDown: false,
@@ -129,7 +123,7 @@ export default {
     }
   },
   computed: {
-    ...mapState('const', ['lineMode', 'mode', 'noteWidth', 'noteHeight', 'isSynthetizing', 'playState']),
+    ...mapState('const', ['mode', 'noteWidth', 'noteHeight', 'isSynthetizing', 'playState']),
     ...mapState('change', ['stagePitches']),
     ...mapGetters('const', ['stageWidth', 'stageHeight']),
   },
@@ -553,14 +547,6 @@ export default {
       pitch.left = amendLeft(left, this.noteWidth)
       pitch.top = top
       pitch.width = amendWidth(width, this.noteWidth)
-      // if (direction === 'left') {
-      //   // 向左的话,他是要增的，所以要向上取整
-      //   // pitch.width = Math.ceil(width / this.noteWidth) * this.noteWidth
-      //   pitch.width = amendWidth(width, this.noteWidth)
-      // } else {
-      //   // pitch.width = Math.floor(width / this.noteWidth) * this.noteWidth
-      //   pitch.width = amendWidth(width, this.noteWidth)
-      // }
       console.log(`onArrowMoveEnd: left: ${left}, pitch.left: ${pitch.left}, width: ${width}, pitch.width: ${pitch.width}, direction: ${direction}`)
       target.style.transform = `translate(${pitch.left}px, ${pitch.top}px)`
       target.style.width = `${pitch.width}px`
