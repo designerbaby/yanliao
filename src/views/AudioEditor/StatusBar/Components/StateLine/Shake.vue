@@ -2,8 +2,8 @@
   <div :class="[$style.shake, visible ? '' : $style.small]">
     <div :class="$style.header">
       <div>
-        <span>颤音周期： {{shakeOption.cycle.toFixed(1)}}小格</span>
-        <span>颤音振幅： {{shakeOption.swing.toFixed(1)}}半音</span>
+        <span>颤音周期&nbsp;:&nbsp;{{shakeOption.cycle.toFixed(1)}}小格</span>
+        <span>颤音振幅&nbsp;:&nbsp;{{shakeOption.swing.toFixed(1)}}半音</span>
       </div>
       <img :class="$style.header.circle"
            src="@/assets/shake/circle.png"
@@ -171,6 +171,7 @@ export default {
   }
 
   img {
+    cursor: pointer;
     width: 12px;
     height: 12px;
     transform: rotate(180deg);

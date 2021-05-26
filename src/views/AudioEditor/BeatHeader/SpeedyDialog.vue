@@ -119,25 +119,25 @@
 </template>
 
 <script>
+import { mapState, mapGetters } from 'vuex'
+import { SideState } from '@/common/utils/const'
 
 export default {
   name: 'SpeedyDialog',
   data() {
     return {
-      visible: false
     }
   },
   computed: {
-    stageHeight() {
-      return this.$store.getters['const/stageHeight']
-    },
-    isExceedHeader() {
-      return this.$store.state.const.isExceedHeader
+    ...mapState('const', ['isExceedHeader', 'sideMode']),
+    ...mapGetters('const', ['stageHeight']),
+    visible() {
+      return this.sideMode === SideState.Speedy
     }
   },
   methods: {
-    show(visible) {
-      this.visible = typeof visible === 'boolean' ? visible : !this.visible
+    show() {
+      this.$store.dispatch('const/changeState', { sideMode: this.visible ? SideState.None : SideState.Speedy })
     }
   }
 }

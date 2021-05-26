@@ -241,7 +241,6 @@ export default {
       })
     },
     toSet() {
-      this.showDialog('SpeedyDialog', false)
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     },
@@ -295,7 +294,6 @@ export default {
 			this.$refs[name].show(data);
     },
     downClient() {
-      console.log('downClient')
       if (isMac) {
         location.href = 'https://musicx-1253428821.file.myqcloud.com/files/yanliao-darwin-x64-1.0.0.zip'
       }
@@ -328,7 +326,7 @@ export default {
   // overflow: hidden;
   font-size: 12px;
   background: #323232;
-  z-index: 1050; // 头部控制板的层级
+  z-index: 2001; // 头部控制板的层级
   img {
     width: 24px;
     height: 24px;

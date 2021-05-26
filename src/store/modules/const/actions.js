@@ -37,6 +37,7 @@ const actions = {
       maxPitchRight = Math.max(maxPitchRight, right)
     })
     const banEndX = rootState.change.trackList[1].offset * 10 + rootState.change.waveWidth * 10 // 伴奏的最尾端
+    // console.log(`maxPitchRight: ${maxPitchRight}, banEndX: ${banEndX}, getters.stageWidth: ${getters.stageWidth}`)
     while (maxPitchRight > getters.stageWidth) {
       dispatch('updateMatter', 15)
     }

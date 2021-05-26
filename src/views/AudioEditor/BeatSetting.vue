@@ -52,16 +52,17 @@
   </div>
 </template>
 <script>
+import { mapState, mapGetters } from 'vuex'
 import { Select, Option, InputNumber, Input, Button } from "element-ui"
 import { songOtherDetail } from '@/api/api'
 import { PlayAudio } from '@/common/utils/player'
 import ChangeBpmCommand from '@/common/commands/ChangeBpmCommand'
+import { SideState } from '@/common/utils/const'
 
 export default {
   name: 'BeatSetting',
   data() {
     return {
-      showDrawer: false,
       audio: null,
       toneList: [],
       name: '',
@@ -76,11 +77,10 @@ export default {
     Button
   },
   computed: {
-    stageHeight() {
-      return this.$store.getters['const/stageHeight']
-    },
-    isExceedHeader() {
-      return this.$store.state.const.isExceedHeader
+    ...mapState('const', ['isExceedHeader', 'sideMode']),
+    ...mapGetters('const', ['stageHeight']),
+    showDrawer() {
+      return this.sideMode === SideState.More
     }
   },
   directives: {
@@ -100,13 +100,15 @@ export default {
   methods: {
     handleDrawer() {
       if (this.showDrawer) {
-        this.showDrawer = false
+        // this.showDrawer = false
+        this.$store.dispatch('const/changeState', { sideMode: SideState.None })
       } else {
-        this.showDrawer = true
+        // this.showDrawer = true
+        this.$store.dispatch('const/changeState', { sideMode: SideState.More })
       }
     },
     closeDrawer() {
-      this.showDrawer = false
+      this.$store.dispatch('const/changeState', { sideMode: SideState.None })
     },
     async getSongOtherDetail() {
       const { data } = await songOtherDetail()
