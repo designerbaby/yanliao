@@ -1,7 +1,7 @@
 <template>
   <div :class="$style.title">
     <div :class="$style.inner" @click="clickArrange">
-      <img src="@/assets/audioEditor/track-arrow.png" :class="[type === 'right' ? $style.isRight : '']"/>
+      <img src="@/assets/track/track-arrow.png" :class="[type === 'right' ? $style.isRight : '']"/>
       编曲
     </div>
   </div>

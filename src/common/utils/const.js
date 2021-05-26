@@ -350,3 +350,4 @@ export const SideState = {
   Speedy: 1, // 快捷键弹框
   More: 2  // 更多信息
 }
+export const defaultAvatar = 'https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/image/profile_default.png'

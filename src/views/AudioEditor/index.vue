@@ -13,12 +13,10 @@
     <StatusBar></StatusBar>
     <BeatContainer ref="BeatContainer"></BeatContainer>
     <BeatSetting ref="BeatSetting"></BeatSetting>
-    <CommonDialog
+    <ChromeDialog
       :show="dialogShow"
-      titleText="为更好的提供服务,建议您使用chrome浏览器哦～"
-      confirmButtonText="确定"
       :confirmButtonEvent="closeDialogShow"
-      :cancelButtonEvent="closeDialogShow" />
+    ></ChromeDialog>
   </div>
 </template>
 
@@ -32,10 +30,10 @@ import Arrange from './Arrange'
 import { editorSynth, editorSynthStatus, editorSynthResult, editorDetail, musicXml2Json } from '@/api/audio'
 import { songDetail } from '@/api/api'
 import { ProcessStatus, PlayState, TrackMode, PitchList } from '@/common/utils/const'
-import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent } from '@/common/utils/helper'
+import { sleep, pxToTime, getParam, timeToPx, isDuplicated, reportEvent, isChrome } from '@/common/utils/helper'
 import { pitchList2StagePitches } from '@/common/utils/common'
 import { PlayAudio } from '@/common/utils/player'
-import CommonDialog from '@/common/components/CommonDialog'
+import ChromeDialog from './Components/ChromeDialog'
 import * as waveSurfer from '@/common/utils/waveSurfer'
 import Editor from '@/common/editor'
 let audio = null
@@ -49,7 +47,7 @@ export default {
     BeatSetting,
     StatusBar,
     Arrange,
-    CommonDialog
+    ChromeDialog
   },
   data() {
     return {
@@ -86,6 +84,10 @@ export default {
     await this.$nextTick()
     document.addEventListener('mousemove', this.mousemoveListener)
     document.addEventListener('mousewheel', this.mousewheelListener, { passive: false })
+    if (!isChrome && !localStorage.getItem('hasShowDialog')) {
+      this.dialogShow = true
+      localStorage.setItem('hasShowDialog', true)
+    }
   },
   destroyed() {
     this.storeStagePitchesWatcher()
@@ -675,7 +677,7 @@ export default {
       console.log('lineStartX:', lineStartX)
       const startTime = pxToTime(lineStartX, this.noteWidth, this.bpm) / 1000
       return {
-        startTime,
+        startTime
       }
     },
     handleVolumeTension() {
@@ -720,7 +722,7 @@ export default {
     handleAcInfo() {
       let acInfo = JSON.parse(JSON.stringify(this.trackList))
       acInfo[0].file = this.$store.state.const.onlineUrl
-      acInfo[0].offset = this.$store.getters['change/pitchList'][0].startTime
+      acInfo[0].offset = this.$store.getters['change/pitchList'][0]?.startTime || 0
       acInfo[1].offset = pxToTime(acInfo[1].offset, this.noteWidth / 10, this.bpm)
       return acInfo
     },
@@ -731,12 +733,6 @@ export default {
       return alteredTime
     },
     async toSynthesize(isAddAc, callback) {
-      // isAddAc 是否合成伴奏 0 不合成 1合成
-      // if (this.$store.state.const.isGetF0Data) {
-      //   this.changePlayState(PlayState.StateNone) // 合成失败，要把合成状态改回来
-      //   Message.error(`网络不好，请稍后重试~`)
-      //   return
-      // }
       this.$store.dispatch('const/changeState', { isSynthetizing: true })
       const sStart = Date.now()
       const handleData = this.handleVolumeTension()
@@ -772,7 +768,7 @@ export default {
 
       let onlineUrl = ''
 
-      for (let i = 0; i < 20 ;i ++) {
+      for (let i = 0; i < 30 ;i ++) {
         const { data } = await editorSynthStatus(paramId, taskId)
         if (data.ret_code !== 0) {
           Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
@@ -797,7 +793,7 @@ export default {
         const sEnd = Date.now()
         const duration = sEnd - sStart
         console.log(`synthesize duration: ${duration}, synthesize start: ${sStart}, synthesize end: ${sEnd}`)
-        if (duration > 40 * 1000) {
+        if (duration > 60 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
           this.$store.dispatch('const/changeState', { isSynthetizing: false })
           this.changePlayState(PlayState.StateNone) // 合成失败，要把合成状态改回来
