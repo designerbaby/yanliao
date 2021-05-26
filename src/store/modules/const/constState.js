@@ -1,4 +1,4 @@
-import { PlayState, ModeState, TypeModeState, StateLineMode } from '@/common/utils/const'
+import { PlayState, ModeState, TypeModeState, StateLineMode, SideState } from '@/common/utils/const'
 
 const constState = () => ({
   beatForm: {   // 存储节拍
@@ -25,6 +25,7 @@ const constState = () => ({
   mode: ModeState.StatePitch,        // 模式
   lineMode: StateLineMode.Free,      // 音高线模式
   typeMode: TypeModeState.StateNone, // 附加模式类型
+  sideMode: SideState.None, // 附加模式类型
   playState: PlayState.StateNone,    // 播放状态
   isSynthetizing: false, // 是否在合成音频中
   isGetF0Data: false,    // 是否在获取f0中

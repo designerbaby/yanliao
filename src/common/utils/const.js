@@ -344,4 +344,10 @@ export const TrackingType = {
   TrackingTypeBan: 2 // 伴奏音轨
 }
 
+// 侧边弹框状态
+export const SideState = {
+  None: 0, // 隐藏弹框
+  Speedy: 1, // 快捷键弹框
+  More: 2  // 更多信息
+}
 export const defaultAvatar = 'https://musicx-1253428821.cos.ap-guangzhou.myqcloud.com/image/profile_default.png'
