@@ -768,7 +768,7 @@ export default {
 
       let onlineUrl = ''
 
-      for (let i = 0; i < 20 ;i ++) {
+      for (let i = 0; i < 30 ;i ++) {
         const { data } = await editorSynthStatus(paramId, taskId)
         if (data.ret_code !== 0) {
           Message.error(`查询合成状态失败, 错误信息: ${data.err_msg}`)
@@ -793,7 +793,7 @@ export default {
         const sEnd = Date.now()
         const duration = sEnd - sStart
         console.log(`synthesize duration: ${duration}, synthesize start: ${sStart}, synthesize end: ${sEnd}`)
-        if (duration > 40 * 1000) {
+        if (duration > 60 * 1000) {
           Message.error('音频合成失败，请稍后再试~')
           this.$store.dispatch('const/changeState', { isSynthetizing: false })
           this.changePlayState(PlayState.StateNone) // 合成失败，要把合成状态改回来
