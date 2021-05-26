@@ -236,7 +236,6 @@ export default {
       })
     },
     toSet() {
-      this.showDialog('SpeedyDialog', false)
       reportEvent('more-information-button-click', 147620)
       this.$emit('openDrawer')
     },

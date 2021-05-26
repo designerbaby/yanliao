@@ -343,3 +343,10 @@ export const TrackingType = {
   TrackingTypeGan: 1, // 干音轨
   TrackingTypeBan: 2 // 伴奏音轨
 }
+
+// 侧边弹框状态
+export const SideState = {
+  None: 0, // 隐藏弹框
+  Speedy: 1, // 快捷键弹框
+  More: 2  // 更多信息
+}
