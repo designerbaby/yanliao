@@ -295,7 +295,6 @@ export default {
 			this.$refs[name].show(data);
     },
     downClient() {
-      console.log('downClient')
       if (isMac) {
         location.href = 'https://musicx-1253428821.file.myqcloud.com/files/yanliao-darwin-x64-1.0.0.zip'
       }

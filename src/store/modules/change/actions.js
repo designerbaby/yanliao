@@ -24,7 +24,7 @@ const actions = {
       commit('changeState', { waveWidth })
       waveSurfer.zoom(waveWidth / duration)
       waveSurfer.setVolume(state.trackList[1].volume / 100)
-      rootDispatch('const/adjustStageWidth', { root: true })
+      dispatch('const/adjustStageWidth', null, { root: true })
     })
     commit('const/changeState', { isObbligatoChanged: true }, { root: true })
   },
