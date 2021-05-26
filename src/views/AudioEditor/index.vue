@@ -84,8 +84,9 @@ export default {
     await this.$nextTick()
     document.addEventListener('mousemove', this.mousemoveListener)
     document.addEventListener('mousewheel', this.mousewheelListener, { passive: false })
-    if (!isChrome) {
+    if (!isChrome && !localStorage.getItem('hasShowDialog')) {
       this.dialogShow = true
+      localStorage.setItem('hasShowDialog', true)
     }
   },
   destroyed() {
