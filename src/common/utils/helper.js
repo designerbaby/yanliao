@@ -176,16 +176,16 @@ export const getAuthorization = (method, key, data) => {
 const UA = typeof window !== 'undefined' && window.navigator.userAgent.toLowerCase()
 
 const isEdge = UA && UA.indexOf('edge/') > 0 || UA.indexOf('edg/') > 0;
-console.log('isEdge:', isEdge)
+// console.log('isEdge:', isEdge)
 // 是chrome浏览器
 export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
-console.log('isChrome:', isChrome)
+// console.log('isChrome:', isChrome)
 // 是mac
 export const isMac = /macintosh|mac os x/i.test(UA)
-console.log('isMac:', isMac)
+// console.log('isMac:', isMac)
 // 是windows
 export const isWindows = UA.indexOf("win32") >= 0 || UA.indexOf("wow32") >= 0 || UA.indexOf("win64") >= 0 || UA.indexOf("wow64") >= 0
-console.log('isWindows:', isWindows)
+// console.log('isWindows:', isWindows)
 // 运行在electron中
 export const isInElectron = /electron/i.test(UA)
-console.log('isInElectron:', isInElectron)
+// console.log('isInElectron:', isInElectron)

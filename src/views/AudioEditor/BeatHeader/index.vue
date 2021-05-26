@@ -328,7 +328,7 @@ export default {
   // overflow: hidden;
   font-size: 12px;
   background: #323232;
-  z-index: 1050; // 头部控制板的层级
+  z-index: 2001; // 头部控制板的层级
   img {
     width: 24px;
     height: 24px;
