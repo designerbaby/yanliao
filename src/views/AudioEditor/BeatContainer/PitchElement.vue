@@ -69,7 +69,10 @@ export default {
       }
     },
     getFuStyles(it) {
-      const width = this.timeToPx(it.preTime)
+      let width = this.timeToPx(it.preTime)
+      if (width === 0) { // 修复如果拉不到辅音，就给个默认辅音长度吧。
+        width = 7
+      }
       let left = it.left - width
       if (left <= 0) { // 最小不能为0
         left = 0

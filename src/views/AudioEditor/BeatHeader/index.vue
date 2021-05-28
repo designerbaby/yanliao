@@ -295,10 +295,10 @@ export default {
     },
     downClient() {
       if (isMac) {
-        location.href = 'https://musicx-1253428821.file.myqcloud.com/files/yanliao-darwin-x64-1.0.0.zip'
+        location.href = 'https://musicx-1253428821.file.myqcloud.com/files/盐料视频-darwin-x64-2.0.0.zip'
       }
       if (isWindows) {
-        location.href = 'https://musicx-1253428821.file.myqcloud.com/files/yanliao-app-1.0.0-win.zip'
+        location.href = 'https://musicx-1253428821.file.myqcloud.com/files/%E7%9B%90%E6%96%99%E8%A7%86%E9%A2%91-2.0.0-win.zip'
       }
     }
   }
