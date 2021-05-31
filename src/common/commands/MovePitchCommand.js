@@ -26,7 +26,7 @@ class MovePitchCommand extends Command {
         stateBefore.breath.left = after.breath.left
       }
     })
-    turnChangeLineMap(this.editor.store.state, this.moveList, true)
+    turnChangeLineMap(this.editor.store, this.moveList, true)
     this.editor.store.dispatch('change/afterChangePitchAndHandle', null, { root: true })
   }
   undo() {
@@ -46,7 +46,7 @@ class MovePitchCommand extends Command {
         after: it.before
       })
     })
-    turnChangeLineMap(this.editor.store.state, beforeMoveList, true)
+    turnChangeLineMap(this.editor.store, beforeMoveList, true)
     this.editor.store.dispatch('change/afterChangePitchAndHandle', null, { root: true })
     this.editor.store.dispatch('const/changeState', { mode: ModeState.StatePitch })
   }
