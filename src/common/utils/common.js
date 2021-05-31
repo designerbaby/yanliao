@@ -2,34 +2,37 @@ import { PitchList } from '@/common/utils/const'
 import { timeToPx, generateUUID } from '@/common/utils/helper'
 
 // 修改用户画过的音高线数据
-export const turnChangeLineMap = (rootState, moveList, reset) => {
+export const turnChangeLineMap = (store, moveList, reset) => {
+  const rootState = store.state
+  const rootGetters = store.getters
   const changedLineMap = { ...rootState.change.changedLineMap }
   const deleteLinePoints = new Set()
   const newLinePointsMap = {}
   const pitchPerPx = 100 / rootState.const.noteHeight // 100是因为后台加了乘以100了
+  const scale = rootGetters['const/scale']
 
   const before = moveList[0].before
   const after = moveList[0].after
   const distanceY = before.top - after.top
   const distanceX = after.left - before.left
 
-
   let fromX0 = before.left
   let fromX1 = before.left + before.width
-  let minFromX0 = fromX0
-  let maxFromX1 = fromX1
+  let minFromX0 = fromX0 / scale // 最左边除以比例
+  let maxFromX1 = fromX1 / scale // 最右边除以比例
 
   for (const { before } of moveList) {
-    minFromX0 = Math.min(minFromX0, before.left)
-    maxFromX1 = Math.max(maxFromX1, before.left + before.width)
+    minFromX0 = Math.min(minFromX0, before.left / scale)
+    maxFromX1 = Math.max(maxFromX1, (before.left + before.width) / scale)
   }
-
+  // console.log(`minFromX0: ${minFromX0}, maxFromX1: ${maxFromX1}`)
   Object.keys(changedLineMap)
     .map(Number)
     .filter(x => x >= minFromX0 && x <= maxFromX1)
     .forEach(x => {
       const pitch = changedLineMap[x]
-      const newX = x + distanceX
+      const newX = x + distanceX / scale
+      // console.log(`scale: ${scale}, minFromX0: ${minFromX0}, maxFromX1: ${maxFromX1}, x: ${x}, newX: ${newX}, distanceX: ${distanceX}`)
       let newPitch = pitch + (pitchPerPx * distanceY)
       const highestPitch = PitchList[0].pitch
       if (newPitch > highestPitch * 100) { // 大于最大的pitch取最大的
@@ -43,6 +46,7 @@ export const turnChangeLineMap = (rootState, moveList, reset) => {
       newLinePointsMap[newX] = newPitch
     })
   if (reset) {
+    // 是否要把原来的音高线对应的音高删了
     deleteLinePoints.forEach(v => {
       delete changedLineMap[v]
     })
