@@ -167,7 +167,7 @@ export default {
         this.$refs['uploadImg'].clearFiles()
         return
       }
-      uploadFile(file.raw, 'upload', (url) => {
+      uploadFile(file.raw, 'image', (url) => {
         this.form.imgUrl = url
       })
     },

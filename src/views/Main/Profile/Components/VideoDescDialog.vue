@@ -18,6 +18,7 @@
           ref="uploadImg"
           accept=".jpg,.png"
           :on-change="uploadImgChange"
+          :on-exceed="uploadExcced"
           :auto-upload="false"
           :limit="1"
           drag
@@ -73,6 +74,9 @@ export default {
       this.videoDescDialogShow = true
       this.data = row
       this.descForm.desc = row.desc
+      this.$nextTick(() => {
+        this.$refs['uploadImg'].clearFiles()
+      })
     },
     submit() {
       this.$refs.descForm.validate(valid => {
@@ -90,14 +94,18 @@ export default {
         this.$refs['uploadImg'].clearFiles()
         return
       }
-      uploadFile(file.raw, 'upload', (url) => {
-        this.form.imgUrl = url
+      uploadFile(file.raw, 'image', (url) => {
+        this.descForm.imgUrl = url
       })
+    },
+    uploadExcced(files, fileList) {
+      Message.error('请勿重复上传')
     },
     async toUpload() {
       const { data } = await updateVideo({
         file_id: this.data.file_id,
-        desc: this.descForm.desc
+        desc: this.descForm.desc,
+        custom_cover_url: this.descForm.imgUrl
       })
       if (data.ret_code === 0) {
         Message.success('编辑成功~')
