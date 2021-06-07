@@ -39,7 +39,7 @@
     <div :class="$style.setting">
       <InputNumber v-stop
         :class="$style.bpmInput"
-        :value="$store.state.const.bpm"
+        :value="inputBpmValue"
         @change="bpmChangeChange"
         controls-position="right"
         :min="50" :max="200"
@@ -66,7 +66,7 @@ export default {
       audio: null,
       toneList: [],
       name: '',
-      inputBpmValue: 0
+      inputBpmValue: 50
     }
   },
   components: {
@@ -106,6 +106,7 @@ export default {
         // this.showDrawer = true
         this.$store.dispatch('const/changeState', { sideMode: SideState.More })
       }
+      this.inputBpmValue = this.$store.state.const.bpm
     },
     closeDrawer() {
       this.$store.dispatch('const/changeState', { sideMode: SideState.None })
@@ -127,9 +128,9 @@ export default {
       this.inputBpmValue = value
     },
     confirmBpm() {
-      if (this.inputBpmValue === 0) {
-        this.inputBpmValue = this.$store.state.const.bpm
-      }
+      // if (this.inputBpmValue === 50) {
+      //   this.inputBpmValue = this.$store.state.const.bpm
+      // }
       this.$execute(new ChangeBpmCommand(this.$editor(), this.inputBpmValue))
     },
     keyStop(e) {
