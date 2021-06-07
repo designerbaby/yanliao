@@ -62,7 +62,7 @@ class PastePitchCommand extends Command {
       })
       store.state.change.stagePitches.push(finalItem)
     }
-    turnChangeLineMap(store.state, moveList)
+    turnChangeLineMap(store, moveList)
 
     store.dispatch('const/changeState', { showStageList: false }, { root: true })
     store.dispatch('change/afterChangePitchAndHandle', null, { root: true })

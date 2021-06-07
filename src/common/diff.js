@@ -8,18 +8,21 @@ class Diff {
   }
 
   diffChangeLineMap({ changedLineMap }) {
-    // console.log('beforeChangedLineMap:', beforeChangedLineMap)
-    // console.log('Object.keys(changedLineMap).length:', Object.keys(changedLineMap).length)
+    console.log('beforeChangedLineMap:', beforeChangedLineMap)
+    console.log('Object.keys(changedLineMap).length:', Object.keys(changedLineMap).length)
     const beforeChangedLineMap = this.beforeChangedLineMap
     const deleted = {}
     const added = {}
     const changed = {}
-    if (!beforeChangedLineMap && Object.keys(changedLineMap).length === 0) {
+    if (!beforeChangedLineMap) {
       return []
     }
-    if (!beforeChangedLineMap && Object.keys(changedLineMap).length > 0) {
-      return this.formaAlteredTime(changedLineMap)
-    }
+    // if (!beforeChangedLineMap && Object.keys(changedLineMap).length === 0) {
+    //   return []
+    // }
+    // if (!beforeChangedLineMap && Object.keys(changedLineMap).length > 0) {
+    //   return this.formaAlteredTime(changedLineMap)
+    // }
     for (const [index, value] of Object.entries(beforeChangedLineMap)) {
       if (!changedLineMap[index]) {
         // 新的没有，说明是删除的，存下旧的
@@ -63,7 +66,7 @@ class Diff {
       }
       lastIndex = parseInt(index, 10)
     }
-    console.log('values:', values)
+    console.log('formaAlteredTime values:', values)
     return values
   }
 

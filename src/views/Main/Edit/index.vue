@@ -745,7 +745,7 @@ export default {
       Object.keys(validateResult).forEach((k) => {
         const value = validateResult[k]
         const type = Object.prototype.toString.call(value)
-        console.log(`k: ${k}, value: ${value}, type: ${type}`)
+        // console.log(`k: ${k}, value: ${value}, type: ${type}`)
         if (type === '[object Array]') {
           // 数组
           for (let i = 0; i < value.length; i++) {
