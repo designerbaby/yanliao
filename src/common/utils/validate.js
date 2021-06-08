@@ -31,3 +31,30 @@ export const validateChinese = (rule, value, callback) => {
   }
   callback()
 }
+
+export const validatePhone = (rule, value, callback) => {
+  let r = /^1[3-9]\d{9}$/
+  if (!r.test(value)) {
+    callback(new Error('必须为正确的手机号码'))
+    return
+  }
+  callback()
+}
+
+export const validatePassword = (rule, value, callback) => {
+  let r = /^[\da-zA-Z]{6}$/
+  if (!r.test(value)) {
+    callback(new Error('必须为正确的密码'))
+    return
+  }
+  callback()
+}
+
+export const validatorAuthCode = (rule, value ,callback) => {
+  let r = /^\d{4}$/
+  if (!r.test(value)) {
+    callback(new Error('必须为正确的4位数验证码'))
+    return
+  }
+  callback()
+}

@@ -37,6 +37,7 @@
           <g>
             <!-- <path d="M0 50 C 40 10, 60 10, 100 50 C 140 90, 160 90, 200 50" stroke="white" fill="transparent" stroke-linejoin="round"/> -->
             <path v-for="(item, index) in dn"
+                  :key="index"
                   :d="genStr(index)"
                   stroke="white"
                   fill="transparent"
@@ -114,12 +115,12 @@ export default {
       const T = LOCAL.NW * this.shakeOption.cycle
       let A = LOCAL.NH * this.shakeOption.swing
       // 根据正弦svg 按比例计算 d = M0 50  C 40 10, 60 10, 100 50 C 140 90, 160 90, 200 50
-      const str = `M${I * T} ${O} 
-            C ${I * T + (40 / 200) * T} ${O - ((A * 4) / 3) * Math.sin((4 / 10) * Math.PI)}, 
-            ${I * T + (60 / 200) * T} ${O - ((A * 4) / 3) * Math.sin((6 / 10) * Math.PI)}, 
-            ${I * T + T / 2} ${O} 
-            C ${I * T + (140 / 200) * T} ${O - ((A * 4) / 3) * Math.sin((14 / 10) * Math.PI)}, 
-            ${I * T + (160 / 200) * T} ${O - ((A * 4) / 3) * Math.sin((16 / 10) * Math.PI)}, 
+      const str = `M${I * T} ${O}
+            C ${I * T + (40 / 200) * T} ${O - ((A * 4) / 3) * Math.sin((4 / 10) * Math.PI)},
+            ${I * T + (60 / 200) * T} ${O - ((A * 4) / 3) * Math.sin((6 / 10) * Math.PI)},
+            ${I * T + T / 2} ${O}
+            C ${I * T + (140 / 200) * T} ${O - ((A * 4) / 3) * Math.sin((14 / 10) * Math.PI)},
+            ${I * T + (160 / 200) * T} ${O - ((A * 4) / 3) * Math.sin((16 / 10) * Math.PI)},
             ${I * T + T} ${O}`
       return str
     },

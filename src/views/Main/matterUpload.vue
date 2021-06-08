@@ -120,7 +120,12 @@ export default {
         tags: this.form.tags.map(n => (n.value))
       }
       return fetchSign(f).then(response => {
-        return response.data.data.sign
+        if (response.data.data.ret_code === 0) {
+          return response.data.data.sign
+        } else {
+          Message.error(`上传失败，错误信息: ${response.data.data.err_msg}`)
+          return null
+        }
       })
     },
     uploadChange(file) {
