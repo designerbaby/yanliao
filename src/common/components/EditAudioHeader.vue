@@ -16,7 +16,7 @@
 
 <script>
 import { safeParse, getCookie } from '@/common/utils/helper'
-import { defaultAvatar } from '@/common/utils/const'
+import { DefaultAvatar } from '@/common/utils/const'
 
 export default {
   name: 'EditAudioHeader',
@@ -25,7 +25,7 @@ export default {
   },
   data() {
     return {
-      defaultAvatar,
+      defaultAvatar: DefaultAvatar,
       userInfo: safeParse(sessionStorage.getItem('userInfo')),
       uid: getCookie('mx_uid')
     }

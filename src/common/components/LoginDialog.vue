@@ -7,12 +7,12 @@
     @open="loginDialogOpen"
     :before-close="loginDialogBeforeClose"
   >
-    <div :class="$style.title">
+    <div :class="$style.title" v-if="!showSettingPwd">
       <div :class="[$style.text, loginType === 0 ? $style.active : '']" @click="changeType(0)">短信登录</div>
       <div :class="[$style.text, loginType === 1 ? $style.active : '']" @click="changeType(1)">密码登录</div>
     </div>
-    <LetterLogin v-if="loginType === 0"></LetterLogin>
-    <PwdLogin v-else @showSetPwd="showSettingPwd"></PwdLogin>
+    <LetterLogin v-if="loginType === 0 && !showSettingPwd"></LetterLogin>
+    <PwdLogin v-else-if="loginType === 1 && !showSettingPwd" @show="showSetPwd"></PwdLogin>
     <SettingPwd v-if="showSettingPwd" @closeSetPwd="closeSettingPwd"></SettingPwd>
   </Dialog>
 </template>
@@ -52,7 +52,7 @@ export default {
     changeType(type) {
       this.loginType = type
     },
-    showSettingPwd() {
+    showSetPwd() {
       this.showSettingPwd = true
     },
     closeSettingPwd() {

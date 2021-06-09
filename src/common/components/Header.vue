@@ -29,11 +29,11 @@
 <script>
 import { Message } from 'element-ui'
 import { reportEvent, isTestEnv, getParam, getCookie } from '@/common/utils/helper'
-import { fetchAuthCode, login, logout, userInfo } from '@/api/login'
-import { bindKugou, showBindKuGou } from '@/api/bind'
+import { userInfo } from '@/api/login'
+import { showBindKuGou } from '@/api/bind'
 import LogoutDialog from '@/common/components/LogoutDialog.vue'
 import KugouDialog from '@/common/components/KugouDialog.vue'
-import { defaultAvatar } from '@/common/utils/const'
+import { DefaultAvatar } from '@/common/utils/const'
 
 export default {
   props: {
@@ -64,7 +64,7 @@ export default {
             sessionStorage.setItem('userInfo', JSON.stringify(data))
             const uid = getCookie('mx_uid')
             this.nickName = data.nick_name || `用户${uid}`
-            this.userLogo = data.user_logo || defaultAvatar
+            this.userLogo = data.user_logo || DefaultAvatar
           }
         }
       })

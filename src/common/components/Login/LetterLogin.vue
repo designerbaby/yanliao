@@ -53,7 +53,6 @@ export default {
   },
   methods: {
     getAuthCode() {
-      console.log('getAuthCode')
       this.$refs.loginForm.validateField('phone', (s) => {
         if (s === '') {
           // 校验通过

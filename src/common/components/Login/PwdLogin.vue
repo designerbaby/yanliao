@@ -5,7 +5,7 @@
         <Input :class="$style.phoneInput" placeholder="请输入手机号" v-model="pwdForm.phone"></Input>
       </FormItem>
       <FormItem prop="password">
-        <Input :class="$style.phoneInput" placeholder="请输入密码" v-model="pwdForm.password"></Input>
+        <Input :class="$style.phoneInput" placeholder="请输入密码" v-model="pwdForm.password" show-password></Input>
       </FormItem>
     </Form>
     <div :class="$style.tips">
@@ -76,7 +76,7 @@ export default {
       }
     },
     toSetPwd() {
-      this.$emit('showSetPwd')
+      this.$emit('show')
     }
   }
 }
@@ -105,7 +105,7 @@ export default {
   font-size: 12px;
   color: #2CABFF;
   font-weight: 400;
-  margin: -4px auto 0 auto;
+  margin: -8px auto 8px auto;
 }
 
 .forget {

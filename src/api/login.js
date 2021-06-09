@@ -5,12 +5,13 @@ import service from './main'
 const axios = service
 
 // 获取验证码
-const fetchAuthCode = (phone) => {
+const fetchAuthCode = (phone, busType) => {
   return axios({
     method: 'post',
     url: '/cgi-bin/musicx/user/send_captcha',
     data: {
       phone,
+      bus_type: busType || 0
     },
   })
 }
@@ -46,18 +47,20 @@ const userInfo = () => {
   })
 }
 // 密码登陆
-const pwdLogin = () => {
+const pwdLogin = (data) => {
   return axios({
     method: 'post',
-    url: '/cgi-bin/musicx/user/pwd_login'
+    url: '/cgi-bin/musicx/user/pwd_login',
+    data,
   })
 }
 
 // 设置密码
-const setPwd = () => {
+const setPwd = (data) => {
   return axios({
     method: 'post',
-    url: '/cgi-bin/musicx/user/set_pwd'
+    url: '/cgi-bin/musicx/user/set_pwd',
+    data
   })
 }
 
