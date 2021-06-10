@@ -13,6 +13,23 @@
           :rows="5"
         />
       </FormItem>
+      <FormItem label="上传视频封面" prop="file">
+        <Upload
+          ref="uploadImg"
+          accept=".jpg,.png"
+          :on-change="uploadImgChange"
+          :on-exceed="uploadExcced"
+          :auto-upload="false"
+          :limit="1"
+          drag
+          action=""
+          :multiple="false"
+        >
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+          <div class="el-upload__tip" slot="tip">只能上传jpg,png格式的封面</div>
+        </Upload>
+      </FormItem>
     </Form>
     <span slot="footer" class="dialog-footer">
       <Button type="primary" @click="submit">确 定</Button>
@@ -21,8 +38,10 @@
 </template>
 
 <script>
-import { Dialog, Form, FormItem, Button, Input, Message } from 'element-ui'
+import { Dialog, Form, FormItem, Button, Input, Message, Upload } from 'element-ui'
 import { updateVideo } from '@/api/video'
+import { uploadFile } from '@/common/utils/upload'
+
 export default {
   name: 'VideoDescDialog',
   components: {
@@ -31,7 +50,8 @@ export default {
     FormItem,
     Button,
     Input,
-    Message
+    Message,
+    Upload
   },
   data() {
     return {
@@ -54,6 +74,9 @@ export default {
       this.videoDescDialogShow = true
       this.data = row
       this.descForm.desc = row.desc
+      this.$nextTick(() => {
+        this.$refs['uploadImg'].clearFiles()
+      })
     },
     submit() {
       this.$refs.descForm.validate(valid => {
@@ -64,10 +87,25 @@ export default {
         }
       })
     },
+    uploadImgChange(file) {
+      const size = file.size
+      if (size > 2147483648) {
+        Message.error('文件大小超过 2GB')
+        this.$refs['uploadImg'].clearFiles()
+        return
+      }
+      uploadFile(file.raw, 'image', (url) => {
+        this.descForm.imgUrl = url
+      })
+    },
+    uploadExcced(files, fileList) {
+      Message.error('请勿重复上传')
+    },
     async toUpload() {
       const { data } = await updateVideo({
         file_id: this.data.file_id,
-        desc: this.descForm.desc
+        desc: this.descForm.desc,
+        custom_cover_url: this.descForm.imgUrl
       })
       if (data.ret_code === 0) {
         Message.success('编辑成功~')
@@ -81,5 +119,7 @@ export default {
 }
 </script>
 
-<style lang="less" module>
-</style>
+
+
+
+
