@@ -9,6 +9,7 @@ const getCredential = async () => {
 
 const sendFile = (file, method, key, Authorization, XCosSecurityToken, callback) => {
   const action = 'https://yan-1253428821.cos.ap-guangzhou.myqcloud.com/'
+  // const action = 'https://yan-1253428821.file.myqcloud.com/'
   var url = `${action}${camSafeUrlEncode(key).replace(/%2F/g, '/')}`
   var xhr = new XMLHttpRequest();
   xhr.open(method, url, true);
@@ -37,12 +38,15 @@ const sendFile = (file, method, key, Authorization, XCosSecurityToken, callback)
 export const uploadFile = async (file, type, callback) => {
   const method = 'PUT'
   const mxUid = getCookie('mx_uid')
-  if (type === 'upload') {
+  let key = `file/${mxUid}/${file.name}`
+
+  if (type === 'image') {
+    key = `image/${mxUid}/vod/${Date.now()}-${file.name}`
+  } else if (type === 'upload') {
     Message.success('上传中')
   } else {
     Message.success('开始解析中,请耐心等待～')
   }
-  const key = `file/${mxUid}/${file.name}`
   const { data } = await getCredential()
   const info = await getAuthorization(method, key, data)
   const Authorization = info.Authorization   // 得到的签名
