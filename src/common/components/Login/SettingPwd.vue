@@ -1,28 +1,26 @@
 <template>
-  <transition name="el-fade-in-linear">
-    <div :class="[$style.SettingPwd]">
-      <div :class="$style.title">
-        <div :class="$style.back" @click="back"></div>
-        设置密码
-      </div>
-      <Form :model="setForm" ref="setForm" :rules="rules">
-        <FormItem prop="phone">
-          <Input :class="$style.commonInput" placeholder="请输入手机号" v-model="setForm.phone"></Input>
-        </FormItem>
-        <FormItem prop="code">
-          <div :class="$style.inputBox">
-            <Input :class="$style.codeInput" placeholder="请输入验证码" v-model="setForm.code"></Input>
-            <div v-if="timeLeft === 60" :class="$style.codeButton" @click="getAuthCode">{{ sendAuthCodeText }}</div>
-            <div v-if="timeLeft <= 59" :class="$style.codeButton">{{sendAuthCodeText}}({{timeLeft}}s)</div>
-          </div>
-        </FormItem>
-        <FormItem prop="password">
-          <Input :class="$style.commonInput" placeholder="请输入6位数字或字母密码" v-model="setForm.password" show-password></Input>
-        </FormItem>
-      </Form>
-      <button :class="$style.confirmButton" @click="confirm">确定</button>
+  <div :class="[$style.SettingPwd]">
+    <div :class="$style.title">
+      <div :class="$style.back" @click="back"></div>
+      设置密码
     </div>
-  </transition>
+    <Form :model="setForm" ref="setForm" :rules="rules">
+      <FormItem prop="phone">
+        <Input :class="$style.commonInput" placeholder="请输入手机号" v-model="setForm.phone"></Input>
+      </FormItem>
+      <FormItem prop="code">
+        <div :class="$style.inputBox">
+          <Input :class="$style.codeInput" placeholder="请输入验证码" v-model="setForm.code"></Input>
+          <div v-if="timeLeft === 60" :class="$style.codeButton" @click="getAuthCode">{{ sendAuthCodeText }}</div>
+          <div v-if="timeLeft <= 59" :class="$style.codeButton">{{sendAuthCodeText}}({{timeLeft}}s)</div>
+        </div>
+      </FormItem>
+      <FormItem prop="password">
+        <Input :class="$style.commonInput" placeholder="请输入6位数字或字母密码" v-model="setForm.password" show-password></Input>
+      </FormItem>
+    </Form>
+    <button :class="$style.confirmButton" @click="confirm">确定</button>
+  </div>
 </template>
 
 <script>
@@ -119,6 +117,7 @@ export default {
 <style lang="less" module>
 .SettingPwd{
   // transition: all 1s linear;
+  // position: absolute;
 }
 .title {
   display: flex;
@@ -142,6 +141,7 @@ export default {
   width: 320px;
   height: 56px;
   font-size: 14px;
+  // margin-left: 20px;
   &::placeholder {
     color: #BBBBBB;
   }

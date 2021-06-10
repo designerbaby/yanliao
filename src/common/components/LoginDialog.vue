@@ -13,7 +13,9 @@
     </div>
     <LetterLogin v-if="loginType === 0 && !showSettingPwd"></LetterLogin>
     <PwdLogin v-else-if="loginType === 1 && !showSettingPwd" @show="showSetPwd"></PwdLogin>
-    <SettingPwd v-if="showSettingPwd" @closeSetPwd="closeSettingPwd"></SettingPwd>
+    <transition name="slide-fade">
+      <SettingPwd v-if="showSettingPwd" @closeSetPwd="closeSettingPwd"></SettingPwd>
+    </transition>
   </Dialog>
 </template>
 
@@ -96,6 +98,7 @@ export default {
 .login-dialog {
   text-align: center;
   border-radius: 24px !important;
+  position: relative;
   .el-dialog__body {
     padding: 6px 20px 30px 20px;
   }
@@ -112,4 +115,14 @@ export default {
   }
 }
 
+.slide-fade-enter-active {
+  transition: opacity .5s ease;
+}
+// .slide-fade-leave-active {
+//   transition: opacity .5s ease;
+// }
+.slide-fade-enter, .slide-fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  transform: translateX(10px);
+  opacity: 0;
+}
 </style>
