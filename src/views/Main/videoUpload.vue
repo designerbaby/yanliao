@@ -4,7 +4,7 @@
       <span>发布视频</span>
       <span class="tips"> (发布的视频会同步在盐料视频 app) </span>
     </div>
-    <Form ref="videoForm" label-width="100px" :model="form" class="form" :rules="rules">
+    <Form ref="videoForm" label-width="120px" :model="form" class="form" :rules="rules">
       <FormItem label="上传视频" prop="file">
         <Upload
           ref="upload"
@@ -20,6 +20,23 @@
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将视频文件拖到此处，或<em>点击上传</em></div>
           <div class="el-upload__tip" slot="tip">只能上传avi、wmv、mpeg、mp4、m4v、mov、asf、flv、f4v文件，且不超过2GB</div>
+        </Upload>
+      </FormItem>
+      <FormItem label="上传视频封面" prop="file">
+        <Upload
+          ref="uploadImg"
+          accept=".jpg,.png"
+          :on-change="uploadImgChange"
+          :on-exceed="uploadExcced"
+          :auto-upload="false"
+          :limit="1"
+          drag
+          action=""
+          :multiple="false"
+        >
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+          <div class="el-upload__tip" slot="tip">只能上传jpg,png格式的封面</div>
         </Upload>
       </FormItem>
       <FormItem label="视频描述" prop="desc">
@@ -67,6 +84,7 @@ import {
 } from 'element-ui'
 import { fetchSign } from '@/api/video'
 import { search } from '@/api/api'
+import { uploadFile } from '@/common/utils/upload'
 
 export default {
   name: 'Home',
@@ -126,7 +144,8 @@ export default {
         music: this.form.songName ? `${this.form.songName}-${this.form.singerName}` : '',
         syn_ku_gou: this.form.synKuGou,
         source: 0,
-        music_id: this.musicId
+        music_id: this.musicId,
+        custom_cover_url: this.form.imgUrl
       }
       return fetchSign(f).then((response) => {
         if (response.data.data.ret_code === 0) {
@@ -145,6 +164,17 @@ export default {
         return
       }
       this.form.file = file.raw
+    },
+    uploadImgChange(file) {
+      const size = file.size
+      if (size > 2147483648) {
+        Message.error('文件大小超过 2GB')
+        this.$refs['uploadImg'].clearFiles()
+        return
+      }
+      uploadFile(file.raw, 'image', (url) => {
+        this.form.imgUrl = url
+      })
     },
     uploadExcced(files, fileList) {
       Message.error('请勿重复上传')
