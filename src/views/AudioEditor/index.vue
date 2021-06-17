@@ -537,6 +537,45 @@ export default {
         }
         this.changePlayState(PlayState.StatePlaying)
       }
+      // switch (this.playState) {
+      //   case PlayState.StateNone:
+      //     if (this.isNeedGenerate()) {
+      //       this.doPlay(true)
+      //     } else {
+      //       if (taskId) { // 从编辑进来，url上有taskId
+      //         this.toPlayAudio(this.$store.state.const.onlineUrl)
+      //         this.doPlay(false)
+      //       } else {
+      //         this.doPlay(true)
+      //       }
+      //     }
+      //     this.changePlayState(PlayState.StatePlaying)
+      //     break
+      //   case PlayState.StatePlaying:
+      //     audio.pause()
+      //     this.changePlayState(PlayState.StatePaused)
+      //     break
+      //   case PlayState.StatePaused:
+      //     if (this.isNeedGenerate()) {
+      //       this.doPlay(true)
+      //     } else if(this.isManualMovedLine) {
+      //       this.doPlay(false)
+      //     } else {
+      //       this.doPlay(false, true)
+      //     }
+      //     this.changePlayState(PlayState.StatePlaying)
+      //     break
+      //   case PlayState.StateEnded:
+      //     if (this.isNeedGenerate()) {
+      //       this.doPlay(true)
+      //     } else if(this.isManualMovedLine) {
+      //       this.doPlay(false)
+      //     } else {
+      //       this.doPlay(false)
+      //     }
+      //     this.changePlayState(PlayState.StatePlaying)
+      //   default:;
+      // }
       this.$store.dispatch('const/changeState', { isStagePitchesChanged: false, isVolumeChanged: false, isTensionChanged: false, isStagePitchElementChanged: false, isPitchLineChanged: false, isObbligatoChanged: false, isTrackChanged: false })
     },
     async doPlay(generator = true, isContinue = false) {

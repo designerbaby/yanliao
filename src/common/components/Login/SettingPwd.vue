@@ -138,7 +138,7 @@ export default {
 }
 
 .commonInput {
-  width: 320px;
+  width: 320px !important;
   height: 56px;
   font-size: 14px;
   // margin-left: 20px;
@@ -155,7 +155,7 @@ export default {
 
 .codeInput {
   font-size: 14px;
-  width: 184px;
+  width: 184px !important;
   height: 56px;
   margin-right: 16px;
   &::placeholder {

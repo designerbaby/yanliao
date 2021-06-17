@@ -88,7 +88,7 @@ export default {
 }
 
 .phoneInput {
-  width: 320px;
+  width: 320px !important;
   height: 56px;
   font-size: 14px;
   &::placeholder {
