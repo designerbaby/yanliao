@@ -53,7 +53,7 @@ export default {
   },
   mounted() {
     this.toGetUserInfo()
-    this.toShowBindKugou()
+    // this.toShowBindKugou()
   },
   methods: {
     toGetUserInfo() {
