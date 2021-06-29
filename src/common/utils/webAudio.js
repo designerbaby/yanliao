@@ -1,6 +1,6 @@
 // Support prefixed AudioContext used in Safari and old Chrome versions.
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-const context = new AudioContext();
+const context = new AudioContext(); // 创建音频的上下文
 
 // Polyfill for old callback-based syntax used in Safari.
 if (context.decodeAudioData.length !== 1) {
@@ -27,18 +27,18 @@ if ($audio.canPlayType('audio/webm; codecs=vorbis')) {
 // const url = `https://musicx-1253428821.file.myqcloud.com/files/C4.${extension}?date=${Date.now()}`
 const url = 'https://musicx-1253428821.file.myqcloud.com/files/C5.MP3'
 
-function loadSample(url) {
+function loadSample(url) { // 根据音源链接转成AudioBuffer对象
   return fetch(url)
     .then(response => response.arrayBuffer())
     .then(buffer => context.decodeAudioData(buffer));
 }
 
 function playSample(sample, note) {
-  const source = context.createBufferSource();
-  source.buffer = sample;
-  source.playbackRate.value = 2 ** ((note - 60) / 12);
-  source.connect(context.destination);
-  source.start(0);
+  const source = context.createBufferSource(); // 创建一个新的AudioBufferSourceNode接口
+  source.buffer = sample; // 设置二进制源为AudioBuffer对象来播放
+  source.playbackRate.value = 2 ** ((note - 60) / 12); // 根据音高来改变源播放的速率
+  source.connect(context.destination); //  跟播放器连接
+  source.start(0); // 对缓冲区包含的音频数据进行播放
 }
 
 let sample = loadSample(url)
